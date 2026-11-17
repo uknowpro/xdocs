@@ -408,10 +408,6 @@ export default function ArchitectureDocument({
           >
             <Redo2 size={16} />
           </button>
-          <button className="button" onClick={() => setTab("code")}>
-            <Download size={14} />
-            추출 준비
-          </button>
         </div>
       </div>
       {error && <p role="alert">{error}</p>}
