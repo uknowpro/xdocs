@@ -1,0 +1,35 @@
+node_modules/
+dist/
+release/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Personal vaults and regenerable databases (never commit notes)
+.xdocs/
+vault/
+vaults/
+local-data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.xdocs-*.tmp
+
+# OS and tool caches
+Thumbs.db
+.cache/
+coverage/
