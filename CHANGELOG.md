@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — IaCD
+## 0.5.0-alpha.1 — IaCD 및 자동화 캔버스
 
 - 새 노트 생성 응답 전 이전 편집기에 입력되던 경합 수정.
 
@@ -8,7 +8,7 @@
 - AWS·Azure·GCP Terraform, AWS CloudFormation, Kubernetes manifest·Helm chart 생성.
 - Terraform HCL/JSON 역변환, 알 수 없는 리소스·원본 설정 보존, 제한된 문자열 속성 override.
 - 공식 Azure AVM 3종과 WAF 5개 축 검토 기록.
-- GitHub Actions·Jenkins·Ansible 캔버스 적용 가능성 검토 문서 추가(기능 미구현).
+- GitHub Actions·Jenkins·Ansible 및 CloudFormation 전용 캔버스에서 원본 가져오기, 카드 배치, 블록 편집·추가, 파일 내보내기 지원.
 
 ## 0.4.0-alpha.1 — 2026-11-17
 

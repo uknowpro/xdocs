@@ -2,7 +2,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.4.0-alpha.1 개발용 알파**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.0-alpha.1 개발용 알파**입니다.
 
 ![main의 다크 테마 노트 화면과 연결 그래프](docs/images/dark.png)
 
@@ -16,12 +16,12 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - Terraform/OpenTofu·Kubernetes·Compose 인프라 목록·관계·운영 메모·변경 비교
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.4.0-alpha.1) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.0-alpha.1) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
-main 개발분에는 **IaCD 시각적 설계·Terraform 역변환·CloudFormation·Helm 추출·Azure AVM/WAF 검토**가 추가되어 있습니다. 이 기능은 소스에서 실행해 사용할 수 있습니다.
+IaCD에서 아키텍처를 그리고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
 <details>
-<summary>IaCD 아키텍처 캔버스 보기 (main)</summary>
+<summary>IaCD 아키텍처 캔버스 보기</summary>
 
 ![AWS·Azure·GCP·Kubernetes 컴포넌트를 배치한 IaCD 캔버스](docs/images/iacd.png)
 

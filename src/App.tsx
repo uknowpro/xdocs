@@ -1,3 +1,10 @@
+import { WorkflowCanvas, blankFlow } from "./WorkflowCanvas";
+import {
+  templates,
+  encodeWorkflow,
+  decodeWorkflow,
+  replaceWorkflow,
+} from "../shared/workflows.mjs";
 import ArchitectureDocument, {
   ArchitectureStart,
   type ArchitectureModel,
@@ -132,6 +139,13 @@ export default function App() {
   const sheetData = useMemo(() => {
     try {
       return decodeWorkbook(body);
+    } catch {
+      return null;
+    }
+  }, [body]);
+  const flow = useMemo(() => {
+    try {
+      return decodeWorkflow(body);
     } catch {
       return null;
     }
@@ -631,7 +645,7 @@ export default function App() {
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
-          LOCAL FIRST <span>α 0.4</span>
+          LOCAL FIRST <span>α 0.5</span>
         </span>
       </header>
       <aside className="sidebar">
@@ -709,6 +723,34 @@ export default function App() {
           <Network size={16} />
           IaCD 아키텍처
         </button>
+        <select
+          className="nav-item"
+          aria-label="자동화 캔버스 만들기"
+          value=""
+          disabled={!workspace || readonly || busy}
+          onChange={async (e) => {
+            const k = e.target.value as keyof typeof templates;
+            if (!k || !(await flush())) return;
+            await action(async () => {
+              const title = templates[k].label + " 캔버스";
+              const n = await api.create(
+                title,
+                "# " + title + "\n\n" + encodeWorkflow(blankFlow(k)) + "\n",
+              );
+              setWorkspace(await api.refresh());
+              select(n);
+              setView("note");
+              setEdit(false);
+            });
+          }}
+        >
+          <option value="">새 자동화·스택 캔버스</option>
+          {Object.entries(templates).map(([k, t]) => (
+            <option key={k} value={k}>
+              {t.label}
+            </option>
+          ))}
+        </select>
         {api.importSpreadsheet && (
           <button
             className="nav-item"
@@ -896,7 +938,8 @@ export default function App() {
                 !readonly &&
                 !sheetData &&
                 !infraData &&
-                !architectureData && (
+                !architectureData &&
+                !flow && (
                   <button
                     className="mode-switch"
                     onClick={() => setEdit((s) => !s)}
@@ -961,7 +1004,7 @@ export default function App() {
           </section>
         ) : (
           <div
-            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData ? "sheet-layout" : ""}`}
+            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || flow ? "sheet-layout" : ""}`}
           >
             <article className="document">
               <div className="document-kicker">
@@ -981,7 +1024,8 @@ export default function App() {
                     !readonly &&
                     !sheetData &&
                     !infraData &&
-                    !architectureData && (
+                    !architectureData &&
+                    !flow && (
                       <button
                         className="button small"
                         onClick={async () => {
@@ -994,24 +1038,30 @@ export default function App() {
                         공동 편집
                       </button>
                     )}
-                  {edit && !sheetData && !infraData && !architectureData && (
-                    <div className="segmented">
-                      <button
-                        className={editorMode === "source" ? "selected" : ""}
-                        onClick={() => setEditorMode("source")}
-                      >
-                        Markdown 원문
-                      </button>
-                      <button
-                        className={editorMode === "blocks" ? "selected" : ""}
-                        disabled={/^---\s*$|<\/?[a-zA-Z]|!\[|^\[\^/m.test(body)}
-                        title="HTML·첨부 이미지·프런트매터 등 확장 문법은 원문 모드를 사용하세요"
-                        onClick={() => setEditorMode("blocks")}
-                      >
-                        블록 편집
-                      </button>
-                    </div>
-                  )}
+                  {edit &&
+                    !sheetData &&
+                    !infraData &&
+                    !architectureData &&
+                    !flow && (
+                      <div className="segmented">
+                        <button
+                          className={editorMode === "source" ? "selected" : ""}
+                          onClick={() => setEditorMode("source")}
+                        >
+                          Markdown 원문
+                        </button>
+                        <button
+                          className={editorMode === "blocks" ? "selected" : ""}
+                          disabled={/^---\s*$|<\/?[a-zA-Z]|!\[|^\[\^/m.test(
+                            body,
+                          )}
+                          title="HTML·첨부 이미지·프런트매터 등 확장 문법은 원문 모드를 사용하세요"
+                          onClick={() => setEditorMode("blocks")}
+                        >
+                          블록 편집
+                        </button>
+                      </div>
+                    )}
                   {api.addAttachment && !readonly && (
                     <button
                       className="text-button"
@@ -1041,6 +1091,15 @@ export default function App() {
               )}
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
+              ) : flow ? (
+                <WorkflowCanvas
+                  key={active}
+                  model={flow}
+                  readonly={readonly}
+                  onChange={(v) =>
+                    changeBody(replaceWorkflow(draft.current, v))
+                  }
+                />
               ) : architectureData ? (
                 <ArchitectureDocument
                   key={active}

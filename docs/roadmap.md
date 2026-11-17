@@ -1,6 +1,6 @@
 # 개발 로드맵
 
-기준: v0.4.0-alpha.1 개발용 알파. README에는 로드맵을 싣지 않고 이 문서에서 관리합니다.
+기준: v0.5.0-alpha.1 개발용 알파. README에는 로드맵을 싣지 않고 이 문서에서 관리합니다.
 
 ## 구현 및 로컬 검증 완료
 
@@ -63,7 +63,7 @@
 - [x] Terraform HCL/JSON 역변환, 원본과 미지원 리소스 보존
 - [x] Azure AVM 고정 버전 3종, WAF 검토 기록
 - [x] [자동화 캔버스 가능성 검토](automation-canvas-review.md)
-- [ ] GitHub Actions, Ansible, Jenkins 캔버스 구현(별도 작업)
-- [ ] CloudFormation 원본 역변환·조건·중첩 스택 보존(별도 작업)
+- [x] GitHub Actions, Ansible, Jenkins Declarative 캔버스 원문 가져오기·편집·추출
+- [x] CloudFormation 리소스 그래프 및 조건·중첩 스택 선언 원문 보존
 
-구현 범위·한계·사용법은 [IaCD](iacd.md)에 정리합니다. 기존 v0.4.0-alpha.1 설치 릴리스와 별개인 main 개발분입니다.
+구현 범위·한계·사용법은 [IaCD](iacd.md)에 정리합니다. 자동화 캔버스 범위는 [사용법](automation-canvas-review.md)에 정리합니다.

@@ -1,6 +1,17 @@
-# 자동화 캔버스 확장 검토
+# 자동화·스택 캔버스
 
-검토일: 2026-11-18. GitHub Actions·Jenkins·Ansible은 **검토 단계이며 실행·편집 기능은 구현하지 않았습니다.** IaCD 캔버스의 확장 가능성과 정형화 경계를 정리합니다.
+사이드바에서 **새 자동화·스택 캔버스**를 열고 형식을 선택합니다. 예제로 시작하거나 **원본 가져오기**로 파일을 엽니다. 카드를 선택하면 해당 블록의 코드를 편집할 수 있습니다. **수정 적용**을 누르면 노트에 반영됩니다. 카드 위치는 노트에 따로 저장하며 파일 내보내기는 원문을 사용합니다.
+
+| 형식 | 표시하는 카드와 관계 |
+| --- | --- |
+| GitHub Actions | Job, Step, Job 간 `needs`, Step이 속한 Job |
+| Ansible | Play 및 pre_tasks·roles·tasks·post_tasks·handlers 항목 |
+| Jenkins Declarative | 리터럴 이름의 Stage와 중첩 Stage |
+| CloudFormation YAML·JSON | Resources 및 정적 Ref·GetAtt·DependsOn 참조 |
+
+UTF-8 파일은 500 KB, 카드는 300개까지 지원합니다. 조건·표현식·스크립트·중첩 스택 선언 등은 **전체 원문**에서 편집합니다. 외부 파일이나 동적 실행 결과는 펼치지 않습니다. 가져온 파일 내용은 노트와 함께 저장되며 조직 보관함에서는 동기화됩니다.
+
+## 최초 설계 검토 기록
 
 ## 판단
 
@@ -15,7 +26,7 @@
 | Jenkins               | Declarative Pipeline → Stage/Parallel/Matrix → Steps 계층             | agent, stages, 기본 steps, environment, when, post, parameters               | script 블록, Shared Library 호출, plugin DSL, Scripted Pipeline 전체                     | 높음·마지막 단계               |
 | CloudFormation 역변환 | Stack → Resource 참조 그래프, Conditions·Parameters·Outputs 별도 패널 | 기본 리소스·Ref·GetAtt와 스키마 속성                                         | Fn::If/Sub/FindInMap, dynamic reference, Transform/macros, nested stacks, SAM/CDK 생성물 | 중상·AWS 정방향 추출 다음 단계 |
 
-현재 CloudFormation은 기존 AWS VPC·Subnet·EC2·S3 캔버스에서 **정방향 생성**까지 구현했습니다. 이 문서의 CloudFormation 역변환은 아직 검토 범위입니다.
+
 
 ## 각 도구에서 선이 의미하는 것
 
