@@ -1,4 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import OrganizationPanel from "./OrganizationPanel";
+
+import VaultTools from "./VaultTools";
+import Attachments from "./Attachments";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AlignLeft,
   ArrowDownToLine,
@@ -35,11 +47,13 @@ import {
   Building2,
 } from "lucide-react";
 import { api, isDesktop } from "./api";
-import type { Note, Workspace } from "./types";
+import type { Note, Workspace, UpdateState } from "./types";
 import { linksIn, resolveLink } from "./model";
 import Markdown from "./Markdown";
 import Graph from "./Graph";
 
+const BlockEditor = lazy(() => import("./BlockEditor"));
+const CollaborationEditor = lazy(() => import("./CollaborationEditor"));
 type Theme = "light" | "gray" | "dark" | "system";
 export default function App() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -47,10 +61,16 @@ export default function App() {
   const [body, setBody] = useState("");
   const [view, setView] = useState<"note" | "graph">("note");
   const [edit, setEdit] = useState(false);
+  const [editorMode, setEditorMode] = useState<"source" | "blocks">("source");
+  const [recovery, setRecovery] = useState<"history" | "trash" | null>(null);
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem("xdocs.theme") as Theme) || "light",
   );
+  const [updateState, setUpdateState] = useState<UpdateState | null>(null);
   const [settings, setSettings] = useState(false);
+  const [organizationPanel, setOrganizationPanel] = useState(false);
+  const [collaborating, setCollaborating] = useState(false);
+  const collaborationNote = useRef<Note | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Note[]>([]);
@@ -65,8 +85,17 @@ export default function App() {
   const current = useRef<Note | null>(null);
   const draft = useRef("");
   const saving = useRef<Promise<boolean> | null>(null);
+  const closeGuard = useRef<(() => Promise<boolean>) | null>(null);
+  const registerCloseGuard = useCallback(
+    (guard: (() => Promise<boolean>) | null) => {
+      closeGuard.current = guard;
+    },
+    [],
+  );
   const composing = useRef(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const shared = workspace?.kind === "server";
+  const readonly = workspace?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
   const outgoing = useMemo(
@@ -154,6 +183,30 @@ export default function App() {
       .catch((e) => setError(String(e)));
   }, []);
   useEffect(() => {
+    api
+      .updateStatus?.()
+      .then(setUpdateState)
+      .catch(() => {});
+    return api.onUpdate?.(setUpdateState);
+  }, []);
+  useEffect(
+    () =>
+      api.onChanged?.((w) => {
+        setWorkspace(w);
+        if (
+          !saving.current &&
+          (!current.current || draft.current === current.current.body)
+        )
+          select(
+            w.notes.find((n) => n.id === current.current?.id) || w.notes[0],
+          );
+        else
+          setNotice("외부 변경을 감지했습니다. 편집 중인 내용은 유지합니다.");
+      }),
+    [],
+  );
+  useEffect(() => api.onWatchError?.((message) => setError(message)), []);
+  useEffect(() => {
     const media = matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
       document.documentElement.dataset.theme =
@@ -174,7 +227,10 @@ export default function App() {
   useEffect(
     () =>
       api.onClose?.(() => {
-        void flush().then((ok) => {
+        void (async () => {
+          if (closeGuard.current && !(await closeGuard.current())) return false;
+          return flush();
+        })().then((ok) => {
           if (ok) api.confirmClose?.();
         });
       }),
@@ -202,6 +258,8 @@ export default function App() {
       if (e.key === "Escape") {
         setSearchOpen(false);
         setSettings(false);
+        setRecovery(null);
+        setOrganizationPanel(false);
         setExportOpen(false);
       }
     };
@@ -209,7 +267,14 @@ export default function App() {
     return () => window.removeEventListener("keydown", key);
   }, [flush]);
   useEffect(() => {
-    if (!searchOpen && !settings) return;
+    if (
+      !searchOpen &&
+      !settings &&
+      !organizationPanel &&
+      !recovery &&
+      !collaborating
+    )
+      return;
     const previous = document.activeElement as HTMLElement | null;
     const timer = setTimeout(() => {
       const dialog = document.querySelector<HTMLElement>(".dialog");
@@ -238,7 +303,7 @@ export default function App() {
       document.removeEventListener("keydown", trap);
       previous?.focus();
     };
-  }, [searchOpen, settings]);
+  }, [searchOpen, settings, organizationPanel, recovery, collaborating]);
   useEffect(() => {
     let ignore = false;
     const timer = setTimeout(() => {
@@ -293,6 +358,7 @@ export default function App() {
     });
   }
   async function createNote() {
+    if (readonly) return;
     if (!(await flush())) return;
     await action(async () => {
       const n = await api.create("새 노트");
@@ -310,6 +376,25 @@ export default function App() {
       select(w.notes.find((n) => n.id === active) || w.notes[0]);
       setNotice("보관함과 SQLite 색인을 새로고침했습니다.");
     });
+  }
+  async function attach() {
+    await action(async () => {
+      const a = await api.addAttachment?.();
+      if (a)
+        changeBody(
+          draft.current +
+            "\n\n" +
+            (a.kind === "image" ? "!" : "") +
+            "[" +
+            a.name.replace(/[\[\]]/g, "") +
+            "](" +
+            a.path +
+            ")\n",
+        );
+    });
+  }
+  async function openRecovery(mode: "history" | "trash") {
+    if (await flush()) setRecovery(mode);
   }
   async function importNotes() {
     if (!(await flush())) return;
@@ -332,6 +417,7 @@ export default function App() {
     });
   }
   async function remove() {
+    if (readonly) return;
     if (!activeNote || !(await flush())) return;
     if (
       !confirm(
@@ -387,7 +473,9 @@ export default function App() {
         : status === "error"
           ? "저장 실패"
           : isDesktop
-            ? "로컬에 저장됨"
+            ? shared
+              ? "이 기기에 저장됨"
+              : "로컬에 저장됨"
             : "브라우저에 저장됨";
 
   return (
@@ -398,7 +486,7 @@ export default function App() {
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
-          LOCAL FIRST <span>α 0.1</span>
+          LOCAL FIRST <span>α 0.2</span>
         </span>
       </header>
       <aside className="sidebar">
@@ -434,7 +522,7 @@ export default function App() {
           <span>지식 그래프</span>
         </button>
         <div className="nav-label">
-          <span>개인 보관함</span>
+          <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
           <button
             aria-label="새 노트"
             title="새 노트"
@@ -468,12 +556,26 @@ export default function App() {
         <div className="nav-label">
           <span>함께하는 공간</span>
         </div>
-        <button className="nav-item" onClick={() => setSettings(true)}>
+        <button
+          className="nav-item"
+          onClick={async () => {
+            if (await flush()) setOrganizationPanel(true);
+          }}
+        >
           <Building2 size={16} />
           <span>조직 보관함</span>
-          <small>예정</small>
+          <small>SSO</small>
         </button>
         <div className="sidebar-bottom">
+          {api.listTrash && !shared && (
+            <button
+              className="nav-item"
+              onClick={() => void openRecovery("trash")}
+            >
+              <Trash2 size={16} />
+              <span>휴지통</span>
+            </button>
+          )}
           <button className="nav-item" onClick={() => setSettings(true)}>
             <Settings2 size={16} />
             <span>환경 설정</span>
@@ -482,7 +584,9 @@ export default function App() {
             <span className="status-dot" />
             {isDesktop
               ? workspace
-                ? "로컬 보관함 연결됨"
+                ? shared
+                  ? "조직 보관함 연결됨"
+                  : "로컬 보관함 연결됨"
                 : "보관함을 선택하세요"
               : "브라우저 미리보기"}
             <button
@@ -508,7 +612,7 @@ export default function App() {
             >
               <PanelLeftClose size={17} />
             </button>
-            <span>개인 보관함</span>
+            <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
             <ChevronRight size={12} />
             <strong>
               {view === "graph" ? "연결 탐색" : activeNote?.title || "시작하기"}
@@ -584,7 +688,7 @@ export default function App() {
               연결 탐색<span>{outgoing.length + backlinks.length}</span>
             </button>
             <div className="view-tools">
-              {view === "note" && activeNote && (
+              {view === "note" && activeNote && !readonly && (
                 <button
                   className="mode-switch"
                   onClick={() => setEdit((s) => !s)}
@@ -661,7 +765,74 @@ export default function App() {
                   <Trash2 size={14} />
                 </button>
               </div>
-              {edit ? (
+              {activeNote && (
+                <div className="note-utilities">
+                  {shared && !readonly && (
+                    <button
+                      className="button small"
+                      onClick={async () => {
+                        if (await flush()) {
+                          collaborationNote.current = current.current;
+                          setCollaborating(true);
+                        }
+                      }}
+                    >
+                      공동 편집
+                    </button>
+                  )}
+                  {edit && (
+                    <div className="segmented">
+                      <button
+                        className={editorMode === "source" ? "selected" : ""}
+                        onClick={() => setEditorMode("source")}
+                      >
+                        Markdown 원문
+                      </button>
+                      <button
+                        className={editorMode === "blocks" ? "selected" : ""}
+                        disabled={/^---\s*$|<\/?[a-zA-Z]|!\[|^\[\^/m.test(body)}
+                        title="HTML·첨부 이미지·프런트매터 등 확장 문법은 원문 모드를 사용하세요"
+                        onClick={() => setEditorMode("blocks")}
+                      >
+                        블록 편집
+                      </button>
+                    </div>
+                  )}
+                  {api.addAttachment && !shared && (
+                    <button
+                      className="text-button"
+                      onClick={() => void attach()}
+                    >
+                      <Upload size={14} />
+                      첨부
+                    </button>
+                  )}
+                  {api.history && !shared && (
+                    <button
+                      className="text-button"
+                      onClick={() => void openRecovery("history")}
+                    >
+                      변경 이력
+                    </button>
+                  )}
+                </div>
+              )}
+              {edit && editorMode === "blocks" ? (
+                <Suspense
+                  fallback={<p className="muted">편집기 불러오는 중…</p>}
+                >
+                  <BlockEditor
+                    key={active}
+                    value={body}
+                    onChange={changeBody}
+                    notes={notes}
+                    onComposition={(v) => {
+                      composing.current = v;
+                      if (!v) void flush();
+                    }}
+                  />
+                </Suspense>
+              ) : edit ? (
                 <>
                   <div className="editor-toolbar" aria-label="Markdown 서식">
                     <button
@@ -729,6 +900,7 @@ export default function App() {
                   onOpen={(id) => void navigate(id)}
                 />
               )}
+              <Attachments body={body} />
               <div className="document-end">
                 <span>—</span>
                 <span>
@@ -804,7 +976,7 @@ export default function App() {
       <footer className="statusbar">
         <span>
           <HardDrive size={11} />
-          {isDesktop ? "로컬 파일" : "미리보기"}
+          {isDesktop ? (shared ? "조직 캐시" : "로컬 파일") : "미리보기"}
           <i />
           Markdown
         </span>
@@ -834,6 +1006,51 @@ export default function App() {
           <Check size={16} />
           {notice}
         </div>
+      )}
+      {collaborating && collaborationNote.current && (
+        <Suspense
+          fallback={<div className="overlay">공동 편집기 불러오는 중…</div>}
+        >
+          <CollaborationEditor
+            registerGuard={registerCloseGuard}
+            note={collaborationNote.current}
+            onClose={() => {
+              setCollaborating(false);
+              void refresh();
+            }}
+            onCopy={(n) => {
+              update(n);
+              select(n);
+              setCollaborating(false);
+            }}
+          />
+        </Suspense>
+      )}
+      {organizationPanel && (
+        <OrganizationPanel
+          onClose={() => setOrganizationPanel(false)}
+          onOpen={(w) => {
+            setWorkspace(w);
+            select(w?.notes[0]);
+            setOrganizationPanel(false);
+            setView("note");
+            setEdit(false);
+          }}
+        />
+      )}
+      {recovery && (
+        <VaultTools
+          mode={recovery}
+          note={current.current || undefined}
+          onClose={() => setRecovery(null)}
+          onRestored={(n) => {
+            update(n);
+            select(n);
+            setRecovery(null);
+            setView("note");
+            setNotice("노트를 복원했습니다.");
+          }}
+        />
       )}
       {searchOpen && (
         <div className="overlay" onClick={() => setSearchOpen(false)}>
@@ -960,28 +1177,87 @@ export default function App() {
               </button>
               <button
                 className="button"
-                disabled={!workspace || !isDesktop}
+                disabled={!workspace || !isDesktop || shared}
                 onClick={() => {
                   setSettings(false);
                   void importNotes();
                 }}
               >
                 <Upload size={15} />
-                Markdown 가져오기
+                Markdown / HTML 가져오기
               </button>
             </div>
             <hr />
+            {updateState && (
+              <>
+                <h3>앱 업데이트 · {updateState.version}</h3>
+                <p>{updateState.message}</p>
+                <div
+                  className="row"
+                  style={{ marginTop: 10, marginBottom: 20 }}
+                >
+                  <button
+                    className="button"
+                    disabled={
+                      busy ||
+                      ["checking", "downloading"].includes(updateState.status)
+                    }
+                    onClick={() =>
+                      void action(async () =>
+                        setUpdateState(await api.checkUpdate!()),
+                      )
+                    }
+                  >
+                    업데이트 확인
+                  </button>
+                  {updateState.status === "available" && (
+                    <button
+                      className="button"
+                      onClick={() =>
+                        void action(async () =>
+                          setUpdateState(await api.downloadUpdate!()),
+                        )
+                      }
+                    >
+                      다운로드
+                    </button>
+                  )}
+                  {updateState.status === "ready" && (
+                    <button
+                      className="button"
+                      onClick={async () => {
+                        if (await flush())
+                          await action(async () => api.installUpdate!());
+                      }}
+                    >
+                      저장하고 다시 시작
+                    </button>
+                  )}
+                </div>
+                <hr />
+              </>
+            )}
             <div className="planned">
               <Building2 size={19} />
               <div>
                 <h3>조직 연결</h3>
-                <p>PostgreSQL · Redis · SSO</p>
+                <p>PostgreSQL · Redis · OIDC SSO</p>
               </div>
-              <span className="badge">후속 개발</span>
+              <button
+                className="button"
+                onClick={async () => {
+                  if (await flush()) {
+                    setSettings(false);
+                    setOrganizationPanel(true);
+                  }
+                }}
+              >
+                연결 관리
+              </button>
             </div>
             <p className="small-text">
-              현재 버전은 개인 로컬 보관함을 지원합니다. 서버 연결 및 로그인
-              정보는 수집하지 않습니다.
+              개인 보관함은 업로드되지 않습니다. 조직 문서는 별도 캐시와 변경
+              대기열에 저장됩니다.
             </p>
           </section>
         </div>

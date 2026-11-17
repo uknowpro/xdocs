@@ -33,3 +33,7 @@ local-data/
 Thumbs.db
 .cache/
 coverage/
+
+# Authentication and local service state
+*.tokens
+server/data/

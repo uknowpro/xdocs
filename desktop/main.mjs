@@ -1,10 +1,23 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu } from "electron";
+import { initializeUpdates } from "./updates.mjs";
+import { OrganizationSession, OrganizationVault } from "./organization.mjs";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  safeStorage,
+  shell,
+} from "electron";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { Vault } from "./store.mjs";
+import { VaultClient } from "./vault-client.mjs";
+import { watch } from "chokidar";
+import TurndownService from "turndown";
 import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
+let watcher, refreshTimer, organization, orgVault, syncTimer;
 const directory = path.dirname(fileURLToPath(import.meta.url));
 let window,
   vault,
@@ -12,6 +25,7 @@ let window,
 const pageURL = pathToFileURL(path.join(directory, "../dist/index.html")).href;
 const configPath = () => path.join(app.getPath("userData"), "workspace.json");
 const mustVault = () => {
+  if (orgVault) return orgVault;
   if (!vault) throw new Error("먼저 보관함을 열어 주세요.");
   return vault;
 };
@@ -26,9 +40,34 @@ const register = (channel, fn) =>
     return fn(...args);
   });
 async function chooseVault(root) {
-  const next = await Vault.open(root);
-  vault?.close();
+  const next = await VaultClient.open(root);
+  clearInterval(syncTimer);
+  await orgVault?.close();
+  orgVault = null;
+  await watcher?.close();
+  clearTimeout(refreshTimer);
+  await vault?.close();
   vault = next;
+  watcher = watch(root, {
+    ignoreInitial: true,
+    ignored: (file, stats) =>
+      file.split(/[\\/]/).some((p) => p.startsWith(".")) ||
+      (stats?.isFile() && !file.toLowerCase().endsWith(".md")),
+    awaitWriteFinish: { stabilityThreshold: 350, pollInterval: 100 },
+  });
+  watcher.on("all", () => {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(async () => {
+      try {
+        const snapshot = await next.refresh();
+        if (vault === next && !orgVault && !window.isDestroyed())
+          window.webContents.send("vault:changed", snapshot);
+      } catch (e) {
+        if (!window.isDestroyed())
+          window.webContents.send("vault:watch-error", e.message);
+      }
+    }, 400);
+  });
   await mkdir(app.getPath("userData"), { recursive: true });
   await writeFile(configPath(), JSON.stringify({ root }));
   return vault.snapshot();
@@ -81,6 +120,88 @@ app.whenReady().then(async () => {
   window.webContents.session.setPermissionRequestHandler(
     (_wc, _permission, callback) => callback(false),
   );
+  const updates = initializeUpdates({
+    app,
+    notify: (state) => {
+      if (!window.isDestroyed())
+        window.webContents.send("update:status", state);
+    },
+    prepareInstall: () => {
+      closeAllowed = true;
+    },
+  });
+  register("update:status", () => updates.status());
+  register("update:check", () => updates.check());
+  register("update:download", () => updates.download());
+  register("update:install", () => updates.install());
+  organization = new OrganizationSession({
+    directory: path.join(app.getPath("userData"), "accounts"),
+    safeStorage,
+    openExternal: (url) => shell.openExternal(url),
+  });
+  register("org:login", (server) => {
+    if (orgVault) {
+      if (server.replace(/\/$/, "") !== organization.server)
+        throw Error("다른 서버에 연결하려면 먼저 로그아웃해 주세요.");
+      return organization.list();
+    }
+    return organization.login(server);
+  });
+  register("org:open", async (id) => {
+    const list = await organization.list();
+    const selected = list.find((w) => w.id === id);
+    if (!selected) throw Error("접근할 수 없는 조직 보관함입니다.");
+    const next = await OrganizationVault.open(
+      path.join(app.getPath("userData"), "organization-data"),
+      organization,
+      selected,
+    );
+    clearInterval(syncTimer);
+    await orgVault?.close();
+    orgVault = next;
+    syncTimer = setInterval(async () => {
+      try {
+        const snapshot = await next.sync();
+        if (orgVault === next && !window.isDestroyed())
+          window.webContents.send("vault:changed", snapshot);
+      } catch (e) {
+        if (orgVault === next && !window.isDestroyed())
+          window.webContents.send(
+            "vault:watch-error",
+            "조직 동기화 대기: " + e.message,
+          );
+      }
+    }, 15000);
+    return next.snapshot();
+  });
+  register("collab:start", (id) => {
+    if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
+    return orgVault.collaborationStart(id);
+  });
+  register("collab:update", (packet) => {
+    if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
+    return orgVault.collaborationUpdate(packet);
+  });
+  register("collab:sync", (id) => {
+    if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
+    return orgVault.collaborationSync(id);
+  });
+  register("collab:copy", (id) => {
+    if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
+    return orgVault.collaborationCopy(id);
+  });
+  register("org:conflicts", () => orgVault?.conflicts() || []);
+  register("org:resolve", async (id, choice) => {
+    if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
+    return orgVault.resolveConflict(id, choice);
+  });
+  register("org:logout", async () => {
+    clearInterval(syncTimer);
+    await orgVault?.close();
+    orgVault = null;
+    await organization.logout();
+    return vault?.snapshot() || null;
+  });
   register("vault:load", async () => {
     if (vault) return vault.snapshot();
     try {
@@ -103,27 +224,60 @@ app.whenReady().then(async () => {
   register("note:save", (data) => mustVault().save(data));
   register("note:trash", (data) => mustVault().trash(data));
   register("note:search", (query) => mustVault().search(query));
+  register("note:history", (id) => {
+    if (orgVault) throw Error("조직 이력 UI는 준비 중입니다.");
+    return mustVault().history(id);
+  });
+  register("note:restore-history", (data) => mustVault().restoreHistory(data));
+  register("vault:trash", () => mustVault().listTrash());
+  register("vault:restore", (token) => mustVault().restoreTrash(token));
+  register("asset:read", (relative) => mustVault().readAttachment(relative));
+  register("asset:add", async () => {
+    const result = await dialog.showOpenDialog(window, {
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "이미지 / PDF",
+          extensions: ["png", "jpg", "jpeg", "webp", "gif", "pdf"],
+        },
+      ],
+    });
+    return result.canceled
+      ? null
+      : mustVault().addAttachment(result.filePaths[0]);
+  });
   register("note:import", async () => {
     const store = mustVault();
     const result = await dialog.showOpenDialog(window, {
       properties: ["openFile", "multiSelections"],
-      filters: [{ name: "Markdown", extensions: ["md"] }],
+      filters: [{ name: "Markdown / HTML", extensions: ["md", "html", "htm"] }],
     });
     if (result.canceled) return [];
     const imported = [];
     for (const file of result.filePaths) {
       const raw = await readFile(file, "utf8");
-      const body = raw.replace(/^<!-- xdocs:id=[a-f0-9-]{36} -->\r?\n/i, "");
-      imported.push(await store.create(path.basename(file, ".md"), body));
+      let body = raw.replace(/^<!-- xdocs:id=[a-f0-9-]{36} -->\r?\n/i, "");
+      if (/\.html?$/i.test(file))
+        body = new TurndownService({
+          headingStyle: "atx",
+          codeBlockStyle: "fenced",
+        }).turndown(
+          sanitizeHtml(raw, {
+            allowedTags: sanitizeHtml.defaults.allowedTags,
+            allowedAttributes: { a: ["href"] },
+            allowedSchemes: ["https", "http", "mailto"],
+          }),
+        );
+      imported.push(
+        await store.create(path.basename(file, path.extname(file)), body),
+      );
     }
     return imported;
   });
   register("note:export", async ({ id, format }) => {
     if (!["md", "html", "pdf"].includes(format))
       throw new Error("지원하지 않는 내보내기 형식입니다.");
-    const note = mustVault()
-      .snapshot()
-      .notes.find((n) => n.id === id);
+    const note = (await mustVault().snapshot()).notes.find((n) => n.id === id);
     if (!note) throw new Error("노트를 찾을 수 없습니다.");
     const result = await dialog.showSaveDialog(window, {
       defaultPath: note.title.replace(/[<>:"/\\|?*]/g, "-") + "." + format,
@@ -173,7 +327,11 @@ app.whenReady().then(async () => {
   });
   await window.loadURL(pageURL);
 });
-app.on("window-all-closed", () => {
-  vault?.close();
+app.on("window-all-closed", async () => {
+  clearTimeout(refreshTimer);
+  clearInterval(syncTimer);
+  await orgVault?.close();
+  await watcher?.close();
+  await vault?.close();
   app.quit();
 });

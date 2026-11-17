@@ -13,6 +13,8 @@ export default function Graph({
   onOpen: (id: string) => void;
   compact?: boolean;
 }) {
+  const [filter, setFilter] = useState("");
+  const [limit, setLimit] = useState(60);
   const [scope, setScope] = useState<"local" | "all">("local");
   const [selected, setSelected] = useState(active);
   const allEdges = useMemo(() => edgesFor(notes), [notes]);
@@ -22,9 +24,19 @@ export default function Graph({
       .filter((e) => e.source === active || e.target === active)
       .flatMap((e) => [e.source, e.target]),
   ]);
-  const visible = (
+  const candidates = (
     scope === "all" && !compact ? notes : notes.filter((n) => ids.has(n.id))
-  ).slice(0, compact ? 9 : 60);
+  ).filter(
+    (n) =>
+      compact ||
+      !filter ||
+      (n.title + " " + n.path + " " + n.body)
+        .toLowerCase()
+        .includes(filter.toLowerCase()),
+  );
+  const visible = [...candidates]
+    .sort((a, b) => (a.id === active ? -1 : b.id === active ? 1 : 0))
+    .slice(0, compact ? 9 : limit);
   const ordered = [...visible].sort((a, b) =>
     a.id === active ? -1 : b.id === active ? 1 : a.title.localeCompare(b.title),
   );
@@ -71,6 +83,31 @@ export default function Graph({
             </button>
           </div>
         </header>
+      )}
+      {!compact && (
+        <div className="graph-filters">
+          <input
+            aria-label="그래프 필터"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="제목·폴더·태그로 필터"
+          />
+          <label>
+            표시 개수{" "}
+            <select
+              aria-label="그래프 표시 개수"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+            >
+              <option value={30}>30</option>
+              <option value={60}>60</option>
+              <option value={120}>120</option>
+            </select>
+          </label>
+          <span>
+            {candidates.length}개 중 {visible.length}개
+          </span>
+        </div>
       )}
       <div className="graph-canvas" aria-label="노트 연결 그래프">
         <svg
@@ -125,7 +162,9 @@ export default function Graph({
             <strong>{choice?.title || "노트가 없습니다"}</strong>
             <p>
               {visible.length}개 노트 · {edges.length}개 연결
-              {visible.length === 60 ? " · 최대 60개 표시" : ""}
+              {visible.length < candidates.length
+                ? " · 필터로 범위를 좁혀 보세요"
+                : ""}
             </p>
           </div>
           {choice && (

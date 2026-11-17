@@ -95,3 +95,72 @@ test("links ignore fenced code and preserve aliases", () => {
     "노트",
   ]);
 });
+
+test("v0.1 vault upgrades without rewriting notes and survives reopening", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "xdocs-upgrade-"));
+  let vault;
+  t.after(async () => {
+    vault?.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  await mkdir(path.join(root, ".xdocs"));
+  const { DatabaseSync } = await import("node:sqlite");
+  const old = new DatabaseSync(path.join(root, ".xdocs/index.sqlite"));
+  old.exec(
+    "CREATE TABLE notes(id TEXT PRIMARY KEY,title TEXT NOT NULL,body TEXT NOT NULL,path TEXT UNIQUE NOT NULL,revision TEXT NOT NULL); CREATE TABLE links(source TEXT NOT NULL,target TEXT NOT NULL,PRIMARY KEY(source,target));",
+  );
+  old.close();
+  const raw =
+    "<!-- xdocs:id=550e8400-e29b-41d4-a716-446655440000 -->\n# 기존 데이터\n\n한글 보존 [[대상]]";
+  await writeFile(path.join(root, "note.md"), raw);
+  vault = await Vault.open(root);
+  assert.equal(
+    vault.snapshot().notes[0].id,
+    "550e8400-e29b-41d4-a716-446655440000",
+  );
+  assert.equal(vault.search("한글 보존").length, 1);
+  assert.equal(await readFile(path.join(root, "note.md"), "utf8"), raw);
+  vault.close();
+  vault = await Vault.open(root);
+  assert.equal(
+    vault.snapshot().notes[0].body,
+    raw.split("\n").slice(1).join("\n"),
+  );
+  assert.equal(vault.db.prepare("PRAGMA user_version").get().user_version, 1);
+});
+test("history restore preserves the version replaced, trash restore preserves IDs", async (t) => {
+  const { root, vault } = await setup(t);
+  const a = await vault.create("이력", "# 이력\n\n첫 번째");
+  const b = await vault.save({ ...a, body: "# 이력\n\n두 번째" });
+  const h = await vault.history(a.id);
+  assert.equal(h.length, 1);
+  const c = await vault.restoreHistory({
+    id: a.id,
+    revision: b.revision,
+    historyRevision: h[0].revision,
+  });
+  assert.equal(c.body, a.body);
+  assert.equal((await vault.history(a.id)).length, 2);
+  await vault.trash(c);
+  const items = await vault.listTrash();
+  const restored = await vault.restoreTrash(items[0].token);
+  assert.equal(restored.id, a.id);
+  assert.equal(restored.body, a.body);
+  assert.equal((await vault.listTrash()).length, 0);
+});
+test("attachments are copied locally and only allowed paths can be read", async (t) => {
+  const { root, vault } = await setup(t);
+  const file = path.join(root, "sample.pdf");
+  await writeFile(file, "%PDF-1.4\n");
+  const a = await vault.addAttachment(file);
+  assert.equal(a.kind, "pdf");
+  assert.equal((await vault.readAttachment(a.path)).mime, "application/pdf");
+  await assert.rejects(vault.readAttachment("../sample.pdf"), /경로/);
+});
+test("a newer index version is rejected without changing the Markdown source", async (t) => {
+  const { root, vault } = await setup(t);
+  const a = await vault.create("호환성");
+  vault.db.exec("PRAGMA user_version=999");
+  await assert.rejects(Vault.open(root), /최신/);
+  assert.match(await readFile(path.join(root, a.path), "utf8"), /# 호환성/);
+});

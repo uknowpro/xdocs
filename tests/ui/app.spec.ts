@@ -76,3 +76,38 @@ test("desktop sized light, gray and dark screens have no horizontal overflow", a
     ),
   ).toBe(true);
 });
+
+test("block editor preserves linked text and supports formatting and block movement", async ({
+  page,
+}) => {
+  page.on("pageerror", (error) => console.error(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") console.error(message.text());
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "편집하기", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "노트 본문" })
+    .fill(
+      "# 블록 테스트\n\n첫 번째 문단\n\n두 번째 문단\n\n[[UI 디자인 원칙]]",
+    );
+  await page.getByRole("button", { name: "블록 편집", exact: true }).click();
+  const editor = page.getByRole("textbox", { name: "블록 편집기" });
+  await expect(editor).toContainText("첫 번째 문단");
+  await editor.click();
+  await page.keyboard.press("Control+End");
+  await page.keyboard.type(" 추가 텍스트");
+  await page.getByRole("button", { name: "블록 정렬", exact: true }).click();
+  await page
+    .getByRole("button", { name: "2번 블록 아래로", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Markdown 원문", exact: true })
+    .click();
+  const raw = await page
+    .getByRole("textbox", { name: "노트 본문" })
+    .inputValue();
+  expect(raw).toContain("[[UI 디자인 원칙]]");
+  expect(raw.indexOf("두 번째 문단")).toBeLessThan(raw.indexOf("첫 번째 문단"));
+  expect(raw).toContain("추가 텍스트");
+});

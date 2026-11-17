@@ -24,7 +24,10 @@ await writeFile(
   "# 데스크톱 테스트\n\n실제 파일과 SQLite 검증",
 );
 const app = await electron.launch({
-  args: ["."],
+  args: process.env.XDOCS_EXECUTABLE ? [] : ["."],
+  ...(process.env.XDOCS_EXECUTABLE
+    ? { executablePath: process.env.XDOCS_EXECUTABLE }
+    : {}),
   env: { ...process.env, XDOCS_TEST_DATA: data },
   timeout: 30000,
 });
@@ -59,6 +62,11 @@ try {
     (await readdir(vault)).filter((n) => n.endsWith(".md")).length,
     2,
   );
+  await page.getByRole("button", { name: "블록 편집", exact: true }).click();
+  await page.getByRole("textbox", { name: "블록 편집기" }).waitFor();
+  await page
+    .getByRole("button", { name: "Markdown 원문", exact: true })
+    .click();
   await page.getByRole("button", { name: "읽기 모드" }).click();
   for (const format of ["md", "html", "pdf"]) {
     const output = path.join(temp, "export." + format);
