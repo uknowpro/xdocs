@@ -84,7 +84,8 @@
         "AppImage",
         "deb"
       ],
-      "category": "Office"
+      "category": "Office",
+      "maintainer": "uknowpro <yunho0520@gmail.com>"
     },
     "mac": {
       "target": [

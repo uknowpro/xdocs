@@ -191,3 +191,85 @@ test("Markdown table selection copies tab-separated cells", async ({
   });
   expect(copied).toBe("이름\t값\r\n한글\t12");
 });
+
+test("delayed filesystem refresh does not replace a newer draft", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const note = {
+      id: "file-note",
+      title: "원본",
+      body: "# 원본\n\n첫 내용",
+      revision: "v1",
+      path: "note.md",
+    };
+    const workspace = { root: "test", name: "test", notes: [note] };
+    (window as any).__reads = 0;
+    (window as any).xdocs = {
+      load: async () => workspace,
+      onChanged: (callback: any) => {
+        (window as any).__change = callback;
+        return () => {};
+      },
+      readNote: async () => {
+        (window as any).__reads++;
+        return new Promise((resolve) => {
+          (window as any).__resolveRead = () =>
+            resolve({ ...note, body: "# 외부 내용", revision: "v2" });
+        });
+      },
+      save: async (input: any) => {
+        (window as any).__saved = input.body;
+        return { ...note, ...input, revision: "v3" };
+      },
+    };
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "편집하기", exact: true }).click();
+  await page.evaluate(() => {
+    (window as any).__change({
+      root: "test",
+      name: "test",
+      notes: [
+        {
+          id: "file-note",
+          title: "원본",
+          body: "preview",
+          revision: "v1",
+          path: "note.md",
+          unloaded: true,
+        },
+      ],
+    });
+  });
+  expect(await page.evaluate(() => (window as any).__reads)).toBe(0);
+  await page.evaluate(() => {
+    (window as any).__change({
+      root: "test",
+      name: "test",
+      notes: [
+        {
+          id: "file-note",
+          title: "원본",
+          body: "preview",
+          revision: "v2",
+          path: "note.md",
+          unloaded: true,
+        },
+      ],
+    });
+  });
+  await page.waitForFunction(
+    () => typeof (window as any).__resolveRead === "function",
+  );
+  await page
+    .getByRole("textbox", { name: "노트 본문" })
+    .fill("# 내가 쓰는 새 내용");
+  await page.evaluate(() => (window as any).__resolveRead());
+  await expect(page.getByRole("textbox", { name: "노트 본문" })).toHaveValue(
+    "# 내가 쓰는 새 내용",
+  );
+  await page.waitForFunction(
+    () => (window as any).__saved === "# 내가 쓰는 새 내용",
+  );
+});

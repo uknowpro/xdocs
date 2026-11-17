@@ -105,6 +105,8 @@ export default function App() {
   const textarea = useRef<HTMLTextAreaElement>(null);
   const [loadingNote, setLoadingNote] = useState(false);
   const selectionVersion = useRef(0);
+  const draftVersion = useRef(0);
+  const loadingRef = useRef(false);
   const shared = workspace?.kind === "server";
   const sheetData = useMemo(() => {
     try {
@@ -145,24 +147,37 @@ export default function App() {
   function select(note: Note | undefined) {
     const ticket = ++selectionVersion.current;
     if (note?.unloaded && api.readNote) {
-      setLoadingNote(true);
-      setActive(note.id);
-      current.current = null;
-      draft.current = "";
-      setBody("");
+      const same = note.id === current.current?.id;
+      if (same && note.revision === current.current?.revision) return;
+      const draftAtRequest = draftVersion.current;
+      if (!same) {
+        loadingRef.current = true;
+        setLoadingNote(true);
+        setActive(note.id);
+        current.current = null;
+        draft.current = "";
+        setBody("");
+      }
       void api
         .readNote(note.id)
         .then((full) => {
-          if (ticket === selectionVersion.current) select(full);
+          if (ticket !== selectionVersion.current) return;
+          if (same && draftAtRequest !== draftVersion.current) {
+            setNotice("외부 변경을 감지했습니다. 편집 중인 내용은 유지합니다.");
+            return;
+          }
+          select(full);
         })
         .catch((e) => {
           if (ticket === selectionVersion.current) {
             setError(String(e));
+            loadingRef.current = false;
             setLoadingNote(false);
           }
         });
       return;
     }
+    loadingRef.current = false;
     setLoadingNote(false);
     current.current = note || null;
     draft.current = note?.body || "";
@@ -175,7 +190,7 @@ export default function App() {
     const note = isDesktop
       ? {
           ...full,
-          body: JSON.parse(JSON.stringify(full.body.slice(0,240))),
+          body: JSON.parse(JSON.stringify(full.body.slice(0, 240))),
           links: linksIn(full.body),
           tags: [...full.body.matchAll(/(?:^|\s)#([^\s#]+)/g)].map((m) => m[1]),
           unloaded: true,
@@ -244,15 +259,15 @@ export default function App() {
     () =>
       api.onChanged?.((w) => {
         setWorkspace(w);
-        if (
-          !saving.current &&
-          (!current.current || draft.current === current.current.body)
-        )
-          select(
-            w.notes.find((n) => n.id === current.current?.id) || w.notes[0],
-          );
-        else if (!saving.current)
+        if (saving.current || loadingRef.current) return;
+        const existing = current.current;
+        const incoming = w.notes.find((n) => n.id === existing?.id);
+        if (existing && incoming?.revision === existing.revision) return;
+        if (existing && draft.current !== existing.body) {
           setNotice("외부 변경을 감지했습니다. 편집 중인 내용은 유지합니다.");
+          return;
+        }
+        select(incoming || w.notes[0]);
       }),
     [],
   );
@@ -532,6 +547,7 @@ export default function App() {
     });
   }
   function changeBody(value: string) {
+    draftVersion.current++;
     draft.current = value;
     setBody(value);
     setStatus("pending");
@@ -973,7 +989,7 @@ export default function App() {
                     })();
                   }}
                 />
-              ) : edit && editorMode === "blocks" ? (
+              ) : edit && !readonly && editorMode === "blocks" ? (
                 <Suspense
                   fallback={<p className="muted">편집기 불러오는 중…</p>}
                 >
@@ -988,7 +1004,7 @@ export default function App() {
                     }}
                   />
                 </Suspense>
-              ) : edit ? (
+              ) : edit && !readonly ? (
                 <>
                   <div className="editor-toolbar" aria-label="Markdown 서식">
                     <button
