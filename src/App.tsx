@@ -1,3 +1,5 @@
+import PageTree, { type PageKind } from "./PageTree";
+import { parentHeader, withParent } from "../shared/page-parent.mjs";
 import { isCanvas } from "./canvasPreview";
 import { WorkflowCanvas, blankFlow } from "./WorkflowCanvas";
 import {
@@ -120,8 +122,7 @@ export default function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sidebar, setSidebar] = useState(true);
-  const [library, setLibrary] = useState<"notes" | "canvases">("notes");
-  const [notePage, setNotePage] = useState(0);
+  const architectureParent = useRef<string | undefined>(undefined);
   const current = useRef<Note | null>(null);
   const draft = useRef("");
   const saving = useRef<Promise<boolean> | null>(null);
@@ -176,15 +177,6 @@ export default function App() {
   const activeNote = workspace?.notes.find((n) => n.id === active);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
   const canvases = useMemo(() => notes.filter(isCanvas), [notes]);
-  const libraryNotes = useMemo(
-    () =>
-      library === "canvases" ? canvases : notes.filter((n) => !isCanvas(n)),
-    [library, canvases, notes],
-  );
-  const pageIndex = Math.min(
-    notePage,
-    Math.max(0, Math.ceil(libraryNotes.length / 100) - 1),
-  );
   const outgoing = useMemo(
     () =>
       linksIn(body)
@@ -209,10 +201,6 @@ export default function App() {
   ].slice(0, 4);
 
   function select(note: Note | undefined) {
-    if (note && note.id !== current.current?.id) {
-      setLibrary(isCanvas(note) ? "canvases" : "notes");
-      setNotePage(0);
-    }
     const ticket = ++selectionVersion.current;
     if (note?.unloaded && api.readNote) {
       const same = note.id === current.current?.id;
@@ -250,7 +238,7 @@ export default function App() {
     current.current = note || null;
     draft.current = note?.body || "";
     setActive(note?.id || "");
-    setBody(note?.body || "");
+    setBody((note?.body || "").replace(parentHeader, ""));
     setStatus("saved");
     setError("");
   }
@@ -492,13 +480,16 @@ export default function App() {
       }
     });
   }
-  async function createNote() {
+  async function createNote(parent?: string) {
     if (readonly) return;
     setCreatingNote(true);
     try {
       if (!(await flush())) return;
       await action(async () => {
-        const n = await api.create("새 노트");
+        const n = await api.create(
+          "새 노트",
+          parent ? withParent(parent, "# 새 노트\n\n") : undefined,
+        );
         update(n);
         select(n);
         setView("note");
@@ -507,6 +498,29 @@ export default function App() {
     } finally {
       setCreatingNote(false);
     }
+  }
+  async function createPage(kind: PageKind, parent?: string) {
+    if (kind === "note") return createNote(parent);
+    if (!(await flush())) return;
+    if (kind === "architecture") {
+      architectureParent.current = parent;
+      setArchitectureStart(true);
+      return;
+    }
+    await action(async () => {
+      const title = templates[kind].label + " 캔버스";
+      const n = await api.create(
+        title,
+        withParent(
+          parent,
+          "# " + title + "\n\n" + encodeWorkflow(blankFlow(kind)) + "\n",
+        ),
+      );
+      setWorkspace(await api.refresh());
+      select(n);
+      setView("note");
+      setEdit(false);
+    });
   }
   async function refresh() {
     if (!(await flush())) return;
@@ -622,8 +636,10 @@ export default function App() {
   }
   function changeBody(value: string) {
     draftVersion.current++;
-    draft.current = value;
-    setBody(value);
+    const parent = current.current?.body.match(parentHeader)?.[1];
+    const content = value.replace(parentHeader, "");
+    draft.current = withParent(parent, content);
+    setBody(content);
     setStatus("pending");
   }
   function insert(prefix: string, suffix = "") {
@@ -704,79 +720,20 @@ export default function App() {
           <button
             aria-label="새 노트"
             title="새 노트"
-            onClick={createNote}
+            onClick={() => void createNote()}
             disabled={!workspace || busy}
           >
             <Plus size={15} />
           </button>
         </div>
-        <div className="library-tabs" aria-label="보관함 목록">
-          <button
-            aria-pressed={library === "notes"}
-            onClick={() => {
-              setLibrary("notes");
-              setNotePage(0);
-            }}
-          >
-            <FileText size={14} />
-            노트 <small>{notes.length - canvases.length}</small>
-          </button>
-          <button
-            aria-pressed={library === "canvases"}
-            onClick={() => {
-              setLibrary("canvases");
-              setNotePage(0);
-            }}
-          >
-            <Workflow size={14} />
-            캔버스 <small>{canvases.length}</small>
-          </button>
-        </div>
-        <div className="note-list">
-          {libraryNotes
-            .slice(pageIndex * 100, (pageIndex + 1) * 100)
-            .map((n) => (
-              <button
-                key={n.id}
-                title={n.path}
-                className={`nav-item note-item ${active === n.id && view === "note" ? "active" : ""}`}
-                onClick={() => void navigate(n.id)}
-              >
-                {library === "canvases" ? (
-                  <Workflow size={15} />
-                ) : (
-                  <FileText size={15} />
-                )}
-                <span>{n.title}</span>
-              </button>
-            ))}
-          {libraryNotes.length > 100 && (
-            <div className="sheet-pages">
-              <button
-                disabled={!pageIndex}
-                onClick={() => setNotePage(pageIndex - 1)}
-              >
-                이전
-              </button>
-              <span>
-                {pageIndex + 1} / {Math.ceil(libraryNotes.length / 100)}
-              </span>
-              <button
-                disabled={(pageIndex + 1) * 100 >= libraryNotes.length}
-                onClick={() => setNotePage(pageIndex + 1)}
-              >
-                다음
-              </button>
-            </div>
-          )}
-          {workspace && !libraryNotes.length && (
-            <p className="sidebar-empty">
-              {library === "canvases"
-                ? "IaCD 또는 자동화 캔버스를 만들어 보세요."
-                : "첫 번째 노트를 작성해 보세요."}
-            </p>
-          )}
-        </div>
+        <PageTree
+          key={workspace?.root}
+          notes={notes}
+          active={view === "note" ? active : ""}
+          readonly={busy || workspace?.role === "reader"}
+          onOpen={(id) => void navigate(id)}
+          onCreate={(parent, kind) => void createPage(kind, parent)}
+        />
         <div className="nav-label">
           <span>문서 만들기</span>
         </div>
@@ -801,7 +758,7 @@ export default function App() {
           className="nav-item"
           disabled={!workspace || readonly || busy}
           onClick={async () => {
-            if (await flush()) setArchitectureStart(true);
+            await createPage("architecture");
           }}
         >
           <Workflow size={16} />
@@ -812,20 +769,9 @@ export default function App() {
           aria-label="자동화 캔버스 만들기"
           value=""
           disabled={!workspace || readonly || busy}
-          onChange={async (e) => {
+          onChange={(e) => {
             const k = e.target.value as keyof typeof templates;
-            if (!k || !(await flush())) return;
-            await action(async () => {
-              const title = templates[k].label + " 캔버스";
-              const n = await api.create(
-                title,
-                "# " + title + "\n\n" + encodeWorkflow(blankFlow(k)) + "\n",
-              );
-              setWorkspace(await api.refresh());
-              select(n);
-              setView("note");
-              setEdit(false);
-            });
+            if (k) void createPage(k);
           }}
         >
           <option value="">새 자동화·스택 캔버스</option>
@@ -1042,7 +988,10 @@ export default function App() {
             <h1>첫 생각을 기록해 보세요.</h1>
             <p>새 노트를 만들거나 Markdown 파일을 가져오세요.</p>
             <div className="row">
-              <button className="button primary" onClick={createNote}>
+              <button
+                className="button primary"
+                onClick={() => void createNote()}
+              >
                 <Plus size={16} />새 노트
               </button>
               <button
@@ -1465,7 +1414,10 @@ export default function App() {
             if (!(await flush())) return;
             const n = await api.create(
               model.title,
-              "# " + model.title + "\n\n" + encodeArchitecture(model) + "\n",
+              withParent(
+                architectureParent.current,
+                "# " + model.title + "\n\n" + encodeArchitecture(model) + "\n",
+              ),
             );
             setWorkspace(await api.refresh());
             select(n);

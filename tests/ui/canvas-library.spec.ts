@@ -13,14 +13,12 @@ test("canvas library, linked preview and source edits share one document", async
   await page.locator(".arch-node").filter({ hasText: "package" }).click();
   await expect(page.locator(".save-state")).toContainText("저장됨");
   await page.screenshot({ path: "test-results/workflow.png" });
-  const library = page.getByLabel("보관함 목록");
-  await library.getByRole("button", { name: /노트/ }).click();
-  await expect(page.locator(".note-list")).not.toContainText(
+  await expect(page.locator(".note-list")).toContainText(
     "GitHub Actions 캔버스",
   );
   await page
     .locator(".note-list")
-    .getByRole("button", { name: "주간 아이디어" })
+    .getByRole("button", { name: "주간 아이디어", exact: true })
     .click();
   await page
     .getByLabel("캔버스 미리보기 삽입")
@@ -32,16 +30,15 @@ test("canvas library, linked preview and source edits share one document", async
   await page.screenshot({ path: "test-results/canvas-embed.png" });
   await preview.click();
   await page.getByRole("button", { name: "블록 추가" }).click();
-  await library.getByRole("button", { name: /노트/ }).click();
   await page
     .locator(".note-list")
-    .getByRole("button", { name: "주간 아이디어" })
+    .getByRole("button", { name: "주간 아이디어", exact: true })
     .click();
   await expect(preview).toContainText("카드 7");
   await page.reload();
   await page
     .locator(".note-list")
-    .getByRole("button", { name: "주간 아이디어" })
+    .getByRole("button", { name: "주간 아이디어", exact: true })
     .click();
   await expect(preview).toContainText("카드 7");
 });
@@ -71,12 +68,8 @@ test("AWS account drawings preserve edits and render inside a note", async ({
   await page.getByRole("button", { name: "드로잉 SVG 저장" }).click();
   expect((await download).suggestedFilename()).toBe("aws-architecture.svg");
   await page
-    .getByLabel("보관함 목록")
-    .getByRole("button", { name: /노트/ })
-    .click();
-  await page
     .locator(".note-list")
-    .getByRole("button", { name: "주간 아이디어" })
+    .getByRole("button", { name: "주간 아이디어", exact: true })
     .click();
   await page
     .getByLabel("캔버스 미리보기 삽입")
@@ -86,4 +79,57 @@ test("AWS account drawings preserve edits and render inside a note", async ({
   );
   await page.locator(".canvas-embed").click();
   await expect(paper).toContainText("서울");
+});
+
+test("a canvas and nested note share a persistent page tree", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.goto("/");
+  const tree = page.getByRole("navigation", { name: "보관함 페이지" });
+  await tree
+    .getByRole("button", {
+      name: "주간 아이디어 하위 페이지 추가",
+      exact: true,
+    })
+    .click();
+  await tree.getByLabel("하위 페이지 유형").selectOption("actions");
+  await tree
+    .getByRole("button", {
+      name: "GitHub Actions 캔버스 하위 페이지 추가",
+      exact: true,
+    })
+    .click();
+  await tree.getByLabel("하위 페이지 유형").selectOption("note");
+  await page
+    .getByLabel("노트 본문")
+    .fill("# 배포 검토\n\n워크플로 변경 이력을 기록합니다.");
+  await expect(page.locator(".save-state")).toContainText("저장됨");
+  await page.reload();
+  await tree
+    .getByRole("button", { name: "주간 아이디어 접기", exact: true })
+    .click();
+  await expect(
+    tree.getByRole("button", { name: "배포 검토", exact: true }),
+  ).toHaveCount(0);
+  await tree
+    .getByRole("button", { name: "주간 아이디어 펼치기", exact: true })
+    .click();
+  await tree
+    .getByRole("button", { name: "GitHub Actions 캔버스 접기", exact: true })
+    .click();
+  await expect(
+    tree.getByRole("button", { name: "배포 검토", exact: true }),
+  ).toHaveCount(0);
+  await tree
+    .getByRole("button", { name: "GitHub Actions 캔버스 펼치기", exact: true })
+    .click();
+  await tree.getByRole("button", { name: "배포 검토", exact: true }).click();
+  await expect(page.locator(".markdown h1")).toHaveText("배포 검토");
+  await page
+    .getByLabel("캔버스 미리보기 삽입")
+    .selectOption({ label: "GitHub Actions 캔버스" });
+  await expect(page.locator(".canvas-embed svg")).toBeVisible();
+  await expect(page.locator(".save-state")).toContainText("저장됨");
+  await page.screenshot({ path: "test-results/canvas-embed.png" });
 });
