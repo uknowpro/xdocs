@@ -2,7 +2,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.0-alpha.2 개발용 알파**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.0-alpha.3 개발용 알파**입니다.
 
 ![다크 테마 노트 화면과 연결 그래프](docs/images/dark.png)
 
@@ -16,9 +16,9 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - Terraform/OpenTofu·Kubernetes·Compose 인프라 목록·관계·운영 메모·변경 비교
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.0-alpha.2) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.0-alpha.3) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
-IaCD에서 아키텍처를 그리고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
+IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
 보관함의 **노트**와 **캔버스** 탭에서 문서를 따로 탐색합니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
 
@@ -34,7 +34,7 @@ IaCD에서 아키텍처를 그리고 Terraform·CloudFormation·Helm으로 내�
 <details>
 <summary>IaCD 아키텍처 캔버스 보기</summary>
 
-![AWS·Azure·GCP·Kubernetes 컴포넌트를 배치한 IaCD 캔버스](docs/images/iacd.png)
+![AWS·Azure·GCP·Kubernetes 경계와 소속 리소스를 중첩한 IaCD 캔버스](docs/images/iacd.png)
 
 </details>
 

@@ -1,8 +1,6 @@
+import { boundarySVG } from "../shared/network-boundaries.mjs";
 import { drawingSVG } from "../shared/aws-drawing.mjs";
-import {
-  decodeArchitecture,
-  architectureSVG,
-} from "../shared/architecture.mjs";
+import { decodeArchitecture } from "../shared/architecture.mjs";
 import {
   decodeWorkflow,
   workflowNodes,
@@ -29,9 +27,7 @@ export function canvasPreview(note: Note, title: string) {
     try {
       const arch = decodeArchitecture(note.body);
       if (arch) {
-        drawing = arch.drawing
-          ? drawingSVG(arch.drawing)
-          : architectureSVG(arch);
+        drawing = arch.drawing ? drawingSVG(arch.drawing) : boundarySVG(arch);
         caption = arch.drawing
           ? "AWS 드로잉 · 서비스 " + arch.drawing.items.length
           : "IaCD · 컴포넌트 " + arch.nodes.length;

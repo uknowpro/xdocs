@@ -201,3 +201,30 @@ test("Subnet outside its parent and invalid imported scalar changes are rejected
   imported.nodes[0].props.cidr = "bad";
   assert.ok(generateArchitecture(imported).errors.length);
 });
+test("network layout follows placement instead of arbitrary Terraform dependencies", async () => {
+  const { boundaryLayout } = await import("../shared/network-boundaries.mjs");
+  const m = architectureExample(),
+    box = (model, id) => boundaryLayout(model).boxes.find((b) => b.id === id);
+  const vm = m.nodes.find((n) => n.kind === "aws_instance"),
+    subnet = m.nodes.find((n) => n.kind === "aws_subnet");
+  const v = box(m, vm.id),
+    s = box(m, subnet.id);
+  assert.equal(v.parent, s.id);
+  assert.ok(v.x > s.x && v.y > s.y && v.y + v.h <= s.y + s.h);
+  const exported = generateArchitecture(m);
+  const tf = JSON.parse(exported.files["terraform/main.tf.json"]);
+  assert.ok(tf.variable["ami_" + vm.id]);
+  assert.ok(
+    JSON.parse(exported.files["cloudformation/template.json"]).Parameters,
+  );
+  const imported = await parseTerraformFiles([
+    {
+      name: "main.tf",
+      content:
+        'resource "aws_vpc" "a" {}\nresource "aws_vpc" "b" {}\nresource "aws_subnet" "s" {\n vpc_id=aws_vpc.a.id\n depends_on=[aws_vpc.b]\n}\nresource "aws_s3_bucket" "outside" { depends_on=[aws_vpc.a] }',
+    },
+  ]);
+  const by = (a) => imported.nodes.find((n) => n.address === a);
+  assert.equal(box(imported, by("aws_subnet.s").id).parent, by("aws_vpc.a").id);
+  assert.equal(box(imported, by("aws_s3_bucket.outside").id).parent, undefined);
+});

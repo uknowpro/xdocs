@@ -1,3 +1,4 @@
+import { boundarySVG } from "./network-boundaries.mjs";
 import { validateDrawing, drawingSVG } from "./aws-drawing.mjs";
 import { stringify as yaml } from "yaml";
 const field = (label, value = "", extra = {}) => ({ label, value, ...extra });
@@ -27,7 +28,7 @@ export const COMPONENTS = {
     fields: {
       name: field("이름", "server"),
       subnet: ref("Subnet", "aws_subnet"),
-      ami: field("AMI ID", "", { required: true }),
+      ami: field("AMI ID", ""),
       instance_type: field("인스턴스 유형", "t3.micro"),
     },
   },
@@ -484,7 +485,10 @@ export function architectureIssues(m) {
     }
     for (const [k, f] of Object.entries(COMPONENTS[n.kind].fields)) {
       const v = n.props[k] ?? "";
-      if ((f.required || (!f.ref && !["storage_class"].includes(k))) && !v)
+      if (
+        (f.required || (!f.ref && !["storage_class", "ami"].includes(k))) &&
+        !v
+      )
         issues.push({ id: n.id, message: f.label + "을 입력하세요." });
       if (f.ref && v && !m.nodes.some((t) => t.id === v && t.kind === f.ref))
         issues.push({
@@ -811,8 +815,13 @@ export function generateArchitecture(m, format = "all", ids = []) {
           });
           break;
         case "aws_instance":
+          if (!p.ami)
+            variables["ami_" + n.id] = {
+              type: "string",
+              description: "AMI ID for " + n.label,
+            };
           put(n.kind, n.id, {
-            ami: lit(p.ami),
+            ami: p.ami ? lit(p.ami) : "${var.ami_" + n.id + "}",
             instance_type: lit(p.instance_type),
             subnet_id: expr(parent),
             associate_public_ip_address: false,
@@ -958,16 +967,19 @@ export function generateArchitecture(m, format = "all", ids = []) {
             k +
             " = " +
             JSON.stringify(
-              k === "gcp_project_id"
-                ? m.settings.gcp_project || "YOUR_PROJECT_ID"
-                : m.settings.azure_subscription || "YOUR_SUBSCRIPTION_ID",
+              k.startsWith("ami_")
+                ? "YOUR_AMI_ID"
+                : k === "gcp_project_id"
+                  ? m.settings.gcp_project || "YOUR_PROJECT_ID"
+                  : m.settings.azure_subscription || "YOUR_SUBSCRIPTION_ID",
             ),
         )
         .join("\n") + "\n";
   }
   if (["all", "cloudformation"].includes(format)) {
     const aws = nodes.filter((n) => n.kind.startsWith("aws_") && !n.imported),
-      Resources = {};
+      Resources = {},
+      Parameters = {};
     const logical = (n) => "R" + n.id.replaceAll("_", ""),
       ref = (n) => ({ Ref: logical(n) });
     for (const n of aws) {
@@ -998,10 +1010,12 @@ export function generateArchitecture(m, format = "all", ids = []) {
           };
           break;
         case "aws_instance":
+          if (!p.ami)
+            Parameters["Ami" + logical(n)] = { Type: "AWS::EC2::Image::Id" };
           resource = {
             Type: "AWS::EC2::Instance",
             Properties: {
-              ImageId: p.ami,
+              ImageId: p.ami || { Ref: "Ami" + logical(n) },
               InstanceType: p.instance_type,
               SubnetId: ref(get(p.subnet)),
               MetadataOptions: { HttpTokens: "required" },
@@ -1040,6 +1054,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
       files["cloudformation/template.json"] = json({
         AWSTemplateFormatVersion: "2010-09-09",
         Description: "Architecture designed in xdocs",
+        ...(Object.keys(Parameters).length ? { Parameters } : {}),
         Resources,
       });
       warnings.push(
@@ -1185,7 +1200,8 @@ export function generateArchitecture(m, format = "all", ids = []) {
       warnings,
     };
   files["architecture.json"] = json(m);
-  files["architecture.svg"] = architectureSVG(m);
+  files["architecture.svg"] = boundarySVG(m);
+  files["references.svg"] = architectureSVG(m);
   files["WELL_ARCHITECTED.md"] =
     "# 설계 검토\n\nAVM 사용은 WAF 인증이나 전체 워크로드 준수를 의미하지 않습니다. 자동 점수·합격 판정을 하지 않습니다.\n\n" +
     architectureReview(m)
@@ -1272,10 +1288,13 @@ export function architectureExample() {
   for (const kind of [
     "aws_vpc",
     "aws_subnet",
+    "aws_instance",
     "azurerm_resource_group",
     "azurerm_virtual_network",
+    "azurerm_subnet",
     "google_compute_network",
     "google_compute_subnetwork",
+    "google_compute_instance",
     "k8s_namespace",
     "k8s_deployment",
     "k8s_service",
@@ -1288,6 +1307,11 @@ export function architectureExample() {
     );
     for (const [k, f] of Object.entries(COMPONENTS[kind].fields))
       if (f.ref) n.props[k] = m.nodes.find((n) => n.kind === f.ref)?.id || "";
+    if (kind === "aws_instance") {
+      n.label = "Application EC2";
+      n.props.name = "application";
+    }
+    if (kind === "azurerm_subnet") n.label = "Azure Subnet";
     m.nodes.push(n);
     i++;
   }

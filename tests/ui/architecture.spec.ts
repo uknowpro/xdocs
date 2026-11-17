@@ -13,6 +13,10 @@ test("IaCD canvas edits, moves, connects, undoes and preserves WAF notes with co
   await expect(page.getByLabel("아키텍처 제목")).toHaveValue(
     "멀티클라우드 · 웹 서비스",
   );
+  await expect(page.getByLabel("클라우드 경계 도면")).toContainText(
+    "Application EC2",
+  );
+  await page.getByRole("button", { name: "자유 배치·참조선" }).click();
   const vpc = page.getByRole("button", { name: "컴포넌트 VPC", exact: true });
   const before = await vpc.boundingBox();
   await vpc.hover();
@@ -86,8 +90,9 @@ test("IaCD canvas edits, moves, connects, undoes and preserves WAF notes with co
   ).toHaveValue("RTO 1시간 · 복구 훈련 예정");
   await page.getByRole("button", { name: "설계", exact: true }).click();
   await page.getByRole("button", { name: "컴포넌트 VPC", exact: true }).click();
+  await page.getByRole("button", { name: "자유 배치·참조선" }).click();
   await page.getByRole("button", { name: "정렬", exact: true }).click();
-  await page.getByRole("button", { name: "맞춤", exact: true }).click();
+  await page.getByRole("button", { name: "경계 도면", exact: true }).click();
   await expect(page.locator(".save-state")).toContainText("브라우저에 저장됨");
   for (const theme of ["light", "gray", "dark"]) {
     await page.evaluate(
@@ -125,4 +130,40 @@ test("Invalid architecture blocks export until required connection is supplied",
     page.getByRole("button", { name: "코드 ZIP 내보내기" }),
   ).toBeDisabled();
   await expect(page.getByRole("alert")).toContainText("Deployment");
+});
+test("dropping a compute instance into another subnet changes membership", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "IaCD 아키텍처", exact: true })
+    .click();
+  await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
+  await page.getByLabel("컴포넌트 공급자").selectOption("AWS");
+  await page
+    .locator(".arch-palette")
+    .getByRole("button", { name: "Subnet AWS", exact: true })
+    .click();
+  const title = page.locator(".arch-properties input").first();
+  await title.fill("Second subnet");
+  const ec2 = page.getByRole("button", {
+      name: "컴포넌트 Application EC2",
+      exact: true,
+    }),
+    second = page.getByRole("button", {
+      name: "컴포넌트 Second subnet",
+      exact: true,
+    });
+  await expect(second).toBeVisible();
+  const expected = await second.getAttribute("data-scope");
+  await ec2.dragTo(second);
+  await expect(
+    page.getByRole("combobox", { name: "Subnet", exact: true }),
+  ).toHaveValue(expected!);
+  await page
+    .getByRole("button", { name: "아키텍처 실행 취소", exact: true })
+    .click();
+  await expect(
+    page.getByRole("combobox", { name: "Subnet", exact: true }),
+  ).not.toHaveValue(expected!);
 });

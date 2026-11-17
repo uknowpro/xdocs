@@ -1,3 +1,4 @@
+import { placementFields } from "../shared/network-boundaries.mjs";
 import { parse, getReferencesInExpression } from "@cdktn/hcl2json";
 import {
   newArchitecture,
@@ -119,6 +120,21 @@ export async function parseTerraformFiles(files) {
       }
   }
   for (const [n, raw] of pending) {
+    const attr = placementFields[n.kind]?.[2];
+    const nic = Array.isArray(raw?.network_interface)
+      ? raw.network_interface[0]
+      : raw?.network_interface;
+    const value = attr
+      ? raw?.[attr]
+      : n.kind === "google_compute_instance"
+        ? nic?.subnetwork
+        : null;
+    const direct =
+      typeof value === "string" &&
+      value.match(
+        /^\$\{((?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*)\.(?:id|name|self_link)\}$/,
+      );
+    if (direct && addresses.has(direct[1])) n.scopeAddress = direct[1];
     const refs = new Set();
     await scan(raw, refs);
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));

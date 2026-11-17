@@ -1,3 +1,4 @@
+import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
 import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
 import { useRef, useState } from "react";
@@ -210,6 +211,8 @@ export default function ArchitectureDocument({
   const [selected, setSelected] = useState(model.nodes[0]?.id || ""),
     [group, setGroup] = useState("전체"),
     [zoom, setZoom] = useState(1),
+    [boundary, setBoundary] = useState(true),
+    [fitBoundary, setFitBoundary] = useState(true),
     [tab, setTab] = useState(model.drawing ? "drawing" : "canvas"),
     [format, setFormat] = useState("all"),
     [only, setOnly] = useState(false),
@@ -466,247 +469,305 @@ export default function ArchitectureDocument({
           </aside>
           <div className="arch-workspace">
             <div className="arch-canvas-tools">
-              <span>
-                {connecting
-                  ? "연결할 대상 컴포넌트를 클릭하세요."
-                  : "끌어서 배치 · 컴포넌트를 선택해 속성 편집"}
-              </span>
-              <button
-                aria-label="아키텍처 축소"
-                onClick={() => setZoom(Math.max(0.4, zoom - 0.1))}
-              >
-                <ZoomOut size={15} />
-              </button>
-              <span>{Math.round(zoom * 100)}%</span>
-              <button
-                aria-label="아키텍처 확대"
-                onClick={() => setZoom(Math.min(1.6, zoom + 0.1))}
-              >
-                <ZoomIn size={15} />
-              </button>
-              <button
-                onClick={() =>
-                  setZoom(
-                    Math.max(
-                      0.4,
-                      Math.min(
-                        1.6,
-                        (viewport.current?.clientWidth || 900) / width,
-                      ),
-                    ),
-                  )
-                }
-              >
-                맞춤
-              </button>
-              <button
-                disabled={readonly}
-                onClick={() => change(layoutArchitecture(model))}
-              >
-                정렬
-              </button>
+              <div className="segmented">
+                <button
+                  aria-pressed={boundary}
+                  className={boundary ? "selected" : ""}
+                  onClick={() => setBoundary(true)}
+                >
+                  경계 도면
+                </button>
+                <button
+                  aria-pressed={!boundary}
+                  className={!boundary ? "selected" : ""}
+                  onClick={() => setBoundary(false)}
+                >
+                  자유 배치·참조선
+                </button>
+              </div>
+              {boundary && (
+                <button onClick={() => setFitBoundary(!fitBoundary)}>
+                  {fitBoundary ? "확대 보기" : "전체 맞춤"}
+                </button>
+              )}
             </div>
-            <div
-              className="arch-viewport"
-              ref={viewport}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const k = e.dataTransfer.getData(
-                  "application/x-xdocs-component",
-                );
-                if (COMPONENTS[k]) {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  add(
-                    k,
-                    Math.max(
-                      0,
-                      (e.clientX - rect.left + e.currentTarget.scrollLeft) /
-                        zoom,
-                    ),
-                    Math.max(
-                      0,
-                      (e.clientY - rect.top + e.currentTarget.scrollTop) / zoom,
-                    ),
-                  );
-                }
-              }}
-            >
-              <div style={{ width: width * zoom, height: height * zoom }}>
-                <div
-                  className="arch-canvas"
-                  style={{ width, height, transform: `scale(${zoom})` }}
-                  onPointerMove={(e) => {
-                    if (drag)
-                      setDrag({
-                        ...drag,
-                        x: Math.max(
-                          0,
-                          Math.min(
-                            9000,
-                            drag.originX + (e.clientX - drag.startX) / zoom,
-                          ),
-                        ),
-                        y: Math.max(
-                          0,
-                          Math.min(
-                            9000,
-                            drag.originY + (e.clientY - drag.startY) / zoom,
-                          ),
-                        ),
-                      });
+            {boundary && model.nodes.length > 0 ? (
+              <>
+                <p className="boundary-hint">
+                  {connecting
+                    ? "연결할 대상 컴포넌트를 선택하세요."
+                    : "항목을 선택해 속성을 편집하거나 상위 경계의 제목으로 끌어 소속을 변경하세요."}
+                </p>
+                <NetworkLayout
+                  fit={fitBoundary}
+                  model={model}
+                  selected={selected}
+                  readonly={readonly}
+                  onSelect={select}
+                  onPlace={(child, field, parent) => {
+                    change({
+                      ...model,
+                      nodes: model.nodes.map((n) =>
+                        n.id === child.id
+                          ? { ...n, props: { ...n.props, [field]: parent.id } }
+                          : n,
+                      ),
+                    });
+                    setSelected(child.id);
                   }}
-                  onPointerUp={() => {
-                    if (drag) {
-                      if (drag.x !== drag.originX || drag.y !== drag.originY)
-                        change({
-                          ...model,
-                          nodes: model.nodes.map((n) =>
-                            n.id === drag.id
-                              ? {
-                                  ...n,
-                                  x: Math.round(drag.x / 10) * 10,
-                                  y: Math.round(drag.y / 10) * 10,
-                                }
-                              : n,
+                />
+              </>
+            ) : (
+              <>
+                <div className="arch-canvas-tools">
+                  <span>
+                    {connecting
+                      ? "연결할 대상 컴포넌트를 클릭하세요."
+                      : "끌어서 배치 · 컴포넌트를 선택해 속성 편집"}
+                  </span>
+                  <button
+                    aria-label="아키텍처 축소"
+                    onClick={() => setZoom(Math.max(0.4, zoom - 0.1))}
+                  >
+                    <ZoomOut size={15} />
+                  </button>
+                  <span>{Math.round(zoom * 100)}%</span>
+                  <button
+                    aria-label="아키텍처 확대"
+                    onClick={() => setZoom(Math.min(1.6, zoom + 0.1))}
+                  >
+                    <ZoomIn size={15} />
+                  </button>
+                  <button
+                    onClick={() =>
+                      setZoom(
+                        Math.max(
+                          0.4,
+                          Math.min(
+                            1.6,
+                            (viewport.current?.clientWidth || 900) / width,
                           ),
-                        });
-                      setDrag(null);
+                        ),
+                      )
+                    }
+                  >
+                    맞춤
+                  </button>
+                  <button
+                    disabled={readonly}
+                    onClick={() => change(layoutArchitecture(model))}
+                  >
+                    정렬
+                  </button>
+                </div>
+                <div
+                  className="arch-viewport"
+                  ref={viewport}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const k = e.dataTransfer.getData(
+                      "application/x-xdocs-component",
+                    );
+                    if (COMPONENTS[k]) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      add(
+                        k,
+                        Math.max(
+                          0,
+                          (e.clientX - rect.left + e.currentTarget.scrollLeft) /
+                            zoom,
+                        ),
+                        Math.max(
+                          0,
+                          (e.clientY - rect.top + e.currentTarget.scrollTop) /
+                            zoom,
+                        ),
+                      );
                     }
                   }}
-                  onPointerCancel={() => setDrag(null)}
                 >
-                  <svg className="arch-edges" width={width} height={height}>
-                    <defs>
-                      <marker
-                        id="arch-arrow"
-                        markerWidth="8"
-                        markerHeight="8"
-                        refX="7"
-                        refY="4"
-                        orient="auto"
-                      >
-                        <path d="M0,0 L8,4 L0,8" />
-                      </marker>
-                    </defs>
-                    {edges.map((e: any, i: number) => {
-                      const a = model.nodes.find((n) => n.id === e.source),
-                        b = model.nodes.find((n) => n.id === e.target);
-                      if (!a || !b) return null;
-                      return (
-                        <path
-                          key={i}
-                          d={architectureConnection(
-                            drag?.id === a.id
-                              ? { ...a, x: drag.x, y: drag.y }
-                              : a,
-                            drag?.id === b.id
-                              ? { ...b, x: drag.x, y: drag.y }
-                              : b,
-                          )}
-                          markerEnd="url(#arch-arrow)"
-                        >
-                          <title>{a.label + " → " + b.label}</title>
-                        </path>
-                      );
-                    })}
-                  </svg>
-                  {model.nodes.map((n) => {
-                    const Icon = icon(n.kind),
-                      bad = issues.some((i) => i.id === n.id);
-                    return (
-                      <button
-                        key={n.id}
-                        aria-label={"컴포넌트 " + n.label}
-                        className={
-                          "arch-node " +
-                          (selected === n.id ? "selected " : "") +
-                          (bad ? "invalid" : "")
-                        }
-                        style={{
-                          left: drag?.id === n.id ? drag.x : n.x,
-                          top: drag?.id === n.id ? drag.y : n.y,
-                        }}
-                        onClick={() => select(n)}
-                        onPointerDown={(e) => {
-                          if (readonly || connecting || e.button !== 0) return;
-                          e.currentTarget.setPointerCapture(e.pointerId);
-                          setSelected(n.id);
+                  <div style={{ width: width * zoom, height: height * zoom }}>
+                    <div
+                      className="arch-canvas"
+                      style={{ width, height, transform: `scale(${zoom})` }}
+                      onPointerMove={(e) => {
+                        if (drag)
                           setDrag({
-                            id: n.id,
-                            x: n.x,
-                            y: n.y,
-                            startX: e.clientX,
-                            startY: e.clientY,
-                            originX: n.x,
-                            originY: n.y,
-                          });
-                        }}
-                        onKeyDown={(e) => {
-                          if (
-                            readonly ||
-                            ![
-                              "ArrowLeft",
-                              "ArrowRight",
-                              "ArrowUp",
-                              "ArrowDown",
-                            ].includes(e.key)
-                          )
-                            return;
-                          e.preventDefault();
-                          change({
-                            ...model,
-                            nodes: model.nodes.map((x) =>
-                              x.id === n.id
-                                ? {
-                                    ...x,
-                                    x: Math.max(
-                                      0,
-                                      x.x +
-                                        (e.key === "ArrowRight"
-                                          ? 10
-                                          : e.key === "ArrowLeft"
-                                            ? -10
-                                            : 0),
-                                    ),
-                                    y: Math.max(
-                                      0,
-                                      x.y +
-                                        (e.key === "ArrowDown"
-                                          ? 10
-                                          : e.key === "ArrowUp"
-                                            ? -10
-                                            : 0),
-                                    ),
-                                  }
-                                : x,
+                            ...drag,
+                            x: Math.max(
+                              0,
+                              Math.min(
+                                9000,
+                                drag.originX + (e.clientX - drag.startX) / zoom,
+                              ),
+                            ),
+                            y: Math.max(
+                              0,
+                              Math.min(
+                                9000,
+                                drag.originY + (e.clientY - drag.startY) / zoom,
+                              ),
                             ),
                           });
-                        }}
-                      >
-                        <Icon size={22} />
-                        <span>
-                          <strong>{n.label}</strong>
-                          <small>
-                            {n.imported
-                              ? "Terraform 원본"
-                              : COMPONENTS[n.kind]?.group}
-                          </small>
-                        </span>
-                        {bad && <b title="설정 필요">!</b>}
-                      </button>
-                    );
-                  })}
-                  {!model.nodes.length && (
-                    <div className="arch-empty">
-                      <Box size={35} />
-                      <h3>아키텍처를 그려보세요</h3>
-                      <p>왼쪽 컴포넌트를 클릭하거나 이곳으로 끌어오세요.</p>
+                      }}
+                      onPointerUp={() => {
+                        if (drag) {
+                          if (
+                            drag.x !== drag.originX ||
+                            drag.y !== drag.originY
+                          )
+                            change({
+                              ...model,
+                              nodes: model.nodes.map((n) =>
+                                n.id === drag.id
+                                  ? {
+                                      ...n,
+                                      x: Math.round(drag.x / 10) * 10,
+                                      y: Math.round(drag.y / 10) * 10,
+                                    }
+                                  : n,
+                              ),
+                            });
+                          setDrag(null);
+                        }
+                      }}
+                      onPointerCancel={() => setDrag(null)}
+                    >
+                      <svg className="arch-edges" width={width} height={height}>
+                        <defs>
+                          <marker
+                            id="arch-arrow"
+                            markerWidth="8"
+                            markerHeight="8"
+                            refX="7"
+                            refY="4"
+                            orient="auto"
+                          >
+                            <path d="M0,0 L8,4 L0,8" />
+                          </marker>
+                        </defs>
+                        {edges.map((e: any, i: number) => {
+                          const a = model.nodes.find((n) => n.id === e.source),
+                            b = model.nodes.find((n) => n.id === e.target);
+                          if (!a || !b) return null;
+                          return (
+                            <path
+                              key={i}
+                              d={architectureConnection(
+                                drag?.id === a.id
+                                  ? { ...a, x: drag.x, y: drag.y }
+                                  : a,
+                                drag?.id === b.id
+                                  ? { ...b, x: drag.x, y: drag.y }
+                                  : b,
+                              )}
+                              markerEnd="url(#arch-arrow)"
+                            >
+                              <title>{a.label + " → " + b.label}</title>
+                            </path>
+                          );
+                        })}
+                      </svg>
+                      {model.nodes.map((n) => {
+                        const Icon = icon(n.kind),
+                          bad = issues.some((i) => i.id === n.id);
+                        return (
+                          <button
+                            key={n.id}
+                            aria-label={"컴포넌트 " + n.label}
+                            className={
+                              "arch-node " +
+                              (selected === n.id ? "selected " : "") +
+                              (bad ? "invalid" : "")
+                            }
+                            style={{
+                              left: drag?.id === n.id ? drag.x : n.x,
+                              top: drag?.id === n.id ? drag.y : n.y,
+                            }}
+                            onClick={() => select(n)}
+                            onPointerDown={(e) => {
+                              if (readonly || connecting || e.button !== 0)
+                                return;
+                              e.currentTarget.setPointerCapture(e.pointerId);
+                              setSelected(n.id);
+                              setDrag({
+                                id: n.id,
+                                x: n.x,
+                                y: n.y,
+                                startX: e.clientX,
+                                startY: e.clientY,
+                                originX: n.x,
+                                originY: n.y,
+                              });
+                            }}
+                            onKeyDown={(e) => {
+                              if (
+                                readonly ||
+                                ![
+                                  "ArrowLeft",
+                                  "ArrowRight",
+                                  "ArrowUp",
+                                  "ArrowDown",
+                                ].includes(e.key)
+                              )
+                                return;
+                              e.preventDefault();
+                              change({
+                                ...model,
+                                nodes: model.nodes.map((x) =>
+                                  x.id === n.id
+                                    ? {
+                                        ...x,
+                                        x: Math.max(
+                                          0,
+                                          x.x +
+                                            (e.key === "ArrowRight"
+                                              ? 10
+                                              : e.key === "ArrowLeft"
+                                                ? -10
+                                                : 0),
+                                        ),
+                                        y: Math.max(
+                                          0,
+                                          x.y +
+                                            (e.key === "ArrowDown"
+                                              ? 10
+                                              : e.key === "ArrowUp"
+                                                ? -10
+                                                : 0),
+                                        ),
+                                      }
+                                    : x,
+                                ),
+                              });
+                            }}
+                          >
+                            <Icon size={22} />
+                            <span>
+                              <strong>{n.label}</strong>
+                              <small>
+                                {n.imported
+                                  ? "Terraform 원본"
+                                  : COMPONENTS[n.kind]?.group}
+                              </small>
+                            </span>
+                            {bad && <b title="설정 필요">!</b>}
+                          </button>
+                        );
+                      })}
+                      {!model.nodes.length && (
+                        <div className="arch-empty">
+                          <Box size={35} />
+                          <h3>아키텍처를 그려보세요</h3>
+                          <p>왼쪽 컴포넌트를 클릭하거나 이곳으로 끌어오세요.</p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
           <aside className="arch-properties">
             {node ? (
