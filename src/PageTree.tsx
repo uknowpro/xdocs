@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -6,11 +6,17 @@ import {
   Folder,
   Workflow,
   Plus,
+  MoreHorizontal,
 } from "lucide-react";
 import type { Note } from "./types";
 import { isCanvas } from "./canvasPreview";
 import { templates } from "../shared/workflows.mjs";
-import { parentHeader } from "../shared/page-parent.mjs";
+import {
+  orderBetween,
+  pageOrder,
+  withParent,
+  parentHeader,
+} from "../shared/page-parent.mjs";
 type Entry = {
   key: string;
   name: string;
@@ -56,9 +62,19 @@ function tree(notes: Note[]) {
         break;
       }
     }
-    entry.parent = parent || dir;
+    entry.parent = parent || (id === "@" ? root : dir);
     entry.parent.children.push(entry);
   }
+  for (const group of [...folders.values(), ...pages.values()])
+    group.children.sort((a, b) => {
+      if (!a.page || !b.page)
+        return (
+          Number(!!a.page) - Number(!!b.page) || a.name.localeCompare(b.name)
+        );
+      const x = pageOrder(a.page),
+        y = pageOrder(b.page);
+      return x < y ? -1 : x > y ? 1 : 0;
+    });
   return { root, pages };
 }
 export type PageKind = "note" | "architecture" | keyof typeof templates;
@@ -68,11 +84,13 @@ export default function PageTree({
   readonly,
   onOpen,
   onCreate,
+  onMove,
 }: {
   notes: Note[];
   active: string;
   readonly: boolean;
   onOpen: (id: string) => void;
+  onMove: (id: string, expected: string, next: string) => Promise<boolean>;
   onCreate: (parent: string, kind: PageKind) => void;
 }) {
   const { root, pages } = useMemo(() => tree(notes), [notes]);
@@ -119,6 +137,71 @@ export default function PageTree({
       return next;
     });
   }
+  const [moving, setMoving] = useState(""),
+    [message, setMessage] = useState(""),
+    [undo, setUndo] = useState<{
+      id: string;
+      before: string;
+      after: string;
+    } | null>(null);
+  const lock = useRef(false);
+  function allowed(source: Entry, target: Entry) {
+    for (let n: Entry | undefined = target; n; n = n.parent)
+      if (n === source) return false;
+    return true;
+  }
+  async function savePosition(
+    id: string,
+    before: string,
+    after: string,
+    revert = false,
+  ) {
+    if (lock.current || readonly || before === after) return;
+    lock.current = true;
+    try {
+      if (await onMove(id, before, after)) {
+        setUndo(revert ? null : { id, before, after });
+        setMoving("");
+        setMessage("");
+      }
+    } catch (err) {
+      setMessage(String(err));
+    } finally {
+      lock.current = false;
+    }
+  }
+  function place(source: Entry, dest: Entry, index: number) {
+    if (!source.page || source.page.role === "reader" || !allowed(source, dest))
+      return;
+    const siblings = dest.children.filter((n) => n.page && n !== source);
+    const parent = dest.page?.id ?? (dest === root ? "@" : "");
+    try {
+      const order = orderBetween(
+        siblings[index - 1]?.page && pageOrder(siblings[index - 1].page),
+        siblings[index]?.page && pageOrder(siblings[index].page),
+      );
+      void savePosition(
+        source.page.id,
+        source.page.body.match(parentHeader)?.[0] || "",
+        withParent(parent, "", order),
+      );
+    } catch (err) {
+      setMessage(String(err));
+    }
+  }
+  function append(source: Entry, dest: Entry) {
+    place(
+      source,
+      dest,
+      dest.children.filter((n) => n.page && n !== source).length,
+    );
+  }
+  function step(source: Entry, delta: number) {
+    const parent = source.parent!,
+      siblings = parent.children.filter((n) => n.page),
+      index = siblings.indexOf(source) + delta;
+    if (index >= 0 && index < siblings.length) place(source, parent, index);
+  }
   return (
     <nav className="note-list page-tree" aria-label="보관함 페이지">
       {rows
@@ -130,6 +213,58 @@ export default function PageTree({
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
               <div
+                onDragLeave={(ev) => {
+                  if (!ev.currentTarget.contains(ev.relatedTarget as Node))
+                    delete ev.currentTarget.dataset.drop;
+                }}
+                onDragEnd={() =>
+                  document
+                    .querySelectorAll(".page-row[data-drop]")
+                    .forEach((el) => el.removeAttribute("data-drop"))
+                }
+                onDragStart={(ev) => {
+                  if (n)
+                    ev.dataTransfer.setData("application/x-xdocs-page", n.id);
+                }}
+                onDragOver={(ev) => {
+                  if (
+                    n &&
+                    !readonly &&
+                    ev.dataTransfer.types.includes("application/x-xdocs-page")
+                  ) {
+                    ev.preventDefault();
+                    const rect = ev.currentTarget.getBoundingClientRect(),
+                      ratio = (ev.clientY - rect.top) / rect.height;
+                    ev.currentTarget.dataset.drop =
+                      ratio < 0.23
+                        ? "before"
+                        : ratio > 0.77
+                          ? "after"
+                          : "inside";
+                  }
+                }}
+                onDrop={(ev) => {
+                  ev.preventDefault();
+                  const source = pages.get(
+                    ev.dataTransfer.getData("application/x-xdocs-page"),
+                  );
+                  const mode = ev.currentTarget.dataset.drop;
+                  delete ev.currentTarget.dataset.drop;
+                  if (!source || source === e || !n || readonly) return;
+                  if (mode === "before" || mode === "after") {
+                    const dest = e.parent!;
+                    if (dest.key.startsWith("f:") && dest !== source.parent) {
+                      setMessage(
+                        "파일 폴더 사이에서는 대상 페이지 안으로 끌어 이동하세요.",
+                      );
+                      return;
+                    }
+                    const index = dest.children
+                      .filter((t) => t.page && t !== source)
+                      .indexOf(e);
+                    place(source, dest, index + Number(mode === "after"));
+                  } else append(source, e);
+                }}
                 className={"page-row " + (n?.id === active ? "current" : "")}
               >
                 {e.children.length > 0 ? (
@@ -149,6 +284,7 @@ export default function PageTree({
                   <span className="page-toggle" />
                 )}
                 <button
+                  draggable={!!n && !readonly && n.role !== "reader"}
                   className="nav-item note-item"
                   title={
                     n
@@ -161,6 +297,18 @@ export default function PageTree({
                   <Icon size={15} />
                   <span>{e.name}</span>
                 </button>
+                {n && !readonly && n.role !== "reader" && (
+                  <button
+                    className="page-add"
+                    aria-label={e.name + " 페이지 이동"}
+                    onClick={() => {
+                      setMenu("");
+                      setMoving(moving === n.id ? "" : n.id);
+                    }}
+                  >
+                    <MoreHorizontal size={13} />
+                  </button>
+                )}
                 {n && !readonly && (
                   <button
                     className="page-add"
@@ -172,6 +320,43 @@ export default function PageTree({
                   </button>
                 )}
               </div>
+              {n && moving === n.id && (
+                <div className="page-move">
+                  <select
+                    aria-label="이동할 상위 페이지"
+                    value=""
+                    onChange={(ev) => {
+                      const dest =
+                        ev.target.value === "@"
+                          ? root
+                          : pages.get(ev.target.value);
+                      if (dest) append(e, dest);
+                    }}
+                  >
+                    <option value="">다른 페이지 아래로 이동</option>
+                    <option value="@">보관함 최상위</option>
+                    {Array.from(pages.values())
+                      .filter((t) => allowed(e, t))
+                      .map((t) => (
+                        <option key={t.key} value={t.page!.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    disabled={e.parent?.children.find((t) => t.page) === e}
+                    onClick={() => step(e, -1)}
+                  >
+                    위로
+                  </button>
+                  <button
+                    disabled={e.parent?.children.at(-1) === e}
+                    onClick={() => step(e, 1)}
+                  >
+                    아래로
+                  </button>
+                </div>
+              )}
               {n && menu === n.id && (
                 <select
                   autoFocus
@@ -199,6 +384,17 @@ export default function PageTree({
             </div>
           );
         })}
+      {undo && !readonly && (
+        <button
+          className="text-button"
+          onClick={() =>
+            void savePosition(undo.id, undo.after, undo.before, true)
+          }
+        >
+          페이지 이동 실행 취소
+        </button>
+      )}
+      {message && <p role="alert">{message}</p>}
       {!notes.length && (
         <p className="sidebar-empty">첫 페이지를 만들어 보세요.</p>
       )}

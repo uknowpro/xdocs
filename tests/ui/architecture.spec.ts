@@ -90,6 +90,7 @@ test("IaCD canvas edits, moves, connects, undoes and preserves WAF notes with co
   await page.getByRole("button", { name: "정렬", exact: true }).click();
   await page.getByRole("button", { name: "경계 도면", exact: true }).click();
   await expect(page.locator(".save-state")).toContainText("브라우저에 저장됨");
+  await page.getByLabel("선택 리소스 참조선").check();
   for (const theme of ["light", "gray", "dark"]) {
     await page.evaluate(
       (t) => (document.documentElement.dataset.theme = t),
@@ -162,4 +163,66 @@ test("dropping a compute instance into another subnet changes membership", async
   await expect(
     page.getByRole("combobox", { name: "Subnet", exact: true }),
   ).not.toHaveValue(expected!);
+});
+test("selected references and generated IaC reflect the same subnet move", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1500, height: 1080 });
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "IaCD 아키텍처", exact: true })
+    .click();
+  await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
+  await page.getByLabel("컴포넌트 공급자").selectOption("AWS");
+  await page
+    .locator(".arch-palette")
+    .getByRole("button", { name: "Subnet AWS", exact: true })
+    .click();
+  await page
+    .locator(".arch-properties input")
+    .first()
+    .fill("Destination subnet");
+  await page
+    .getByRole("textbox", { name: "이름", exact: true })
+    .fill("destination");
+  const vpc = await page
+    .getByRole("button", { name: "컴포넌트 VPC", exact: true })
+    .getAttribute("data-scope");
+  await page
+    .getByRole("combobox", { name: "VPC", exact: true })
+    .selectOption(vpc!);
+  await page
+    .getByRole("textbox", { name: "CIDR", exact: true })
+    .fill("10.0.2.0/24");
+  const code = page.getByRole("button", { name: "코드 추출", exact: true });
+  await code.click();
+  await page
+    .getByRole("button", { name: "IaC 변경 비교", exact: true })
+    .click();
+  await page.getByRole("button", { name: "현재 설계를 기준으로 지정" }).click();
+  await expect(page.getByText("생성된 IaC에 변경이 없습니다.")).toBeVisible();
+  await page.getByRole("button", { name: "설계", exact: true }).click();
+  const ec2 = page.getByRole("button", {
+      name: "컴포넌트 Application EC2",
+      exact: true,
+    }),
+    sub = page.getByRole("button", {
+      name: "컴포넌트 Destination subnet",
+      exact: true,
+    });
+  await ec2.dragTo(sub);
+  await page.getByLabel("선택 리소스 참조선").check();
+  await expect(page.locator("[data-reference]")).toHaveCount(1);
+  await expect(
+    page.getByLabel("선택 리소스 참조", { exact: true }),
+  ).toContainText("Application EC2 → Destination subnet");
+  await code.click();
+  await page.getByLabel("변경 파일").selectOption("terraform/main.tf.json");
+  await expect(page.getByLabel("IaC 변경 내용")).toContainText("subnet_id");
+  await page
+    .getByLabel("변경 파일")
+    .selectOption("cloudformation/template.json");
+  await expect(page.getByLabel("IaC 변경 내용")).toContainText("SubnetId");
+  await page.getByLabel("IaC 변경 내용").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "test-results/iac-changes.png" });
 });

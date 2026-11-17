@@ -43,6 +43,7 @@
     "@tiptap/react": "^3.34.0",
     "@tiptap/starter-kit": "^3.34.0",
     "chokidar": "^6.0.0",
+    "diff": "^8.0.4",
     "dompurify": "^3.3.0",
     "electron-updater": "^6.8.11",
     "exceljs": "^4.4.0",

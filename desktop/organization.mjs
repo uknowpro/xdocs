@@ -284,6 +284,7 @@ export class OrganizationVault {
           this.metadataOnly
             ? {
                 ...n,
+                canvas: /^```xdocs-(architecture|workflow)\r?$/m.test(n.body),
                 body: JSON.parse(JSON.stringify(n.body.slice(0,240))),
                 tags: [...n.body.matchAll(/(?:^|\s)#([^\s#]+)/g)].map(
                   (m) => m[1],

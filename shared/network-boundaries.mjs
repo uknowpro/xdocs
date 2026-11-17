@@ -169,7 +169,8 @@ export function boundaryLayout(model) {
     height: top + rowHeight + 10,
   };
 }
-export function boundarySVG(model, selected = "") {
+/** @param {any} model @param {string} selected @param {Array<{source:string,target:string,field:string}>} references */
+export function boundarySVG(model, selected = "", references = []) {
   const { frames, boxes, width, height } = boundaryLayout(model);
   const text = (x, y, s, size = 12, weight = 400) =>
     '<text x="' +
@@ -267,6 +268,31 @@ export function boundarySVG(model, selected = "") {
       );
     })
     .join("");
+  const byId = new Map(boxes.map((b) => [b.id, b]));
+  const arrows = references
+    .filter((e) => e.source === selected || e.target === selected)
+    .map((e, i) => {
+      const a = byId.get(e.source),
+        b = byId.get(e.target);
+      if (!a || !b) return "";
+      const x1 = a.x + a.w - 5,
+        x2 = b.x + b.w - 5,
+        y1 = a.y + 20,
+        y2 = b.y + 20;
+      const lane = Math.max(x1, x2) + 5 + (i % 4) * 2;
+      const route =
+        Math.abs(y1 - y2) < 1
+          ? "M" + x1 + " " + y1 + " v-10 H" + x2 + " v10"
+          : "M" + x1 + " " + y1 + " H" + lane + " V" + y2 + " H" + x2;
+      return (
+        '<path data-reference="true" d="' +
+        route +
+        '" fill="none" stroke="#246782" stroke-width="1.8" marker-end="url(#scope-arrow)"><title>' +
+        escape(a.label + " → " + b.label + " · " + e.field) +
+        "</title></path>"
+      );
+    })
+    .join("");
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
     width +
@@ -277,6 +303,11 @@ export function boundarySVG(model, selected = "") {
     "</title>" +
     frame +
     nodes +
+    (arrows
+      ? '<defs><marker id="scope-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#246782"/></marker></defs><g pointer-events="none">' +
+        arrows +
+        "</g>"
+      : "") +
     "</svg>"
   );
 }

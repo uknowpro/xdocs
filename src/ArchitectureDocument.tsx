@@ -1,3 +1,4 @@
+import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
 import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
@@ -229,6 +230,9 @@ export default function ArchitectureDocument({
     originX: number;
     originY: number;
   } | null>(null);
+  const [baseline, setBaseline] = useState(model),
+    [comparison, setComparison] = useState(false),
+    [customBase, setCustomBase] = useState(false);
   const undo = useRef<ArchitectureModel[]>([]),
     redo = useRef<ArchitectureModel[]>([]),
     [, rerender] = useState(0),
@@ -997,7 +1001,42 @@ export default function ArchitectureDocument({
             계획과 배포는 실행하지 않습니다. 추출 후 Terraform validate, Helm
             lint와 대상 환경 검토를 진행하세요.
           </p>
-          {activeFile && (
+          <div className="infra-actions">
+            <button
+              className="button"
+              aria-expanded={comparison}
+              onClick={() => setComparison(!comparison)}
+            >
+              IaC 변경 비교
+            </button>
+            {comparison && (
+              <>
+                <small>
+                  비교 기준 · {customBase ? "지정한 시점" : "페이지를 연 시점"}
+                </small>
+                <button
+                  className="text-button"
+                  disabled={!!result.errors.length}
+                  onClick={() => {
+                    setBaseline(model);
+                    setCustomBase(true);
+                  }}
+                >
+                  현재 설계를 기준으로 지정
+                </button>
+              </>
+            )}
+          </div>
+          {comparison && (
+            <IacDiff
+              baseline={baseline}
+              format={format}
+              ids={only && node ? [node.id] : []}
+              files={result.files}
+              errors={result.errors}
+            />
+          )}
+          {!comparison && activeFile && (
             <div className="arch-code">
               <nav>
                 {fileNames.map((n) => (

@@ -133,3 +133,48 @@ test("a canvas and nested note share a persistent page tree", async ({
   await expect(page.locator(".save-state")).toContainText("저장됨");
   await page.screenshot({ path: "test-results/canvas-embed.png" });
 });
+test("move a linked subtree, reorder siblings and undo without changing file paths", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const tree = page.getByRole("navigation", { name: "보관함 페이지" });
+  const btn = (s: string) => tree.getByRole("button", { name: s, exact: true });
+  const title = "주간 아이디어",
+    parent = "UI 디자인 원칙";
+  const originalPath = await btn(title).getAttribute("title");
+  await btn(title + " 하위 페이지 추가").click();
+  await tree.getByLabel("하위 페이지 유형").selectOption("actions");
+  await expect(page.getByRole("heading",{name:"GitHub Actions 캔버스"})).toBeVisible();
+  await page.setViewportSize({width:1440,height:1000});
+  await btn(title).dragTo(btn(parent));
+  await expect(btn(parent + " 접기")).toBeVisible();
+  await btn(parent + " 접기").click();
+  await expect(btn(title)).toHaveCount(0);
+  await expect(btn("GitHub Actions 캔버스")).toHaveCount(0);
+  await btn(parent + " 펼치기").click();
+  await btn(title + " 페이지 이동").click();
+  await expect(
+    tree
+      .getByLabel("이동할 상위 페이지")
+      .locator("option")
+      .filter({ hasText: "GitHub Actions 캔버스" }),
+  ).toHaveCount(0);
+  await btn("페이지 이동 실행 취소").click();
+  await expect(btn(parent + " 접기")).toHaveCount(0);
+  const titles = () => tree.locator(".note-item").allTextContents();
+  const order = await titles();
+  await btn(title + " 페이지 이동").click();
+  await tree.getByRole("button", { name: "위로", exact: true }).click();
+  await expect
+    .poll(async () => (await titles()).indexOf(title))
+    .toBeLessThan(order.indexOf(title));
+  await page.reload();
+  await expect
+    .poll(async () => (await titles()).indexOf(title))
+    .toBeLessThan(order.indexOf(title));
+  await expect(btn(title)).toHaveAttribute("title", originalPath!);
+  await btn("GitHub Actions 캔버스").click();
+  await expect(
+    page.getByRole("heading", { name: "GitHub Actions 캔버스" }),
+  ).toBeVisible();
+});

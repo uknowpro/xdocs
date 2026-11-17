@@ -5,6 +5,7 @@ export function seedBlocks(doc, body) {
   const parent = body.match(parentHeader);
   if (parent) {
     doc.getMap("meta").set("pageParent", parent[1]);
+    if (parent[2]) doc.getMap("meta").set("pageOrder", parent[2]);
     body = body.slice(parent[0].length);
   }
   doc.getArray("blocks").push(
@@ -32,7 +33,11 @@ export function collaborationBody(doc) {
       return block.get("text").toString();
     })
     .join("\n\n");
-  return withParent(doc.getMap("meta").get("pageParent"), content);
+  return withParent(
+    doc.getMap("meta").get("pageParent"),
+    content,
+    doc.getMap("meta").get("pageOrder"),
+  );
 }
 export function editText(doc, shared, value) {
   const prior = shared.toString();

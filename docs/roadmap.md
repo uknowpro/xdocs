@@ -67,3 +67,11 @@
 - [x] CloudFormation 리소스 그래프 및 조건·중첩 스택 선언 원문 보존
 
 구현 범위·한계·사용법은 [IaCD](iacd.md)에 정리합니다. 자동화 캔버스 범위는 [사용법](automation-canvas-review.md)에 정리합니다.
+
+## 페이지와 IaCD 편집
+
+- [x] 페이지·하위 트리 이동, 형제 순서 조정, 직전 이동 실행 취소
+- [x] 경계 도면에서 선택한 리소스의 직접 참조 표시
+- [x] 페이지를 연 시점 또는 지정한 기준과 생성 IaC 파일 비교
+
+[draw.io를 참고한 후속 개선 후보](drawio-improvements.md)

@@ -20,7 +20,7 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 
 IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
-main의 보관함 **페이지 트리**에서 노트와 캔버스를 함께 탐색합니다. 페이지 옆 **+**로 하위 노트나 캔버스를 추가할 수 있습니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
+main의 보관함 **페이지 트리**에서 노트와 캔버스를 함께 탐색합니다. 페이지 옆 **+**로 하위 노트나 캔버스를 추가할 수 있습니다. 페이지를 끌거나 **⋯** 메뉴로 하위 트리를 이동하고 순서를 조정합니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
 
 <details>
 <summary>AWS 계정 간 백업 드로잉과 노트 미리보기</summary>
@@ -35,6 +35,8 @@ main의 보관함 **페이지 트리**에서 노트와 캔버스를 함께 탐�
 <summary>IaCD 아키텍처 캔버스 보기</summary>
 
 ![AWS·Azure·GCP·Kubernetes 경계와 소속 리소스를 중첩한 IaCD 캔버스](docs/images/iacd.png)
+
+![EC2 소속 서브넷 변경 전후의 CloudFormation 코드 비교](docs/images/iac-changes.png)
 
 </details>
 

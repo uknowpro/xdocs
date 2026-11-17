@@ -499,6 +499,50 @@ export default function App() {
       setCreatingNote(false);
     }
   }
+  async function placePage(id: string, expected: string, next: string) {
+    if (!(await flush())) return false;
+    const w = await api.refresh();
+    const summary = w.notes.find((n) => n.id === id);
+    if (!summary || w.role === "reader" || summary.role === "reader")
+      throw Error("이 페이지를 이동할 수 없습니다.");
+    const full =
+      summary.unloaded && api.readNote ? await api.readNote(id) : summary;
+    if ((full.body.match(parentHeader)?.[0] || "") !== expected)
+      throw Error(
+        "다른 편집에서 페이지 위치가 변경되었습니다. 보관함을 새로고침하세요.",
+      );
+    const target = next.match(parentHeader)?.[1];
+    if (target && target !== "@") {
+      const parents = new Map(
+        w.notes.map((n) => [n.id, n.body.match(parentHeader)?.[1]]),
+      );
+      if (!parents.has(target)) throw Error("대상 페이지를 찾을 수 없습니다.");
+      const seen = new Set([id]);
+      for (
+        let p: string | undefined = target;
+        p && parents.has(p);
+        p = parents.get(p)
+      ) {
+        if (seen.has(p))
+          throw Error("자기 자신이나 하위 페이지로 이동할 수 없습니다.");
+        seen.add(p);
+      }
+    }
+    const saved = await api.save({
+      id,
+      revision: full.revision,
+      body: next + full.body.replace(parentHeader, ""),
+    });
+    if (current.current?.id === id) {
+      if (draft.current === current.current.body) select(saved);
+      else {
+        current.current = saved;
+        draft.current = next + draft.current.replace(parentHeader, "");
+      }
+    }
+    update(saved);
+    return true;
+  }
   async function createPage(kind: PageKind, parent?: string) {
     if (kind === "note") return createNote(parent);
     if (!(await flush())) return;
@@ -636,9 +680,9 @@ export default function App() {
   }
   function changeBody(value: string) {
     draftVersion.current++;
-    const parent = current.current?.body.match(parentHeader)?.[1];
+    const header = current.current?.body.match(parentHeader)?.[0] || "";
     const content = value.replace(parentHeader, "");
-    draft.current = withParent(parent, content);
+    draft.current = header + content;
     setBody(content);
     setStatus("pending");
   }
@@ -727,6 +771,7 @@ export default function App() {
           </button>
         </div>
         <PageTree
+          onMove={placePage}
           key={workspace?.root}
           notes={notes}
           active={view === "note" ? active : ""}
