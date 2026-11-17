@@ -12,6 +12,12 @@
 - `npm run test:server`: 역할·보관함 격리·문서별 읽기 전용 예외·첨부 불변/격리·충돌·이력·Redis 이벤트·블록 병합·커서 위치 공유·중복 전송.
 - `npm run test:sso`: 실제 Keycloak PKCE, API 토큰 검증, 연결 실패 뒤 캐시 재시작/변경 병합, 두 기기 첨부 조회, 조직 이력 복원, 로그아웃.
 
+## OS별 자동 검증
+
+[GitHub Actions 실행](https://github.com/uknowpro/xdocs/actions/runs/44083551336)에서 Ubuntu·macOS·Windows의 단위 테스트 19개, 빌드, Electron 파일 저장·SQLite·Markdown/HTML/PDF 내보내기 검사를 통과했고 AppImage·DEB·NSIS EXE·DMG·ZIP 산출물 생성을 완료했습니다. 서명하지 않은 CI 산출물입니다. [기본 검사](https://github.com/uknowpro/xdocs/actions/runs/44083552110)는 브라우저 테스트 7개와 서버 통합 검사까지 통과했습니다.
+
+Windows에서 발견한 지연된 파일 갱신과 입력의 경합은 동일 버전의 재로딩을 생략하고 요청 이후 입력된 초안을 보존하도록 수정했습니다. 지연 응답에 대한 브라우저 회귀 테스트를 포함합니다. Linux AppImage와 `.deb` 설치 파일 생성도 확인했습니다.
+
 ## 대규모 보관함
 
 `npm run test:benchmark`는 임시 Markdown 5,000개를 만들고 첫 색인, 갱신, 검색, 목록 크기와 프로세스 최대 RSS를 측정합니다. 본문을 한 파일씩 읽고, 렌더러에는 미리보기·링크·태그만 전달하며 선택한 노트 본문만 따로 읽습니다. 사이드바는 100개, 서버 문서 목록은 20개씩 페이지를 나눕니다. 검색 결과 본문은 240자로 제한합니다.

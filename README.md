@@ -44,6 +44,6 @@ npm run test:desktop  # 빌드 후 Electron 실행 검증
 npm run dist          # 현재 OS 패키징
 ```
 
-Ubuntu 개발 환경에서 실행을 확인했습니다. macOS·Windows는 실제 OS 검증과 서명 작업이 필요합니다.
+Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과했습니다. 사용자 기기에서의 설치·업데이트와 서명 검증은 별도로 필요합니다.
 
 [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)

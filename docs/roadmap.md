@@ -36,7 +36,8 @@
 
 ## 외부 환경이 필요한 최종 검증
 
-- [ ] macOS·Windows 실제 실행, 설치·삭제·업데이트 검증과 서명·공증
+- [x] GitHub Actions의 Linux·macOS·Windows 단위 테스트·기본 Electron 실행 검사·서명하지 않은 설치 파일 생성
+- [ ] 사용자 기기의 macOS·Windows 설치·삭제·업데이트 검증과 서명·공증
 - [ ] 서명된 릴리스 발행 후 실제 버전 간 다운로드·설치 검증
 - [ ] 운영 SSO 제공자·그룹 정책 검증; SAML은 Keycloak 등의 OIDC 브로커 연계를 통해 적용
 - [ ] Windows Excel 설치 환경에서 인증·권한 거부·프로세스 정리 실사용 검증
