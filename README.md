@@ -27,6 +27,13 @@ IaCD에서 아키텍처를 그리고 Terraform·CloudFormation·Helm으로 내�
 
 </details>
 
+<details>
+<summary>GitHub Actions 캔버스 보기</summary>
+
+![빌드 검증과 패키징 Job 및 선택한 Job의 YAML 블록](docs/images/workflow.png)
+
+</details>
+
 ## 실행
 
 Node.js 24 이상과 데스크톱 환경이 필요합니다.
