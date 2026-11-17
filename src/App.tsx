@@ -737,9 +737,11 @@ export default function App() {
               <RefreshCw size={13} />
             </button>
           </div>
-          <div className="vault-path" title={workspace?.root}>
-            {workspace?.root || "내 파일에서 시작하기"}
-          </div>
+          {isDesktop && (
+            <div className="vault-path" title={workspace?.root}>
+              {workspace?.root || "내 파일에서 시작하기"}
+            </div>
+          )}
         </div>
       </aside>
       <main className="main">
