@@ -70,6 +70,9 @@ export interface NoteAPI {
     principal?: string,
     readOnly?: boolean,
   ): Promise<{ principal: string; role: string; read_only: boolean }[]>;
+  importInfrastructure?(): Promise<
+    import("./InfrastructureDocument").InfrastructureSnapshot | null
+  >;
   importSpreadsheet?(): Promise<{ note: Note; warnings: string[] } | null>;
   openAttachment?(relative: string): Promise<void>;
   collaborationStart?(id: string): Promise<CollaborationPacket>;

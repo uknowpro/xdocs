@@ -37,3 +37,9 @@ coverage/
 # Authentication and local service state
 *.tokens
 server/data/
+
+# Infrastructure state and local provider caches
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan

@@ -2,7 +2,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.3.0 개발용 알파**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.4.0-alpha.1 개발용 알파**입니다.
 
 ![xdocs 다크 테마](docs/images/dark.png)
 
@@ -13,7 +13,10 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - 제목·본문 검색, 노트 링크·백링크·그래프
 - 이미지·PDF 첨부, Markdown·HTML 가져오기, Markdown·HTML·PDF 내보내기
 - 시트 탭형 테이블·Excel/CSV/TSV 가져오기·탭 구분 클립보드
+- Terraform/OpenTofu·Kubernetes·Compose 인프라 목록·관계·운영 메모·변경 비교
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
+
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.4.0-alpha.1) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
 ## 실행
 
@@ -46,4 +49,4 @@ npm run dist          # 현재 OS 패키징
 
 Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과했습니다. 사용자 기기에서의 설치·업데이트와 서명 검증은 별도로 필요합니다.
 
-[시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)
+[인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)

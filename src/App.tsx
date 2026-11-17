@@ -1,4 +1,13 @@
 import DocumentPermissions from "./DocumentPermissions";
+import InfrastructureDocument, {
+  InfrastructureStart,
+  type InfrastructureSnapshot,
+} from "./InfrastructureDocument";
+import {
+  decodeInfrastructure,
+  encodeInfrastructure,
+  replaceInfrastructure,
+} from "../shared/infrastructure.mjs";
 import SheetTable from "./SheetTable";
 import {
   decodeWorkbook,
@@ -69,6 +78,7 @@ export default function App() {
   const [view, setView] = useState<"note" | "graph">("note");
   const [edit, setEdit] = useState(false);
   const [editorMode, setEditorMode] = useState<"source" | "blocks">("source");
+  const [infrastructureStart, setInfrastructureStart] = useState(false);
   const [permissions, setPermissions] = useState(false);
   const [recovery, setRecovery] = useState<"history" | "trash" | null>(null);
   const [theme, setTheme] = useState<Theme>(
@@ -111,6 +121,13 @@ export default function App() {
   const sheetData = useMemo(() => {
     try {
       return decodeWorkbook(body);
+    } catch {
+      return null;
+    }
+  }, [body]);
+  const infraData = useMemo(() => {
+    try {
+      return decodeInfrastructure(body) as InfrastructureSnapshot | null;
     } catch {
       return null;
     }
@@ -590,7 +607,7 @@ export default function App() {
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
-          LOCAL FIRST <span>α 0.3</span>
+          LOCAL FIRST <span>α 0.4</span>
         </span>
       </header>
       <aside className="sidebar">
@@ -647,6 +664,16 @@ export default function App() {
           onClick={() => void createSheets()}
         >
           <Plus size={16} />새 시트 테이블
+        </button>
+        <button
+          className="nav-item"
+          disabled={!workspace || readonly || busy}
+          onClick={async () => {
+            if (await flush()) setInfrastructureStart(true);
+          }}
+        >
+          <Network size={16} />
+          인프라 문서
         </button>
         {api.importSpreadsheet && (
           <button
@@ -830,15 +857,19 @@ export default function App() {
               연결 탐색<span>{outgoing.length + backlinks.length}</span>
             </button>
             <div className="view-tools">
-              {view === "note" && activeNote && !readonly && !sheetData && (
-                <button
-                  className="mode-switch"
-                  onClick={() => setEdit((s) => !s)}
-                >
-                  {edit ? <Eye size={14} /> : <Pencil size={14} />}{" "}
-                  {edit ? "읽기 모드" : "편집하기"}
-                </button>
-              )}
+              {view === "note" &&
+                activeNote &&
+                !readonly &&
+                !sheetData &&
+                !infraData && (
+                  <button
+                    className="mode-switch"
+                    onClick={() => setEdit((s) => !s)}
+                  >
+                    {edit ? <Eye size={14} /> : <Pencil size={14} />}{" "}
+                    {edit ? "읽기 모드" : "편집하기"}
+                  </button>
+                )}
             </div>
           </div>
         )}
@@ -895,7 +926,7 @@ export default function App() {
           </section>
         ) : (
           <div
-            className={`document-layout ${edit ? "editing" : ""} ${sheetData ? "sheet-layout" : ""}`}
+            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData ? "sheet-layout" : ""}`}
           >
             <article className="document">
               <div className="document-kicker">
@@ -911,7 +942,7 @@ export default function App() {
               </div>
               {activeNote && (
                 <div className="note-utilities">
-                  {shared && !readonly && !sheetData && (
+                  {shared && !readonly && !sheetData && !infraData && (
                     <button
                       className="button small"
                       onClick={async () => {
@@ -924,7 +955,7 @@ export default function App() {
                       공동 편집
                     </button>
                   )}
-                  {edit && !sheetData && (
+                  {edit && !sheetData && !infraData && (
                     <div className="segmented">
                       <button
                         className={editorMode === "source" ? "selected" : ""}
@@ -971,6 +1002,27 @@ export default function App() {
               )}
               {loadingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
+              ) : infraData ? (
+                <InfrastructureDocument
+                  key={active}
+                  snapshot={infraData}
+                  readonly={readonly}
+                  onChange={(value) =>
+                    changeBody(replaceInfrastructure(draft.current, value))
+                  }
+                  onCreateNote={async (title, content) => {
+                    if (!(await flush())) return;
+                    const origin = current.current?.id;
+                    const n = await api.create(
+                      title,
+                      content +
+                        (origin ? "\n\n[[" + origin + "|인프라 문서]]\n" : ""),
+                    );
+                    setWorkspace(await api.refresh());
+                    select(n);
+                    setEdit(false);
+                  }}
+                />
               ) : sheetData ? (
                 <SheetTable
                   key={active}
@@ -1209,6 +1261,26 @@ export default function App() {
             setOrganizationPanel(false);
             setView("note");
             setEdit(false);
+          }}
+        />
+      )}
+      {infrastructureStart && (
+        <InfrastructureStart
+          onClose={() => setInfrastructureStart(false)}
+          onCreate={async (snapshot) => {
+            if (!(await flush())) return;
+            const title =
+              "인프라 · " +
+              snapshot.source.slice(0, 160).replace(/[\r\n]/g, " ");
+            const n = await api.create(
+              title,
+              "# " + title + "\n\n" + encodeInfrastructure(snapshot) + "\n",
+            );
+            setWorkspace(await api.refresh());
+            select(n);
+            setView("note");
+            setEdit(false);
+            setInfrastructureStart(false);
           }}
         />
       )}

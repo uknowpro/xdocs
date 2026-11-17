@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0-alpha.1 — 2026-11-17
+
+- Terraform/OpenTofu JSON, Kubernetes 및 Compose YAML/JSON을 제한된 요약으로 가져오기.
+- 리소스 목록·관계·운영 메모, 변경 비교, 연결된 운영 절차·ADR 노트, TSV 복사와 HTML/PDF 표 내보내기.
+- 원본·환경변수·Secret 내용을 보관하지 않는 필드 허용 방식과 별도 작업 스레드 처리.
+- Linux·macOS·Windows 설치 파일을 개발용 프리릴리스로 배포. 서명·공증·실기기 업그레이드는 미검증.
+
 ## 0.3.0
 
 - 시트 탭형 테이블, Excel/CSV/TSV 가져오기, 탭 구분 범위 복사·붙여넣기, 노트 표 복제, HTML/PDF 표 내보내기.

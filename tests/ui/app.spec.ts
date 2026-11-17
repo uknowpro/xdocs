@@ -273,3 +273,40 @@ test("delayed filesystem refresh does not replace a newer draft", async ({
     () => (window as any).__saved === "# 내가 쓰는 새 내용",
   );
 });
+
+test("infrastructure example saves operating notes and renders all themes", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "인프라 문서", exact: true }).click();
+  await page.getByRole("button", { name: "예제로 살펴보기" }).click();
+  await page.getByRole("button", { name: "인프라 노트 생성" }).click();
+  await page
+    .getByRole("textbox", { name: "리소스 운영 메모" })
+    .fill("브라우저 저장 확인");
+  await expect(page.locator(".save-state")).toContainText("브라우저에 저장됨");
+  await page.reload();
+  await page
+    .getByRole("button", { name: "인프라 · 예제 compose.yaml", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "리소스 운영 메모" }),
+  ).toHaveValue("브라우저 저장 확인");
+  for (const theme of ["light", "gray", "dark"]) {
+    await page.evaluate(
+      (theme) => (document.documentElement.dataset.theme = theme),
+      theme,
+    );
+    await expect(
+      page.getByRole("heading", { name: "Docker Compose", exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  await page.getByRole("tab", { name: "관계", exact: true }).click();
+  await expect(page.getByLabel("리소스 관계 그래프")).toBeVisible();
+});

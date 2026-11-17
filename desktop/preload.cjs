@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   readNote: (id) => ipcRenderer.invoke("note:read", id),
   search: (query) => ipcRenderer.invoke("note:search", query),
   export: (data) => ipcRenderer.invoke("note:export", data),
+  importInfrastructure: () => ipcRenderer.invoke("infra:import"),
   importSpreadsheet: () => ipcRenderer.invoke("sheet:import"),
   openAttachment: (relative) => ipcRenderer.invoke("asset:open", relative),
   importMarkdown: () => ipcRenderer.invoke("note:import"),

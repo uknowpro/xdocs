@@ -1,3 +1,8 @@
+import { importInfrastructure } from "./infrastructure-import.mjs";
+import {
+  decodeInfrastructure,
+  infrastructureMarkdown,
+} from "../shared/infrastructure.mjs";
 import { importWithExcel } from "./excel-bridge.mjs";
 import { importSpreadsheet } from "./spreadsheet-import.mjs";
 import {
@@ -94,6 +99,13 @@ function exportHtml(note) {
               sheetMarkdown(sheet),
           )
           .join("\n\n"),
+      );
+  } catch {}
+  try {
+    const infrastructure = decodeInfrastructure(body);
+    if (infrastructure)
+      body = body.replace(/^```xdocs-infra\r?\n[^]*?\r?\n```$/m, () =>
+        infrastructureMarkdown(infrastructure),
       );
   } catch {}
   const safe = sanitizeHtml(marked.parse(body), {
@@ -285,6 +297,20 @@ app.whenReady().then(async () => {
     return result.canceled
       ? null
       : mustVault().addAttachment(result.filePaths[0]);
+  });
+  register("infra:import", async () => {
+    mustVault();
+    const result = await dialog.showOpenDialog(window, {
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Infrastructure JSON / YAML",
+          extensions: ["json", "yaml", "yml"],
+        },
+      ],
+    });
+    if (result.canceled || !result.filePaths[0]) return null;
+    return importInfrastructure(result.filePaths[0]);
   });
   register("sheet:import", async () => {
     const store = mustVault();
