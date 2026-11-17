@@ -1,3 +1,10 @@
+import DocumentPermissions from "./DocumentPermissions";
+import SheetTable from "./SheetTable";
+import {
+  decodeWorkbook,
+  encodeWorkbook,
+  replaceWorkbook,
+} from "../shared/tabular.mjs";
 import OrganizationPanel from "./OrganizationPanel";
 
 import VaultTools from "./VaultTools";
@@ -62,6 +69,7 @@ export default function App() {
   const [view, setView] = useState<"note" | "graph">("note");
   const [edit, setEdit] = useState(false);
   const [editorMode, setEditorMode] = useState<"source" | "blocks">("source");
+  const [permissions, setPermissions] = useState(false);
   const [recovery, setRecovery] = useState<"history" | "trash" | null>(null);
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem("xdocs.theme") as Theme) || "light",
@@ -82,6 +90,7 @@ export default function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sidebar, setSidebar] = useState(true);
+  const [notePage, setNotePage] = useState(0);
   const current = useRef<Note | null>(null);
   const draft = useRef("");
   const saving = useRef<Promise<boolean> | null>(null);
@@ -94,8 +103,20 @@ export default function App() {
   );
   const composing = useRef(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const [loadingNote, setLoadingNote] = useState(false);
+  const selectionVersion = useRef(0);
   const shared = workspace?.kind === "server";
-  const readonly = workspace?.role === "reader";
+  const sheetData = useMemo(() => {
+    try {
+      return decodeWorkbook(body);
+    } catch {
+      return null;
+    }
+  }, [body]);
+  const readonly =
+    loadingNote ||
+    workspace?.role === "reader" ||
+    workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
   const outgoing = useMemo(
@@ -110,7 +131,9 @@ export default function App() {
       notes.filter(
         (n) =>
           n.id !== active &&
-          linksIn(n.body).some((t) => resolveLink(t, notes)?.id === active),
+          (n.links || linksIn(n.body)).some(
+            (t) => resolveLink(t, notes)?.id === active,
+          ),
       ),
     [notes, active],
   );
@@ -120,6 +143,27 @@ export default function App() {
   ].slice(0, 4);
 
   function select(note: Note | undefined) {
+    const ticket = ++selectionVersion.current;
+    if (note?.unloaded && api.readNote) {
+      setLoadingNote(true);
+      setActive(note.id);
+      current.current = null;
+      draft.current = "";
+      setBody("");
+      void api
+        .readNote(note.id)
+        .then((full) => {
+          if (ticket === selectionVersion.current) select(full);
+        })
+        .catch((e) => {
+          if (ticket === selectionVersion.current) {
+            setError(String(e));
+            setLoadingNote(false);
+          }
+        });
+      return;
+    }
+    setLoadingNote(false);
     current.current = note || null;
     draft.current = note?.body || "";
     setActive(note?.id || "");
@@ -127,20 +171,27 @@ export default function App() {
     setStatus("saved");
     setError("");
   }
-  const update = useCallback(
-    (note: Note) =>
-      setWorkspace((w) =>
-        w
-          ? {
-              ...w,
-              notes: w.notes.some((n) => n.id === note.id)
-                ? w.notes.map((n) => (n.id === note.id ? note : n))
-                : [...w.notes, note],
-            }
-          : w,
-      ),
-    [],
-  );
+  const update = useCallback((full: Note) => {
+    const note = isDesktop
+      ? {
+          ...full,
+          body: JSON.parse(JSON.stringify(full.body.slice(0,240))),
+          links: linksIn(full.body),
+          tags: [...full.body.matchAll(/(?:^|\s)#([^\s#]+)/g)].map((m) => m[1]),
+          unloaded: true,
+        }
+      : full;
+    return setWorkspace((w) =>
+      w
+        ? {
+            ...w,
+            notes: w.notes.some((n) => n.id === note.id)
+              ? w.notes.map((n) => (n.id === note.id ? note : n))
+              : [...w.notes, note],
+          }
+        : w,
+    );
+  }, []);
   const flush = useCallback(async (): Promise<boolean> => {
     while (saving.current) {
       if (!(await saving.current)) return false;
@@ -200,7 +251,7 @@ export default function App() {
           select(
             w.notes.find((n) => n.id === current.current?.id) || w.notes[0],
           );
-        else
+        else if (!saving.current)
           setNotice("외부 변경을 감지했습니다. 편집 중인 내용은 유지합니다.");
       }),
     [],
@@ -396,6 +447,43 @@ export default function App() {
   async function openRecovery(mode: "history" | "trash") {
     if (await flush()) setRecovery(mode);
   }
+  async function createSheets() {
+    if (!(await flush())) return;
+    await action(async () => {
+      const n = await api.create(
+        "새 시트",
+        "# 새 시트\n\n" +
+          encodeWorkbook({
+            version: 1,
+            sheets: [
+              {
+                id: crypto.randomUUID(),
+                name: "시트 1",
+                rows: [["", "", "", ""]],
+              },
+            ],
+          }) +
+          "\n",
+      );
+      setWorkspace(await api.refresh());
+      select(n);
+      setView("note");
+      setEdit(false);
+    });
+  }
+  async function importSheets() {
+    if (!(await flush())) return;
+    await action(async () => {
+      const result = await api.importSpreadsheet?.();
+      if (result) {
+        setWorkspace(await api.refresh());
+        select(result.note);
+        setView("note");
+        setEdit(false);
+        setNotice(result.warnings.join(" ") || "시트를 가져왔습니다.");
+      }
+    });
+  }
   async function importNotes() {
     if (!(await flush())) return;
     await action(async () => {
@@ -486,7 +574,7 @@ export default function App() {
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
-          LOCAL FIRST <span>α 0.2</span>
+          LOCAL FIRST <span>α 0.3</span>
         </span>
       </header>
       <aside className="sidebar">
@@ -537,8 +625,25 @@ export default function App() {
           <span>모든 노트</span>
           <small>{notes.length}</small>
         </button>
+        <button
+          className="nav-item"
+          disabled={!workspace || readonly || busy}
+          onClick={() => void createSheets()}
+        >
+          <Plus size={16} />새 시트 테이블
+        </button>
+        {api.importSpreadsheet && (
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={() => void importSheets()}
+          >
+            <Upload size={16} />
+            Excel · 시트 가져오기
+          </button>
+        )}
         <div className="note-list">
-          {notes.map((n) => (
+          {notes.slice(notePage * 100, (notePage + 1) * 100).map((n) => (
             <button
               key={n.id}
               title={n.path}
@@ -549,6 +654,25 @@ export default function App() {
               <span>{n.title}</span>
             </button>
           ))}
+          {notes.length > 100 && (
+            <div className="sheet-pages">
+              <button
+                disabled={!notePage}
+                onClick={() => setNotePage(notePage - 1)}
+              >
+                이전
+              </button>
+              <span>
+                {notePage + 1} / {Math.ceil(notes.length / 100)}
+              </span>
+              <button
+                disabled={(notePage + 1) * 100 >= notes.length}
+                onClick={() => setNotePage(notePage + 1)}
+              >
+                다음
+              </button>
+            </div>
+          )}
           {workspace && !notes.length && (
             <p className="sidebar-empty">첫 번째 노트를 작성해 보세요.</p>
           )}
@@ -688,7 +812,7 @@ export default function App() {
               연결 탐색<span>{outgoing.length + backlinks.length}</span>
             </button>
             <div className="view-tools">
-              {view === "note" && activeNote && !readonly && (
+              {view === "note" && activeNote && !readonly && !sheetData && (
                 <button
                   className="mode-switch"
                   onClick={() => setEdit((s) => !s)}
@@ -752,7 +876,9 @@ export default function App() {
             </div>
           </section>
         ) : (
-          <div className={`document-layout ${edit ? "editing" : ""}`}>
+          <div
+            className={`document-layout ${edit ? "editing" : ""} ${sheetData ? "sheet-layout" : ""}`}
+          >
             <article className="document">
               <div className="document-kicker">
                 <span className="eyebrow">IDEAS INTO KNOWLEDGE</span>
@@ -767,7 +893,7 @@ export default function App() {
               </div>
               {activeNote && (
                 <div className="note-utilities">
-                  {shared && !readonly && (
+                  {shared && !readonly && !sheetData && (
                     <button
                       className="button small"
                       onClick={async () => {
@@ -780,7 +906,7 @@ export default function App() {
                       공동 편집
                     </button>
                   )}
-                  {edit && (
+                  {edit && !sheetData && (
                     <div className="segmented">
                       <button
                         className={editorMode === "source" ? "selected" : ""}
@@ -798,7 +924,7 @@ export default function App() {
                       </button>
                     </div>
                   )}
-                  {api.addAttachment && !shared && (
+                  {api.addAttachment && !readonly && (
                     <button
                       className="text-button"
                       onClick={() => void attach()}
@@ -807,7 +933,15 @@ export default function App() {
                       첨부
                     </button>
                   )}
-                  {api.history && !shared && (
+                  {shared && workspace?.role === "owner" && (
+                    <button
+                      className="text-button"
+                      onClick={() => setPermissions(true)}
+                    >
+                      문서 권한
+                    </button>
+                  )}
+                  {api.history && (
                     <button
                       className="text-button"
                       onClick={() => void openRecovery("history")}
@@ -817,7 +951,29 @@ export default function App() {
                   )}
                 </div>
               )}
-              {edit && editorMode === "blocks" ? (
+              {loadingNote ? (
+                <p className="muted">노트 불러오는 중…</p>
+              ) : sheetData ? (
+                <SheetTable
+                  key={active}
+                  workbook={sheetData}
+                  readonly={readonly}
+                  onChange={(book) =>
+                    changeBody(replaceWorkbook(draft.current, book))
+                  }
+                  onNote={(title, content) => {
+                    void (async () => {
+                      if (!(await flush())) return;
+                      await action(async () => {
+                        const n = await api.create(title, content);
+                        setWorkspace(await api.refresh());
+                        select(n);
+                        setEdit(false);
+                      });
+                    })();
+                  }}
+                />
+              ) : edit && editorMode === "blocks" ? (
                 <Suspense
                   fallback={<p className="muted">편집기 불러오는 중…</p>}
                 >
@@ -1038,9 +1194,16 @@ export default function App() {
           }}
         />
       )}
+      {permissions && activeNote && (
+        <DocumentPermissions
+          id={active}
+          onClose={() => setPermissions(false)}
+        />
+      )}
       {recovery && (
         <VaultTools
           mode={recovery}
+          readonly={readonly}
           note={current.current || undefined}
           onClose={() => setRecovery(null)}
           onRestored={(n) => {

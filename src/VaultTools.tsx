@@ -7,11 +7,13 @@ export default function VaultTools({
   note,
   onClose,
   onRestored,
+  readonly = false,
 }: {
   mode: "history" | "trash";
   note?: Note;
   onClose: () => void;
   onRestored: (note: Note) => void;
+  readonly?: boolean;
 }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]),
     [trash, setTrash] = useState<TrashEntry[]>([]),
@@ -78,7 +80,7 @@ export default function VaultTools({
             </button>
             <button
               className="button"
-              disabled={busy}
+              disabled={busy || readonly}
               onClick={() => void restore(n.key)}
             >
               <RotateCcw size={14} />

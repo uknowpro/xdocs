@@ -1,0 +1,25 @@
+# 패키징과 서명 릴리스
+
+`Desktop packages` 워크플로는 세 운영체제에서 테스트·빌드·Electron 기본 실행을 수행하고 서명하지 않은 설치 파일을 산출물로 보관합니다. 실제 설치·삭제·기존 버전에서의 업그레이드 검증을 대신하지는 않습니다.
+
+`Signed release`는 저장소의 기존 `v버전` 태그를 입력해 수동 실행합니다. package.json 버전과 일치해야 하며, 다음 GitHub Actions secrets가 없으면 Windows/macOS 작업이 중단됩니다.
+
+| 대상               | 저장소 secrets                                             |
+| ------------------ | ---------------------------------------------------------- |
+| Windows 코드 서명  | `WIN_CSC_LINK`, `WIN_CSC_KEY_PASSWORD`                     |
+| macOS Developer ID | `MAC_CSC_LINK`, `MAC_CSC_KEY_PASSWORD`                     |
+| Apple 공증         | `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` |
+
+인증서는 Actions secrets에 보관하고 저장소나 채팅에 올리지 않습니다. Linux 파일에는 이 워크플로에서 코드 서명을 추가하지 않으며 SHA-256 목록을 제공합니다. Windows/macOS 빌드가 서명 없이 성공 처리되지 않도록 `forceCodeSigning`을 사용합니다.
+
+모든 OS 패키징이 성공해야 GitHub **초안 릴리스**를 생성합니다. 설치 파일, macOS 업데이트용 ZIP, `latest*.yml`, 블록맵과 `SHA256SUMS`를 함께 첨부합니다. 초안은 앱의 일반 업데이트 피드에 공개되지 않습니다.
+
+릴리스를 공개하기 전에 테스트 기기에서 다음을 확인해야 합니다.
+
+1. 서명·공증 확인, 새 설치와 정상 실행.
+2. 기존 버전에서 업데이트 확인→다운로드→저장 후 재시작.
+3. 보관함 Markdown·첨부파일·시트·이력·조직 미전송 대기열 보존.
+4. 삭제 후 다시 설치했을 때 외부 보관함 재연결, 업데이트 실패 후 원본 보존.
+5. Windows 10 이상과 지원하려는 macOS/Ubuntu 버전에서 실사용.
+
+현재 실제 인증서와 운영 테스트 기기가 준비되지 않아 서명 릴리스 실행·게시와 설치형 업데이트 검증은 미완료입니다.

@@ -1,3 +1,4 @@
+import { editText } from "../shared/collab-blocks.mjs";
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 import { X, Users } from "lucide-react";
@@ -22,6 +23,11 @@ export default function CollaborationEditor({
   registerGuard: (guard: (() => Promise<boolean>) | null) => void;
 }) {
   const [participants, setParticipants] = useState(0);
+  const [blocks, setBlocks] = useState<{ id: string; text: string }[]>([]);
+  const [peers, setPeers] = useState<
+    NonNullable<CollaborationPacket["participants"]>
+  >([]);
+  const cursor = useRef({ client: crypto.randomUUID(), block: "", offset: 0 });
   const [text, setText] = useState(""),
     [status, setStatus] = useState("연결 중…"),
     [error, setError] = useState(""),
@@ -49,10 +55,26 @@ export default function CollaborationEditor({
     const doc = new Y.Doc();
     document.current = doc;
     const shared = doc.getText("markdown");
-    const observer = () => setText(shared.toString());
-    shared.observe(observer);
+    const observer = () => {
+      setText(shared.toString());
+      setBlocks(
+        doc
+          .getArray<Y.Map<unknown>>("blocks")
+          .toArray()
+          .map((b) => ({
+            id: b.get("id") as string,
+            text: (b.get("text") as Y.Text).toString(),
+          })),
+      );
+    };
+    doc.on("afterTransaction", observer);
     const apply = (p: CollaborationPacket) => {
       setParticipants(p.participants?.length || 1);
+      setPeers(
+        (p.participants || []).filter(
+          (p) => p.client !== cursor.current.client,
+        ),
+      );
       if (composing.current) {
         deferred.current = p;
         return;
@@ -102,7 +124,7 @@ export default function CollaborationEditor({
       busy = true;
       try {
         await queue.current;
-        const p = await api.collaborationSync!(note.id);
+        const p = await api.collaborationSync!(note.id, cursor.current);
         if (!disposed) {
           apply(p);
           setError("");
@@ -119,37 +141,40 @@ export default function CollaborationEditor({
     return () => {
       disposed = true;
       clearInterval(timer);
-      shared.unobserve(observer);
+      doc.off("afterTransaction", observer);
       doc.off("update", update);
       doc.destroy();
       document.current = null;
     };
   }, [note.id]);
-  function change(value: string) {
+  function change(value: string, id?: string) {
     const doc = document.current;
     if (!doc) return;
-    const shared = doc.getText("markdown"),
-      prior = shared.toString();
-    let start = 0;
-    while (
-      start < prior.length &&
-      start < value.length &&
-      prior[start] === value[start]
-    )
-      start++;
-    let end = 0;
-    while (
-      end < prior.length - start &&
-      end < value.length - start &&
-      prior[prior.length - end - 1] === value[value.length - end - 1]
-    )
-      end++;
+    const target = id
+      ? (doc
+          .getArray<Y.Map<unknown>>("blocks")
+          .toArray()
+          .find((b) => b.get("id") === id)
+          ?.get("text") as Y.Text)
+      : doc.getText("markdown");
+    if (target) editText(doc, target, value);
+  }
+  function addBlock() {
+    const doc = document.current;
+    if (!doc) return;
     doc.transact(() => {
-      if (prior.length - start - end)
-        shared.delete(start, prior.length - start - end);
-      if (value.length - start - end)
-        shared.insert(start, value.slice(start, value.length - end));
+      const b = new Y.Map();
+      b.set("id", crypto.randomUUID());
+      b.set("text", new Y.Text());
+      doc.getArray("blocks").push([b]);
     }, "local");
+  }
+  function endComposition() {
+    composing.current = false;
+    if (deferred.current && document.current) {
+      Y.applyUpdate(document.current, decode(deferred.current.state), "remote");
+      deferred.current = null;
+    }
   }
   async function close() {
     try {
@@ -180,7 +205,7 @@ export default function CollaborationEditor({
           </button>
         </header>
         <p className="small-text muted">
-          Markdown 공동 편집 · 약 1초 간격으로 변경을 병합합니다. 오프라인
+          Markdown 블록 공동 편집 · 약 1초 간격으로 변경을 병합합니다. 오프라인
           변경은 이 기기에 보존합니다.
         </p>
         {error && (
@@ -188,26 +213,69 @@ export default function CollaborationEditor({
             {error}
           </p>
         )}
-        <textarea
-          aria-label="공동 편집 본문"
-          disabled={!ready}
-          value={text}
-          onChange={(e) => change(e.target.value)}
-          onCompositionStart={() => {
-            composing.current = true;
-          }}
-          onCompositionEnd={() => {
-            composing.current = false;
-            if (deferred.current && document.current) {
-              Y.applyUpdate(
-                document.current,
-                decode(deferred.current.state),
-                "remote",
-              );
-              deferred.current = null;
-            }
-          }}
-        />
+        {blocks.length ? (
+          <div className="collaboration-blocks">
+            {blocks.map((block, index) => (
+              <div className="collaboration-block" key={block.id}>
+                <div className="small-text muted">
+                  블록 {index + 1}{" "}
+                  {peers
+                    .filter((peer) => peer.block === block.id)
+                    .map((peer) => (
+                      <span className="tag" key={peer.id}>
+                        {peer.label} · 커서 {(peer.offset || 0) + 1}
+                      </span>
+                    ))}
+                </div>
+                <textarea
+                  aria-label={`공동 편집 블록 ${index + 1}`}
+                  disabled={!ready}
+                  value={block.text}
+                  onChange={(e) => change(e.target.value, block.id)}
+                  onSelect={(e) => {
+                    cursor.current = {
+                      ...cursor.current,
+                      block: block.id,
+                      offset: e.currentTarget.selectionStart,
+                    };
+                  }}
+                  onCompositionStart={() => {
+                    composing.current = true;
+                  }}
+                  onCompositionEnd={endComposition}
+                />
+                <button
+                  className="text-button"
+                  disabled={!ready || blocks.length === 1}
+                  onClick={() => {
+                    const doc = document.current;
+                    if (doc)
+                      doc.transact(
+                        () => doc.getArray("blocks").delete(index, 1),
+                        "local",
+                      );
+                  }}
+                >
+                  블록 삭제
+                </button>
+              </div>
+            ))}
+            <button className="button" disabled={!ready} onClick={addBlock}>
+              블록 추가
+            </button>
+          </div>
+        ) : (
+          <textarea
+            aria-label="공동 편집 본문"
+            disabled={!ready}
+            value={text}
+            onChange={(e) => change(e.target.value)}
+            onCompositionStart={() => {
+              composing.current = true;
+            }}
+            onCompositionEnd={endComposition}
+          />
+        )}
         <footer>
           <span role="status">
             {status} · {participants}명 참여 중

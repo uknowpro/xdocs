@@ -33,6 +33,106 @@ export class WorkspaceService {
     if (!rows.length) throw fail(403, "Workspace access denied");
     return rows[0].role;
   }
+  async documentRole(workspace, principal, id, client = this.pool) {
+    const role = await this.role(workspace, principal, client);
+    if (role !== "editor") return role;
+    const result = await client.query(
+      "SELECT 1 FROM document_readers WHERE workspace_id=$1 AND id=$2 AND principal=$3",
+      [workspace, id, principal],
+    );
+    return result.rows.length ? "reader" : role;
+  }
+  async permissions(workspace, principal, id, target, readOnly) {
+    if (!validUUID(id)) throw fail(400, "Invalid document ID");
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SELECT id FROM workspaces WHERE id=$1 FOR UPDATE", [
+        workspace,
+      ]);
+      if ((await this.role(workspace, principal, client)) !== "owner")
+        throw fail(403, "Owner access required");
+      if (target !== undefined) {
+        if (typeof target !== "string" || typeof readOnly !== "boolean")
+          throw fail(400, "Invalid permission");
+        await this.role(workspace, target, client);
+        if (readOnly)
+          await client.query(
+            "INSERT INTO document_readers VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
+            [workspace, id, target],
+          );
+        else
+          await client.query(
+            "DELETE FROM document_readers WHERE workspace_id=$1 AND id=$2 AND principal=$3",
+            [workspace, id, target],
+          );
+        await client.query(
+          "INSERT INTO audit_events(workspace_id,actor,action,document_id) VALUES($1,$2,'permission',$3)",
+          [workspace, principal, id],
+        );
+      }
+      const rows = (
+        await client.query(
+          "SELECT m.principal,m.role,(r.principal IS NOT NULL) AS read_only FROM members m LEFT JOIN document_readers r ON r.workspace_id=m.workspace_id AND r.principal=m.principal AND r.id=$2 WHERE m.workspace_id=$1 ORDER BY m.principal",
+          [workspace, id],
+        )
+      ).rows;
+      await client.query("COMMIT");
+      return rows;
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+  async attachment(workspace, principal, asset, input) {
+    if (
+      !/^[a-f0-9-]{36}\.(png|jpe?g|webp|gif|pdf|xlsx|xlsm|xls|xlsb|csv|tsv|txt)$/i.test(
+        asset,
+      )
+    )
+      throw fail(400, "Invalid attachment path");
+    const role = await this.role(workspace, principal);
+    if (input) {
+      if (role === "reader") throw fail(403, "Read-only workspace");
+      if (
+        typeof input.data !== "string" ||
+        input.data.length > 5600000 ||
+        typeof input.name !== "string" ||
+        input.name.length > 255 ||
+        !/^[A-Za-z0-9+/]*={0,2}$/.test(input.data) ||
+        input.data.length % 4 !== 0
+      )
+        throw fail(400, "Invalid attachment");
+      const bytes = Buffer.from(input.data, "base64");
+      if (bytes.toString("base64") !== input.data)
+        throw fail(400, "Invalid attachment encoding");
+      if (bytes.length > 4 * 1024 * 1024)
+        throw fail(413, "Organization attachment limit is 4 MB");
+      await this.pool.query(
+        "INSERT INTO attachments VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING",
+        [workspace, asset, input.name, bytes],
+      );
+      const saved = (
+        await this.pool.query(
+          "SELECT data FROM attachments WHERE workspace_id=$1 AND path=$2",
+          [workspace, asset],
+        )
+      ).rows[0];
+      if (!saved.data.equals(bytes))
+        throw fail(409, "Attachment already exists with different contents");
+      return { ok: true };
+    }
+    const saved = (
+      await this.pool.query(
+        "SELECT name,data FROM attachments WHERE workspace_id=$1 AND path=$2",
+        [workspace, asset],
+      )
+    ).rows[0];
+    if (!saved) throw fail(404, "Attachment unavailable");
+    return { name: saved.name, data: saved.data.toString("base64") };
+  }
   async list(principal) {
     return (
       await this.pool.query(
@@ -45,12 +145,12 @@ export class WorkspaceService {
     await this.role(workspace, principal);
     if (after && !validUUID(after)) throw fail(400, "Invalid cursor");
     const { rows } = await this.pool.query(
-      "SELECT * FROM documents WHERE workspace_id=$1 AND ($2::uuid IS NULL OR id>$2::uuid) ORDER BY id LIMIT 201",
-      [workspace, after || null],
+      "SELECT d.*, CASE WHEN m.role='editor' AND r.principal IS NOT NULL THEN 'reader' ELSE m.role END AS role FROM documents d JOIN members m ON m.workspace_id=d.workspace_id AND m.principal=$3 LEFT JOIN document_readers r ON r.workspace_id=d.workspace_id AND r.id=d.id AND r.principal=$3 WHERE d.workspace_id=$1 AND ($2::uuid IS NULL OR d.id>$2::uuid) ORDER BY d.id LIMIT 21",
+      [workspace, after || null, principal],
     );
     return {
-      notes: rows.slice(0, 200),
-      next: rows.length > 200 ? rows[199].id : null,
+      notes: rows.slice(0, 20),
+      next: rows.length > 20 ? rows[19].id : null,
     };
   }
   async history(workspace, principal, id) {
@@ -83,7 +183,12 @@ export class WorkspaceService {
       await client.query("SELECT id FROM workspaces WHERE id=$1 FOR UPDATE", [
         workspace,
       ]);
-      const role = await this.role(workspace, principal, client);
+      const role = await this.documentRole(
+        workspace,
+        principal,
+        input.id,
+        client,
+      );
       if (role === "reader") throw fail(403, "Read-only workspace");
       const prior = await client.query(
         "SELECT result FROM mutations WHERE workspace_id=$1 AND principal=$2 AND operation_id=$3",

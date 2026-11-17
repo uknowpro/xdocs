@@ -1,8 +1,9 @@
+import { collaborationBody } from "../shared/collab-blocks.mjs";
 import * as Y from "yjs";
 import { createServer } from "node:http";
 import { DatabaseSync } from "node:sqlite";
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
+import { mkdir, writeFile, readFile, unlink, stat } from "node:fs/promises";
 import path from "node:path";
 import * as oidc from "openid-client";
 export function validateServer(value) {
@@ -243,6 +244,9 @@ export class OrganizationVault {
     db.exec(
       `PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS cached(id TEXT PRIMARY KEY,title TEXT NOT NULL,body TEXT NOT NULL,version INTEGER NOT NULL,deleted INTEGER NOT NULL,revision TEXT NOT NULL); CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY,operation_id TEXT NOT NULL,base_version INTEGER NOT NULL,body TEXT NOT NULL,deleted INTEGER NOT NULL,conflict TEXT); CREATE TABLE IF NOT EXISTS collab_cache(id TEXT PRIMARY KEY,generation TEXT NOT NULL,state BLOB NOT NULL,pending INTEGER NOT NULL DEFAULT 0,error TEXT);`,
     );
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS asset_cache(path TEXT PRIMARY KEY,name TEXT NOT NULL,data BLOB NOT NULL,pending INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS note_roles(id TEXT PRIMARY KEY,role TEXT NOT NULL)",
+    );
     const vault = new OrganizationVault(db, session, workspace);
     try {
       await vault.sync();
@@ -255,25 +259,58 @@ export class OrganizationVault {
   route() {
     return "/v1/workspaces/" + this.workspace.id + "/notes";
   }
+  async readNote(id) {
+    const note = this.db
+      .prepare(
+        "SELECT c.id,c.title,c.body,c.revision,c.id||'.md' AS path,r.role FROM cached c LEFT JOIN note_roles r ON r.id=c.id WHERE c.id=? AND c.deleted=0",
+      )
+      .get(id);
+    if (!note) throw Error("노트를 찾을 수 없습니다.");
+    return note;
+  }
   async snapshot() {
     return {
       root: this.session.server + " / " + this.workspace.name,
       name: this.workspace.name,
       kind: "server",
       role: this.workspace.role,
-      notes: this.db
-        .prepare(
-          "SELECT id,title,body,revision,id||'.md' AS path FROM cached WHERE deleted=0 ORDER BY title",
-        )
-        .all(),
+      notes: Array.from(
+        this.db
+          .prepare(
+            "SELECT c.id,c.title,c.body,c.revision,c.id||'.md' AS path,r.role FROM cached c LEFT JOIN note_roles r ON r.id=c.id WHERE c.deleted=0 ORDER BY c.title",
+          )
+          .iterate(),
+        (n) =>
+          this.metadataOnly
+            ? {
+                ...n,
+                body: JSON.parse(JSON.stringify(n.body.slice(0,240))),
+                tags: [...n.body.matchAll(/(?:^|\s)#([^\s#]+)/g)].map(
+                  (m) => m[1],
+                ),
+                unloaded: true,
+                links: [
+                  ...n.body
+                    .replace(/```[\s\S]*?```/g, "")
+                    .matchAll(/\[\[([^\]\n]+)\]\]/g),
+                ].map((m) => m[1].split("|")[0].trim()),
+              }
+            : n,
+      ),
       pending: this.db
         .prepare(
-          "SELECT (SELECT count(*) FROM outbox)+(SELECT count(*) FROM collab_cache WHERE pending=1) AS count",
+          "SELECT (SELECT count(*) FROM outbox)+(SELECT count(*) FROM collab_cache WHERE pending=1)+(SELECT count(*) FROM asset_cache WHERE pending=1) AS count",
         )
         .get().count,
     };
   }
-  writable() {
+  writable(id) {
+    if (
+      id &&
+      this.db.prepare("SELECT role FROM note_roles WHERE id=?").get(id)
+        ?.role === "reader"
+    )
+      throw Error("이 문서는 열람 전용입니다.");
     if (this.workspace.role === "reader")
       throw Error("열람 전용 보관함입니다.");
   }
@@ -297,7 +334,7 @@ export class OrganizationVault {
     return { id, title, body, path: id + ".md", revision };
   }
   async save({ id, body, revision }) {
-    this.writable();
+    this.writable(id);
     if (typeof body !== "string" || body.length > 5e6)
       throw Error("문서 크기 제한을 초과했습니다.");
     const n = this.db.prepare("SELECT * FROM cached WHERE id=?").get(id);
@@ -323,7 +360,7 @@ export class OrganizationVault {
     return { id, title, body, revision: next, path: id + ".md" };
   }
   async trash({ id, revision }) {
-    this.writable();
+    this.writable(id);
     const n = this.db.prepare("SELECT * FROM cached WHERE id=?").get(id);
     if (!n || n.revision !== revision) throw Error("변경된 문서입니다.");
     this.db.exec("BEGIN");
@@ -342,14 +379,121 @@ export class OrganizationVault {
       throw e;
     }
   }
-  async search(query) {
-    return (await this.snapshot()).notes
-      .filter((n) =>
-        (n.title + n.body).toLowerCase().includes(query.toLowerCase()),
+  async permissions(id, principal, readOnly) {
+    return this.session.request(
+      this.route() + "/" + id + "/permissions",
+      principal === undefined
+        ? {}
+        : { method: "PUT", body: JSON.stringify({ principal, readOnly }) },
+    );
+  }
+  async addAttachment(source) {
+    this.writable();
+    const ext = path.extname(source).toLowerCase();
+    if (
+      ![
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+        ".pdf",
+        ".xlsx",
+        ".xlsm",
+        ".xls",
+        ".xlsb",
+        ".csv",
+        ".tsv",
+        ".txt",
+      ].includes(ext)
+    )
+      throw Error("지원하지 않는 첨부파일입니다.");
+    if ((await stat(source)).size > 4 * 1024 * 1024)
+      throw Error("조직 첨부파일은 4 MB 이하만 지원합니다.");
+    const relative = "assets/" + randomUUID() + ext;
+    this.db
+      .prepare("INSERT INTO asset_cache VALUES(?,?,?,1)")
+      .run(relative, path.basename(source), await readFile(source));
+    return {
+      path: relative,
+      name: path.basename(source),
+      kind:
+        ext === ".pdf"
+          ? "pdf"
+          : [".png", ".jpg", ".jpeg", ".gif", ".webp"].includes(ext)
+            ? "image"
+            : "file",
+    };
+  }
+  async readAttachment(relative) {
+    if (
+      typeof relative !== "string" ||
+      !/^assets\/[a-f0-9-]{36}\.(png|jpe?g|webp|gif|pdf|xlsx|xlsm|xls|xlsb|csv|tsv|txt)$/i.test(
+        relative,
       )
-      .slice(0, 200);
+    )
+      throw Error("허용되지 않은 첨부 경로입니다.");
+    let asset = this.db
+      .prepare("SELECT * FROM asset_cache WHERE path=?")
+      .get(relative);
+    if (!asset) {
+      const remote = await this.session.request(
+        "/v1/workspaces/" + this.workspace.id + "/" + relative,
+      );
+      const bytes = Buffer.from(remote.data, "base64");
+      if (bytes.length > 4 * 1024 * 1024)
+        throw Error("첨부파일 크기 제한을 초과했습니다.");
+      this.db
+        .prepare("INSERT OR IGNORE INTO asset_cache VALUES(?,?,?,0)")
+        .run(relative, remote.name, bytes);
+      asset = { data: bytes };
+    }
+    const mime =
+      {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+        ".pdf": "application/pdf",
+      }[path.extname(relative)] || "application/octet-stream";
+    return { mime, data: Buffer.from(asset.data).toString("base64") };
+  }
+  async history(id) {
+    const rows = await this.session.request(
+      this.route() + "/" + id + "/history",
+    );
+    return rows.map((n) => ({
+      title: n.title,
+      body: n.body,
+      path: id + ".md",
+      revision: String(n.version),
+      savedAt: n.saved_at,
+    }));
+  }
+  async restoreHistory({ id, revision, historyRevision }) {
+    const selected = (await this.history(id)).find(
+      (n) => n.revision === historyRevision,
+    );
+    if (!selected) throw Error("선택한 이력을 찾을 수 없습니다.");
+    return this.save({ id, revision, body: selected.body });
+  }
+  async search(query) {
+    if (typeof query !== "string" || query.length > 300)
+      throw Error("검색어가 너무 깁니다.");
+    const term = "%" + query.replace(/[\\%_]/g, "\\$&") + "%";
+    return this.db
+      .prepare(
+        "SELECT id,title,substr(body,1,240) AS body,revision,id||'.md' AS path FROM cached WHERE deleted=0 AND (title LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\') ORDER BY title LIMIT 200",
+      )
+      .all(term, term)
+      .map((n) => ({ ...n, unloaded: true }));
   }
   putRemote(n) {
+    if (n.role)
+      this.db
+        .prepare("INSERT OR REPLACE INTO note_roles VALUES(?,?)")
+        .run(n.id, n.role);
     const local = this.db.prepare("SELECT * FROM cached WHERE id=?").get(n.id);
     const rev =
       local && local.body === n.body && Boolean(local.deleted) === n.deleted
@@ -369,6 +513,26 @@ export class OrganizationVault {
     }
   }
   async performSync() {
+    for (const item of this.db
+      .prepare("SELECT path FROM asset_cache WHERE pending=1")
+      .all()) {
+      const asset = this.db
+        .prepare("SELECT * FROM asset_cache WHERE path=?")
+        .get(item.path);
+      await this.session.request(
+        "/v1/workspaces/" + this.workspace.id + "/" + asset.path,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            name: asset.name,
+            data: Buffer.from(asset.data).toString("base64"),
+          }),
+        },
+      );
+      this.db
+        .prepare("UPDATE asset_cache SET pending=0 WHERE path=?")
+        .run(asset.path);
+    }
     for (const pending of this.db
       .prepare("SELECT id FROM collab_cache WHERE pending=1 AND error IS NULL")
       .all()) {
@@ -378,9 +542,13 @@ export class OrganizationVault {
         if (![409, 404].includes(e.status)) throw e;
       }
     }
-    for (const op of this.db
-      .prepare("SELECT * FROM outbox WHERE conflict IS NULL")
+    for (const item of this.db
+      .prepare("SELECT id FROM outbox WHERE conflict IS NULL")
       .all()) {
+      const op = this.db
+        .prepare("SELECT * FROM outbox WHERE id=?")
+        .get(item.id);
+      if (!op) continue;
       try {
         const result = await this.session.request(this.route(), {
           method: "PUT",
@@ -487,7 +655,7 @@ export class OrganizationVault {
         error: pending.error,
       };
     const packet = await this.session.request(
-      this.route() + "/" + id + "/collaboration",
+      this.route() + "/" + id + "/collaboration?mode=blocks",
     );
     this.db
       .prepare("INSERT OR REPLACE INTO collab_cache VALUES(?,?,?,0,NULL)")
@@ -517,7 +685,7 @@ export class OrganizationVault {
       doc.destroy();
     }
   }
-  async collaborationSync(id) {
+  async collaborationSync(id, presence) {
     const before = this.db
       .prepare("SELECT * FROM collab_cache WHERE id=?")
       .get(id);
@@ -525,11 +693,12 @@ export class OrganizationVault {
     let packet;
     try {
       packet = await this.session.request(
-        this.route() + "/" + id + "/collaboration",
-        before.pending
+        this.route() + "/" + id + "/collaboration?mode=blocks",
+        before.pending || presence
           ? {
               method: "PATCH",
               body: JSON.stringify({
+                presence,
                 generation: before.generation,
                 state: Buffer.from(before.state).toString("base64"),
               }),
@@ -570,7 +739,7 @@ export class OrganizationVault {
         )
         .run(encoded, Number(more), id);
       if (!this.db.prepare("SELECT id FROM outbox WHERE id=?").get(id)) {
-        const body = doc.getText("markdown").toString();
+        const body = collaborationBody(doc);
         this.putRemote({
           id,
           title: body.match(/^#\s+(.+)$/m)?.[1] || "노트",
@@ -594,10 +763,7 @@ export class OrganizationVault {
       Y.applyUpdate(doc, local.state);
       const n = await this.create(
         "공동 편집 사본",
-        doc
-          .getText("markdown")
-          .toString()
-          .replace(/^#\s+(.+)$/m, "# $1 (공동 편집 사본)"),
+        collaborationBody(doc).replace(/^#\s+(.+)$/m, "# $1 (공동 편집 사본)"),
       );
       this.db.prepare("DELETE FROM collab_cache WHERE id=?").run(id);
       return n;

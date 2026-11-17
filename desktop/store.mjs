@@ -44,7 +44,7 @@ export class Vault {
     this.root = root;
     this.db = db;
   }
-  static async open(root) {
+  static async open(root, metadataOnly = false) {
     await mkdir(root, { recursive: true });
     root = await realpath(root);
     const hidden = path.join(root, ".xdocs");
@@ -68,11 +68,13 @@ export class Vault {
     }
     db.exec(`PRAGMA journal_mode=WAL;
       CREATE TABLE IF NOT EXISTS notes(id TEXT PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL, path TEXT UNIQUE NOT NULL, revision TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS note_metadata(id TEXT PRIMARY KEY,tags TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS links(source TEXT NOT NULL, target TEXT NOT NULL, PRIMARY KEY(source,target));
       CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(id UNINDEXED, title, body, tokenize='trigram');
       PRAGMA user_version=1;`);
     if (version === 0) db.exec("DELETE FROM notes; DELETE FROM links;");
     const vault = new Vault(root, db);
+    vault.metadataOnly = metadataOnly;
     try {
       await vault.refresh();
     } catch (e) {
@@ -101,7 +103,19 @@ export class Vault {
     return full;
   }
   async refresh() {
-    const found = [];
+    const previous = new Map(
+      this.db
+        .prepare("SELECT id,path,revision FROM notes")
+        .all()
+        .map((n) => [n.id, n]),
+    );
+    const indexedMetadata = new Set(
+      this.db
+        .prepare("SELECT id FROM note_metadata")
+        .all()
+        .map((n) => n.id),
+    );
+    const ids = new Set();
     const scan = async (dir, depth = 0) => {
       if (depth > 20) return;
       for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -109,35 +123,32 @@ export class Vault {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) await scan(full, depth + 1);
         else if (entry.isFile() && /\.md$/i.test(entry.name)) {
-          const stat = await lstat(full);
-          if (stat.size > 5 * 1024 * 1024) continue;
-          found.push(
-            decodeNote(
-              await readFile(full, "utf8"),
-              path.relative(this.root, full),
-            ),
+          if ((await lstat(full)).size > 5 * 1024 * 1024) continue;
+          const n = decodeNote(
+            await readFile(full, "utf8"),
+            path.relative(this.root, full),
           );
+          if (ids.has(n.id))
+            throw Error("중복된 노트 ID가 있습니다: " + n.path);
+          ids.add(n.id);
+          const old = previous.get(n.id);
+          if (
+            !old ||
+            !indexedMetadata.has(n.id) ||
+            old.revision !== n.revision ||
+            old.path !== n.path
+          )
+            this.index(n);
+          previous.delete(n.id);
         }
       }
     };
-    await scan(this.root);
-    const ids = new Set();
-    for (const n of found) {
-      if (ids.has(n.id))
-        throw new Error("중복된 노트 ID가 있습니다: " + n.path);
-      ids.add(n.id);
-    }
     this.db.exec("BEGIN");
     try {
-      const previous = new Map(this.snapshot().notes.map((n) => [n.id, n]));
-      for (const n of found) {
-        const old = previous.get(n.id);
-        if (!old || old.revision !== n.revision || old.path !== n.path)
-          this.index(n);
-        previous.delete(n.id);
-      }
+      await scan(this.root);
       for (const id of previous.keys()) {
         this.db.prepare("DELETE FROM notes WHERE id=?").run(id);
+        this.db.prepare("DELETE FROM note_metadata WHERE id=?").run(id);
         this.db.prepare("DELETE FROM links WHERE source=?").run(id);
         this.db.prepare("DELETE FROM notes_fts WHERE id=?").run(id);
       }
@@ -149,6 +160,20 @@ export class Vault {
     return this.snapshot();
   }
   index(n) {
+    this.db
+      .prepare("INSERT OR REPLACE INTO note_metadata VALUES(?,?)")
+      .run(
+        n.id,
+        JSON.stringify([
+          ...new Set(
+            [
+              ...n.body
+                .replace(/```[\s\S]*?```/g, "")
+                .matchAll(/(?:^|\s)#([^\s#]+)/g),
+            ].map((m) => m[1]),
+          ),
+        ]),
+      );
     this.db.prepare("DELETE FROM notes_fts WHERE id=?").run(n.id);
     this.db
       .prepare("INSERT INTO notes_fts(id,title,body) VALUES(?,?,?)")
@@ -162,7 +187,40 @@ export class Vault {
         .prepare("INSERT OR IGNORE INTO links VALUES (?, ?)")
         .run(n.id, target);
   }
+  readNote(id) {
+    const note = this.db.prepare("SELECT * FROM notes WHERE id=?").get(id);
+    if (!note) throw Error("노트를 찾을 수 없습니다.");
+    return note;
+  }
   snapshot() {
+    if (this.metadataOnly) {
+      const links = new Map();
+      for (const row of this.db
+        .prepare("SELECT source,target FROM links")
+        .iterate()) {
+        const values = links.get(row.source) || [];
+        values.push(row.target);
+        links.set(row.source, values);
+      }
+      return {
+        root: this.root,
+        name: path.basename(this.root),
+        notes: Array.from(
+          this.db
+            .prepare(
+              "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,240) AS body,m.tags FROM notes n LEFT JOIN note_metadata m ON m.id=n.id ORDER BY n.title COLLATE NOCASE",
+            )
+            .iterate(),
+          (n) => ({
+            ...n,
+            body: n.body,
+            tags: JSON.parse(n.tags || "[]"),
+            unloaded: true,
+            links: links.get(n.id) || [],
+          }),
+        ),
+      };
+    }
     return {
       root: this.root,
       name: path.basename(this.root),
@@ -247,6 +305,7 @@ export class Vault {
       path.join(trash, randomUUID() + "-" + path.basename(file)),
     );
     this.db.prepare("DELETE FROM notes WHERE id=?").run(id);
+    this.db.prepare("DELETE FROM note_metadata WHERE id=?").run(id);
     this.db.prepare("DELETE FROM links WHERE source=?").run(id);
     this.db.prepare("DELETE FROM notes_fts WHERE id=?").run(id);
   }
@@ -338,7 +397,21 @@ export class Vault {
     return restored;
   }
   async addAttachment(source) {
-    const extensions = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"];
+    const extensions = [
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".webp",
+      ".gif",
+      ".pdf",
+      ".xlsx",
+      ".xlsm",
+      ".xls",
+      ".xlsb",
+      ".csv",
+      ".tsv",
+      ".txt",
+    ];
     const ext = path.extname(source).toLowerCase();
     if (!extensions.includes(ext))
       throw new Error("이미지 또는 PDF를 선택해 주세요.");
@@ -353,13 +426,20 @@ export class Vault {
     return {
       path: "assets/" + filename,
       name: path.basename(source),
-      kind: ext === ".pdf" ? "pdf" : "image",
+      kind:
+        ext === ".pdf"
+          ? "pdf"
+          : [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext)
+            ? "image"
+            : "file",
     };
   }
   async readAttachment(relative) {
     if (
       typeof relative !== "string" ||
-      !/^assets\/[a-f0-9-]{36}\.(png|jpe?g|webp|gif|pdf)$/i.test(relative)
+      !/^assets\/[a-f0-9-]{36}\.(png|jpe?g|webp|gif|pdf|xlsx|xlsm|xls|xlsb|csv|tsv|txt)$/i.test(
+        relative,
+      )
     )
       throw new Error("허용되지 않은 첨부 경로입니다.");
     const file = path.join(this.root, relative);
@@ -367,19 +447,36 @@ export class Vault {
       throw new Error("첨부 링크는 지원하지 않습니다.");
     if ((await lstat(file)).size > 25 * 1024 * 1024)
       throw new Error("첨부파일 크기 제한을 초과했습니다.");
-    const mime = {
-      ".png": "image/png",
-      ".jpg": "image/jpeg",
-      ".jpeg": "image/jpeg",
-      ".webp": "image/webp",
-      ".gif": "image/gif",
-      ".pdf": "application/pdf",
-    }[path.extname(file).toLowerCase()];
+    const mime =
+      {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+        ".pdf": "application/pdf",
+      }[path.extname(file).toLowerCase()] || "application/octet-stream";
     return { mime, data: (await readFile(file)).toString("base64") };
   }
   search(query) {
     if (typeof query !== "string" || query.length > 300)
       throw new Error("검색어가 너무 깁니다.");
+    if (this.metadataOnly) {
+      const term = "%" + query.replace(/[\\%_]/g, "\\$&") + "%";
+      const rows =
+        query.length >= 3 && !/[\\%_]/.test(query)
+          ? this.db
+              .prepare(
+                "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,240) AS body FROM notes n JOIN notes_fts f ON n.id=f.id WHERE f.title LIKE ? OR f.body LIKE ? ORDER BY n.title LIMIT 200",
+              )
+              .all(term, term)
+          : this.db
+              .prepare(
+                "SELECT id,title,path,revision,substr(body,1,240) AS body FROM notes WHERE title LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\' ORDER BY title LIMIT 200",
+              )
+              .all(term, term);
+      return rows.map((n) => ({ ...n, unloaded: true }));
+    }
     const term = "%" + query.replace(/[\\%_]/g, "\\$&") + "%";
     if (query.length >= 3 && !/[\\%_]/.test(query)) {
       return this.db

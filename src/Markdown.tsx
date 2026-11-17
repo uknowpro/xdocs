@@ -1,3 +1,5 @@
+import { selectedTableTSV } from "./tableClipboard";
+import { toTSV } from "../shared/tabular.mjs";
 import { useMemo } from "react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -22,6 +24,9 @@ export default function Markdown({
 }) {
   const html = useMemo(() => {
     const renderer = new marked.Renderer();
+    const originalTable = renderer.table.bind(renderer);
+    renderer.table = (token) =>
+      `<button class="text-button" data-copy-table="true">표 복사 (탭 구분)</button>${originalTable(token)}`;
     renderer.checkbox = ({ checked }) =>
       `<span class="task-mark" role="img" aria-label="${checked ? "완료" : "미완료"}">${checked ? "☑" : "☐"}</span>`;
     renderer.text = ({ text }) =>
@@ -50,7 +55,32 @@ export default function Markdown({
   return (
     <div
       className="markdown"
+      onCopy={(e) => {
+        const text = selectedTableTSV(e.currentTarget);
+        if (text !== null) {
+          e.preventDefault();
+          e.clipboardData.setData("text/plain", text);
+        }
+      }}
       onClick={(e) => {
+        const copy = (e.target as HTMLElement).closest("[data-copy-table]");
+        if (copy) {
+          const table = copy.nextElementSibling as HTMLTableElement;
+          const text = toTSV(
+            Array.from(table.rows).map((row) =>
+              Array.from(row.cells).map((cell) => cell.innerText),
+            ),
+          );
+          void navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              copy.textContent = "복사됨";
+            })
+            .catch(() => {
+              copy.textContent = "표를 선택한 후 Ctrl/⌘ C로 복사해 주세요";
+            });
+          return;
+        }
         const a = (e.target as HTMLElement).closest("a");
         if (!a) return;
         e.preventDefault();

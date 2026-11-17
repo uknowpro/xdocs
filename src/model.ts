@@ -26,7 +26,7 @@ export function edgesFor(notes: Note[]) {
     lookup.set(n.path.replace(/\.md$/i, "").replaceAll("\\", "/"), n);
   }
   return notes.flatMap((n) =>
-    linksIn(n.body).flatMap((target) => {
+    (n.links || linksIn(n.body)).flatMap((target) => {
       const to = lookup.get(target);
       return to && to.id !== n.id ? [{ source: n.id, target: to.id }] : [];
     }),

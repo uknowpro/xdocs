@@ -37,6 +37,37 @@ export function createApi({ service, authenticate, events, identity }) {
         return send(res, 200, { principal: actor.principal });
       if (req.method === "GET" && url.pathname === "/v1/workspaces")
         return send(res, 200, await service.list(actor.principal));
+      const asset = url.pathname.match(
+        /^\/v1\/workspaces\/([^/]+)\/assets\/([^/]+)$/,
+      );
+      if (asset && ["GET", "PUT"].includes(req.method))
+        return send(
+          res,
+          200,
+          await service.attachment(
+            asset[1],
+            actor.principal,
+            asset[2],
+            req.method === "PUT" ? await body(req) : undefined,
+          ),
+        );
+      const permission = url.pathname.match(
+        /^\/v1\/workspaces\/([^/]+)\/notes\/([^/]+)\/permissions$/,
+      );
+      if (permission && ["GET", "PUT"].includes(req.method)) {
+        const input = req.method === "PUT" ? await body(req) : {};
+        return send(
+          res,
+          200,
+          await service.permissions(
+            permission[1],
+            actor.principal,
+            permission[2],
+            input.principal,
+            input.readOnly,
+          ),
+        );
+      }
       const collab = url.pathname.match(
         /^\/v1\/workspaces\/([^/]+)\/notes\/([^/]+)\/collaboration$/,
       );
@@ -49,6 +80,7 @@ export function createApi({ service, authenticate, events, identity }) {
             actor.principal,
             collab[2],
             req.method === "PATCH" ? await body(req) : undefined,
+            url.searchParams.get("mode") === "blocks" ? "blocks" : "text",
           ),
         );
       const route = url.pathname.match(

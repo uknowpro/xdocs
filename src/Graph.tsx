@@ -30,7 +30,7 @@ export default function Graph({
     (n) =>
       compact ||
       !filter ||
-      (n.title + " " + n.path + " " + n.body)
+      (n.title + " " + n.path + " " + n.body + " " + (n.tags || []).join(" "))
         .toLowerCase()
         .includes(filter.toLowerCase()),
   );

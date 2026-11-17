@@ -1,9 +1,10 @@
 import { parentPort, workerData } from "node:worker_threads";
 import { Vault } from "./store.mjs";
-const vault = await Vault.open(workerData.root);
+const vault = await Vault.open(workerData.root, true);
 let queue = Promise.resolve();
 const allowed = new Set([
   "snapshot",
+  "readNote",
   "refresh",
   "create",
   "save",

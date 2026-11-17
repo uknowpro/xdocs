@@ -6,7 +6,7 @@ export default function Attachments({ body }: { body: string }) {
     ...new Set(
       [
         ...body.matchAll(
-          /\((assets\/[a-f0-9-]{36}\.(?:png|jpe?g|webp|gif|pdf))\)/gi,
+          /\((assets\/[a-f0-9-]{36}\.(?:png|jpe?g|webp|gif|pdf|xlsx|xlsm|xls|xlsb|csv|tsv|txt))\)/gi,
         ),
       ].map((m) => m[1]),
     ),
@@ -47,7 +47,18 @@ export default function Attachments({ body }: { body: string }) {
     <section className="attachments" aria-label="노트 첨부파일">
       {error && <p role="alert">{error}</p>}
       {paths.map((p) =>
-        urls[p]?.mime === "application/pdf" ? (
+        urls[p]?.mime === "application/octet-stream" ? (
+          <button
+            key={p}
+            className="attachment-pdf"
+            onClick={() =>
+              void api.openAttachment?.(p).catch((e) => setError(String(e)))
+            }
+          >
+            <FileText size={20} />
+            원본 파일 열기
+          </button>
+        ) : urls[p]?.mime === "application/pdf" ? (
           <button
             key={p}
             className="attachment-pdf"

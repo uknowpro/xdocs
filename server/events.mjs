@@ -20,26 +20,46 @@ export class Events extends EventEmitter {
       await this.publisher.publish("xdocs:changes", JSON.stringify(event));
     else this.emit("change", event);
   }
-  async touch(workspace, id, actor) {
-    const key = "xdocs:presence:" + workspace + ":" + id,
-      member = createHash("sha256").update(actor).digest("hex").slice(0, 10),
-      now = Date.now();
+  async touch(workspace, id, actor, cursor) {
+    const key = "xdocs:presence:" + workspace + ":" + id;
+    const member = createHash("sha256")
+      .update(actor + (cursor?.client || ""))
+      .digest("hex")
+      .slice(0, 16);
+    const now = Date.now(),
+      entry = {
+        id: member,
+        label: "참여자 " + member.slice(0, 4),
+        ...cursor,
+        time: now,
+      };
     if (this.publisher?.isReady) {
-      await this.publisher.zAdd(key, { score: now, value: member });
-      await this.publisher.zRemRangeByScore(key, 0, now - 20000);
-      await this.publisher.expire(key, 60);
-      const members = await this.publisher.zRange(key, 0, -1);
-      return members.map((id) => ({ id, label: "참여자 " + id.slice(0, 4) }));
+      await this.publisher.hSet(
+        key + ":cursors",
+        member,
+        JSON.stringify(entry),
+      );
+      await this.publisher.expire(key + ":cursors", 60);
+      const values = await this.publisher.hGetAll(key + ":cursors");
+      const active = [];
+      for (const [who, value] of Object.entries(values)) {
+        const peer = JSON.parse(value);
+        if (peer.time < now - 20000)
+          await this.publisher.hDel(key + ":cursors", who);
+        else active.push(peer);
+      }
+      return active;
     }
     this.presence ??= new Map();
+    for (const [room, peers] of this.presence) {
+      for (const [who, peer] of peers)
+        if (peer.time < now - 20000) peers.delete(who);
+      if (!peers.size) this.presence.delete(room);
+    }
     const peers = this.presence.get(key) || new Map();
-    peers.set(member, now);
-    for (const [who, time] of peers) if (time < now - 20000) peers.delete(who);
+    peers.set(member, entry);
     this.presence.set(key, peers);
-    return [...peers.keys()].map((id) => ({
-      id,
-      label: "참여자 " + id.slice(0, 4),
-    }));
+    return [...peers.values()];
   }
   async close() {
     await Promise.all([this.publisher?.quit(), this.subscriber?.quit()]);

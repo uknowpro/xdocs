@@ -111,3 +111,83 @@ test("block editor preserves linked text and supports formatting and block movem
   expect(raw.indexOf("두 번째 문단")).toBeLessThan(raw.indexOf("첫 번째 문단"));
   expect(raw).toContain("추가 텍스트");
 });
+
+test("sheet tabs persist, multiline TSV pastes and rectangle copies with tabs", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "새 시트 테이블", exact: true })
+    .click();
+  const a1 = page.getByRole("textbox", { name: "시트 1 A1", exact: true });
+  await a1.click();
+  await a1.evaluate((el) => {
+    const data = new DataTransfer();
+    data.setData("text/plain", '이름\t값\r\n한글\t"여러\n줄"');
+    el.dispatchEvent(
+      new ClipboardEvent("paste", {
+        clipboardData: data,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
+  await expect(a1).toHaveValue("이름");
+  await expect(
+    page.getByRole("textbox", { name: "시트 1 B2", exact: true }),
+  ).toHaveValue("여러\n줄");
+  await page
+    .getByRole("textbox", { name: "시트 1 B2", exact: true })
+    .click({ modifiers: ["Shift"] });
+  const copied = await a1.evaluate((el) => {
+    const data = new DataTransfer();
+    el.dispatchEvent(
+      new ClipboardEvent("copy", {
+        clipboardData: data,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    return data.getData("text/plain");
+  });
+  expect(copied).toBe('이름\t값\r\n한글\t"여러\n줄"');
+  await page.getByRole("button", { name: "시트 추가", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "시트 2 A1", exact: true })
+    .fill("다른 시트");
+  await expect(page.locator(".save-state")).toContainText("브라우저에 저장됨");
+  await page.reload();
+  await page.getByRole("button", { name: "새 시트", exact: true }).click();
+  await page.getByRole("tab", { name: "시트 2", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "시트 2 A1", exact: true }),
+  ).toHaveValue("다른 시트");
+});
+
+test("Markdown table selection copies tab-separated cells", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "노트 본문" })
+    .fill("# 표 복사\n\n| 이름 | 값 |\n| --- | --- |\n| 한글 | 12 |");
+  await page.getByRole("button", { name: "읽기 모드", exact: true }).click();
+  const copied = await page.locator(".markdown table").evaluate((table) => {
+    const range = document.createRange();
+    range.selectNodeContents(table);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    const data = new DataTransfer();
+    table.dispatchEvent(
+      new ClipboardEvent("copy", {
+        clipboardData: data,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    return data.getData("text/plain");
+  });
+  expect(copied).toBe("이름\t값\r\n한글\t12");
+});

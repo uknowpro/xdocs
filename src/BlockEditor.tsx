@@ -1,3 +1,4 @@
+import { selectedTableTSV } from "./tableClipboard";
 import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -94,7 +95,17 @@ export default function BlockEditor({
     render((n) => n + 1);
   };
   return (
-    <div className="block-editor">
+    <div
+      className="block-editor"
+      onCopyCapture={(e) => {
+        const text = selectedTableTSV(e.currentTarget);
+        if (text !== null) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.clipboardData.setData("text/plain", text);
+        }
+      }}
+    >
       <div className="editor-toolbar">
         <button
           aria-label="블록 굵게"

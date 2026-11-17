@@ -9,3 +9,6 @@ CREATE TABLE IF NOT EXISTS audit_events(id bigserial PRIMARY KEY, workspace_id u
 CREATE INDEX IF NOT EXISTS documents_workspace_idx ON documents(workspace_id, id);
 
 CREATE TABLE IF NOT EXISTS collaboration_states(workspace_id uuid NOT NULL,id uuid NOT NULL,generation uuid NOT NULL,state bytea NOT NULL,PRIMARY KEY(workspace_id,id));
+
+CREATE TABLE IF NOT EXISTS attachments(workspace_id uuid REFERENCES workspaces(id),path text NOT NULL,name text NOT NULL,data bytea NOT NULL,PRIMARY KEY(workspace_id,path));
+CREATE TABLE IF NOT EXISTS document_readers(workspace_id uuid NOT NULL,id uuid NOT NULL,principal text NOT NULL,PRIMARY KEY(workspace_id,id,principal),FOREIGN KEY(workspace_id,principal) REFERENCES members(workspace_id,principal));

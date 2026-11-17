@@ -1,3 +1,4 @@
+import { seedBlocks, collaborationBody } from "../shared/collab-blocks.mjs";
 import * as Y from "yjs";
 import { randomUUID } from "node:crypto";
 import { fail, validUUID } from "./service.mjs";
@@ -10,7 +11,7 @@ export class CollaborationService {
       "CREATE TABLE IF NOT EXISTS collaboration_states(workspace_id uuid NOT NULL,id uuid NOT NULL,generation uuid NOT NULL,state bytea NOT NULL,PRIMARY KEY(workspace_id,id))",
     );
   }
-  async transact(workspace, principal, id, update) {
+  async transact(workspace, principal, id, update, mode = "text") {
     if (!validUUID(workspace) || !validUUID(id))
       throw fail(400, "Invalid document");
     if (
@@ -20,6 +21,16 @@ export class CollaborationService {
         update.state.length > 6e6)
     )
       throw fail(400, "Invalid collaboration update");
+    if (
+      update?.presence &&
+      (!validUUID(update.presence.client) ||
+        typeof update.presence.block !== "string" ||
+        update.presence.block.length > 100 ||
+        !Number.isSafeInteger(update.presence.offset) ||
+        update.presence.offset < 0 ||
+        update.presence.offset > 5e6)
+    )
+      throw fail(400, "Invalid cursor");
     const client = await this.service.pool.connect();
     let result,
       changed = false;
@@ -28,7 +39,12 @@ export class CollaborationService {
       await client.query("SELECT id FROM workspaces WHERE id=$1 FOR UPDATE", [
         workspace,
       ]);
-      const role = await this.service.role(workspace, principal, client);
+      const role = await this.service.documentRole(
+        workspace,
+        principal,
+        id,
+        client,
+      );
       if (update && role === "reader") throw fail(403, "Read-only workspace");
       const current = (
         await client.query(
@@ -48,7 +64,8 @@ export class CollaborationService {
       try {
         if (saved) Y.applyUpdate(doc, saved.state);
         else {
-          text.insert(0, current.body);
+          if (mode === "blocks") seedBlocks(doc, current.body);
+          else text.insert(0, current.body);
           saved = { generation: randomUUID() };
         }
         if (update) {
@@ -60,7 +77,7 @@ export class CollaborationService {
             throw fail(400, "Invalid CRDT state");
           }
         }
-        const body = text.toString(),
+        const body = collaborationBody(doc),
           state = Buffer.from(Y.encodeStateAsUpdate(doc));
         if (state.length > 4e6 || Buffer.byteLength(body) > 5e6)
           throw fail(413, "Collaboration document too large");
@@ -108,7 +125,7 @@ export class CollaborationService {
         .catch(() => {});
     result.participants =
       (await this.service.events
-        ?.touch(workspace, id, principal)
+        ?.touch(workspace, id, principal, update?.presence)
         .catch(() => [])) || [];
     return result;
   }

@@ -1,3 +1,10 @@
+import { importWithExcel } from "./excel-bridge.mjs";
+import { importSpreadsheet } from "./spreadsheet-import.mjs";
+import {
+  encodeWorkbook,
+  decodeWorkbook,
+  sheetMarkdown,
+} from "../shared/tabular.mjs";
 import { initializeUpdates } from "./updates.mjs";
 import { OrganizationSession, OrganizationVault } from "./organization.mjs";
 import {
@@ -73,7 +80,23 @@ async function chooseVault(root) {
   return vault.snapshot();
 }
 function exportHtml(note) {
-  const safe = sanitizeHtml(marked.parse(note.body), {
+  let body = note.body;
+  try {
+    const workbook = decodeWorkbook(body);
+    if (workbook)
+      body = body.replace(/^```xdocs-sheets\r?\n[^]*?\r?\n```$/m, () =>
+        workbook.sheets
+          .map(
+            (sheet) =>
+              "## " +
+              sheet.name.replace(/[\r\n]/g, " ") +
+              "\n\n" +
+              sheetMarkdown(sheet),
+          )
+          .join("\n\n"),
+      );
+  } catch {}
+  const safe = sanitizeHtml(marked.parse(body), {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat([
       "img",
       "h1",
@@ -159,6 +182,7 @@ app.whenReady().then(async () => {
     clearInterval(syncTimer);
     await orgVault?.close();
     orgVault = next;
+    next.metadataOnly = true;
     syncTimer = setInterval(async () => {
       try {
         const snapshot = await next.sync();
@@ -182,9 +206,9 @@ app.whenReady().then(async () => {
     if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
     return orgVault.collaborationUpdate(packet);
   });
-  register("collab:sync", (id) => {
+  register("collab:sync", (id, presence) => {
     if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
-    return orgVault.collaborationSync(id);
+    return orgVault.collaborationSync(id, presence);
   });
   register("collab:copy", (id) => {
     if (!orgVault) throw Error("조직 보관함을 열어 주세요.");
@@ -223,14 +247,16 @@ app.whenReady().then(async () => {
   register("note:create", (title, body) => mustVault().create(title, body));
   register("note:save", (data) => mustVault().save(data));
   register("note:trash", (data) => mustVault().trash(data));
+  register("note:read", (id) => mustVault().readNote(id));
   register("note:search", (query) => mustVault().search(query));
-  register("note:history", (id) => {
-    if (orgVault) throw Error("조직 이력 UI는 준비 중입니다.");
-    return mustVault().history(id);
-  });
+  register("note:history", (id) => mustVault().history(id));
   register("note:restore-history", (data) => mustVault().restoreHistory(data));
   register("vault:trash", () => mustVault().listTrash());
   register("vault:restore", (token) => mustVault().restoreTrash(token));
+  register("note:permissions", (id, principal, readOnly) => {
+    if (!orgVault) throw Error("조직 문서에서만 사용할 수 있습니다.");
+    return orgVault.permissions(id, principal, readOnly);
+  });
   register("asset:read", (relative) => mustVault().readAttachment(relative));
   register("asset:add", async () => {
     const result = await dialog.showOpenDialog(window, {
@@ -238,13 +264,120 @@ app.whenReady().then(async () => {
       filters: [
         {
           name: "이미지 / PDF",
-          extensions: ["png", "jpg", "jpeg", "webp", "gif", "pdf"],
+          extensions: [
+            "png",
+            "jpg",
+            "jpeg",
+            "webp",
+            "gif",
+            "pdf",
+            "xlsx",
+            "xlsm",
+            "xls",
+            "xlsb",
+            "csv",
+            "tsv",
+            "txt",
+          ],
         },
       ],
     });
     return result.canceled
       ? null
       : mustVault().addAttachment(result.filePaths[0]);
+  });
+  register("sheet:import", async () => {
+    const store = mustVault();
+    const result = await dialog.showOpenDialog(window, {
+      title: "시트 테이블 가져오기",
+      properties: ["openFile", "multiSelections"],
+      filters: [
+        {
+          name: "Excel / CSV / TSV / xl2txt",
+          extensions: ["xlsx", "xlsm", "xls", "xlsb", "csv", "tsv", "txt"],
+        },
+      ],
+    });
+    if (result.canceled) return null;
+    const sheets = [],
+      warnings = [];
+    for (const file of result.filePaths) {
+      try {
+        const data = await importSpreadsheet(file);
+        sheets.push(...data.workbook.sheets);
+        warnings.push(...data.warnings);
+      } catch (error) {
+        const answer = await dialog.showMessageBox(window, {
+          type: "info",
+          message: "시트 파일을 직접 읽을 수 없습니다.",
+          detail:
+            error.message +
+            "\n권한·암호·DRM은 우회하지 않습니다. 로컬 앱에서 인증 후 허용되는 CSV/탭 구분 UTF-8 TXT로 내보내고 다시 가져오세요.",
+          buttons: [
+            "취소",
+            "로컬 Excel / 기본 앱으로 열기",
+            "원본만 노트에 첨부",
+            ...(process.platform === "win32"
+              ? ["Excel에서 읽기 전용으로 가져오기"]
+              : []),
+          ],
+          defaultId: 0,
+          cancelId: 0,
+        });
+        if (answer.response === 3) {
+          const data = await importWithExcel(file);
+          sheets.push(...data.workbook.sheets);
+          warnings.push(...data.warnings);
+          continue;
+        }
+        if (answer.response === 1) {
+          const failure = await shell.openPath(file);
+          if (failure) throw Error(failure);
+        }
+        if (answer.response === 2) {
+          const attachment = await store.addAttachment(file);
+          return {
+            note: await store.create(
+              path.basename(file),
+              "# " +
+                path.basename(file) +
+                "\n\n[원본 파일](" +
+                attachment.path +
+                ")\n",
+            ),
+            warnings: ["원본 파일을 첨부했습니다. 표 변환은 하지 않았습니다."],
+          };
+        }
+        return null;
+      }
+    }
+    const title = path.basename(
+      result.filePaths[0],
+      path.extname(result.filePaths[0]),
+    );
+    const note = await store.create(
+      title,
+      "# " + title + "\n\n" + encodeWorkbook({ version: 1, sheets }) + "\n",
+    );
+    return { note, warnings: [...new Set(warnings)] };
+  });
+  register("asset:open", async (relative) => {
+    const store = mustVault();
+    await store.readAttachment(relative);
+    if (orgVault) {
+      const result = await dialog.showSaveDialog(window, {
+        title: "첨부파일 저장 후 열기",
+        defaultPath: path.basename(relative),
+      });
+      if (result.canceled || !result.filePath) return;
+      const asset = await store.readAttachment(relative);
+      await writeFile(result.filePath, Buffer.from(asset.data, "base64"));
+      const failure = await shell.openPath(result.filePath);
+      if (failure) throw Error(failure);
+      return;
+    }
+    const failure = await shell.openPath(path.join(store.root, relative));
+    if (failure) throw Error(failure);
   });
   register("note:import", async () => {
     const store = mustVault();
@@ -277,7 +410,7 @@ app.whenReady().then(async () => {
   register("note:export", async ({ id, format }) => {
     if (!["md", "html", "pdf"].includes(format))
       throw new Error("지원하지 않는 내보내기 형식입니다.");
-    const note = (await mustVault().snapshot()).notes.find((n) => n.id === id);
+    const note = await mustVault().readNote(id);
     if (!note) throw new Error("노트를 찾을 수 없습니다.");
     const result = await dialog.showSaveDialog(window, {
       defaultPath: note.title.replace(/[<>:"/\\|?*]/g, "-") + "." + format,

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- 시트 탭형 테이블, Excel/CSV/TSV 가져오기, 탭 구분 범위 복사·붙여넣기, 노트 표 복제, HTML/PDF 표 내보내기.
+- DRM 비우회 원본 첨부·로컬 앱 열기와 Windows Excel 읽기 전용 대체 경로.
+- 조직 첨부파일 동기화, 문서별 편집 제한, 이력 조회·복원.
+- Markdown 블록 공동 편집, 참여자 위치 공유, 오프라인 재시작 복구 검증.
+- 목록 페이지네이션, 본문 지연 로딩, 메모리 개선과 5천 노트 벤치마크.
+- 별도 서명 릴리스 워크플로. 실기기·인증서·운영 SSO 검증은 별도 진행.
+
 ## 0.2.0 — 2026-11-17
 
 - Add Markdown block editing, block ordering and stable note-link selection.

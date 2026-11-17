@@ -127,8 +127,8 @@ try {
     .waitFor();
   await page.getByRole("button", { name: "공동 편집", exact: true }).click();
   await page
-    .getByRole("textbox", { name: "공동 편집 본문" })
-    .fill("# Electron 조직 테스트\n\n동시 편집 내용");
+    .getByRole("textbox", { name: "공동 편집 블록 2" })
+    .fill("동시 편집 내용");
   await page
     .getByRole("status")
     .filter({ hasText: "서버와 동기화됨" })

@@ -2,7 +2,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.2.0 개발용 알파**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.3.0 개발용 알파**입니다.
 
 ![xdocs 다크 테마](docs/images/dark.png)
 
@@ -12,7 +12,8 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - Markdown·블록 편집, 자동 저장·변경 이력·휴지통 복원
 - 제목·본문 검색, 노트 링크·백링크·그래프
 - 이미지·PDF 첨부, Markdown·HTML 가져오기, Markdown·HTML·PDF 내보내기
-- 조직 보관함·SSO·오프라인 동기화·Markdown 공동 편집
+- 시트 탭형 테이블·Excel/CSV/TSV 가져오기·탭 구분 클립보드
+- 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
 ## 실행
 
@@ -45,4 +46,4 @@ npm run dist          # 현재 OS 패키징
 
 Ubuntu 개발 환경에서 실행을 확인했습니다. macOS·Windows는 실제 OS 검증과 서명 작업이 필요합니다.
 
-[사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)
+[시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)

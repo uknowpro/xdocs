@@ -1692,3 +1692,142 @@ textarea {
   font-size: 11px;
   color: var(--muted);
 }
+
+/* Sheet documents use the same neutral palette as notes. */
+.sheet-book {
+  width: 100%;
+  min-width: 0;
+  margin: 20px 0;
+}
+.sheet-toolbar,
+.sheet-footer,
+.sheet-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sheet-toolbar > span {
+  margin-right: auto;
+}
+.sheet-scroll {
+  overflow: auto;
+  max-height: 540px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+.sheet-grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 100%;
+  font-size: 13px;
+}
+.sheet-grid th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+  color: var(--muted);
+  font-weight: 500;
+  min-width: 40px;
+}
+.sheet-grid td,
+.sheet-grid th {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  height: 32px;
+  padding: 0;
+}
+.sheet-grid textarea {
+  width: 144px;
+  min-width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 7px 9px;
+  font: inherit;
+  border-radius: 0;
+}
+.sheet-grid td.selected {
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--muted);
+}
+.sheet-grid textarea:focus {
+  outline: 2px solid var(--muted);
+  outline-offset: -2px;
+}
+.sheet-footer {
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.sheet-tabs {
+  display: flex;
+  gap: 4px;
+  overflow: auto;
+  max-width: 100%;
+}
+.sheet-tabs button {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.sheet-tabs [aria-selected="true"] {
+  background: var(--hover);
+  font-weight: 650;
+  border-bottom: 2px solid currentColor;
+}
+.sheet-pages {
+  font-size: 12px;
+  color: var(--muted);
+}
+.sheet-pages button {
+  padding: 5px;
+}
+
+.sheet-grid textarea {
+  resize: vertical;
+  display: block;
+  min-height: 32px;
+  max-height: 120px;
+}
+
+.collaboration-blocks {
+  overflow: auto;
+  max-height: 65vh;
+}
+.collaboration-block {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.collaboration-block textarea {
+  min-height: 100px !important;
+  height: auto !important;
+}
+
+.sheet-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sheet-layout .context {
+  display: none;
+}
+.sheet-layout .document {
+  max-width: none;
+  padding: 32px 36px;
+}
+.sheet-grid textarea {
+  height: 32px;
+  line-height: 18px;
+  padding: 6px 9px;
+  resize: none;
+  overflow: hidden;
+}
+.sheet-grid textarea:focus {
+  height: 52px;
+  overflow: auto;
+}
+
+.sheet-scroll {
+  max-height: clamp(180px, calc(100dvh - 440px), 540px);
+}

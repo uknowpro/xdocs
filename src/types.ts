@@ -1,4 +1,8 @@
 export interface Note {
+  unloaded?: boolean;
+  links?: string[];
+  tags?: string[];
+  role?: "owner" | "editor" | "reader";
   id: string;
   title: string;
   body: string;
@@ -27,7 +31,7 @@ export interface TrashEntry extends Note {
 export interface Attachment {
   path: string;
   name: string;
-  kind: "pdf" | "image";
+  kind: "pdf" | "image" | "file";
 }
 export interface OrganizationInfo {
   id: string;
@@ -46,7 +50,13 @@ export interface UpdateState {
   message: string;
 }
 export interface CollaborationPacket {
-  participants?: { id: string; label: string }[];
+  participants?: {
+    id: string;
+    label: string;
+    client?: string;
+    block?: string;
+    offset?: number;
+  }[];
   id: string;
   generation: string;
   state: string;
@@ -54,11 +64,22 @@ export interface CollaborationPacket {
   error?: string;
 }
 export interface NoteAPI {
+  readNote?(id: string): Promise<Note>;
+  documentPermissions?(
+    id: string,
+    principal?: string,
+    readOnly?: boolean,
+  ): Promise<{ principal: string; role: string; read_only: boolean }[]>;
+  importSpreadsheet?(): Promise<{ note: Note; warnings: string[] } | null>;
+  openAttachment?(relative: string): Promise<void>;
   collaborationStart?(id: string): Promise<CollaborationPacket>;
   collaborationUpdate?(
     packet: CollaborationPacket,
   ): Promise<{ saved: boolean }>;
-  collaborationSync?(id: string): Promise<CollaborationPacket>;
+  collaborationSync?(
+    id: string,
+    presence?: { client: string; block: string; offset: number },
+  ): Promise<CollaborationPacket>;
   collaborationCopy?(id: string): Promise<Note>;
   updateStatus?(): Promise<UpdateState>;
   checkUpdate?(): Promise<UpdateState>;

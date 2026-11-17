@@ -164,6 +164,109 @@ try {
     }),
     (e) => e.status === 409,
   );
+  // Organization assets are immutable, isolated and accessible to readers.
+  const asset = randomUUID() + ".txt";
+  await service.attachment(w, actor, asset, {
+    name: "시트.tsv",
+    data: Buffer.from("한글\t값").toString("base64"),
+  });
+  assert.equal(
+    Buffer.from(
+      (await service.attachment(w, reader, asset)).data,
+      "base64",
+    ).toString(),
+    "한글\t값",
+  );
+  await assert.rejects(
+    service.attachment(other, actor, asset),
+    (e) => e.status === 403,
+  );
+  await assert.rejects(
+    service.attachment(w, reader, randomUUID() + ".txt", {
+      name: "x",
+      data: "eA==",
+    }),
+    (e) => e.status === 403,
+  );
+  await assert.rejects(
+    service.attachment(w, actor, asset, { name: "x", data: "eA==" }),
+    (e) => e.status === 409,
+  );
+  const editor = principalFor("test", "editor");
+  await service.grant(w, actor, editor, "editor");
+  await service.permissions(w, actor, live.id, editor, true);
+  assert.equal(await service.documentRole(w, editor, live.id), "reader");
+  await assert.rejects(
+    service.mutate(w, editor, {
+      ...live,
+      operationId: randomUUID(),
+      baseVersion: merged.version + 1,
+    }),
+    (e) => e.status === 403,
+  );
+  await assert.rejects(
+    collab.transact(w, editor, live.id, {
+      generation: initial.generation,
+      state: initial.state,
+    }),
+    (e) => e.status === 403,
+  );
+  await assert.rejects(
+    service.permissions(w, editor, live.id, editor, false),
+    (e) => e.status === 403,
+  );
+  assert.equal(
+    (await service.documents(w, editor)).notes.find((n) => n.id === live.id)
+      .role,
+    "reader",
+  );
+  await service.permissions(w, actor, live.id, editor, false);
+  assert.equal(await service.documentRole(w, editor, live.id), "editor");
+  // Separate blocks converge after delayed updates and reconnect replay.
+  const blockNote = {
+    ...live,
+    id: randomUUID(),
+    operationId: randomUUID(),
+    body: "# 블록\n\n하나\n\n둘",
+  };
+  await service.mutate(w, actor, blockNote);
+  const seed = await collab.transact(
+    w,
+    actor,
+    blockNote.id,
+    undefined,
+    "blocks",
+  );
+  const deviceA = new Y.Doc(),
+    deviceB = new Y.Doc();
+  Y.applyUpdate(deviceA, Buffer.from(seed.state, "base64"));
+  Y.applyUpdate(deviceB, Buffer.from(seed.state, "base64"));
+  for (let i = 0; i < 1000; i++) {
+    deviceA.getArray("blocks").get(1).get("text").insert(0, "A");
+    deviceB.getArray("blocks").get(2).get("text").insert(0, "B");
+  }
+  await collab.transact(w, actor, blockNote.id, {
+    generation: seed.generation,
+    state: Buffer.from(Y.encodeStateAsUpdate(deviceA)).toString("base64"),
+    presence: { client: randomUUID(), block: "1", offset: 20 },
+  });
+  const both = await collab.transact(w, editor, blockNote.id, {
+    generation: seed.generation,
+    state: Buffer.from(Y.encodeStateAsUpdate(deviceB)).toString("base64"),
+    presence: { client: randomUUID(), block: "2", offset: 30 },
+  });
+  assert.ok(both.body.includes("A".repeat(1000)));
+  assert.ok(both.body.includes("B".repeat(1000)));
+  assert.ok(both.participants.some((p) => p.offset === 20));
+  assert.ok(both.participants.some((p) => p.offset === 30));
+  const duplicate = await collab.transact(w, editor, blockNote.id, {
+    generation: seed.generation,
+    state: Buffer.from(Y.encodeStateAsUpdate(deviceB)).toString("base64"),
+  });
+  assert.equal(duplicate.version, both.version);
+  deviceA.destroy();
+  deviceB.destroy();
+
   left.destroy();
   right.destroy();
   console.log(

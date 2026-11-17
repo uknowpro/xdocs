@@ -164,3 +164,24 @@ test("a newer index version is rejected without changing the Markdown source", a
   await assert.rejects(Vault.open(root), /최신/);
   assert.match(await readFile(path.join(root, a.path), "utf8"), /# 호환성/);
 });
+
+test("metadata snapshots retain distant tags and links while loading a body separately", async (t) => {
+  const { root, vault } = await setup(t);
+  const note = await vault.create(
+    "큰 본문",
+    "# 큰 본문\n\n" + "내용 ".repeat(2000) + "\n\n[[멀리 있는 연결]] #끝태그",
+  );
+  vault.metadataOnly = true;
+  const summary = vault.snapshot().notes[0];
+  assert.equal(summary.unloaded, true);
+  assert.ok(summary.body.length <= 240);
+  assert.ok(summary.tags.includes("끝태그"));
+  assert.ok(summary.links.includes("멀리 있는 연결"));
+  assert.match(vault.readNote(note.id).body, /#끝태그/);
+  assert.equal(vault.search("끝태그")[0].unloaded, true);
+  await vault.trash(note);
+  assert.equal(
+    vault.db.prepare("SELECT count(*) AS n FROM note_metadata").get().n,
+    0,
+  );
+});
