@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — IaCD
+
+- 시각적 컴포넌트 배치·연결·속성·실행 취소, SVG·코드 ZIP 추출.
+- AWS·Azure·GCP Terraform, AWS CloudFormation, Kubernetes manifest·Helm chart 생성.
+- Terraform HCL/JSON 역변환, 알 수 없는 리소스·원본 설정 보존, 제한된 문자열 속성 override.
+- 공식 Azure AVM 3종과 WAF 5개 축 검토 기록.
+- GitHub Actions·Jenkins·Ansible 캔버스 적용 가능성 검토 문서 추가(기능 미구현).
+
 ## 0.4.0-alpha.1 — 2026-11-17
 
 - Terraform/OpenTofu JSON, Kubernetes 및 Compose YAML/JSON을 제한된 요약으로 가져오기.

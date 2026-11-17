@@ -2097,3 +2097,382 @@ textarea {
     font-size: 10px;
   }
 }
+
+.architecture-document {
+  margin: 24px 0;
+  min-width: 0;
+}
+.arch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.arch-header input {
+  display: block;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 25px;
+  font-weight: 600;
+  margin-top: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.arch-count {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.arch-toolbar,
+.arch-tools,
+.arch-canvas-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.arch-toolbar {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.arch-toolbar .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.arch-editor {
+  display: grid;
+  grid-template-columns: 170px minmax(250px, 1fr) 225px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 660px;
+}
+.arch-palette,
+.arch-properties {
+  padding: 14px;
+  background: var(--bg);
+  overflow: auto;
+}
+.arch-palette {
+  border-right: 1px solid var(--line);
+}
+.arch-palette > strong,
+.arch-properties > header {
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.arch-palette > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 5px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.arch-palette > button:hover {
+  background: var(--hover);
+}
+.arch-palette > button span {
+  flex: 1;
+  font-size: 11px;
+}
+.arch-palette small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.arch-palette select,
+.arch-export select,
+.arch-properties input,
+.arch-properties select,
+.arch-properties textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 11px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.arch-palette select {
+  margin-bottom: 10px;
+}
+.arch-workspace {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+.arch-canvas-tools {
+  height: 40px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0 10px;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.arch-canvas-tools > span:first-child {
+  flex: 1;
+}
+.arch-viewport {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+.arch-canvas {
+  position: relative;
+  transform-origin: top left;
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.arch-edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.arch-edges > path {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  fill: none;
+}
+.arch-edges marker path {
+  fill: var(--muted);
+}
+.arch-node {
+  position: absolute;
+  width: 180px;
+  height: 78px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 3px 10px #00000008;
+  text-align: left;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+.arch-node.selected {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.arch-node.invalid {
+  border-style: dashed;
+}
+.arch-node span {
+  min-width: 0;
+  flex: 1;
+}
+.arch-node strong {
+  display: block;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.arch-node small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 6px;
+}
+.arch-node b {
+  font-size: 12px;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  text-align: center;
+}
+.arch-properties {
+  border-left: 1px solid var(--line);
+}
+.arch-properties label {
+  display: block;
+  font-size: 11px;
+  margin: 14px 0;
+}
+.arch-properties label input,
+.arch-properties select,
+.arch-properties textarea {
+  margin-top: 6px;
+}
+.arch-properties textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.arch-properties details {
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 20px;
+}
+.arch-properties details button {
+  text-decoration: underline;
+}
+.arch-module {
+  overflow-wrap: anywhere;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 8px;
+  font: 10px/1.7 monospace;
+}
+.arch-issue {
+  font-size: 11px;
+  border-left: 2px solid var(--ink);
+  padding-left: 8px;
+}
+.arch-empty {
+  position: absolute;
+  top: 120px;
+  left: 70px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.arch-export {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+}
+.arch-export .infra-actions select {
+  width: auto;
+}
+.arch-export label {
+  font-size: 12px;
+}
+.arch-code {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+  min-height: 460px;
+}
+.arch-code nav {
+  background: var(--surface);
+  padding: 10px;
+  overflow: auto;
+  max-height: 550px;
+}
+.arch-code nav button {
+  display: block;
+  padding: 10px;
+  width: 100%;
+  text-align: left;
+  font: 11px/1.5 monospace;
+  overflow-wrap: anywhere;
+}
+.arch-code nav button.active {
+  background: var(--active);
+  border-radius: 5px;
+}
+.arch-code > div {
+  min-width: 0;
+}
+.arch-code header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.arch-code pre {
+  font: 11px/1.7 monospace;
+  padding: 18px;
+  overflow: auto;
+  max-height: 480px;
+  margin: 0;
+}
+.arch-review {
+  max-width: 850px;
+  margin: auto;
+}
+.arch-review > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.arch-review article {
+  padding: 18px;
+  margin: 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.arch-review h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.arch-review article p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.arch-observation {
+  background: var(--surface);
+  padding: 10px;
+}
+.arch-review textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 90px;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  resize: vertical;
+}
+.architecture-start header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.architecture-start {
+  max-width: 680px;
+}
+.arch-start-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+@media (min-width: 1300px) {
+  .document-layout.sheet-layout:has(.architecture-document) .document {
+    padding: 24px;
+    max-width: none;
+  }
+}
+@media (max-width: 1050px) {
+  .arch-editor {
+    grid-template-columns: 135px minmax(200px, 1fr);
+  }
+  .arch-properties {
+    grid-column: 1/-1;
+    max-height: 250px;
+    border-top: 1px solid var(--line);
+  }
+  .arch-editor {
+    height: auto;
+  }
+  .arch-workspace {
+    height: 520px;
+  }
+  .arch-palette {
+    max-height: 490px;
+  }
+  .arch-count {
+    display: none;
+  }
+}

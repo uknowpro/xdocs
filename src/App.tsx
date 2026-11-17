@@ -1,3 +1,12 @@
+import ArchitectureDocument, {
+  ArchitectureStart,
+  type ArchitectureModel,
+} from "./ArchitectureDocument";
+import {
+  decodeArchitecture,
+  encodeArchitecture,
+  replaceArchitecture,
+} from "../shared/architecture.mjs";
 import DocumentPermissions from "./DocumentPermissions";
 import InfrastructureDocument, {
   InfrastructureStart,
@@ -78,6 +87,7 @@ export default function App() {
   const [view, setView] = useState<"note" | "graph">("note");
   const [edit, setEdit] = useState(false);
   const [editorMode, setEditorMode] = useState<"source" | "blocks">("source");
+  const [architectureStart, setArchitectureStart] = useState(false);
   const [infrastructureStart, setInfrastructureStart] = useState(false);
   const [permissions, setPermissions] = useState(false);
   const [recovery, setRecovery] = useState<"history" | "trash" | null>(null);
@@ -121,6 +131,13 @@ export default function App() {
   const sheetData = useMemo(() => {
     try {
       return decodeWorkbook(body);
+    } catch {
+      return null;
+    }
+  }, [body]);
+  const architectureData = useMemo(() => {
+    try {
+      return decodeArchitecture(body) as ArchitectureModel | null;
     } catch {
       return null;
     }
@@ -675,6 +692,16 @@ export default function App() {
           <Network size={16} />
           인프라 문서
         </button>
+        <button
+          className="nav-item"
+          disabled={!workspace || readonly || busy}
+          onClick={async () => {
+            if (await flush()) setArchitectureStart(true);
+          }}
+        >
+          <Network size={16} />
+          IaCD 아키텍처
+        </button>
         {api.importSpreadsheet && (
           <button
             className="nav-item"
@@ -861,7 +888,8 @@ export default function App() {
                 activeNote &&
                 !readonly &&
                 !sheetData &&
-                !infraData && (
+                !infraData &&
+                !architectureData && (
                   <button
                     className="mode-switch"
                     onClick={() => setEdit((s) => !s)}
@@ -926,7 +954,7 @@ export default function App() {
           </section>
         ) : (
           <div
-            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData ? "sheet-layout" : ""}`}
+            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData ? "sheet-layout" : ""}`}
           >
             <article className="document">
               <div className="document-kicker">
@@ -942,20 +970,24 @@ export default function App() {
               </div>
               {activeNote && (
                 <div className="note-utilities">
-                  {shared && !readonly && !sheetData && !infraData && (
-                    <button
-                      className="button small"
-                      onClick={async () => {
-                        if (await flush()) {
-                          collaborationNote.current = current.current;
-                          setCollaborating(true);
-                        }
-                      }}
-                    >
-                      공동 편집
-                    </button>
-                  )}
-                  {edit && !sheetData && !infraData && (
+                  {shared &&
+                    !readonly &&
+                    !sheetData &&
+                    !infraData &&
+                    !architectureData && (
+                      <button
+                        className="button small"
+                        onClick={async () => {
+                          if (await flush()) {
+                            collaborationNote.current = current.current;
+                            setCollaborating(true);
+                          }
+                        }}
+                      >
+                        공동 편집
+                      </button>
+                    )}
+                  {edit && !sheetData && !infraData && !architectureData && (
                     <div className="segmented">
                       <button
                         className={editorMode === "source" ? "selected" : ""}
@@ -1002,6 +1034,15 @@ export default function App() {
               )}
               {loadingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
+              ) : architectureData ? (
+                <ArchitectureDocument
+                  key={active}
+                  model={architectureData}
+                  readonly={readonly}
+                  onChange={(m) =>
+                    changeBody(replaceArchitecture(draft.current, m))
+                  }
+                />
               ) : infraData ? (
                 <InfrastructureDocument
                   key={active}
@@ -1261,6 +1302,23 @@ export default function App() {
             setOrganizationPanel(false);
             setView("note");
             setEdit(false);
+          }}
+        />
+      )}
+      {architectureStart && (
+        <ArchitectureStart
+          onClose={() => setArchitectureStart(false)}
+          onCreate={async (model) => {
+            if (!(await flush())) return;
+            const n = await api.create(
+              model.title,
+              "# " + model.title + "\n\n" + encodeArchitecture(model) + "\n",
+            );
+            setWorkspace(await api.refresh());
+            select(n);
+            setView("note");
+            setEdit(false);
+            setArchitectureStart(false);
           }}
         />
       )}

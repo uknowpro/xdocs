@@ -64,6 +64,14 @@ export interface CollaborationPacket {
   error?: string;
 }
 export interface NoteAPI {
+  importArchitecture?(): Promise<
+    import("./ArchitectureDocument").ArchitectureModel | null
+  >;
+  exportArchitecture?(
+    model: import("./ArchitectureDocument").ArchitectureModel,
+    format: string,
+    ids: string[],
+  ): Promise<boolean>;
   readNote?(id: string): Promise<Note>;
   documentPermissions?(
     id: string,

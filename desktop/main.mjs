@@ -1,3 +1,9 @@
+import { importArchitecture } from "./architecture-import.mjs";
+import {
+  generateArchitecture,
+  decodeArchitecture,
+} from "../shared/architecture.mjs";
+import { zipSync, strToU8 } from "fflate";
 import { importInfrastructure } from "./infrastructure-import.mjs";
 import {
   decodeInfrastructure,
@@ -106,6 +112,18 @@ function exportHtml(note) {
     if (infrastructure)
       body = body.replace(/^```xdocs-infra\r?\n[^]*?\r?\n```$/m, () =>
         infrastructureMarkdown(infrastructure),
+      );
+  } catch {}
+  try {
+    const m = decodeArchitecture(body);
+    if (m)
+      body = body.replace(/^```xdocs-architecture\r?\n[^]*?\r?\n```$/m, () =>
+        sheetMarkdown({
+          rows: [
+            ["컴포넌트", "종류"],
+            ...m.nodes.map((n) => [n.label, n.kind]),
+          ],
+        }),
       );
   } catch {}
   const safe = sanitizeHtml(marked.parse(body), {
@@ -297,6 +315,41 @@ app.whenReady().then(async () => {
     return result.canceled
       ? null
       : mustVault().addAttachment(result.filePaths[0]);
+  });
+  register("architecture:import", async () => {
+    mustVault();
+    const result = await dialog.showOpenDialog(window, {
+      properties: ["openFile", "multiSelections"],
+      filters: [
+        { name: "Terraform configuration", extensions: ["tf", "json"] },
+      ],
+    });
+    if (result.canceled) return null;
+    return importArchitecture(result.filePaths);
+  });
+  register("architecture:export", async ({ model, format, ids }) => {
+    mustVault();
+    if (!Array.isArray(ids) || ids.some((id) => typeof id !== "string"))
+      throw Error("컴포넌트 선택 형식이 잘못되었습니다.");
+    const result = generateArchitecture(model, format, ids);
+    if (result.errors.length) throw Error(result.errors.join("\n"));
+    const target = await dialog.showSaveDialog(window, {
+      defaultPath: "xdocs-architecture.zip",
+      filters: [{ name: "Architecture code bundle", extensions: ["zip"] }],
+    });
+    if (target.canceled) return false;
+    await writeFile(
+      target.filePath,
+      zipSync(
+        Object.fromEntries(
+          Object.entries(result.files).map(([name, content]) => [
+            name,
+            strToU8(content),
+          ]),
+        ),
+      ),
+    );
+    return true;
   });
   register("infra:import", async () => {
     mustVault();

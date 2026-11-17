@@ -55,3 +55,15 @@
 - 조직 공동 편집은 별도 창에서 빈 줄 기준 Markdown 블록을 각각 편집합니다. 기존 텍스트 세션은 호환 모드를 유지합니다. 리치 텍스트 ProseMirror 블록 공동 편집과는 구분합니다. 일반 편집이 같은 문서를 변경하면 세대를 구분하여 덮어쓰지 않고 사본 보존을 안내합니다.
 - 조직 권한은 보관함에서 상속하며 소유자는 특정 편집자의 특정 문서를 읽기 전용으로 제한할 수 있습니다. 문서 숨김/열람 거부 ACL은 지원하지 않습니다. 개인 보관함을 서버에 자동 업로드하지 않습니다.
 - Redis는 임시 참여 상태와 변경 알림용입니다. 문서와 공동 편집 상태는 PostgreSQL에 저장합니다.
+
+## IaCD — main 개발분
+
+- [x] AWS·Azure·GCP·Kubernetes 시각적 컴포넌트 배치·연결·속성 편집
+- [x] Terraform·CloudFormation·manifest·Helm 코드 생성·미리보기·ZIP·SVG 추출
+- [x] Terraform HCL/JSON 역변환, 원본과 미지원 리소스 보존
+- [x] Azure AVM 고정 버전 3종, WAF 검토 기록
+- [x] [자동화 캔버스 가능성 검토](automation-canvas-review.md)
+- [ ] GitHub Actions, Ansible, Jenkins 캔버스 구현(별도 작업)
+- [ ] CloudFormation 원본 역변환·조건·중첩 스택 보존(별도 작업)
+
+구현 범위·한계·사용법은 [IaCD](iacd.md)에 정리합니다. 기존 v0.4.0-alpha.1 설치 릴리스와 별개인 main 개발분입니다.

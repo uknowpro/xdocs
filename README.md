@@ -18,6 +18,8 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 
 [설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.4.0-alpha.1) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
+main 개발분에는 **IaCD 시각적 설계·Terraform 역변환·CloudFormation·Helm 추출·Azure AVM/WAF 검토**가 추가되어 있습니다. 아래 v0.4 설치 파일에는 아직 포함되지 않습니다.
+
 ## 실행
 
 Node.js 24 이상과 데스크톱 환경이 필요합니다.
@@ -49,4 +51,4 @@ npm run dist          # 현재 OS 패키징
 
 Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과했습니다. 사용자 기기에서의 설치·업데이트와 서명 검증은 별도로 필요합니다.
 
-[인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)
+[IaCD 사용법](docs/iacd.md) · [인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)
