@@ -68,7 +68,7 @@ macOS·Windows 설치/삭제/업그레이드, 실제 인증서 서명·Apple 공
 
 ## IaCD main 개발분 — 2026-11-18
 
-- 단위 테스트 33개, 브라우저 UI 테스트 10개 통과. 새 테스트는 클라우드·AVM·CloudFormation 코드, 의존 대상 포함 추출, 원본·미지원 리소스 보존, 단순 속성 override, 연결 오류, 문자열 표현식의 문자 그대로 보존, 기존 노트 회귀를 포함합니다.
+- 단위 테스트 33개, 브라우저 UI 테스트 11개 통과. 새 테스트는 클라우드·AVM·CloudFormation 코드, 의존 대상 포함 추출, 원본·미지원 리소스 보존, 단순 속성 override, 연결 오류, 문자열 표현식의 문자 그대로 보존, 기존 노트 회귀를 포함합니다.
 - 실제 Electron에서 HCL 작업 스레드 가져오기, 원본 보관 확인 UI, 알 수 없는 리소스 표시, 속성 수정·저장·override, ZIP 파일 선택·내보내기, 원본 불변을 확인했습니다.
 - Terraform 1.13.5로 생성 fixture의 `init -backend=false`와 `validate` 통과. AWS·AzureRM·Google·AzAPI provider 및 고정 버전 AVM 3종을 포함합니다. 유효한 테스트 공개키를 사용하며 실제 계정에 연결하거나 plan/apply하지 않았습니다.
 - Helm 4.3.1에서 `helm lint` 및 `helm template` 통과. 생성된 chart는 apiVersion v2이며 렌더링 결과의 namespace·selector·port를 검사합니다.
@@ -76,3 +76,5 @@ macOS·Windows 설치/삭제/업그레이드, 실제 인증서 서명·Apple 공
 - 화이트·그레이·다크 캔버스, 드래그·연결·실행 취소, 필수값 미입력 시 추출 차단, WAF 검토 기록 재열기를 확인했습니다.
 
 이 검증은 구문·스키마·로컬 앱 동작 기준입니다. 실제 계정 정책·서비스 제한·비용·가용성·클러스터 admission 및 WAF 준수는 검증하지 않았습니다. GitHub Actions·Jenkins·Ansible 캔버스는 구현되지 않은 검토 문서 범위입니다.
+
+IaCD Linux 디렉터리 패키지에서도 HCL 작업 스레드·원본 보존·ZIP 추출 검사를 통과했습니다. CI에서 발견한 새 노트 생성 응답 전 입력 경합은 생성 중 편집기를 대기시키도록 수정하고, 지연 생성 응답을 재현한 브라우저 테스트로 입력이 새 노트 ID에 저장되는 것을 확인했습니다.

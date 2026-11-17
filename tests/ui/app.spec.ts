@@ -310,3 +310,51 @@ test("infrastructure example saves operating notes and renders all themes", asyn
   await page.getByRole("tab", { name: "관계", exact: true }).click();
   await expect(page.getByLabel("리소스 관계 그래프")).toBeVisible();
 });
+
+test("creating a note suspends the old editor until the new note is ready", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const old = {
+      id: "old",
+      title: "기존 노트",
+      body: "# 기존 노트",
+      revision: "v1",
+      path: "old.md",
+    };
+    const w = { root: "test", name: "test", notes: [old] };
+    (window as any).xdocs = {
+      load: async () => w,
+      create: () =>
+        new Promise((resolve) => {
+          (window as any).__finishCreate = () =>
+            resolve({
+              id: "new",
+              title: "새 노트",
+              body: "# 새 노트\n\n",
+              revision: "v1",
+              path: "new.md",
+            });
+        }),
+      save: async (n: any) => {
+        (window as any).__savedNew = n;
+        return { ...n, title: "새 노트", path: "new.md", revision: "v2" };
+      },
+    };
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "편집하기", exact: true }).click();
+  await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page.waitForFunction(
+    () => typeof (window as any).__finishCreate === "function",
+  );
+  await expect(page.getByRole("textbox", { name: "노트 본문" })).toHaveCount(0);
+  await page.evaluate(() => (window as any).__finishCreate());
+  await page
+    .getByRole("textbox", { name: "노트 본문" })
+    .fill("# 새 노트 입력 보존");
+  await page.waitForFunction(
+    () => (window as any).__savedNew?.body === "# 새 노트 입력 보존",
+  );
+  expect(await page.evaluate(() => (window as any).__savedNew.id)).toBe("new");
+});

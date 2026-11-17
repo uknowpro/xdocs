@@ -124,6 +124,7 @@ export default function App() {
   const composing = useRef(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const [loadingNote, setLoadingNote] = useState(false);
+  const [creatingNote, setCreatingNote] = useState(false);
   const selectionVersion = useRef(0);
   const draftVersion = useRef(0);
   const loadingRef = useRef(false);
@@ -151,6 +152,7 @@ export default function App() {
   }, [body]);
   const readonly =
     loadingNote ||
+    creatingNote ||
     workspace?.role === "reader" ||
     workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
@@ -459,14 +461,19 @@ export default function App() {
   }
   async function createNote() {
     if (readonly) return;
-    if (!(await flush())) return;
-    await action(async () => {
-      const n = await api.create("새 노트");
-      update(n);
-      select(n);
-      setView("note");
-      setEdit(true);
-    });
+    setCreatingNote(true);
+    try {
+      if (!(await flush())) return;
+      await action(async () => {
+        const n = await api.create("새 노트");
+        update(n);
+        select(n);
+        setView("note");
+        setEdit(true);
+      });
+    } finally {
+      setCreatingNote(false);
+    }
   }
   async function refresh() {
     if (!(await flush())) return;
@@ -1032,7 +1039,7 @@ export default function App() {
                   )}
                 </div>
               )}
-              {loadingNote ? (
+              {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
               ) : architectureData ? (
                 <ArchitectureDocument

@@ -2,6 +2,8 @@
 
 ## Unreleased — IaCD
 
+- 새 노트 생성 응답 전 이전 편집기에 입력되던 경합 수정.
+
 - 시각적 컴포넌트 배치·연결·속성·실행 취소, SVG·코드 ZIP 추출.
 - AWS·Azure·GCP Terraform, AWS CloudFormation, Kubernetes manifest·Helm chart 생성.
 - Terraform HCL/JSON 역변환, 알 수 없는 리소스·원본 설정 보존, 제한된 문자열 속성 override.
