@@ -1,3 +1,4 @@
+import { validateDrawing, drawingSVG } from "./aws-drawing.mjs";
 import { stringify as yaml } from "yaml";
 const field = (label, value = "", extra = {}) => ({ label, value, ...extra });
 const ref = (label, kind) => field(label, "", { ref: kind, required: true });
@@ -376,6 +377,7 @@ export function validateArchitecture(m) {
       throw Error("가져온 리소스 형식을 확인해 주세요.");
     ids.add(n.id);
   }
+  if (m.drawing) validateDrawing(m.drawing);
   const paths = new Set();
   for (const f of m.sources) {
     if (
@@ -617,6 +619,12 @@ export function generateArchitecture(m, format = "all", ids = []) {
   /** @type {Record<string,string>} */
   const files = {},
     warnings = [...m.warnings];
+  if (m.drawing) {
+    files["aws-drawing.svg"] = drawingSVG(m.drawing);
+    warnings.push(
+      "AWS 드로잉은 시각 문서입니다. 계정·서비스·방향선은 배포 코드에 포함되지 않습니다.",
+    );
+  }
   const skipped = selected.length - nodes.length;
   if (skipped)
     warnings.push(

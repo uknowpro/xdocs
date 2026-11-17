@@ -1,3 +1,4 @@
+import { api } from "./api";
 import { useRef, useState, useMemo } from "react";
 import { templates, workflowNodes, addBlock } from "../shared/workflows.mjs";
 type Kind = keyof typeof templates;
@@ -54,11 +55,17 @@ export function WorkflowCanvas({
       setError(String(e));
     }
   }
-  function download() {
+  async function download() {
+    if (api.exportWorkflow) {
+      try {
+        await api.exportWorkflow(model.kind, source);
+      } catch (e) {
+        setError(String(e));
+      }
+      return;
+    }
     const a = document.createElement("a"),
-      url = URL.createObjectURL(
-        new Blob([source], { type: "text/plain;charset=utf-8" }),
-      );
+      url = URL.createObjectURL(new Blob([source]));
     a.href = url;
     a.download = templates[model.kind].name;
     a.click();

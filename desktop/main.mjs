@@ -1,3 +1,4 @@
+import { templates, workflowNodes } from "../shared/workflows.mjs";
 import { importArchitecture } from "./architecture-import.mjs";
 import {
   generateArchitecture,
@@ -326,6 +327,18 @@ app.whenReady().then(async () => {
     });
     if (result.canceled) return null;
     return importArchitecture(result.filePaths);
+  });
+  register("workflow:export", async ({ kind, source }) => {
+    mustVault();
+    if (!Object.hasOwn(templates, kind) || typeof source !== "string")
+      throw Error("지원하지 않는 캔버스입니다.");
+    workflowNodes(kind, source);
+    const target = await dialog.showSaveDialog(window, {
+      defaultPath: templates[kind].name,
+    });
+    if (target.canceled) return false;
+    await writeFile(target.filePath, source, "utf8");
+    return true;
   });
   register("architecture:export", async ({ model, format, ids }) => {
     mustVault();

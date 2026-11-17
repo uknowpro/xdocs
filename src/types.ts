@@ -1,4 +1,5 @@
 export interface Note {
+  canvas?: boolean | 0 | 1;
   unloaded?: boolean;
   links?: string[];
   tags?: string[];
@@ -64,6 +65,7 @@ export interface CollaborationPacket {
   error?: string;
 }
 export interface NoteAPI {
+  exportWorkflow?(kind: string, source: string): Promise<boolean>;
   importArchitecture?(): Promise<
     import("./ArchitectureDocument").ArchitectureModel | null
   >;

@@ -1,3 +1,4 @@
+import { isCanvas } from "./canvasPreview";
 import { WorkflowCanvas, blankFlow } from "./WorkflowCanvas";
 import {
   templates,
@@ -44,6 +45,8 @@ import {
   useState,
 } from "react";
 import {
+  FileStack,
+  Workflow,
   AlignLeft,
   ArrowDownToLine,
   ArrowUpRight,
@@ -117,6 +120,7 @@ export default function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sidebar, setSidebar] = useState(true);
+  const [library, setLibrary] = useState<"notes" | "canvases">("notes");
   const [notePage, setNotePage] = useState(0);
   const current = useRef<Note | null>(null);
   const draft = useRef("");
@@ -171,6 +175,16 @@ export default function App() {
     workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
+  const canvases = useMemo(() => notes.filter(isCanvas), [notes]);
+  const libraryNotes = useMemo(
+    () =>
+      library === "canvases" ? canvases : notes.filter((n) => !isCanvas(n)),
+    [library, canvases, notes],
+  );
+  const pageIndex = Math.min(
+    notePage,
+    Math.max(0, Math.ceil(libraryNotes.length / 100) - 1),
+  );
   const outgoing = useMemo(
     () =>
       linksIn(body)
@@ -195,6 +209,10 @@ export default function App() {
   ].slice(0, 4);
 
   function select(note: Note | undefined) {
+    if (note && note.id !== current.current?.id) {
+      setLibrary(isCanvas(note) ? "canvases" : "notes");
+      setNotePage(0);
+    }
     const ticket = ++selectionVersion.current;
     if (note?.unloaded && api.readNote) {
       const same = note.id === current.current?.id;
@@ -240,6 +258,7 @@ export default function App() {
     const note = isDesktop
       ? {
           ...full,
+          canvas: Boolean(isCanvas(full)),
           body: JSON.parse(JSON.stringify(full.body.slice(0, 240))),
           links: linksIn(full.body),
           tags: [...full.body.matchAll(/(?:^|\s)#([^\s#]+)/g)].map((m) => m[1]),
@@ -691,11 +710,76 @@ export default function App() {
             <Plus size={15} />
           </button>
         </div>
-        <button className="nav-item folder" onClick={openVault} disabled={busy}>
-          <FolderOpen size={16} />
-          <span>모든 노트</span>
-          <small>{notes.length}</small>
-        </button>
+        <div className="library-tabs" aria-label="보관함 목록">
+          <button
+            aria-pressed={library === "notes"}
+            onClick={() => {
+              setLibrary("notes");
+              setNotePage(0);
+            }}
+          >
+            <FileText size={14} />
+            노트 <small>{notes.length - canvases.length}</small>
+          </button>
+          <button
+            aria-pressed={library === "canvases"}
+            onClick={() => {
+              setLibrary("canvases");
+              setNotePage(0);
+            }}
+          >
+            <Workflow size={14} />
+            캔버스 <small>{canvases.length}</small>
+          </button>
+        </div>
+        <div className="note-list">
+          {libraryNotes
+            .slice(pageIndex * 100, (pageIndex + 1) * 100)
+            .map((n) => (
+              <button
+                key={n.id}
+                title={n.path}
+                className={`nav-item note-item ${active === n.id && view === "note" ? "active" : ""}`}
+                onClick={() => void navigate(n.id)}
+              >
+                {library === "canvases" ? (
+                  <Workflow size={15} />
+                ) : (
+                  <FileText size={15} />
+                )}
+                <span>{n.title}</span>
+              </button>
+            ))}
+          {libraryNotes.length > 100 && (
+            <div className="sheet-pages">
+              <button
+                disabled={!pageIndex}
+                onClick={() => setNotePage(pageIndex - 1)}
+              >
+                이전
+              </button>
+              <span>
+                {pageIndex + 1} / {Math.ceil(libraryNotes.length / 100)}
+              </span>
+              <button
+                disabled={(pageIndex + 1) * 100 >= libraryNotes.length}
+                onClick={() => setNotePage(pageIndex + 1)}
+              >
+                다음
+              </button>
+            </div>
+          )}
+          {workspace && !libraryNotes.length && (
+            <p className="sidebar-empty">
+              {library === "canvases"
+                ? "IaCD 또는 자동화 캔버스를 만들어 보세요."
+                : "첫 번째 노트를 작성해 보세요."}
+            </p>
+          )}
+        </div>
+        <div className="nav-label">
+          <span>문서 만들기</span>
+        </div>
         <button
           className="nav-item"
           disabled={!workspace || readonly || busy}
@@ -710,7 +794,7 @@ export default function App() {
             if (await flush()) setInfrastructureStart(true);
           }}
         >
-          <Network size={16} />
+          <FileStack size={16} />
           인프라 문서
         </button>
         <button
@@ -720,7 +804,7 @@ export default function App() {
             if (await flush()) setArchitectureStart(true);
           }}
         >
-          <Network size={16} />
+          <Workflow size={16} />
           IaCD 아키텍처
         </button>
         <select
@@ -761,41 +845,6 @@ export default function App() {
             Excel · 시트 가져오기
           </button>
         )}
-        <div className="note-list">
-          {notes.slice(notePage * 100, (notePage + 1) * 100).map((n) => (
-            <button
-              key={n.id}
-              title={n.path}
-              className={`nav-item note-item ${active === n.id && view === "note" ? "active" : ""}`}
-              onClick={() => void navigate(n.id)}
-            >
-              <FileText size={15} />
-              <span>{n.title}</span>
-            </button>
-          ))}
-          {notes.length > 100 && (
-            <div className="sheet-pages">
-              <button
-                disabled={!notePage}
-                onClick={() => setNotePage(notePage - 1)}
-              >
-                이전
-              </button>
-              <span>
-                {notePage + 1} / {Math.ceil(notes.length / 100)}
-              </span>
-              <button
-                disabled={(notePage + 1) * 100 >= notes.length}
-                onClick={() => setNotePage(notePage + 1)}
-              >
-                다음
-              </button>
-            </div>
-          )}
-          {workspace && !notes.length && (
-            <p className="sidebar-empty">첫 번째 노트를 작성해 보세요.</p>
-          )}
-        </div>
         <div className="nav-label">
           <span>함께하는 공간</span>
         </div>
@@ -922,8 +971,12 @@ export default function App() {
               className={view === "note" ? "active" : ""}
               onClick={() => setView("note")}
             >
-              <AlignLeft size={15} />
-              노트
+              {flow || architectureData ? (
+                <Workflow size={15} />
+              ) : (
+                <AlignLeft size={15} />
+              )}
+              {flow || architectureData ? "캔버스" : "노트"}
             </button>
             <button
               className={view === "graph" ? "active" : ""}
@@ -1008,7 +1061,9 @@ export default function App() {
           >
             <article className="document">
               <div className="document-kicker">
-                <span className="eyebrow">IDEAS INTO KNOWLEDGE</span>
+                <span className="eyebrow">
+                  {flow || architectureData ? "캔버스" : ""}
+                </span>
                 <button
                   className="icon-button"
                   aria-label="노트 삭제"
@@ -1020,6 +1075,38 @@ export default function App() {
               </div>
               {activeNote && (
                 <div className="note-utilities">
+                  {!edit &&
+                    !readonly &&
+                    !sheetData &&
+                    !infraData &&
+                    !architectureData &&
+                    !flow &&
+                    canvases.length > 0 && (
+                      <select
+                        className="button small"
+                        aria-label="캔버스 미리보기 삽입"
+                        value=""
+                        onChange={(e) => {
+                          const n = canvases.find(
+                            (n) => n.id === e.target.value,
+                          );
+                          if (n)
+                            changeBody(
+                              draft.current.trimEnd() +
+                                "\n\n![[" +
+                                n.id +
+                                "]]\n",
+                            );
+                        }}
+                      >
+                        <option value="">캔버스 미리보기 삽입</option>
+                        {canvases.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {n.title}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   {shared &&
                     !readonly &&
                     !sheetData &&

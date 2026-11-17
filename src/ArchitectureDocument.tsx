@@ -1,3 +1,5 @@
+import { AwsDrawing, type Drawing } from "./AwsDrawing";
+import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
 import { useRef, useState } from "react";
 import {
   Box,
@@ -55,6 +57,7 @@ export type ArchitectureModel = {
   nodes: ArchitectureNode[];
   sources: { name: string; content: string }[];
   warnings: string[];
+  drawing?: Drawing;
   review?: Record<string, string>;
 };
 const icon = (kind: string) =>
@@ -118,6 +121,20 @@ export function ArchitectureStart({
           >
             <LayoutGrid size={16} />
             멀티클라우드 예제
+          </button>
+          <button
+            className="button"
+            disabled={busy}
+            onClick={() =>
+              void create({
+                ...newArchitecture(),
+                title: "AWS · 계정 간 백업",
+                drawing: backupDrawing() as Drawing,
+              })
+            }
+          >
+            <Cloud size={16} />
+            AWS 백업 드로잉 예제
           </button>
           <button
             className="button"
@@ -193,7 +210,7 @@ export default function ArchitectureDocument({
   const [selected, setSelected] = useState(model.nodes[0]?.id || ""),
     [group, setGroup] = useState("전체"),
     [zoom, setZoom] = useState(1),
-    [tab, setTab] = useState("canvas"),
+    [tab, setTab] = useState(model.drawing ? "drawing" : "canvas"),
     [format, setFormat] = useState("all"),
     [only, setOnly] = useState(false),
     [file, setFile] = useState(""),
@@ -325,13 +342,19 @@ export default function ArchitectureDocument({
           />
         </div>
         <span className="arch-count">
-          {model.nodes.length}개 컴포넌트 · {edges.length}개 연결
+          {tab === "drawing"
+            ? (model.drawing?.accounts.length ?? 0) +
+              "개 계정 영역 · " +
+              (model.drawing?.items.length ?? 0) +
+              "개 서비스"
+            : model.nodes.length + "개 컴포넌트 · " + edges.length + "개 연결"}
         </span>
       </div>
       <div className="arch-toolbar">
         <div className="segmented">
           {[
             ["canvas", "설계"],
+            ["drawing", "AWS 드로잉"],
             ["code", "코드 추출"],
             ["review", "WAF 검토"],
           ].map(([id, label]) => (
@@ -390,6 +413,13 @@ export default function ArchitectureDocument({
       </div>
       {error && <p role="alert">{error}</p>}
       {status && <p role="status">{status}</p>}
+      {tab === "drawing" && (
+        <AwsDrawing
+          data={model.drawing || blankDrawing()}
+          readonly={readonly}
+          onChange={(drawing) => change({ ...model, drawing })}
+        />
+      )}
       {tab === "canvas" && (
         <div className="arch-editor">
           <aside className="arch-palette">

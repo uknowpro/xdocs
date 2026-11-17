@@ -67,3 +67,12 @@ AVM Private Storage는 공개망·공유키 사용을 끄고 TLS 1.2, 기본 ZRS
 참고: [ArchFormation](https://archformation.com/), [Brainboard](https://www.brainboard.co/), [사용자 제공 Brainboard 소개](https://kschoi728.tistory.com/26), [Terraform JSON 문법](https://developer.hashicorp.com/terraform/language/syntax/json), [Terraform override](https://developer.hashicorp.com/terraform/language/files/override), [AVM 소개](https://azure.github.io/Azure-Verified-Modules/), [Microsoft WAF](https://learn.microsoft.com/azure/well-architected/), [Helm charts](https://helm.sh/docs/topics/charts/), [CloudFormation 구조](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-anatomy.html).
 
 외부 도구의 코드나 디자인 자산을 복제하지 않았습니다. Terraform 파서는 [CDK Terrain hcl2json](https://github.com/open-constructs/cdk-terrain/tree/main/packages/%40cdktn/hcl2json)을 로컬 작업 스레드에서 사용합니다.
+
+
+## AWS 계정·리전 드로잉
+
+**IaCD 아키텍처 → AWS 백업 드로잉 예제**로 시작하거나 기존 아키텍처에서 **AWS 드로잉** 탭을 엽니다. 계정 영역마다 리전을 표시하며 같은 계정을 다른 리전에 다시 그릴 수 있습니다. 계정과 서비스를 끌어 위치를 바꾸고 속성에서 이름·리전·소속 계정을 편집합니다. 서비스 선택 후 연결 대상과 방향선을 추가하고 선을 선택해 라벨을 입력합니다. 계정을 삭제하면 소속 서비스와 관련 선도 함께 삭제되며 실행 취소로 복원할 수 있습니다.
+
+예제의 체크·엑스는 편집 가능한 설명입니다. 실제 백업 가능 여부나 IAM·KMS 정책 검증 결과를 의미하지 않습니다. 서비스 심볼은 xdocs 자체 도형입니다. 드로잉은 SVG로 저장되며 코드 ZIP에도 포함됩니다. Terraform·CloudFormation 생성은 **설계** 탭의 배포 컴포넌트를 사용합니다.
+
+노트의 **캔버스 미리보기 삽입**은 별도 줄에 `![[캔버스 ID]]`를 기록합니다. 문서를 복제하지 않으므로 원본의 다음 저장분이 미리보기에 반영됩니다. 일반 위키 링크 `[[캔버스 ID|표시 이름]]`도 지원합니다.

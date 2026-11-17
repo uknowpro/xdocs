@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld("xdocs", {
   search: (query) => ipcRenderer.invoke("note:search", query),
   export: (data) => ipcRenderer.invoke("note:export", data),
   importArchitecture: () => ipcRenderer.invoke("architecture:import"),
+  exportWorkflow: (kind, source) =>
+    ipcRenderer.invoke("workflow:export", { kind, source }),
   exportArchitecture: (model, format, ids) =>
     ipcRenderer.invoke("architecture:export", { model, format, ids }),
   importInfrastructure: () => ipcRenderer.invoke("infra:import"),

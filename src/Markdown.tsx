@@ -1,6 +1,13 @@
 import { selectedTableTSV } from "./tableClipboard";
 import { toTSV } from "../shared/tabular.mjs";
-import { useMemo } from "react";
+import { api } from "./api";
+import {
+  canvasPreview,
+  embedLine,
+  isCanvas,
+  escapeHTML,
+} from "./canvasPreview";
+import { useMemo, useState, useEffect } from "react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import type { Note } from "./types";
@@ -22,8 +29,47 @@ export default function Markdown({
   notes: Note[];
   onOpen: (id: string) => void;
 }) {
+  const [loaded, setLoaded] = useState<Note[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const targets = new Set<Note>();
+    for (const token of marked.lexer(body)) {
+      if (token.type !== "paragraph") continue;
+      const match = embedLine.exec(token.raw.trim());
+      const n = match && resolveLink(match[1].split("|")[0].trim(), notes);
+      if (n && n.unloaded && isCanvas(n)) targets.add(n);
+    }
+    if (targets.size && api.readNote)
+      void Promise.all(
+        [...targets].map((n) => api.readNote!(n.id).catch(() => null)),
+      ).then((result) => {
+        if (alive) setLoaded(result.filter((n): n is Note => !!n));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [body, notes]);
   const html = useMemo(() => {
     const renderer = new marked.Renderer();
+    const paragraph = renderer.paragraph.bind(renderer);
+    renderer.paragraph = (token) => {
+      const match = embedLine.exec(token.raw.trim());
+      if (!match) return paragraph(token);
+      const [target, label] = match[1].split("|");
+      const n = resolveLink(target.trim(), notes);
+      if (!n || !isCanvas(n))
+        return (
+          '<p class="muted">캔버스를 찾을 수 없습니다 · ' +
+          escapeHTML(label || target) +
+          "</p>"
+        );
+      return canvasPreview(
+        (n.unloaded &&
+          loaded.find((v) => v.id === n.id && v.revision === n.revision)) ||
+          n,
+        label || n.title,
+      );
+    };
     const originalTable = renderer.table.bind(renderer);
     renderer.table = (token) =>
       `<button class="text-button" data-copy-table="true">표 복사 (탭 구분)</button>${originalTable(token)}`;
@@ -51,7 +97,7 @@ export default function Markdown({
         ],
       },
     );
-  }, [body, notes]);
+  }, [body, notes, loaded]);
   return (
     <div
       className="markdown"

@@ -74,6 +74,10 @@ test("IaCD canvas edits, moves, connects, undoes and preserves WAF notes with co
   await expect(page.locator(".save-state")).toContainText("브라우저에 저장됨");
   await page.reload();
   await page
+    .getByLabel("보관함 목록")
+    .getByRole("button", { name: /캔버스/ })
+    .click();
+  await page
     .getByRole("button", { name: "멀티클라우드 · 웹 서비스", exact: true })
     .click();
   await page.getByRole("button", { name: "WAF 검토", exact: true }).click();
