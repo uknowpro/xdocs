@@ -4,7 +4,7 @@
 
 Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.4.0-alpha.1 개발용 알파**입니다.
 
-![xdocs 다크 테마](docs/images/dark.png)
+![main의 다크 테마 노트 화면과 연결 그래프](docs/images/dark.png)
 
 ## 주요 기능
 
@@ -18,7 +18,14 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 
 [설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.4.0-alpha.1) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
-main 개발분에는 **IaCD 시각적 설계·Terraform 역변환·CloudFormation·Helm 추출·Azure AVM/WAF 검토**가 추가되어 있습니다. 아래 v0.4 설치 파일에는 아직 포함되지 않습니다.
+main 개발분에는 **IaCD 시각적 설계·Terraform 역변환·CloudFormation·Helm 추출·Azure AVM/WAF 검토**가 추가되어 있습니다. 이 기능은 소스에서 실행해 사용할 수 있습니다.
+
+<details>
+<summary>IaCD 아키텍처 캔버스 보기 (main)</summary>
+
+![AWS·Azure·GCP·Kubernetes 컴포넌트를 배치한 IaCD 캔버스](docs/images/iacd.png)
+
+</details>
 
 ## 실행
 
