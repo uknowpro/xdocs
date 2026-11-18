@@ -394,7 +394,7 @@ app.whenReady().then(async () => {
       if(file.canceled || !file.filePaths[0]) return null;
       values=file.filePaths[0];
     }
-    return analyzeDirectory(choice.filePaths[0], request, values);
+    return analyzeDirectory(choice.filePaths[0], request, values, app.isPackaged ? path.join(process.resourcesPath,"analyzer-tools") : undefined);
   });
   register("builder:resources",async request=>{mustVault();return builderResources(request)});
   const profiles=modelProfiles(app.getPath("userData"),safeStorage);

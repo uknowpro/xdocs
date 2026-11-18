@@ -1,0 +1,70 @@
+{
+  "linux-x64": {
+    "netspector": {
+      "url": "https://github.com/uknowpro/netspector/releases/download/v0.3.0/netspector-0.3.0-linux-x86_64.tar.gz",
+      "sha256": "df46b82f62d595c69d3172113ee7f192445f0537b92d7bf0d06f2ef1dd42de18",
+      "directory": "netspector-0.3.0-linux-x86_64"
+    },
+    "kubewiser": {
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.8/kubewiser_v0.2.0-alpha.8_linux_amd64.tar.gz",
+      "sha256": "cae75e7dbcdc1ebd116d94583bc5086c064ab0b26eb6e08266146f96d5c641ba",
+      "directory": "."
+    },
+    "helm": {
+      "url": "https://get.helm.sh/helm-v3.19.2-linux-amd64.tar.gz",
+      "sha256": "2114c9dea2844dce6d0ee2d792a9aae846be8cf53d5b19dc2988b5a0e8fec26e",
+      "directory": "linux-amd64"
+    }
+  },
+  "win32-x64": {
+    "netspector": {
+      "url": "https://github.com/uknowpro/netspector/releases/download/v0.3.0/netspector-0.3.0-windows-x86_64.zip",
+      "sha256": "c146bed072e723fb9eb5442437719192f8715adee808bc6910bf9760d01b166b",
+      "directory": "netspector-0.3.0-windows-x86_64"
+    },
+    "kubewiser": {
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.8/kubewiser_v0.2.0-alpha.8_windows_amd64.zip",
+      "sha256": "9f07f6f84a8aac369df015db25b36822cdab94a9668ba5f4ce204e504b73e228",
+      "directory": "."
+    },
+    "helm": {
+      "url": "https://get.helm.sh/helm-v3.19.2-windows-amd64.zip",
+      "sha256": "8b3ea37bcd7c5eda68eadd278690498fb886a17ec541b449216ab3b45748600e",
+      "directory": "windows-amd64"
+    }
+  },
+  "darwin-arm64": {
+    "netspector": {
+      "url": "https://github.com/uknowpro/netspector/releases/download/v0.3.0/netspector-0.3.0-macos-arm64.tar.gz",
+      "sha256": "fcd7d835fe9d9ba63e2f81a498324e2964e4a90ddf3e5acd866956f16914779d",
+      "directory": "netspector-0.3.0-macos-arm64"
+    },
+    "kubewiser": {
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.8/kubewiser_v0.2.0-alpha.8_darwin_arm64.tar.gz",
+      "sha256": "d9c3559c95ac888f6a441db2ddcc6d7f5dfa1ca2cc3c3eb8e712e6f75256f19f",
+      "directory": "."
+    },
+    "helm": {
+      "url": "https://get.helm.sh/helm-v3.19.2-darwin-arm64.tar.gz",
+      "sha256": "f0847f899479b66a6dd8d9fcd452e8db2562e4cf3f7de28103f9fcf2b824f1d5",
+      "directory": "darwin-arm64"
+    }
+  },
+  "darwin-x64": {
+    "netspector": {
+      "url": "https://github.com/uknowpro/netspector/releases/download/v0.3.0/netspector-0.3.0-macos-x86_64.tar.gz",
+      "sha256": "52b826ba576afcbd5c5c396184b6ac413b798b3b976fb4c5b5594af81d7ec317",
+      "directory": "netspector-0.3.0-macos-x86_64"
+    },
+    "kubewiser": {
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.8/kubewiser_v0.2.0-alpha.8_darwin_amd64.tar.gz",
+      "sha256": "62b1c0cc226e9f3513859dd1d4060e011d5936d2b2f9c794f8bb451c497d7dbe",
+      "directory": "."
+    },
+    "helm": {
+      "url": "https://get.helm.sh/helm-v3.19.2-darwin-amd64.tar.gz",
+      "sha256": "7ef4416cdef4c2d78a09e1c8f07a51e945dc0343c883a46b1f628deab52690b7",
+      "directory": "darwin-amd64"
+    }
+  }
+}

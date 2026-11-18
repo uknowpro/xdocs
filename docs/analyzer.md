@@ -25,6 +25,8 @@
 
 사이드바의 **Analyzer 만들기** 또는 폴더의 **+ → Analyzer**에서 페이지를 만든다. 데스크톱의 **폴더 선택 및 분석**으로 Java 등 소스 프로젝트, 매니페스트 폴더 또는 Helm 차트 루트를 선택한다. 네트워크 화면은 netspector의 발견 상태·방향·파일·줄과 선언된 연결 경로를 표시한다. Helm 네트워크 분석의 위치는 렌더된 YAML 기준이다. 매니페스트 업그레이드는 kubewiser의 마이너별 계획을, Helm 업그레이드는 두 버전에 같은 릴리스·네임스페이스·values를 적용해 검사 결과 차이를 표시한다.
 
-직접 분석하려면 사용하는 엔진을 로컬에 설치한다. 소스·매니페스트 네트워크는 `netspector`, 호환성·업그레이드는 `kubewiser`, Helm 렌더링은 `helm`이 필요하다. 앱 프로세스의 PATH 또는 `XDOCS_NETSPECTOR`, `XDOCS_KUBEWISER`, `XDOCS_HELM`에 실행 파일을 지정한다. 브라우저 미리보기와 데스크톱 모두 기존 scan 또는 upgrade JSON을 열 수 있다.
+데스크톱 설치 패키지에는 netspector 0.3.0, kubewiser 0.2.0-alpha.8, Helm 3.19.2가 들어 있다. 프로젝트 폴더나 차트를 고르면 앱에 포함된 실행 파일을 사용한다. Python·CLI 설치, PATH 설정, 최초 실행 시 다운로드가 필요하지 않다. 브라우저 미리보기와 데스크톱 모두 기존 분석 JSON을 열 수 있다.
+
+소스에서 실행하는 개발자는 처음 `npm start` 하거나 패키징할 때 공식 배포 파일을 내려받는다. 빌드는 플랫폼별 SHA-256을 검사하고 `.cache/analyzers`에 보관한다. 대상은 Linux x64, Windows x64, macOS arm64·x64이며 netspector의 macOS 실행 파일은 macOS 15 이상을 대상으로 한다. 라이선스는 앱 리소스의 `analyzer-tools/licenses`에 있다.
 
 분석 결과를 보존하려면 **보고서를 하위 노트로 저장**한다. Builder의 **Analyzer 업그레이드 조치**, **Analyzer 인바운드·아웃바운드 검토**에서 이 노트를 입력으로 선택하면 해당 근거 줄을 다시 검토할 수 있다. 경로는 정적 분석 결과이며 실제 연결 성공 여부는 별도 측정 대상이다.

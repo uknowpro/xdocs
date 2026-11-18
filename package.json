@@ -30,7 +30,9 @@
     "test:soak": "node tests/collaboration-soak.mjs",
     "test:infrastructure": "node tests/electron-infrastructure.mjs",
     "test:architecture": "node tests/electron-architecture.mjs",
-    "test:architecture:fixtures": "node tests/architecture-fixtures.mjs"
+    "test:architecture:fixtures": "node tests/architecture-fixtures.mjs",
+    "prestart": "node scripts/prepare-analyzers.mjs",
+    "test:analyzer": "node tests/electron-analyzer.mjs"
   },
   "dependencies": {
     "@cdktn/hcl2json": "^0.25.0",
@@ -117,7 +119,8 @@
     },
     "asarUnpack": [
       "desktop/excel-import.ps1"
-    ]
+    ],
+    "afterPack": "scripts/package-analyzers.cjs"
   },
   "overrides": {
     "exceljs": {

@@ -3,9 +3,11 @@ import { promisify } from "node:util";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+const devTools = fileURLToPath(new URL("../.cache/analyzers/"+process.platform+"-"+process.arch+"/", import.meta.url));
 const execute = promisify(execFile);
-async function run(tool, args) {
-  const binary = process.env["XDOCS_" + tool.toUpperCase()] || tool;
+async function runBundled(directory, tool, args) {
+  const binary = path.join(directory,tool + (process.platform === "win32" ? ".exe" : ""));
   try {
     const { stdout } = await execute(binary, args, {
       timeout: 120000,
@@ -23,10 +25,7 @@ async function run(tool, args) {
       return err.stdout;
     if (err.code === "ENOENT")
       throw Error(
-        tool +
-          " 실행 파일을 찾을 수 없습니다. PATH 또는 XDOCS_" +
-          tool.toUpperCase() +
-          " 설정을 확인하세요.",
+        tool + " 내장 엔진 파일을 찾을 수 없습니다. xdocs 설치 파일을 확인하세요.",
       );
     throw Error(
       tool + " 분석 실패 · " + (err.stderr || err.message).slice(0, 1000),
@@ -37,7 +36,9 @@ export async function analyzeDirectory(
   directory,
   { mode, from, to, namespace, release },
   valuesFile,
+  toolsDirectory = devTools,
 ) {
+  const run = (tool,args) => runBundled(toolsDirectory,tool,args);
   if (
     ![
       "network",
