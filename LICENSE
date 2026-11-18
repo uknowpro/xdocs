@@ -1,3 +1,32 @@
+xdocs Proprietary Software License
+Copyright (c) 2026 uknow. All rights reserved.
+
+You may download, install, run and make backup copies of the official,
+unmodified xdocs application for personal use or internal business use.
+An organization may copy the official installer internally to install it
+for its personnel. You may view the published xdocs source code.
+
+Prior written permission from the copyright holder is required to modify
+xdocs, create a derivative application based on its code, incorporate its
+code into another product, or distribute, sublicense or sell copies outside
+the permissions above. This applies to both free and paid products.
+
+You retain your rights in your own notes, diagrams, configurations and
+other material created with xdocs, and may use and deliver that material
+commercially. Third-party components, templates and incorporated material
+remain subject to their own licenses. Nothing here limits rights granted
+under those licenses or rights that cannot be limited by applicable law.
+
+These terms apply from the licensing change for v0.5.3. Rights already
+granted under MIT for earlier published code, including pre-release commits
+through 24e9e9f, continue under that license. Its notice follows for that
+code.
+
+The software is provided as is, without warranty, to the extent permitted
+by applicable law.
+
+Earlier MIT notice
+------------------
 MIT License
 
 Copyright (c) 2026 uknow

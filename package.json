@@ -4,7 +4,7 @@
   "private": true,
   "description": "Local-first connected notes for desktop",
   "author": "uknowpro",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "main": "desktop/main.mjs",
   "engines": {
@@ -90,6 +90,12 @@
       "package.json",
       "!node_modules/exceljs/dist{,/**/*}",
       "!node_modules/{pg,pg-*,pgpass,postgres-*,redis,@redis/*}{,/**/*}"
+    ],
+    "extraResources": [
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.xdocs.txt"
+      }
     ],
     "linux": {
       "target": [
