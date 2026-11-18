@@ -86,6 +86,34 @@ try {
   await page
     .getByRole("button", { name: "원본 파일 열기", exact: true })
     .waitFor();
+  const directory = path.join(temp, "팀 자료");
+  const nested = path.join(directory, "회계");
+  await mkdir(nested, { recursive: true });
+  await b.xlsx.writeFile(path.join(nested, "결산.xlsx"));
+  await writeFile(path.join(directory, "월별.tsv"), "월\t매출\n1월\t1200");
+  await app.evaluate(({ dialog }, dir) => {
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [dir] });
+  }, directory);
+  await page.getByRole("button", { name: "Excel 폴더 가져오기" }).click();
+  await page.getByRole("button", { name: "결산", exact: true }).click();
+  await page.getByRole("tab", { name: "예산", exact: true }).waitFor();
+  const imported = await page.evaluate(() => window.xdocs.refresh());
+  const byTitle = Object.fromEntries(imported.notes.map((n) => [n.title, n]));
+  assert.ok(
+    byTitle["회계"].body.startsWith(
+      "<!-- xdocs:parent=" + byTitle["팀 자료"].id + " -->",
+    ),
+  );
+  assert.ok(
+    byTitle["결산"].body.startsWith(
+      "<!-- xdocs:parent=" + byTitle["회계"].id + " -->",
+    ),
+  );
+  assert.ok(
+    byTitle["월별"].body.startsWith(
+      "<!-- xdocs:parent=" + byTitle["팀 자료"].id + " -->",
+    ),
+  );
   console.log(
     "PASS Electron sheet import: native picker, tabs, values, local save, source unchanged, protected file attached without extraction",
   );

@@ -12,6 +12,7 @@ import type { Note } from "./types";
 import { isCanvas } from "./canvasPreview";
 import { templates } from "../shared/workflows.mjs";
 import {
+  isFolderPage,
   orderBetween,
   pageOrder,
   withParent,
@@ -77,7 +78,8 @@ function tree(notes: Note[]) {
     });
   return { root, pages };
 }
-export type PageKind = "note" | "architecture" | keyof typeof templates;
+export type PageKind =
+  "folder" | "sheet" | "note" | "architecture" | keyof typeof templates;
 export default function PageTree({
   notes,
   active,
@@ -85,10 +87,12 @@ export default function PageTree({
   onOpen,
   onCreate,
   onMove,
+  onRename,
 }: {
   notes: Note[];
   active: string;
   readonly: boolean;
+  onRename: (note: Note) => void;
   onOpen: (id: string) => void;
   onMove: (id: string, expected: string, next: string) => Promise<boolean>;
   onCreate: (parent: string, kind: PageKind) => void;
@@ -209,7 +213,12 @@ export default function PageTree({
         .map(({ entry: e, depth }) => {
           const n = e.page,
             open = !closed.has(e.key),
-            Icon = n ? (isCanvas(n) ? Workflow : FileText) : Folder;
+            Icon =
+              n && !isFolderPage(n)
+                ? isCanvas(n)
+                  ? Workflow
+                  : FileText
+                : Folder;
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
               <div
@@ -288,11 +297,17 @@ export default function PageTree({
                   className="nav-item note-item"
                   title={
                     n
-                      ? (isCanvas(n) ? "캔버스 · " : "노트 · ") + n.path
+                      ? (isFolderPage(n)
+                          ? "폴더 · "
+                          : isCanvas(n)
+                            ? "캔버스 · "
+                            : "노트 · ") + n.path
                       : e.name
                   }
                   aria-current={n?.id === active ? "page" : undefined}
-                  onClick={() => (n ? onOpen(n.id) : toggle(e.key))}
+                  onClick={() =>
+                    n && !isFolderPage(n) ? onOpen(n.id) : toggle(e.key)
+                  }
                 >
                   <Icon size={15} />
                   <span>{e.name}</span>
@@ -322,6 +337,16 @@ export default function PageTree({
               </div>
               {n && moving === n.id && (
                 <div className="page-move">
+                  {isFolderPage(n) && (
+                    <button
+                      onClick={() => {
+                        setMoving("");
+                        onRename(n);
+                      }}
+                    >
+                      폴더 이름 변경
+                    </button>
+                  )}
                   <select
                     aria-label="이동할 상위 페이지"
                     value=""
@@ -372,7 +397,9 @@ export default function PageTree({
                   }}
                 >
                   <option value="">하위 페이지 유형 선택</option>
+                  <option value="folder">폴더</option>
                   <option value="note">노트</option>
+                  <option value="sheet">시트 테이블</option>
                   <option value="architecture">IaCD 아키텍처</option>
                   {Object.entries(templates).map(([k, t]) => (
                     <option key={k} value={k}>

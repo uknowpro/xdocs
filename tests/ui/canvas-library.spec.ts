@@ -144,8 +144,10 @@ test("move a linked subtree, reorder siblings and undo without changing file pat
   const originalPath = await btn(title).getAttribute("title");
   await btn(title + " 하위 페이지 추가").click();
   await tree.getByLabel("하위 페이지 유형").selectOption("actions");
-  await expect(page.getByRole("heading",{name:"GitHub Actions 캔버스"})).toBeVisible();
-  await page.setViewportSize({width:1440,height:1000});
+  await expect(
+    page.getByRole("heading", { name: "GitHub Actions 캔버스" }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await btn(title).dragTo(btn(parent));
   await expect(btn(parent + " 접기")).toBeVisible();
   await btn(parent + " 접기").click();
@@ -177,4 +179,31 @@ test("move a linked subtree, reorder siblings and undo without changing file pat
   await expect(
     page.getByRole("heading", { name: "GitHub Actions 캔버스" }),
   ).toBeVisible();
+});
+
+test("named folders persist with child folders and pages", async ({ page }) => {
+  await page.goto("/");
+  const button = (name: string) =>
+    page.getByRole("button", { name, exact: true });
+  await button("새 폴더").click();
+  await page.getByLabel("폴더 이름", { exact: true }).fill("업무");
+  await button("저장").click();
+  await button("업무 하위 페이지 추가").click();
+  await page.getByLabel("하위 페이지 유형").selectOption("folder");
+  await page.getByLabel("폴더 이름", { exact: true }).fill("설계");
+  await button("저장").click();
+  await button("설계 하위 페이지 추가").click();
+  await page.getByLabel("하위 페이지 유형").selectOption("sheet");
+  await page.getByLabel("페이지 이름").fill("비용표");
+  await button("저장").click();
+  await button("설계 페이지 이동").click();
+  await button("폴더 이름 변경").click();
+  await page.getByLabel("폴더 이름 변경", { exact: true }).fill("구성도");
+  await button("저장").click();
+  await expect(button("구성도")).toBeVisible();
+  await page.reload();
+  await expect(button("비용표")).toBeVisible();
+  await button("업무 접기").click();
+  await expect(button("구성도")).toHaveCount(0);
+  await expect(button("비용표")).toHaveCount(0);
 });

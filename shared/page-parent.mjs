@@ -45,3 +45,11 @@ export function orderBetween(low, high) {
   }
   throw Error("두 페이지 사이에 더 이상 배치할 수 없습니다.");
 }
+
+export const folderMarker = "<!-- xdocs:folder -->\n";
+export function folderBody(parent, name) {
+  return withParent(parent, folderMarker + "# " + name + "\n");
+}
+export function isFolderPage(note) {
+  return note.body.replace(parentHeader, "").startsWith(folderMarker);
+}

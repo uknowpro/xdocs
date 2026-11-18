@@ -9,7 +9,7 @@ import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
 import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Box,
   Cloud,
@@ -284,16 +284,29 @@ export default function ArchitectureDocument({
   const node = model.nodes.find((n) => n.id === selected),
     edges = architectureEdges(model),
     issues = architectureIssues(model);
-  let result: {
-    files: Record<string, string>;
-    errors: string[];
-    warnings: string[];
-  };
-  try {
-    result = generateArchitecture(model, format, only && node ? [node.id] : []);
-  } catch (e) {
-    result = { files: {}, errors: [String(e)], warnings: [] };
-  }
+  const selectedId = only ? node?.id : undefined;
+  const result = useMemo(() => {
+    try {
+      return generateArchitecture(
+        model,
+        tab === "code" ? format : "terraform",
+        tab === "code" && selectedId ? [selectedId] : [],
+      );
+    } catch (error) {
+      return {
+        files: {} as Record<string, string>,
+        errors: [String(error)],
+        warnings: [],
+      };
+    }
+  }, [model, tab, format, selectedId]);
+  const terraformFiles = Object.keys(result.files).filter((name) =>
+    /\.tf(?:\.json)?$/.test(name),
+  );
+  const [liveFile, setLiveFile] = useState("");
+  const livePath = terraformFiles.includes(liveFile)
+    ? liveFile
+    : terraformFiles[0];
   const fileNames = Object.keys(result.files),
     activeFile = fileNames.includes(file) ? file : fileNames[0];
   function change(next: ArchitectureModel) {
@@ -1369,6 +1382,35 @@ export default function ArchitectureDocument({
             </details>
           </aside>
         </div>
+      )}
+      {tab === "canvas" && (
+        <details open className="terraform-live">
+          <summary>Terraform 뷰어</summary>
+          {livePath && (
+            <>
+              <select
+                aria-label="Terraform 파일"
+                value={livePath}
+                onChange={(e) => setLiveFile(e.target.value)}
+              >
+                {terraformFiles.map((name) => (
+                  <option key={name}>{name}</option>
+                ))}
+              </select>
+              <pre aria-label="Terraform 코드">
+                <code>{result.files[livePath]}</code>
+              </pre>
+            </>
+          )}
+          {result.errors.map((message: string) => (
+            <p key={message} role="status">
+              {message}
+            </p>
+          ))}
+          {!livePath && !result.errors.length && (
+            <p>표시할 Terraform 파일이 없습니다.</p>
+          )}
+        </details>
       )}
       {tab === "code" && (
         <section className="arch-export">

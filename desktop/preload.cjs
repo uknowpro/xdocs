@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   exportArchitecture: (model, format, ids) =>
     ipcRenderer.invoke("architecture:export", { model, format, ids }),
   importInfrastructure: () => ipcRenderer.invoke("infra:import"),
+  importSheetDirectory: () => ipcRenderer.invoke("sheet:directory"),
   importSpreadsheet: () => ipcRenderer.invoke("sheet:import"),
   openAttachment: (relative) => ipcRenderer.invoke("asset:open", relative),
   importMarkdown: () => ipcRenderer.invoke("note:import"),

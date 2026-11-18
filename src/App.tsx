@@ -1,6 +1,11 @@
 import { version as appVersion } from "../package.json";
 import PageTree, { type PageKind } from "./PageTree";
-import { parentHeader, withParent } from "../shared/page-parent.mjs";
+import {
+  folderBody,
+  isFolderPage,
+  parentHeader,
+  withParent,
+} from "../shared/page-parent.mjs";
 import { isCanvas } from "./canvasPreview";
 import { WorkflowCanvas, blankFlow } from "./WorkflowCanvas";
 import {
@@ -151,6 +156,7 @@ export default function App() {
       setDesktopSidebar(!desktopSidebar);
     }
   }
+  const architectureName = useRef<string | undefined>(undefined);
   const architectureParent = useRef<string | undefined>(undefined);
   const current = useRef<Note | null>(null);
   const draft = useRef("");
@@ -165,6 +171,45 @@ export default function App() {
   const composing = useRef(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const [loadingNote, setLoadingNote] = useState(false);
+  const [naming, setNaming] = useState<{
+    parent?: string;
+    existing?: Note;
+    kind?: PageKind;
+  } | null>(null);
+  const [folderName, setFolderName] = useState("");
+  useEffect(() => setNaming(null), [workspace?.root]);
+  function nameFolder(parent?: string, existing?: Note) {
+    setFolderName(existing?.title || "");
+    setNaming({ parent, existing });
+  }
+  async function submitFolder() {
+    const title = folderName.trim();
+    if (!title || !naming || !(await flush())) return;
+    const { parent, existing, kind } = naming;
+    if (kind) {
+      setNaming(null);
+      setDrawer(false);
+      await createPage(kind, parent, title);
+      return;
+    }
+    await action(async () => {
+      const full =
+        existing?.unloaded && api.readNote
+          ? await api.readNote(existing.id)
+          : existing;
+      const saved =
+        existing && full
+          ? await api.save({
+              id: existing.id,
+              revision: existing.revision,
+              body: full.body.replace(/^# .+$/m, () => "# " + title),
+            })
+          : await api.create(title, folderBody(parent, title));
+      update(saved);
+      if (current.current?.id === saved.id) select(saved);
+      setNaming(null);
+    });
+  }
   const [creatingNote, setCreatingNote] = useState(false);
   const selectionVersion = useRef(0);
   const draftVersion = useRef(0);
@@ -510,15 +555,15 @@ export default function App() {
       }
     });
   }
-  async function createNote(parent?: string) {
+  async function createNote(parent?: string, title = "새 노트") {
     if (readonly) return;
     setCreatingNote(true);
     try {
       if (!(await flush())) return;
       await action(async () => {
         const n = await api.create(
-          "새 노트",
-          parent ? withParent(parent, "# 새 노트\n\n") : undefined,
+          title,
+          parent ? withParent(parent, "# " + title + "\n\n") : undefined,
         );
         update(n);
         select(n);
@@ -573,16 +618,19 @@ export default function App() {
     update(saved);
     return true;
   }
-  async function createPage(kind: PageKind, parent?: string) {
-    if (kind === "note") return createNote(parent);
+  async function createPage(kind: PageKind, parent?: string, name?: string) {
+    if (kind === "folder") return nameFolder(parent);
+    if (kind === "sheet") return createSheets(parent, name);
+    if (kind === "note") return createNote(parent, name);
     if (!(await flush())) return;
     if (kind === "architecture") {
       architectureParent.current = parent;
+      architectureName.current = name;
       setArchitectureStart(true);
       return;
     }
     await action(async () => {
-      const title = templates[kind].label + " 캔버스";
+      const title = name || templates[kind].label + " 캔버스";
       const n = await api.create(
         title,
         withParent(
@@ -624,23 +672,28 @@ export default function App() {
   async function openRecovery(mode: "history" | "trash") {
     if (await flush()) setRecovery(mode);
   }
-  async function createSheets() {
+  async function createSheets(parent?: string, title = "새 시트") {
     if (!(await flush())) return;
     await action(async () => {
       const n = await api.create(
-        "새 시트",
-        "# 새 시트\n\n" +
-          encodeWorkbook({
-            version: 1,
-            sheets: [
-              {
-                id: crypto.randomUUID(),
-                name: "시트 1",
-                rows: [["", "", "", ""]],
-              },
-            ],
-          }) +
-          "\n",
+        title,
+        withParent(
+          parent,
+          "# " +
+            title +
+            "\n\n" +
+            encodeWorkbook({
+              version: 1,
+              sheets: [
+                {
+                  id: crypto.randomUUID(),
+                  name: "시트 1",
+                  rows: [["", "", "", ""]],
+                },
+              ],
+            }) +
+            "\n",
+        ),
       );
       setWorkspace(await api.refresh());
       select(n);
@@ -648,15 +701,19 @@ export default function App() {
       setEdit(false);
     });
   }
-  async function importSheets() {
+  async function importSheets(directory = false) {
     if (!(await flush())) return;
     await action(async () => {
-      const result = await api.importSpreadsheet?.();
+      const result = directory
+        ? await api.importSheetDirectory?.()
+        : await api.importSpreadsheet?.();
       if (result) {
         setWorkspace(await api.refresh());
-        select(result.note);
-        setView("note");
-        setEdit(false);
+        if (result.note) {
+          select(result.note);
+          setView("note");
+          setEdit(false);
+        }
         setNotice(result.warnings.join(" ") || "시트를 가져왔습니다.");
       }
     });
@@ -854,7 +911,43 @@ export default function App() {
             <Plus size={15} />
           </button>
         </div>
+        <button
+          className="nav-item"
+          disabled={!workspace || workspace.role === "reader" || busy}
+          onClick={() => nameFolder()}
+        >
+          <FolderOpen size={16} />새 폴더
+        </button>
+        {naming && (
+          <form
+            className="folder-name-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submitFolder();
+            }}
+          >
+            <label>
+              {naming.existing
+                ? "폴더 이름 변경"
+                : naming.kind
+                  ? "페이지 이름"
+                  : "폴더 이름"}
+              <input
+                autoFocus
+                required
+                maxLength={100}
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+              />
+            </label>
+            <button disabled={busy || !folderName.trim()}>저장</button>
+            <button type="button" onClick={() => setNaming(null)}>
+              취소
+            </button>
+          </form>
+        )}
         <PageTree
+          onRename={(note) => nameFolder(undefined, note)}
           onMove={placePage}
           key={workspace?.root}
           notes={notes}
@@ -865,7 +958,13 @@ export default function App() {
             void navigate(id);
           }}
           onCreate={(parent, kind) => {
-            setDrawer(false);
+            const target = notes.find((n) => n.id === parent);
+            if (kind !== "folder" && target && isFolderPage(target)) {
+              setFolderName("");
+              setNaming({ parent, kind });
+              return;
+            }
+            if (kind !== "folder") setDrawer(false);
             void createPage(kind, parent);
           }}
         />
@@ -919,6 +1018,16 @@ export default function App() {
             </option>
           ))}
         </select>
+        {api.importSheetDirectory && (
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={() => void importSheets(true)}
+          >
+            <FolderOpen size={16} />
+            Excel 폴더 가져오기
+          </button>
+        )}
         {api.importSpreadsheet && (
           <button
             className="nav-item"
@@ -1541,7 +1650,10 @@ export default function App() {
       {architectureStart && (
         <ArchitectureStart
           onClose={() => setArchitectureStart(false)}
-          onCreate={async (model) => {
+          onCreate={async (source) => {
+            const model = architectureName.current
+              ? { ...source, title: architectureName.current }
+              : source;
             if (!(await flush())) return;
             const n = await api.create(
               model.title,

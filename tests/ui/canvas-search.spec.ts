@@ -59,6 +59,8 @@ test("context insertion assigns the selected subnet and undoes the entire operat
   await subnet.focus();
   await page.keyboard.press("+");
   await expect(add).toBeFocused();
+  const viewer = page.getByLabel("Terraform 코드");
+  const before = await viewer.innerText();
   await add.fill("aws_instance");
   await add.press("Enter");
   await expect(
@@ -69,8 +71,10 @@ test("context insertion assigns the selected subnet and undoes the entire operat
     exact: true,
   });
   await expect(created).toHaveCount(1);
+  await expect(viewer).not.toHaveText(before);
   await page.getByRole("button", { name: "아키텍처 실행 취소" }).click();
   await expect(created).toHaveCount(0);
+  await expect(viewer).toHaveText(before);
 });
 test("AWS search distinguishes vaults by account and selects the matching SVG element", async ({
   page,

@@ -2630,3 +2630,32 @@ textarea {
 .placement-evidence p { margin: 6px 0; }
 .placement-evidence code, .placement-evidence small { display: block; white-space: pre-wrap; }
 .placement-evidence pre { max-height: 24rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.folder-name-form {
+  padding: 8px;
+}
+.folder-name-form label,
+.folder-name-form input {
+  display: block;
+  width: 100%;
+}
+.folder-name-form button {
+  margin: 6px 6px 0 0;
+}
+.terraform-live {
+  min-width: 0;
+  margin-block: 10px;
+}
+.terraform-live summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.terraform-live select {
+  max-width: 100%;
+  margin-block: 8px;
+}
+.terraform-live pre {
+  overflow: auto;
+  max-height: 32vh;
+  font-size: 12px;
+}

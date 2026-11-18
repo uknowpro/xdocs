@@ -28,9 +28,10 @@ import {
   safeStorage,
   shell,
 } from "electron";
+import { folderBody, withParent } from "../shared/page-parent.mjs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { VaultClient } from "./vault-client.mjs";
 import { watch } from "chokidar";
 import TurndownService from "turndown";
@@ -392,9 +393,75 @@ app.whenReady().then(async () => {
       ],
     });
     if (result.canceled) return null;
+    return importSheetFiles(store, result.filePaths);
+  });
+  register("sheet:directory", async () => {
+    const store = mustVault();
+    const choice = await dialog.showOpenDialog(window, {
+      title: "Excel 폴더 가져오기",
+      properties: ["openDirectory"],
+    });
+    if (choice.canceled || !choice.filePaths.length) return null;
+    const root = choice.filePaths[0];
+    const folders = new Map();
+    const warnings = [];
+    let count = 0,
+      first;
+    async function folder(dir) {
+      if (!folders.has(dir)) {
+        const parent =
+          dir === root ? undefined : await folder(path.dirname(dir));
+        const title = path.basename(dir) || "가져온 시트";
+        folders.set(
+          dir,
+          (await store.create(title, folderBody(parent, title))).id,
+        );
+      }
+      return folders.get(dir);
+    }
+    async function visit(dir) {
+      const entries = await readdir(dir, { withFileTypes: true });
+      for (const entry of entries.sort((a, b) =>
+        a.name.localeCompare(b.name),
+      )) {
+        const file = path.join(dir, entry.name);
+        try {
+          if (entry.isDirectory()) await visit(file);
+          else if (
+            entry.isFile() &&
+            !entry.name.startsWith("~$") &&
+            /\.(xlsx|xlsm|xlsb|xls|csv|tsv|txt)$/i.test(entry.name)
+          ) {
+            const result = await importSheetFiles(
+              store,
+              [file],
+              await folder(dir),
+            );
+            if (result) {
+              first ??= result.note;
+              count++;
+              warnings.push(
+                ...result.warnings.map(
+                  (w) => path.relative(root, file) + " · " + w,
+                ),
+              );
+            } else warnings.push(path.relative(root, file) + " · 건너뜀");
+          }
+        } catch (error) {
+          warnings.push(path.relative(root, file) + " · " + error.message);
+        }
+      }
+    }
+    await visit(root);
+    return {
+      note: first,
+      warnings: [count + "개 파일을 페이지로 가져왔습니다.", ...warnings],
+    };
+  });
+  async function importSheetFiles(store, paths, parent) {
     const sheets = [],
       warnings = [];
-    for (const file of result.filePaths) {
+    for (const file of paths) {
       try {
         const data = await importSpreadsheet(file);
         sheets.push(...data.workbook.sheets);
@@ -402,7 +469,7 @@ app.whenReady().then(async () => {
       } catch (error) {
         const answer = await dialog.showMessageBox(window, {
           type: "info",
-          message: "시트 파일을 직접 읽을 수 없습니다.",
+          message: path.basename(file) + " 파일을 직접 읽을 수 없습니다.",
           detail:
             error.message +
             "\n권한·암호·DRM은 우회하지 않습니다. 로컬 앱에서 인증 후 허용되는 CSV/탭 구분 UTF-8 TXT로 내보내고 다시 가져오세요.",
@@ -432,11 +499,14 @@ app.whenReady().then(async () => {
           return {
             note: await store.create(
               path.basename(file),
-              "# " +
-                path.basename(file) +
-                "\n\n[원본 파일](" +
-                attachment.path +
-                ")\n",
+              withParent(
+                parent,
+                "# " +
+                  path.basename(file) +
+                  "\n\n[원본 파일](" +
+                  attachment.path +
+                  ")\n",
+              ),
             ),
             warnings: ["원본 파일을 첨부했습니다. 표 변환은 하지 않았습니다."],
           };
@@ -444,16 +514,16 @@ app.whenReady().then(async () => {
         return null;
       }
     }
-    const title = path.basename(
-      result.filePaths[0],
-      path.extname(result.filePaths[0]),
-    );
+    const title = path.basename(paths[0], path.extname(paths[0]));
     const note = await store.create(
       title,
-      "# " + title + "\n\n" + encodeWorkbook({ version: 1, sheets }) + "\n",
+      withParent(
+        parent,
+        "# " + title + "\n\n" + encodeWorkbook({ version: 1, sheets }) + "\n",
+      ),
     );
     return { note, warnings: [...new Set(warnings)] };
-  });
+  }
   register("asset:open", async (relative) => {
     const store = mustVault();
     await store.readAttachment(relative);
