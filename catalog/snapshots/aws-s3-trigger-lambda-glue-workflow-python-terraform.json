@@ -1,0 +1,535 @@
+{
+  "version": 1,
+  "title": "AWS · 객체 수집·Glue ETL 파이프라인",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.lambda_demo_loggroup",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 90,
+      "address": "aws_cloudwatch_log_group.lambda_demo_loggroup",
+      "references": [
+        "aws_lambda_function.first_glue_job_trigger_glue_workflow"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_glue_crawler",
+      "label": "aws_glue_crawler.first_crawler",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 386,
+      "address": "aws_glue_crawler.first_crawler",
+      "references": [
+        "aws_iam_role.sample_glue_role",
+        "aws_s3_bucket.landing_bucket"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_glue_crawler",
+      "label": "aws_glue_crawler.second_crawler",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 396,
+      "address": "aws_glue_crawler.second_crawler",
+      "references": [
+        "aws_iam_role.sample_glue_role",
+        "aws_s3_bucket.landing_bucket"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_glue_job",
+      "label": "aws_glue_job.first_glue_job",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 321,
+      "address": "aws_glue_job.first_glue_job",
+      "references": [
+        "aws_s3_bucket.landing_bucket",
+        "aws_iam_role.sample_glue_role"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_glue_job",
+      "label": "aws_glue_job.second_glue_job",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 353,
+      "address": "aws_glue_job.second_glue_job",
+      "references": [
+        "aws_s3_bucket.landing_bucket",
+        "aws_iam_role.sample_glue_role"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_glue_trigger",
+      "label": "aws_glue_trigger.sample_glue_workflow-first_crawler",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 190,
+      "address": "aws_glue_trigger.sample_glue_workflow-first_crawler",
+      "references": [
+        "aws_glue_workflow.sample_glue_workflow"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_glue_trigger",
+      "label": "aws_glue_trigger.sample_glue_workflow-second_crawler",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 229,
+      "address": "aws_glue_trigger.sample_glue_workflow-second_crawler",
+      "references": [
+        "aws_glue_workflow.sample_glue_workflow"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_glue_trigger",
+      "label": "aws_glue_trigger.sample_glue_workflow-second_glue_job",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 209,
+      "address": "aws_glue_trigger.sample_glue_workflow-second_glue_job",
+      "references": [
+        "aws_glue_workflow.sample_glue_workflow"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_glue_trigger",
+      "label": "aws_glue_trigger.sample_glue_workflow-start",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 177,
+      "address": "aws_glue_trigger.sample_glue_workflow-start",
+      "references": [
+        "aws_glue_workflow.sample_glue_workflow"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_glue_workflow",
+      "label": "aws_glue_workflow.sample_glue_workflow",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 173,
+      "address": "aws_glue_workflow.sample_glue_workflow",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.lambda_policy",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 155,
+      "address": "aws_iam_policy.lambda_policy",
+      "references": [
+        "data.aws_iam_policy_document.AWSLambdaPolicy"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.s3_access_iam_policy",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 272,
+      "address": "aws_iam_policy.s3_access_iam_policy",
+      "references": [
+        "data.aws_iam_policy_document.policy_document"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.sample_glue_role",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 278,
+      "address": "aws_iam_role.sample_glue_role",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.terraform_lambda_function_role",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 149,
+      "address": "aws_iam_role.terraform_lambda_function_role",
+      "references": [
+        "data.aws_iam_policy_document.AWSLambdaTrustPolicy"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.glue_service_policy",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 299,
+      "address": "aws_iam_role_policy_attachment.glue_service_policy",
+      "references": [
+        "aws_iam_role.sample_glue_role"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.platform_metrics_glue_iam_policy",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 304,
+      "address": "aws_iam_role_policy_attachment.platform_metrics_glue_iam_policy",
+      "references": [
+        "aws_iam_policy.s3_access_iam_policy",
+        "aws_iam_role.sample_glue_role"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.terraform_lambda_policy",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 164,
+      "address": "aws_iam_role_policy_attachment.terraform_lambda_policy",
+      "references": [
+        "aws_iam_policy.lambda_policy",
+        "aws_iam_role.terraform_lambda_function_role"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.first_glue_job_trigger_glue_workflow",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 68,
+      "address": "aws_lambda_function.first_glue_job_trigger_glue_workflow",
+      "references": [
+        "aws_iam_role.terraform_lambda_function_role",
+        "aws_s3_bucket.landing_bucket",
+        "data.archive_file.lambda_zip_dir"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.file_lambda_permission",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "address": "aws_lambda_permission.file_lambda_permission",
+      "references": [
+        "aws_lambda_function.first_glue_job_trigger_glue_workflow",
+        "aws_s3_bucket.landing_bucket"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.landing_bucket",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "aws_s3_bucket.landing_bucket",
+      "references": [
+        "data.aws_caller_identity.current"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_s3_bucket_notification",
+      "label": "aws_s3_bucket_notification.aws-lambda-trigger",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 24,
+      "address": "aws_s3_bucket_notification.aws-lambda-trigger",
+      "references": [
+        "aws_s3_bucket.landing_bucket",
+        "aws_lambda_function.first_glue_job_trigger_glue_workflow"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_s3_object",
+      "label": "aws_s3_object.lambda_code_upload",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 54,
+      "address": "aws_s3_object.lambda_code_upload",
+      "references": [
+        "aws_s3_bucket.landing_bucket",
+        "data.archive_file.lambda_zip_dir"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_s3_object",
+      "label": "aws_s3_object.s3_copy_glue_script",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 314,
+      "address": "aws_s3_object.s3_copy_glue_script",
+      "references": [
+        "aws_s3_bucket.landing_bucket"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "random_string",
+      "label": "random_string.randomstring_fileingestion",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 42,
+      "address": "random_string.randomstring_fileingestion",
+      "references": []
+    },
+    {
+      "id": "n_import_24",
+      "kind": "archive_file",
+      "label": "data.archive_file.lambda_zip_dir",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 47,
+      "address": "data.archive_file.lambda_zip_dir",
+      "references": [
+        "random_string.randomstring_fileingestion"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "archive_file",
+      "label": "data.archive_file.lambda_zip_file",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 15,
+      "address": "data.archive_file.lambda_zip_file",
+      "references": []
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.AWSLambdaPolicy",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 110,
+      "address": "data.aws_iam_policy_document.AWSLambdaPolicy",
+      "references": [
+        "aws_s3_bucket.landing_bucket",
+        "aws_cloudwatch_log_group.lambda_demo_loggroup"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.AWSLambdaTrustPolicy",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 98,
+      "address": "data.aws_iam_policy_document.AWSLambdaTrustPolicy",
+      "references": []
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.policy_document",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 250,
+      "address": "data.aws_iam_policy_document.policy_document",
+      "references": [
+        "aws_s3_bucket.landing_bucket"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "##################\n# This pattern creates a S3 file trigger that triggers a lambda that in turn triggers a Glue Workflow to process the file.\n##################\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\n# Create a new S3 bucket to store Glue jobs, Glue Job Logs, etc.\nresource \"aws_s3_bucket\" \"landing_bucket\" {\n  bucket = \"s3-landing-${data.aws_caller_identity.current.account_id}\"\n}\n\n# Archive source code for Lambda\ndata \"archive_file\" \"lambda_zip_file\" {\n  type = \"zip\"\n  source_file = \"${path.module}/src/app.py\"\n  output_path = \"${path.module}/lambda.zip\"\n}\n\n##################\n# Adding S3 bucket as trigger to my lambda and giving the permissions\n##################\nresource \"aws_s3_bucket_notification\" \"aws-lambda-trigger\" {\n  bucket = aws_s3_bucket.landing_bucket.id\n  lambda_function {\n    lambda_function_arn = aws_lambda_function.first_glue_job_trigger_glue_workflow.arn\n    events              = [\"s3:ObjectCreated:*\"]\n#    filter_prefix       = \"file_landing/\"\n#    filter_suffix       = \"file-extension\"\n  }\n}\n# Provide permission to invoke lambda function when file is uploaded to S3 bucket\nresource \"aws_lambda_permission\" \"file_lambda_permission\" {\n  statement_id  = \"AllowS3Invoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = \"${aws_lambda_function.first_glue_job_trigger_glue_workflow.function_name}\"\n  principal = \"s3.amazonaws.com\"\n  source_arn = \"arn:aws:s3:::${aws_s3_bucket.landing_bucket.id}\"\n}\n# Randomly generate a name for the lambda function\nresource \"random_string\" \"randomstring_fileingestion\" {\n  length  = 4\n  special = false\n}\n# Archive/Zip the source code for Lambda\ndata \"archive_file\" \"lambda_zip_dir\" {\n  type        = \"zip\"\n  output_path = \"/tmp/file_trigger_lambda-${random_string.randomstring_fileingestion.result}.zip\"\n  source_dir  = \"src\"\n \n}\n# Upload the Source code into S3 Bucket\nresource \"aws_s3_object\" \"lambda_code_upload\" {\n  key        = \"lambda_scripts/first_glue_job_trigger_glue_workflow.zip\"\n  bucket     = aws_s3_bucket.landing_bucket.bucket\n  source     = data.archive_file.lambda_zip_dir.output_path\n  etag       = data.archive_file.lambda_zip_dir.output_base64sha256\n}\n# To Deploy Lambda Layers - Has been commented out for this version\n# resource \"aws_lambda_layer_version\" \"lambda_layer_wrangler\" {\n#   filename   = \"${path.module}/../../../../build_tools/awswrangler-layer-2.17.0-py3.9.zip\"\n#   layer_name = \"aws_wrangler\"\n#   compatible_runtimes = [\"python3.14\"]\n# }\n\n# Create Lambda Function\nresource \"aws_lambda_function\" \"first_glue_job_trigger_glue_workflow\" {\n  function_name = \"first_glue_job_trigger_glue_workflow\"\n \n  s3_bucket = aws_s3_bucket.landing_bucket.bucket\n  s3_key    = \"lambda_scripts/first_glue_job_trigger_glue_workflow.zip\" # S3 Key for the Lambda Function\n  source_code_hash = \"${data.archive_file.lambda_zip_dir.output_base64sha256}\" # Archived source code hash\n \n  runtime = \"python3.14\"\n  handler = \"first_glue_job_trigger_glue_workflow.lambda_handler\" # This is the function that will be executed when the lambda is triggered\n  timeout = 900 # 15 minutes is the maximum time allowed for the lambda function to run\n  role = aws_iam_role.terraform_lambda_function_role.arn\n  memory_size = 512\n  # vpc_config {\n  #   subnet_ids         = var.subnet_id\n  #   security_group_ids = var.lambda_sg\n  # }\n  # layers = [aws_lambda_layer_version.lambda_layer_wrangler.arn]\n  ephemeral_storage {\n    size = 2048 # Min 512 MB and the Max 10240 MB\n  }\n}\n# CloudWatch Log group to store Lambda logs\nresource \"aws_cloudwatch_log_group\" \"lambda_demo_loggroup\" {\n  name = \"/aws/lambda/${aws_lambda_function.first_glue_job_trigger_glue_workflow.function_name}\"\n  retention_in_days = 365\n}\n##################\n# Creating IAM Role for Lambda\n##################\n# IAM Policy Document for Lambda - Allows Trust Policy for Lambda\ndata \"aws_iam_policy_document\" \"AWSLambdaTrustPolicy\" {\n  statement {\n    actions    = [\"sts:AssumeRole\"]\n    effect     = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"lambda.amazonaws.com\"]\n    }\n  }\n}\n# IAM Policy Document for Lambda - Allows Writing to Logs and Read/Write from File that Triggers the Lambda\n\ndata \"aws_iam_policy_document\" \"AWSLambdaPolicy\" {\n  statement {\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetBucket*\",\n      \"s3:GetObject*\",\n      \"s3:List*\",\n      \"s3:Abort*\",\n      \"s3:DeleteObject*\",\n      \"s3:GetBucket*\",\n      \"s3:GetObject*\",\n      \"s3:List*\",\n      \"s3:PutObject\",\n      \"s3:PutObjectLegalHold\",\n      \"s3:PutObjectRetention\",\n      \"s3:PutObjectTagging\",\n      \"s3:PutObjectVersionTagging\"\n    ]\n\n    resources = [\n      aws_s3_bucket.landing_bucket.arn,\n      \"${aws_s3_bucket.landing_bucket.arn}/*\"\n    ]\n  }\n  statement {\n    effect = \"Allow\"\n    actions = [\n    \"logs:CreateLogGroup\",\n    \"logs:CreateLogStream\",\n    \"logs:PutLogEvents\"\n    ]\n\n    resources = [\n      aws_cloudwatch_log_group.lambda_demo_loggroup.arn\n    ]\n  }\n\n}\n# Create IAM Role for Lambda\nresource \"aws_iam_role\" \"terraform_lambda_function_role\" {\n  name               = \"terraform_lambda_function_role\"\n  assume_role_policy = \"${data.aws_iam_policy_document.AWSLambdaTrustPolicy.json}\"\n  # managed_policy_arns = [aws_iam_policy.lambda_policy.arn]\n}\n# Create IAM Policy for Lambda\nresource \"aws_iam_policy\" \"lambda_policy\" {\n  name        = \"lambda_policy\"\n  description = \"Policy to access S3\"\n\n  policy = \"${data.aws_iam_policy_document.AWSLambdaPolicy.json}\" # Attaching the Trust policy to the role\n\n}\n\n # Attach Policy to Lambda IAM Role\nresource \"aws_iam_role_policy_attachment\" \"terraform_lambda_policy\" {\n  role       = \"${aws_iam_role.terraform_lambda_function_role.name}\"\n  policy_arn = aws_iam_policy.lambda_policy.arn # Attaching the policy with access to Logs and S3 to the role\n}\n\n################\n# Glue Workflow is created and the triggers are added to invoke the Glue jobs and Glue Crawlers\n################\n# Create Glue Workflow\nresource \"aws_glue_workflow\" \"sample_glue_workflow\" {\n  name = \"sample_glue_workflow\"\n}\n# Create a Glue trigger to invoke the first Glue job and add the trigger to the Glue Workflow\nresource \"aws_glue_trigger\" \"sample_glue_workflow-start\" {\n  name          = \"sample_glue_workflow-start\"\n  type          = \"ON_DEMAND\"\n  workflow_name = aws_glue_workflow.sample_glue_workflow.name\n \n  actions {\n    job_name = \"first_glue_job\"\n    arguments = {\"--run_type\"=\"NORMAL\",\"--process_name\"=\"sample_glue_workflow\",\"--config_path\"=\"first_glue_job_conf_DEV.json\",\"--database_name\"=\"test_db\"}\n  }\n}\n \n# Create a Glue trigger to invoke the first Glue Crawler and add the trigger to the Glue Workflow\n \nresource \"aws_glue_trigger\" \"sample_glue_workflow-first_crawler\" {\n  name          = \"sample_glue_workflow-start_first_crawler\"\n  type          = \"CONDITIONAL\"\n  workflow_name = aws_glue_workflow.sample_glue_workflow.name # Workflow name created above\n \n  predicate {\n    conditions {\n      job_name = \"first_glue_job\"\n      state    = \"SUCCEEDED\"\n      logical_operator = \"EQUALS\"\n    }\n  }\n \n  actions {\n    crawler_name = \"first_crawler\"\n  }\n}\n# Create a Glue trigger to invoke the second Glue Job and add the trigger to the Glue Workflow\n\nresource \"aws_glue_trigger\" \"sample_glue_workflow-second_glue_job\" {\n  name          = \"sample_glue_workflow-start_second_glue_job\"\n  type          = \"CONDITIONAL\"\n  workflow_name = aws_glue_workflow.sample_glue_workflow.name # Workflow name created above\n \n  predicate {\n    conditions {\n      crawler_name = \"first_crawler\"\n      crawl_state    = \"SUCCEEDED\"\n      logical_operator = \"EQUALS\"\n    }\n  }\n \n  actions {\n    job_name = \"second_glue_job\"\n    arguments = {\"--run_type\"=\"NORMAL\",\"--process_name\"=\"sample_glue_workflow\",\"--config_path\"=\"second_glue_job_conf_DEV.json\",\"--database_name\"=\"test_db\"}\n  }\n}\n# Create a Glue trigger to invoke the second Glue Crawler and add the trigger to the Glue Workflow\n\nresource \"aws_glue_trigger\" \"sample_glue_workflow-second_crawler\" {\n  name          = \"sample_glue_workflow-start_second_crawler\"\n  type          = \"CONDITIONAL\"\n  workflow_name = aws_glue_workflow.sample_glue_workflow.name\n \n  predicate {\n    conditions {\n      job_name = \"second_glue_job\"\n      state    = \"SUCCEEDED\"\n      logical_operator = \"EQUALS\"\n    }\n  }\n \n  actions {\n    crawler_name = \"second_crawler\"\n  }\n}\n\n\n\n# IAM policies to allow access to the S3 bucket\ndata \"aws_iam_policy_document\" \"policy_document\" {\n  statement {\n    effect = \"Allow\"\n    actions = [\n      \"s3:ListBucket\"\n    ]\n    resources = [\n      aws_s3_bucket.landing_bucket.arn\n    ]\n  }\n  statement {\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n      \"s3:PutObject\"\n    ]\n    resources = [\n      \"${aws_s3_bucket.landing_bucket.arn}/*\"\n    ]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_access_iam_policy\" {\n  name = \"sample-glue-s3-access-policy\"\n  policy = data.aws_iam_policy_document.policy_document.json\n}\n\n# Glue IAM roles and Policies\nresource \"aws_iam_role\" \"sample_glue_role\" {\n  name = \"sample-glue-role\"\n  assume_role_policy = <<EOF\n{\n   \"Version\":\"2012-10-17\",\n   \"Statement\":[\n      {\n         \"Action\":\"sts:AssumeRole\",\n         \"Principal\":{\n            \"Service\":[\n               \"glue.amazonaws.com\"\n            ]\n         },\n         \"Effect\":\"Allow\",\n         \"Sid\":\"\"\n      }\n   ]\n}\nEOF\n}\n\nresource \"aws_iam_role_policy_attachment\" \"glue_service_policy\" {\n  role = aws_iam_role.sample_glue_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole\"\n}\n\nresource \"aws_iam_role_policy_attachment\" \"platform_metrics_glue_iam_policy\" {\n  role       = aws_iam_role.sample_glue_role.name\n  policy_arn = aws_iam_policy.s3_access_iam_policy.arn\n}\n\n##############\n# Glue job\n##############\n\n# Upload the Glue script to S3 bucket\nresource \"aws_s3_object\" \"s3_copy_glue_script\" {\n  bucket = aws_s3_bucket.landing_bucket.bucket\n  key    = \"scripts/app.py\"\n  source = \"src/app.py\"\n  source_hash = filemd5(\"src/app.py\")\n}\n# Create Glue Job\nresource \"aws_glue_job\" \"first_glue_job\" {\n    name = \"first_glue_job\"\n    role_arn = aws_iam_role.sample_glue_role.arn\n    command {\n     \n      script_location = \"s3://${aws_s3_bucket.landing_bucket.bucket}/scripts/app.py\"\n \n    }\n    glue_version = \"4.0\"\n    timeout = 600\n    default_arguments = {\n      \"--enable-continuous-cloudwatch-log\" = \"true\"\n      \"--enable-continuous-log-filter\"     = \"true\"\n      \"--enable-metrics\"                   = \"\"\n      \"--enable-spark-ui\" = \"true\"\n      \"--enable-glue-datacatalog\" = \"\"\n      \"--job-bookmark-option\" = \"job-bookmark-disable\"\n      \"--extra-py-files\" = \"\"\n      \"--extra-files\" = \"\"\n      \"--extra-jars\" = \"\"\n    }\n    # connections = [aws_glue_connection.sample-glue-connection.name]\n    execution_property {\n      max_concurrent_runs = 200\n    }\n   \n    number_of_workers = 10\n    worker_type = \"G.1X\"\n    max_retries = 0\n   \n}\n\nresource \"aws_glue_job\" \"second_glue_job\" {\n    name = \"second_glue_job\"\n    role_arn = aws_iam_role.sample_glue_role.arn\n    command {\n     \n      script_location = \"s3://${aws_s3_bucket.landing_bucket.bucket}/scripts/app.py\"\n \n    }\n    glue_version = \"4.0\"\n    timeout = 600\n    default_arguments = {\n      \"--enable-continuous-cloudwatch-log\" = \"true\"\n      \"--enable-continuous-log-filter\"     = \"true\"\n      \"--enable-metrics\"                   = \"\"\n      \"--enable-spark-ui\" = \"true\"\n      \"--enable-glue-datacatalog\" = \"\"\n      \"--job-bookmark-option\" = \"job-bookmark-disable\"\n      \"--extra-py-files\" = \"\"\n      \"--extra-files\" = \"\"\n      \"--extra-jars\" = \"\"\n    }\n    # connections = [aws_glue_connection.sample-glue-connection.name]\n    execution_property {\n      max_concurrent_runs = 200\n    }\n   \n    number_of_workers = 10\n    worker_type = \"G.1X\"\n    max_retries = 0\n   \n}\n\n\nresource \"aws_glue_crawler\" \"first_crawler\" {\n  database_name = \"test_db\"\n  name          = \"first_crawler\"\n  role          = aws_iam_role.sample_glue_role.arn\n \n  s3_target {\n    path = \"s3://${aws_s3_bucket.landing_bucket.bucket}/test_db/first/\"\n  }\n}\n \nresource \"aws_glue_crawler\" \"second_crawler\" {\n  database_name = \"test_db\"\n  name          = \"second_crawler\"\n  role          = aws_iam_role.sample_glue_role.arn\n \n  s3_target {\n    path = \"s3://${aws_s3_bucket.landing_bucket.bucket}/test_db/second/\"\n  }\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "# Display the S3 bucket \noutput \"S3-Bucket\" {\n  value       = aws_s3_bucket.landing_bucket.id\n  description = \"The S3 Bucket\"\n}\n\noutput \"lambda_function_name\" {\n  value = aws_lambda_function.first_glue_job_trigger_glue_workflow.function_name\n}\n\noutput \"cloudwatch_log_group\" {\n  value = aws_cloudwatch_log_group.lambda_demo_loggroup.name\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": ""
+    },
+    {
+      "name": "versions.tf",
+      "content": "terraform {\n  required_version = \">= 1.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 4.9\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \">= 2.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  profile = \"default\"\n  region  = \"us-east-1\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/s3-trigger-lambda-glue-workflow/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "수집 이벤트에서 정제 작업까지 재처리 경계를 찾는다."
+  }
+}

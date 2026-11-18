@@ -1,0 +1,443 @@
+{
+  "version": 1,
+  "title": "Azure · 내부 업무 서비스의 부하 분산",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_bastion_host",
+      "label": "azurerm_bastion_host.example",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 132,
+      "address": "azurerm_bastion_host.example",
+      "references": [
+        "azurerm_public_ip.example",
+        "azurerm_subnet.bastion",
+        "azurerm_resource_group.example"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_lb",
+      "label": "azurerm_lb.example",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 213,
+      "address": "azurerm_lb.example",
+      "references": [
+        "azurerm_subnet.example",
+        "azurerm_resource_group.example"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_lb_backend_address_pool",
+      "label": "azurerm_lb_backend_address_pool.example",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 227,
+      "address": "azurerm_lb_backend_address_pool.example",
+      "references": [
+        "azurerm_lb.example"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_lb_probe",
+      "label": "azurerm_lb_probe.example",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 234,
+      "address": "azurerm_lb_probe.example",
+      "references": [
+        "azurerm_lb.example"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_lb_rule",
+      "label": "azurerm_lb_rule.example",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 242,
+      "address": "azurerm_lb_rule.example",
+      "references": [
+        "azurerm_lb_backend_address_pool.example",
+        "azurerm_lb.example",
+        "azurerm_lb_probe.example"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_linux_virtual_machine",
+      "label": "azurerm_linux_virtual_machine.example",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 165,
+      "multipleInstances": true,
+      "address": "azurerm_linux_virtual_machine.example",
+      "references": [
+        "random_password.example",
+        "azurerm_resource_group.example",
+        "azurerm_network_interface.example"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.example[count.index].id}"
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_nat_gateway",
+      "label": "azurerm_nat_gateway.example",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 91,
+      "address": "azurerm_nat_gateway.example",
+      "references": [
+        "azurerm_resource_group.example"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_nat_gateway_public_ip_association",
+      "label": "azurerm_nat_gateway_public_ip_association.example",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 100,
+      "address": "azurerm_nat_gateway_public_ip_association.example",
+      "references": [
+        "azurerm_nat_gateway.example",
+        "azurerm_public_ip.example"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.example",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 115,
+      "multipleInstances": true,
+      "address": "azurerm_network_interface.example",
+      "references": [
+        "azurerm_subnet.example",
+        "azurerm_resource_group.example"
+      ],
+      "scopeAddress": "azurerm_subnet.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 4717,
+        "address": "azurerm_subnet.example",
+        "otherRefs": [
+          "azurerm_resource_group.example"
+        ]
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_network_interface_backend_address_pool_association",
+      "label": "azurerm_network_interface_backend_address_pool_association.example",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 148,
+      "multipleInstances": true,
+      "address": "azurerm_network_interface_backend_address_pool_association.example",
+      "references": [
+        "azurerm_lb_backend_address_pool.example",
+        "azurerm_network_interface.example"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.example",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 41,
+      "address": "azurerm_network_security_group.example",
+      "references": [
+        "azurerm_resource_group.example"
+      ],
+      "scopeAddress": "azurerm_resource_group.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1718,
+        "address": "azurerm_resource_group.example",
+        "otherRefs": [
+          "azurerm_resource_group.example"
+        ]
+      }
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.example",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 80,
+      "multipleInstances": true,
+      "address": "azurerm_public_ip.example",
+      "references": [
+        "azurerm_resource_group.example"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.example",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.example",
+      "references": [
+        "random_pet.rg"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.bastion",
+      "x": 300,
+      "y": 480,
+      "props": {
+        "name": "AzureBastionSubnet"
+      },
+      "original": {
+        "name": "AzureBastionSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 32,
+      "address": "azurerm_subnet.bastion",
+      "references": [
+        "azurerm_resource_group.example",
+        "azurerm_virtual_network.example"
+      ],
+      "scopeAddress": "azurerm_virtual_network.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1319,
+        "address": "azurerm_virtual_network.example",
+        "otherRefs": [
+          "azurerm_resource_group.example"
+        ]
+      }
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.example",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "address": "azurerm_subnet.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "azurerm_virtual_network.example"
+      ],
+      "scopeAddress": "azurerm_virtual_network.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 939,
+        "address": "azurerm_virtual_network.example",
+        "otherRefs": [
+          "azurerm_resource_group.example"
+        ]
+      }
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_subnet_nat_gateway_association",
+      "label": "azurerm_subnet_nat_gateway_association.example",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 107,
+      "address": "azurerm_subnet_nat_gateway_association.example",
+      "references": [
+        "azurerm_nat_gateway.example",
+        "azurerm_subnet.example"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.example",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 73,
+      "address": "azurerm_subnet_network_security_group_association.example",
+      "references": [
+        "azurerm_network_security_group.example",
+        "azurerm_subnet.example"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_virtual_machine_extension",
+      "label": "azurerm_virtual_machine_extension.example",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 195,
+      "multipleInstances": true,
+      "address": "azurerm_virtual_machine_extension.example",
+      "references": [
+        "azurerm_linux_virtual_machine.example"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.example",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "azurerm_virtual_network.example",
+      "references": [
+        "azurerm_resource_group.example"
+      ],
+      "scopeAddress": "azurerm_resource_group.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 622,
+        "address": "azurerm_resource_group.example",
+        "otherRefs": [
+          "azurerm_resource_group.example"
+        ]
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "random_password",
+      "label": "random_password.example",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 156,
+      "address": "random_password.example",
+      "references": []
+    },
+    {
+      "id": "n_import_20",
+      "kind": "random_pet",
+      "label": "random_pet.rg",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.rg",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Create a random name for the resource group\nresource \"random_pet\" \"rg\" {\n  prefix = var.resource_group_name_prefix\n}\n\n# Create a resource group using the generated random name\nresource \"azurerm_resource_group\" \"example\" {\n  location = var.resource_group_location\n  name     = random_pet.rg.id\n}\n\n# Create a Virtual Network to host the Virtual Machines \n# in the Backend Pool of the Load Balancer\nresource \"azurerm_virtual_network\" \"example\" {\n  name                = var.virtual_network_name\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n}\n\n# Create a subnet in the Virtual Network to host the Virtual Machines\n# in the Backend Pool of the Load Balancer\nresource \"azurerm_subnet\" \"example\" {\n  name                 = var.subnet_name\n  resource_group_name  = azurerm_resource_group.example.name\n  virtual_network_name = azurerm_virtual_network.example.name\n  address_prefixes     = [\"10.0.1.0/24\"]\n}\n\n# Create a subnet in the Virtual Network for creating Azure Bastion\n# This subnet is required for Azure Bastion to work properly\nresource \"azurerm_subnet\" \"bastion\" {\n  name                 = \"AzureBastionSubnet\"\n  resource_group_name  = azurerm_resource_group.example.name\n  virtual_network_name = azurerm_virtual_network.example.name\n  address_prefixes     = [\"10.0.2.0/24\"]\n}\n\n# Create Network Security Group and rules to control the traffic\n# to and from the Virtual Machines in the Backend Pool\nresource \"azurerm_network_security_group\" \"example\" {\n  name                = var.network_security_group_name\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n\n  security_rule {\n    name                       = \"ssh\"\n    priority                   = 1022\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"22\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"10.0.1.0/24\"\n  }\n\n  security_rule {\n    name                       = \"web\"\n    priority                   = 1080\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"80\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"10.0.1.0/24\"\n  }\n}\n\n# Associate the Network Security Group to the subnet to allow the\n# Network Security Group to control the traffic to and from the subnet\nresource \"azurerm_subnet_network_security_group_association\" \"example\" {\n  subnet_id                 = azurerm_subnet.example.id\n  network_security_group_id = azurerm_network_security_group.example.id\n}\n\n# Create Public IPs to route traffic from the Load Balancer\n# to the Virtual Machines in the Backend Pool\nresource \"azurerm_public_ip\" \"example\" {\n  count               = 2\n  name                = \"${var.public_ip_name}-${count.index}\"\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\n# Create a NAT Gateway for outbound internet access of the \n# Virtual Machines in the Backend Pool of the Load Balancer\nresource \"azurerm_nat_gateway\" \"example\" {\n  name                = var.nat_gateway\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n  sku_name            = \"Standard\"\n}\n\n# Associate one of the Public IPs to the NAT Gateway to route\n# traffic from the Virtual Machines to the internet\nresource \"azurerm_nat_gateway_public_ip_association\" \"example\" {\n  nat_gateway_id       = azurerm_nat_gateway.example.id\n  public_ip_address_id = azurerm_public_ip.example[0].id\n}\n\n# Associate the NAT Gateway to subnet to route \n# traffic from the Virtual Machines to the internet\nresource \"azurerm_subnet_nat_gateway_association\" \"example\" {\n  subnet_id      = azurerm_subnet.example.id\n  nat_gateway_id = azurerm_nat_gateway.example.id\n}\n\n# Create Network Interfaces\n# The Network Interfaces will be associated with the\n# Virtual Machines created later\nresource \"azurerm_network_interface\" \"example\" {\n  count               = 3\n  name                = \"${var.network_interface_name}-${count.index}\"\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n\n  ip_configuration {\n    name                          = \"ipconfig-${count.index}\"\n    subnet_id                     = azurerm_subnet.example.id\n    private_ip_address_allocation = \"Dynamic\"\n    primary                       = true\n  }\n}\n\n# Create Azure Bastion for accessing the Virtual Machines\n# The Bastion Host will be used to access the Virtual \n# Machines in the Backend Pool of the Load Balancer\nresource \"azurerm_bastion_host\" \"example\" {\n  name                = var.bastion_name\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n  sku                 = \"Standard\"\n\n  ip_configuration {\n    name                 = \"ipconfig\"\n    subnet_id            = azurerm_subnet.bastion.id\n    public_ip_address_id = azurerm_public_ip.example[1].id\n  }\n}\n\n# Associate Network Interface to the Backend Pool of the Load Balancer\n# The Network Interface will be used to route traffic to the Virtual\n# Machines in the Backend Pool\nresource \"azurerm_network_interface_backend_address_pool_association\" \"example\" {\n  count                   = 2\n  network_interface_id    = azurerm_network_interface.example[count.index].id\n  ip_configuration_name   = \"ipconfig-${count.index}\"\n  backend_address_pool_id = azurerm_lb_backend_address_pool.example.id\n}\n\n# Generate a random password for the VM admin users\nresource \"random_password\" \"example\" {\n  length  = 16\n  special = true\n  lower   = true\n  upper   = true\n  numeric = true\n}\n\n# Create three Virtual Machines in the Backend Pool of the Load Balancer \nresource \"azurerm_linux_virtual_machine\" \"example\" {\n  count                 = 3\n  name                  = \"${var.virtual_machine_name}-${count.index}\"\n  location              = azurerm_resource_group.example.location\n  resource_group_name   = azurerm_resource_group.example.name\n  network_interface_ids = [azurerm_network_interface.example[count.index].id]\n  size                  = var.virtual_machine_size\n\n  os_disk {\n    name                 = \"${var.disk_name}-${count.index}\"\n    caching              = \"ReadWrite\"\n    storage_account_type = var.redundancy_type\n  }\n\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"0001-com-ubuntu-server-jammy\"\n    sku       = \"22_04-lts-gen2\"\n    version   = \"latest\"\n  }\n\n  admin_username                  = var.username\n  admin_password                  = coalesce(var.password, random_password.example.result)\n  disable_password_authentication = false\n\n}\n\n# Enable virtual machine extension and install Nginx\n# The script will update the package list, install Nginx,\n# and create a simple HTML page\nresource \"azurerm_virtual_machine_extension\" \"example\" {\n  count                = 2\n  name                 = \"Nginx\"\n  virtual_machine_id   = azurerm_linux_virtual_machine.example[count.index].id\n  publisher            = \"Microsoft.Azure.Extensions\"\n  type                 = \"CustomScript\"\n  type_handler_version = \"2.0\"\n\n  settings = <<SETTINGS\n{\n \"commandToExecute\": \"sudo apt-get update && sudo apt-get install nginx -y && echo \\\"Hello World from $(hostname)\\\" > /var/www/html/index.html && sudo systemctl restart nginx\"\n}\nSETTINGS\n\n}\n\n# Create an Internal Load Balancer to distribute traffic to the\n# Virtual Machines in the Backend Pool\nresource \"azurerm_lb\" \"example\" {\n  name                = var.load_balancer_name\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n  sku                 = \"Standard\"\n\n  frontend_ip_configuration {\n    name                          = \"frontend-ip\"\n    subnet_id                     = azurerm_subnet.example.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n}\n\n# Create a Backend Address Pool for the Load Balancer\nresource \"azurerm_lb_backend_address_pool\" \"example\" {\n  loadbalancer_id = azurerm_lb.example.id\n  name            = \"test-pool\"\n}\n\n# Create a Load Balancer Probe to check the health of the \n# Virtual Machines in the Backend Pool\nresource \"azurerm_lb_probe\" \"example\" {\n  loadbalancer_id = azurerm_lb.example.id\n  name            = \"test-probe\"\n  port            = 80\n}\n\n# Create a Load Balancer Rule to define how traffic will be\n# distributed to the Virtual Machines in the Backend Pool\nresource \"azurerm_lb_rule\" \"example\" {\n  loadbalancer_id                = azurerm_lb.example.id\n  name                           = \"test-rule\"\n  protocol                       = \"Tcp\"\n  frontend_port                  = 80\n  backend_port                   = 80\n  disable_outbound_snat          = true\n  frontend_ip_configuration_name = \"frontend-ip\"\n  probe_id                       = azurerm_lb_probe.example.id\n  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.example.id]\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.example.name\n}\n\noutput \"private_ip_address\" {\n  value = \"http://${azurerm_lb.example.private_ip_address}\"\n}\n\noutput \"vm_password\" {\n  value     = azurerm_linux_virtual_machine.example[0].admin_password\n  sensitive = true\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>4.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"username\" {\n  type        = string\n  default     = \"azureadmin\"\n  description = \"The username for the local account that will be created on the new VM.\"\n}\n\nvariable \"password\" {\n  type        = string\n  default     = \"\"\n  description = \"The password for the local account that will be created on the new VM. If left blank, a random password is generated.\"\n}\n\nvariable \"virtual_network_name\" {\n  type        = string\n  default     = \"test-vnet\"\n  description = \"Name of the Virtual Network.\"\n}\n\nvariable \"subnet_name\" {\n  type        = string\n  default     = \"test-subnet\"\n  description = \"Name of the subnet.\"\n}\n\nvariable \"network_security_group_name\" {\n  type        = string\n  default     = \"test-nsg\"\n  description = \"Name of the Network Security Group.\"\n}\n\nvariable \"network_interface_name\" {\n  type        = string\n  default     = \"test-nic\"\n  description = \"Name of the Network Interface.\"\n}\n\nvariable \"public_ip_name\" {\n  type        = string\n  default     = \"test-pip\"\n  description = \"Name of the Public IP.\"\n}\n\nvariable \"nat_gateway\" {\n  type        = string\n  default     = \"test-nat\"\n  description = \"Name of the NAT gateway.\"\n}\n\nvariable \"bastion_name\" {\n  type        = string\n  default     = \"test-bastion\"\n  description = \"Name of the Bastion.\"\n}\n\nvariable \"virtual_machine_name\" {\n  type        = string\n  default     = \"test-vm\"\n  description = \"Name of the Virtual Machine.\"\n}\n\nvariable \"virtual_machine_size\" {\n  type        = string\n  default     = \"Standard_B2s\"\n  description = \"Size or SKU of the Virtual Machine.\"\n}\n\nvariable \"disk_name\" {\n  type        = string\n  default     = \"test-disk\"\n  description = \"Name of the OS disk of the Virtual Machine.\"\n}\n\nvariable \"redundancy_type\" {\n  type        = string\n  default     = \"Standard_LRS\"\n  description = \"Storage redundancy type of the OS disk.\"\n}\n\nvariable \"load_balancer_name\" {\n  type        = string\n  default     = \"test-lb\"\n  description = \"Name of the Load Balancer.\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azure-load-balancer-internal\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "프런트엔드·백엔드 풀과 상태 검사 실패의 범위를 비교한다."
+  }
+}

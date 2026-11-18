@@ -1,0 +1,645 @@
+{
+  "version": 1,
+  "title": "Azure · IP 그룹 기반 방화벽 정책 운영",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_firewall",
+      "label": "azurerm_firewall.fw",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 84,
+      "address": "azurerm_firewall.fw",
+      "references": [
+        "azurerm_firewall_policy.azfw_policy",
+        "azurerm_public_ip.pip_azfw",
+        "azurerm_subnet.azfw_subnet",
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_firewall_policy",
+      "label": "azurerm_firewall_policy.azfw_policy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 44,
+      "address": "azurerm_firewall_policy.azfw_policy",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.prcg",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 52,
+      "address": "azurerm_firewall_policy_rule_collection_group.prcg",
+      "references": [
+        "azurerm_ip_group.ip_group_1",
+        "azurerm_firewall_policy.azfw_policy",
+        "azurerm_ip_group.ip_group_2"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_ip_group",
+      "label": "azurerm_ip_group.ip_group_1",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 98,
+      "address": "azurerm_ip_group.ip_group_1",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_ip_group",
+      "label": "azurerm_ip_group.ip_group_2",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 104,
+      "address": "azurerm_ip_group.ip_group_2",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_linux_virtual_machine",
+      "label": "azurerm_linux_virtual_machine.vm_jump",
+      "x": 300,
+      "y": 200,
+      "props": {
+        "name": "jump-vm"
+      },
+      "original": {
+        "name": "jump-vm"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 231,
+      "address": "azurerm_linux_virtual_machine.vm_jump",
+      "references": [
+        "azapi_resource_action.ssh_public_key_gen",
+        "azurerm_storage_account.sa",
+        "azurerm_resource_group.rg",
+        "azurerm_network_interface.vm_jump_nic"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.vm_jump_nic.id}",
+      "nicAddress": "azurerm_network_interface.vm_jump_nic"
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_linux_virtual_machine",
+      "label": "azurerm_linux_virtual_machine.vm_server",
+      "x": 540,
+      "y": 200,
+      "props": {
+        "name": "server-vm"
+      },
+      "original": {
+        "name": "server-vm"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 205,
+      "address": "azurerm_linux_virtual_machine.vm_server",
+      "references": [
+        "azapi_resource_action.ssh_public_key_gen",
+        "azurerm_storage_account.sa",
+        "azurerm_resource_group.rg",
+        "azurerm_network_interface.vm_server_nic"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.vm_server_nic.id}",
+      "nicAddress": "azurerm_network_interface.vm_server_nic"
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.vm_jump_nic",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 159,
+      "address": "azurerm_network_interface.vm_jump_nic",
+      "references": [
+        "azurerm_public_ip.vm_jump_pip",
+        "azurerm_subnet.jump_subnet",
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_subnet.jump_subnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 5339,
+        "address": "azurerm_subnet.jump_subnet",
+        "otherRefs": [
+          "azurerm_public_ip.vm_jump_pip",
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.vm_server_nic",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 147,
+      "address": "azurerm_network_interface.vm_server_nic",
+      "references": [
+        "azurerm_subnet.server_subnet",
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_subnet.server_subnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 4942,
+        "address": "azurerm_subnet.server_subnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_network_interface_security_group_association",
+      "label": "azurerm_network_interface_security_group_association.vm_jump_nsg_association",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 200,
+      "address": "azurerm_network_interface_security_group_association.vm_jump_nsg_association",
+      "references": [
+        "azurerm_network_interface.vm_jump_nic",
+        "azurerm_network_security_group.vm_jump_nsg"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_network_interface_security_group_association",
+      "label": "azurerm_network_interface_security_group_association.vm_server_nsg_association",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 195,
+      "address": "azurerm_network_interface_security_group_association.vm_server_nsg_association",
+      "references": [
+        "azurerm_network_interface.vm_server_nic",
+        "azurerm_network_security_group.vm_server_nsg"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.vm_jump_nsg",
+      "x": 780,
+      "y": 340,
+      "props": {
+        "name": "nsg-jump"
+      },
+      "original": {
+        "name": "nsg-jump"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 178,
+      "address": "azurerm_network_security_group.vm_jump_nsg",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 5881,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.vm_server_nsg",
+      "x": 60,
+      "y": 480,
+      "props": {
+        "name": "nsg-server"
+      },
+      "original": {
+        "name": "nsg-server"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 172,
+      "address": "azurerm_network_security_group.vm_server_nsg",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 5671,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.pip_azfw",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 27,
+      "address": "azurerm_public_ip.pip_azfw",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.vm_jump_pip",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 139,
+      "address": "azurerm_public_ip.vm_jump_pip",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 22,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.rt",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 259,
+      "address": "azurerm_route_table.rt",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_firewall.fw"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.sa",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 35,
+      "address": "azurerm_storage_account.sa",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.storage_account_name"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 896,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_string.storage_account_name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.azfw_subnet",
+      "x": 540,
+      "y": 620,
+      "props": {
+        "name": "AzureFirewallSubnet"
+      },
+      "original": {
+        "name": "AzureFirewallSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 118,
+      "address": "azurerm_subnet.azfw_subnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.azfw_vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.azfw_vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3777,
+        "address": "azurerm_virtual_network.azfw_vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.jump_subnet",
+      "x": 780,
+      "y": 620,
+      "props": {
+        "name": "subnet-jump"
+      },
+      "original": {
+        "name": "subnet-jump"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 132,
+      "address": "azurerm_subnet.jump_subnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.azfw_vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.azfw_vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 4273,
+        "address": "azurerm_virtual_network.azfw_vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.server_subnet",
+      "x": 60,
+      "y": 760,
+      "props": {
+        "name": "subnet-server"
+      },
+      "original": {
+        "name": "subnet-server"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 125,
+      "address": "azurerm_subnet.server_subnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.azfw_vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.azfw_vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 4027,
+        "address": "azurerm_virtual_network.azfw_vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_21",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.server_subnet_rt_association",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 272,
+      "address": "azurerm_subnet_route_table_association.server_subnet_rt_association",
+      "references": [
+        "azurerm_route_table.rt",
+        "azurerm_subnet.server_subnet"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.azfw_vnet",
+      "x": 540,
+      "y": 760,
+      "props": {
+        "name": "azfw-vnet"
+      },
+      "original": {
+        "name": "azfw-vnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 111,
+      "address": "azurerm_virtual_network.azfw_vnet",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3532,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_23",
+      "kind": "random_password",
+      "label": "random_password.password",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "random_password.password",
+      "references": []
+    },
+    {
+      "id": "n_import_24",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_25",
+      "kind": "random_string",
+      "label": "random_string.storage_account_name",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "random_string.storage_account_name",
+      "references": []
+    },
+    {
+      "id": "n_import_26",
+      "kind": "azapi_resource",
+      "label": "azapi_resource.ssh_public_key",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 15,
+      "address": "azapi_resource.ssh_public_key",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_pet.ssh_key_name"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "azapi_resource_action",
+      "label": "azapi_resource_action.ssh_public_key_gen",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 6,
+      "address": "azapi_resource_action.ssh_public_key_gen",
+      "references": [
+        "azapi_resource.ssh_public_key"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "random_pet",
+      "label": "random_pet.ssh_key_name",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 1,
+      "address": "random_pet.ssh_key_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"random_string\" \"storage_account_name\" {\n  length  = 8\n  lower   = true\n  numeric = false\n  special = false\n  upper   = false\n}\n\nresource \"random_password\" \"password\" {\n  length      = 20\n  min_lower   = 1\n  min_upper   = 1\n  min_numeric = 1\n  min_special = 1\n  special     = true\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  name     = random_pet.rg_name.id\n  location = var.resource_group_location\n}\n\nresource \"azurerm_public_ip\" \"pip_azfw\" {\n  name                = \"pip-azfw\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\nresource \"azurerm_storage_account\" \"sa\" {\n  name                     = random_string.storage_account_name.result\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  account_tier             = \"Standard\"\n  account_replication_type = \"LRS\"\n  account_kind             = \"StorageV2\"\n}\n\nresource \"azurerm_firewall_policy\" \"azfw_policy\" {\n  name                     = \"azfw-policy\"\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  sku                      = var.firewall_sku_tier\n  threat_intelligence_mode = \"Alert\"\n}\n\nresource \"azurerm_firewall_policy_rule_collection_group\" \"prcg\" {\n  name               = \"prcg\"\n  firewall_policy_id = azurerm_firewall_policy.azfw_policy.id\n  priority           = 300\n  application_rule_collection {\n    name     = \"app-rule-collection-1\"\n    priority = 101\n    action   = \"Allow\"\n    rule {\n      name = \"someAppRule\"\n      protocols {\n        type = \"Https\"\n        port = 443\n      }\n      destination_fqdns = [\"*bing.com\"]\n      source_ip_groups  = [azurerm_ip_group.ip_group_1.id]\n    }\n  }\n  network_rule_collection {\n    name     = \"net-rule-collection-1\"\n    priority = 200\n    action   = \"Allow\"\n    rule {\n      name                  = \"someNetRule\"\n      protocols             = [\"TCP\", \"UDP\", \"ICMP\"]\n      source_ip_groups      = [azurerm_ip_group.ip_group_1.id]\n      destination_ip_groups = [azurerm_ip_group.ip_group_2.id]\n      destination_ports     = [\"90\"]\n    }\n  }\n}\n\nresource \"azurerm_firewall\" \"fw\" {\n  name                = \"azfw\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  sku_name            = \"AZFW_VNet\"\n  sku_tier            = var.firewall_sku_tier\n  ip_configuration {\n    name                 = \"azfw-ipconfig\"\n    subnet_id            = azurerm_subnet.azfw_subnet.id\n    public_ip_address_id = azurerm_public_ip.pip_azfw.id\n  }\n  firewall_policy_id = azurerm_firewall_policy.azfw_policy.id\n}\n\nresource \"azurerm_ip_group\" \"ip_group_1\" {\n  name                = \"ip-group_1\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  cidrs               = [\"13.73.64.64/26\", \"13.73.208.128/25\", \"52.126.194.0/23\"]\n}\nresource \"azurerm_ip_group\" \"ip_group_2\" {\n  name                = \"ip_group_2\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  cidrs               = [\"12.0.0.0/24\", \"13.9.0.0/24\"]\n}\n\nresource \"azurerm_virtual_network\" \"azfw_vnet\" {\n  name                = \"azfw-vnet\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  address_space       = [\"10.10.0.0/16\"]\n}\n\nresource \"azurerm_subnet\" \"azfw_subnet\" {\n  name                 = \"AzureFirewallSubnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.azfw_vnet.name\n  address_prefixes     = [\"10.10.0.0/26\"]\n}\n\nresource \"azurerm_subnet\" \"server_subnet\" {\n  name                 = \"subnet-server\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.azfw_vnet.name\n  address_prefixes     = [\"10.10.1.0/24\"]\n}\n\nresource \"azurerm_subnet\" \"jump_subnet\" {\n  name                 = \"subnet-jump\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.azfw_vnet.name\n  address_prefixes     = [\"10.10.2.0/24\"]\n}\n\nresource \"azurerm_public_ip\" \"vm_jump_pip\" {\n  name                = \"pip-jump\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\nresource \"azurerm_network_interface\" \"vm_server_nic\" {\n  name                = \"nic-server\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  ip_configuration {\n    name                          = \"ipconfig-workload\"\n    subnet_id                     = azurerm_subnet.server_subnet.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n}\n\nresource \"azurerm_network_interface\" \"vm_jump_nic\" {\n  name                = \"nic-jump\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  ip_configuration {\n    name                          = \"ipconfig-jump\"\n    subnet_id                     = azurerm_subnet.jump_subnet.id\n    private_ip_address_allocation = \"Dynamic\"\n    public_ip_address_id          = azurerm_public_ip.vm_jump_pip.id\n  }\n}\n\nresource \"azurerm_network_security_group\" \"vm_server_nsg\" {\n  name                = \"nsg-server\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\nresource \"azurerm_network_security_group\" \"vm_jump_nsg\" {\n  name                = \"nsg-jump\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  security_rule {\n    name                       = \"Allow-SSH\"\n    priority                   = 1000\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"22\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"*\"\n  }\n}\n\nresource \"azurerm_network_interface_security_group_association\" \"vm_server_nsg_association\" {\n  network_interface_id      = azurerm_network_interface.vm_server_nic.id\n  network_security_group_id = azurerm_network_security_group.vm_server_nsg.id\n}\n\nresource \"azurerm_network_interface_security_group_association\" \"vm_jump_nsg_association\" {\n  network_interface_id      = azurerm_network_interface.vm_jump_nic.id\n  network_security_group_id = azurerm_network_security_group.vm_jump_nsg.id\n}\n\nresource \"azurerm_linux_virtual_machine\" \"vm_server\" {\n  name                = \"server-vm\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  size                = var.virtual_machine_size\n  admin_username      = var.admin_username\n  admin_ssh_key {\n    username   = var.admin_username\n    public_key = azapi_resource_action.ssh_public_key_gen.output.publicKey\n  }\n  network_interface_ids = [azurerm_network_interface.vm_server_nic.id]\n  os_disk {\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Standard_LRS\"\n  }\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"18.04-LTS\"\n    version   = \"latest\"\n  }\n  boot_diagnostics {\n    storage_account_uri = azurerm_storage_account.sa.primary_blob_endpoint\n  }\n}\n\nresource \"azurerm_linux_virtual_machine\" \"vm_jump\" {\n  name                  = \"jump-vm\"\n  resource_group_name   = azurerm_resource_group.rg.name\n  location              = azurerm_resource_group.rg.location\n  size                  = var.virtual_machine_size\n  network_interface_ids = [azurerm_network_interface.vm_jump_nic.id]\n  admin_username        = var.admin_username\n  os_disk {\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Standard_LRS\"\n  }\n  admin_ssh_key {\n    username   = var.admin_username\n    public_key = azapi_resource_action.ssh_public_key_gen.output.publicKey\n  }\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"18.04-LTS\"\n    version   = \"latest\"\n  }\n  boot_diagnostics {\n    storage_account_uri = azurerm_storage_account.sa.primary_blob_endpoint\n  }\n  computer_name = \"JumpBox\"\n\n}\n\nresource \"azurerm_route_table\" \"rt\" {\n  name                          = \"rt-azfw-eus\"\n  location                      = azurerm_resource_group.rg.location\n  resource_group_name           = azurerm_resource_group.rg.name\n  disable_bgp_route_propagation = false\n  route {\n    name                   = \"azfwDefaultRoute\"\n    address_prefix         = \"0.0.0.0/0\"\n    next_hop_type          = \"VirtualAppliance\"\n    next_hop_in_ip_address = azurerm_firewall.fw.ip_configuration[0].private_ip_address\n  }\n}\n\nresource \"azurerm_subnet_route_table_association\" \"server_subnet_rt_association\" {\n  subnet_id      = azurerm_subnet.server_subnet.id\n  route_table_id = azurerm_route_table.rt.id\n}\n\n\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"firewall_name\" {\n  value = azurerm_firewall.fw.name\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n    azapi = {\n      source  = \"azure/azapi\"\n      version = \"~>1.5\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "ssh.tf",
+      "content": "resource \"random_pet\" \"ssh_key_name\" {\n  prefix    = \"ssh\"\n  separator = \"\"\n}\n\nresource \"azapi_resource_action\" \"ssh_public_key_gen\" {\n  type        = \"Microsoft.Compute/sshPublicKeys@2022-11-01\"\n  resource_id = azapi_resource.ssh_public_key.id\n  action      = \"generateKeyPair\"\n  method      = \"POST\"\n\n  response_export_values = [\"publicKey\", \"privateKey\"]\n}\n\nresource \"azapi_resource\" \"ssh_public_key\" {\n  type      = \"Microsoft.Compute/sshPublicKeys@2022-11-01\"\n  name      = random_pet.ssh_key_name.id\n  location  = azurerm_resource_group.rg.location\n  parent_id = azurerm_resource_group.rg.id\n}\n\noutput \"key_data\" {\n  value = azapi_resource_action.ssh_public_key_gen.output.publicKey\n}\n\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  description = \"Location for all resources.\"\n  default     = \"eastus\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  description = \"Prefix for the Resource Group Name that's combined with a random id so name is unique in your Azure subcription.\"\n  default     = \"rg\"\n}\n\nvariable \"firewall_sku_tier\" {\n  type        = string\n  description = \"Firewall SKU.\"\n  default     = \"Premium\" # Valid values are Standard and Premium\n  validation {\n    condition     = contains([\"Standard\", \"Premium\"], var.firewall_sku_tier)\n    error_message = \"The SKU must be one of the following: Standard, Premium\"\n  }\n}\n\nvariable \"virtual_machine_size\" {\n  type        = string\n  description = \"Size of the virtual machine.\"\n  default     = \"Standard_D2_v3\"\n}\n\nvariable \"admin_username\" {\n  type        = string\n  description = \"Value of the admin username.\"\n  default     = \"azureuser\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/201-azfw-with-ipgroups\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "주소 그룹 변경이 여러 정책에 미치는 영향을 비교한다."
+  }
+}

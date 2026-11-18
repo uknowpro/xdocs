@@ -1,0 +1,636 @@
+{
+  "version": 1,
+  "title": "AWS · EMR Serverless 데이터 처리 오케스트레이션",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "data.tf",
+      "sourceLine": 1,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "data.tf",
+      "sourceLine": 2,
+      "address": "data.aws_region.current",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_emr_studio",
+      "label": "aws_emr_studio.dev_studio",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "emr.tf",
+      "sourceLine": 1,
+      "address": "aws_emr_studio.dev_studio",
+      "references": [
+        "aws_s3_bucket.emr_studio_bucket",
+        "aws_security_group.emr_security_group",
+        "aws_iam_role.emr_studio_role",
+        "aws_subnet.emr_public_subnet1",
+        "aws_vpc.emr_vpc"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_emrserverless_application",
+      "label": "aws_emrserverless_application.emr_serverless",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "emr.tf",
+      "sourceLine": 17,
+      "address": "aws_emrserverless_application.emr_serverless",
+      "references": [
+        "data.aws_caller_identity.current"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.emr_serverless_role",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 12,
+      "address": "aws_iam_role.emr_serverless_role",
+      "references": [
+        "data.aws_iam_policy_document.emr_s3_and_glue_inline_policy"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.emr_studio_role",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 175,
+      "address": "aws_iam_role.emr_studio_role",
+      "references": [
+        "data.aws_iam_policy_document.emr_studio_policy_doc"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_emr_sfn_start_job_role",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 34,
+      "address": "aws_iam_role.lambda_emr_sfn_start_job_role",
+      "references": [
+        "data.aws_iam_policy_document.lambda_emr_sfn_start_job_policy"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.click_logger_emr_serverless_inline_policy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 112,
+      "address": "aws_iam_role_policy.click_logger_emr_serverless_inline_policy",
+      "references": [
+        "aws_s3_bucket.emr_studio_bucket",
+        "aws_s3_bucket.job_source_s3_bucket",
+        "aws_s3_bucket.output_s3_bucket",
+        "aws_iam_role.emr_serverless_role"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.clicklogger_emr_sfn_start_job_inline_policy",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 44,
+      "address": "aws_iam_role_policy.clicklogger_emr_sfn_start_job_inline_policy",
+      "references": [
+        "aws_iam_role.lambda_emr_sfn_start_job_role"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.emr_studio_policy",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 185,
+      "address": "aws_iam_role_policy.emr_studio_policy",
+      "references": [
+        "aws_s3_bucket.emr_studio_bucket",
+        "aws_s3_bucket.job_source_s3_bucket",
+        "aws_s3_bucket.output_s3_bucket",
+        "aws_iam_role.emr_studio_role"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.emr_s3_and_glue_inline_policy",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 1,
+      "address": "data.aws_iam_policy_document.emr_s3_and_glue_inline_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.emr_studio_policy_doc",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 101,
+      "address": "data.aws_iam_policy_document.emr_studio_policy_doc",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.lambda_emr_sfn_start_job_policy",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "role.tf",
+      "sourceLine": 22,
+      "address": "data.aws_iam_policy_document.lambda_emr_sfn_start_job_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.emr_studio_bucket",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "s3.tf",
+      "sourceLine": 1,
+      "address": "aws_s3_bucket.emr_studio_bucket",
+      "references": [
+        "data.aws_region.current",
+        "data.aws_caller_identity.current"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.job_source_s3_bucket",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "s3.tf",
+      "sourceLine": 21,
+      "address": "aws_s3_bucket.job_source_s3_bucket",
+      "references": [
+        "data.aws_region.current",
+        "data.aws_caller_identity.current"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.output_s3_bucket",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "s3.tf",
+      "sourceLine": 11,
+      "address": "aws_s3_bucket.output_s3_bucket",
+      "references": [
+        "data.aws_region.current",
+        "data.aws_caller_identity.current"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_sfn_state_machine",
+      "label": "aws_sfn_state_machine.sfn_state_machine",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stepfunctions.tf",
+      "sourceLine": 1,
+      "address": "aws_sfn_state_machine.sfn_state_machine",
+      "references": [
+        "aws_emrserverless_application.emr_serverless",
+        "aws_iam_role.emr_serverless_role",
+        "aws_s3_bucket.job_source_s3_bucket",
+        "aws_iam_role.lambda_emr_sfn_start_job_role"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_eip",
+      "label": "aws_eip.emr_ip",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 61,
+      "address": "aws_eip.emr_ip",
+      "references": []
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.emr_igw",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 32,
+      "address": "aws_internet_gateway.emr_igw",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.emr_ngw",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 71,
+      "address": "aws_nat_gateway.emr_ngw",
+      "references": [
+        "aws_eip.emr_ip",
+        "aws_subnet.emr_public_subnet1"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_route",
+      "label": "aws_route.emr_ngw_route",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 86,
+      "address": "aws_route.emr_ngw_route",
+      "references": [
+        "aws_nat_gateway.emr_ngw",
+        "aws_route_table.emr_ngw_route_table"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_route",
+      "label": "aws_route.emr_public_route",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 50,
+      "address": "aws_route.emr_public_route",
+      "references": [
+        "aws_internet_gateway.emr_igw",
+        "aws_route_table.emr_route_table"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_route",
+      "label": "aws_route.emr_vpce_route",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 101,
+      "address": "aws_route.emr_vpce_route",
+      "references": [
+        "aws_nat_gateway.emr_ngw",
+        "aws_route_table.emr_vpce_route_table"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.emr_ngw_route_table",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 82,
+      "address": "aws_route_table.emr_ngw_route_table",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ],
+      "scopeAddress": "aws_vpc.emr_vpc",
+      "placementSource": {
+        "file": "vpc.tf",
+        "offset": 1957,
+        "address": "aws_vpc.emr_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_24",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.emr_route_table",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 41,
+      "address": "aws_route_table.emr_route_table",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ],
+      "scopeAddress": "aws_vpc.emr_vpc",
+      "placementSource": {
+        "file": "vpc.tf",
+        "offset": 928,
+        "address": "aws_vpc.emr_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.emr_vpce_route_table",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 97,
+      "address": "aws_route_table.emr_vpce_route_table",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ],
+      "scopeAddress": "aws_vpc.emr_vpc",
+      "placementSource": {
+        "file": "vpc.tf",
+        "offset": 2433,
+        "address": "aws_vpc.emr_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.emr_ngw_route_table_association1",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 92,
+      "address": "aws_route_table_association.emr_ngw_route_table_association1",
+      "references": [
+        "aws_route_table.emr_ngw_route_table",
+        "aws_subnet.emr_private_subnet1"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.emr_route_table_association1",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 56,
+      "address": "aws_route_table_association.emr_route_table_association1",
+      "references": [
+        "aws_route_table.emr_route_table",
+        "aws_subnet.emr_public_subnet1"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.emr_security_group",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 107,
+      "address": "aws_security_group.emr_security_group",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.emr_security_group_rule",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 118,
+      "address": "aws_security_group_rule.emr_security_group_rule",
+      "references": [
+        "aws_security_group.emr_security_group"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.emr_private_subnet1",
+      "x": 540,
+      "y": 1040,
+      "props": {
+        "cidr": "10.0.1.0/24"
+      },
+      "original": {
+        "cidr": "10.0.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 21,
+      "address": "aws_subnet.emr_private_subnet1",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ],
+      "scopeAddress": "aws_vpc.emr_vpc",
+      "placementSource": {
+        "file": "vpc.tf",
+        "offset": 487,
+        "address": "aws_vpc.emr_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_31",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.emr_public_subnet1",
+      "x": 780,
+      "y": 1040,
+      "props": {
+        "cidr": "10.0.0.0/24"
+      },
+      "original": {
+        "cidr": "10.0.0.0/24"
+      },
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 10,
+      "address": "aws_subnet.emr_public_subnet1",
+      "references": [
+        "aws_vpc.emr_vpc"
+      ],
+      "scopeAddress": "aws_vpc.emr_vpc",
+      "placementSource": {
+        "file": "vpc.tf",
+        "offset": 243,
+        "address": "aws_vpc.emr_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_32",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.emr_vpc",
+      "x": 60,
+      "y": 1180,
+      "props": {
+        "cidr": "10.0.0.0/16"
+      },
+      "original": {
+        "cidr": "10.0.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "vpc.tf",
+      "sourceLine": 1,
+      "address": "aws_vpc.emr_vpc",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "data.tf",
+      "content": "data \"aws_caller_identity\" \"current\" {}\ndata \"aws_region\" \"current\" {}\n"
+    },
+    {
+      "name": "emr.tf",
+      "content": "resource \"aws_emr_studio\" \"dev_studio\" {\n  auth_mode                   = \"IAM\"\n  default_s3_location         = \"s3://${aws_s3_bucket.emr_studio_bucket.bucket}/logs\"\n  engine_security_group_id    = aws_security_group.emr_security_group.id\n  name                        = \"${var.app}-${var.stage_name}-studio\"\n  service_role                = aws_iam_role.emr_studio_role.arn\n  subnet_ids                  = [aws_subnet.emr_public_subnet1.id]\n  vpc_id                      = aws_vpc.emr_vpc.id\n  workspace_security_group_id = aws_security_group.emr_security_group.id\n  tags = {\n    Application = var.app\n    Environment = var.stage_name\n  }\n}\n\n\nresource \"aws_emrserverless_application\" \"emr_serverless\" {\n  name          = \"${var.app}-${var.stage_name}-emr-${data.aws_caller_identity.current.account_id}\"\n  release_label = \"emr-6.9.0\"\n  type          = \"spark\"\n\n  initial_capacity {\n    initial_capacity_type = \"Driver\"\n\n    initial_capacity_config {\n      worker_count = 5\n      worker_configuration {\n        cpu    = \"4 vCPU\"\n        memory = \"20 GB\"\n      }\n    }\n  }\n\n  initial_capacity {\n    initial_capacity_type = \"Executor\"\n\n    initial_capacity_config {\n      worker_count = 5\n      worker_configuration {\n        cpu    = \"4 vCPU\"\n        memory = \"20 GB\"\n      }\n    }\n  }\n\n  maximum_capacity {\n    cpu    = \"150 vCPU\"\n    memory = \"1000 GB\"\n  }\n\n  tags = {\n    Name        = \"EMR Serverless Application\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n"
+    },
+    {
+      "name": "role.tf",
+      "content": "data \"aws_iam_policy_document\" \"emr_s3_and_glue_inline_policy\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n    effect  = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"emr-serverless.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"emr_serverless_role\" {\n  name               = \"${var.app}-${var.stage_name}-emr-serverless-role\"\n  assume_role_policy = data.aws_iam_policy_document.emr_s3_and_glue_inline_policy.json\n  tags = {\n    Name        = \"\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\ndata \"aws_iam_policy_document\" \"lambda_emr_sfn_start_job_policy\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n    effect  = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"states.amazonaws.com\", \"preprod.states.aws.internal\"]\n    }\n  }\n}\n\n\nresource \"aws_iam_role\" \"lambda_emr_sfn_start_job_role\" {\n  name               = \"${var.app}-${var.stage_name}-sfn-lambda-role\"\n  assume_role_policy = data.aws_iam_policy_document.lambda_emr_sfn_start_job_policy.json\n  tags = {\n    Name        = \"\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_iam_role_policy\" \"clicklogger_emr_sfn_start_job_inline_policy\" {\n  name   = \"${var.app}-${var.stage_name}-emr-job-inline_policy\"\n  role   = aws_iam_role.lambda_emr_sfn_start_job_role.id\n  policy = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"EMRStudioCreate\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"elasticmapreduce:CreateStudioPresignedUrl\",\n                \"elasticmapreduce:DescribeStudio\",\n                \"elasticmapreduce:CreateStudio\",\n                \"elasticmapreduce:ListStudios\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Sid\": \"EMRServerlessFullAccess\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"emr-serverless:*\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Sid\": \"AllowEC2ENICreationWithEMRTags\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:CreateNetworkInterface\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ec2:*:*:network-interface/*\"\n            ],\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"aws:CalledViaLast\": \"ops.emr-serverless.amazonaws.com\"\n                }\n            }\n        },\n        {\n            \"Sid\": \"AllowEMRServerlessServiceLinkedRoleCreation\",\n            \"Effect\": \"Allow\",\n            \"Action\": \"iam:CreateServiceLinkedRole\",\n            \"Resource\": \"arn:aws:iam::*:role/aws-service-role/*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": \"iam:PassRole\",\n            \"Resource\": \"*\"\n        }\n    ]\n}\nEOF\n}\n\ndata \"aws_iam_policy_document\" \"emr_studio_policy_doc\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n    effect  = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"elasticmapreduce.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role_policy\" \"click_logger_emr_serverless_inline_policy\" {\n  name   = \"${var.app}-${var.stage_name}-emr-s3-glue-inline_policy\"\n  role   = aws_iam_role.emr_serverless_role.id\n  policy = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"ReadAccessForEMRSamples\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:GetObject\",\n                \"s3:ListBucket\"\n            ],\n            \"Resource\": [\n                \"arn:aws:s3:::*.elasticmapreduce\",\n                \"arn:aws:s3:::*.elasticmapreduce/*\"\n            ]\n        },\n        {\n            \"Sid\": \"FullAccessToOutputBucket\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:PutObject\",\n                \"s3:GetObject\",\n                \"s3:ListBucket\",\n                \"s3:DeleteObject\"\n            ],\n            \"Resource\": [\n                \"${aws_s3_bucket.emr_studio_bucket.arn}\",\n                \"${aws_s3_bucket.emr_studio_bucket.arn}/*\",\n                \"${aws_s3_bucket.job_source_s3_bucket.arn}\",\n                \"${aws_s3_bucket.job_source_s3_bucket.arn}/*\",\n                \"${aws_s3_bucket.output_s3_bucket.arn}\",\n                \"${aws_s3_bucket.output_s3_bucket.arn}/*\"\n            ]\n        },\n        {\n            \"Sid\": \"GlueCreateAndReadDataCatalog\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"glue:GetDatabase\",\n                \"glue:CreateDatabase\",\n                \"glue:GetDataBases\",\n                \"glue:CreateTable\",\n                \"glue:GetTable\",\n                \"glue:UpdateTable\",\n                \"glue:DeleteTable\",\n                \"glue:GetTables\",\n                \"glue:GetPartition\",\n                \"glue:GetPartitions\",\n                \"glue:CreatePartition\",\n                \"glue:BatchCreatePartition\",\n                \"glue:GetUserDefinedFunctions\"\n            ],\n            \"Resource\": [\"*\"]\n        }\n    ]\n}\nEOF\n}\n\n\nresource \"aws_iam_role\" \"emr_studio_role\" {\n  name               = \"${var.app}-${var.stage_name}-emr-studio-role\"\n  assume_role_policy = data.aws_iam_policy_document.emr_studio_policy_doc.json\n  tags = {\n    Name        = \"\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_iam_role_policy\" \"emr_studio_policy\" {\n  name   = \"${var.app}-${var.stage_name}-emr-studio-policy\"\n  role   = aws_iam_role.emr_studio_role.id\n  policy = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Resource\": \"*\",\n            \"Action\": [\n                \"ec2:AuthorizeSecurityGroupEgress\",\n                \"ec2:AuthorizeSecurityGroupIngress\",\n                \"ec2:CancelSpotInstanceRequests\",\n                \"ec2:CreateFleet\",\n                \"ec2:CreateLaunchTemplate\",\n                \"ec2:CreateNetworkInterface\",\n                \"ec2:CreateSecurityGroup\",\n                \"ec2:CreateTags\",\n                \"ec2:DeleteLaunchTemplate\",\n                \"ec2:DeleteNetworkInterface\",\n                \"ec2:DeleteSecurityGroup\",\n                \"ec2:DeleteTags\",\n                \"ec2:DescribeAvailabilityZones\",\n                \"ec2:DescribeAccountAttributes\",\n                \"ec2:DescribeDhcpOptions\",\n                \"ec2:DescribeImages\",\n                \"ec2:DescribeInstanceStatus\",\n                \"ec2:DescribeInstances\",\n                \"ec2:DescribeKeyPairs\",\n                \"ec2:DescribeLaunchTemplates\",\n                \"ec2:DescribeNetworkAcls\",\n                \"ec2:DescribeNetworkInterfaces\",\n                \"ec2:DescribePrefixLists\",\n                \"ec2:DescribeRouteTables\",\n                \"ec2:DescribeSecurityGroups\",\n                \"ec2:DescribeSpotInstanceRequests\",\n                \"ec2:DescribeSpotPriceHistory\",\n                \"ec2:DescribeSubnets\",\n                \"ec2:DescribeTags\",\n                \"ec2:DescribeVpcAttribute\",\n                \"ec2:DescribeVpcEndpoints\",\n                \"ec2:DescribeVpcEndpointServices\",\n                \"ec2:DescribeVpcs\",\n                \"ec2:DetachNetworkInterface\",\n                \"ec2:ModifyImageAttribute\",\n                \"ec2:ModifyInstanceAttribute\",\n                \"ec2:RequestSpotInstances\",\n                \"ec2:RevokeSecurityGroupEgress\",\n                \"ec2:RunInstances\",\n                \"ec2:TerminateInstances\",\n                \"ec2:DeleteVolume\",\n                \"ec2:DescribeVolumeStatus\",\n                \"ec2:DescribeVolumes\",\n                \"ec2:DetachVolume\",\n                \"iam:GetRole\",\n                \"iam:GetRolePolicy\",\n                \"iam:ListInstanceProfiles\",\n                \"iam:ListRolePolicies\",\n                \"iam:PassRole\",\n                \"sdb:BatchPutAttributes\",\n                \"sdb:Select\",\n                \"sqs:CreateQueue\",\n                \"sqs:Delete*\",\n                \"sqs:GetQueue*\",\n                \"sqs:PurgeQueue\",\n                \"sqs:ReceiveMessage\",\n                \"cloudwatch:PutMetricAlarm\",\n                \"cloudwatch:DescribeAlarms\",\n                \"cloudwatch:DeleteAlarms\",\n                \"application-autoscaling:RegisterScalableTarget\",\n                \"application-autoscaling:DeregisterScalableTarget\",\n                \"application-autoscaling:PutScalingPolicy\",\n                \"application-autoscaling:DeleteScalingPolicy\",\n                \"application-autoscaling:Describe*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:GetEncryptionConfiguration\",\n                \"s3:GetObject\",\n                \"s3:ListBucket\",\n                \"s3:PutObject*\",\n                \"s3:DeleteObject\"\n            ],\n            \"Resource\": [\n                \"${aws_s3_bucket.emr_studio_bucket.arn}\",\n                \"${aws_s3_bucket.emr_studio_bucket.arn}/*\",\n                \"${aws_s3_bucket.job_source_s3_bucket.arn}\",\n                \"${aws_s3_bucket.job_source_s3_bucket.arn}/*\",\n                \"${aws_s3_bucket.output_s3_bucket.arn}\",\n                \"${aws_s3_bucket.output_s3_bucket.arn}/*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": \"iam:CreateServiceLinkedRole\",\n            \"Resource\": \"arn:aws:iam::*:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot*\",\n            \"Condition\": {\n                \"StringLike\": {\n                    \"iam:AWSServiceName\": \"spot.amazonaws.com\"\n                }\n            }\n        }\n    ]\n}\nEOF\n}\n"
+    },
+    {
+      "name": "s3.tf",
+      "content": "resource \"aws_s3_bucket\" \"emr_studio_bucket\" {\n  bucket = \"${data.aws_region.current.region}-${var.app}-${var.stage_name}-emr-studio-${data.aws_caller_identity.current.account_id}\"\n\n  tags = {\n    Name        = \"EMR studio bucket\"\n    Application = var.app\n    Environment = var.stage_name\n  }\n}\n\nresource \"aws_s3_bucket\" \"output_s3_bucket\" {\n  bucket = \"${data.aws_region.current.region}-${var.app}-${var.stage_name}-output-${data.aws_caller_identity.current.account_id}\"\n\n  tags = {\n    Name        = \"EMR Job Output S3 bucket\"\n    Application = var.app\n    Environment = var.stage_name\n  }\n}\n\nresource \"aws_s3_bucket\" \"job_source_s3_bucket\" {\n  bucket = \"${data.aws_region.current.region}-${var.app}-${var.stage_name}-source-${data.aws_caller_identity.current.account_id}\"\n\n  tags = {\n    Name        = \"EMR Job Source (eg. jar file) S3 bucket\"\n    Application = var.app\n    Environment = var.stage_name\n  }\n}\n"
+    },
+    {
+      "name": "stepfunctions.tf",
+      "content": "resource \"aws_sfn_state_machine\" \"sfn_state_machine\" {\n  name     = \"${var.app}-${var.stage_name}-state-machine\"\n  role_arn = aws_iam_role.lambda_emr_sfn_start_job_role.arn\n  tags = {\n    Name        = \"State Machine\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n\n  definition = <<EOF\n{\n  \"Comment\": \"Workflow to trigger an EMR Serverless Job.\",\n  \"StartAt\": \"StartEMRServerlessJob\",\n  \"States\": {\n    \"StartEMRServerlessJob\": {\n     \"Type\": \"Task\",\n      \"Resource\": \"arn:aws:states:::aws-sdk:emrserverless:startJobRun\",\n      \"ResultPath\": \"$.Job.Input\",\n      \"Next\": \"GetJobStatus\",\n      \"Parameters\": {\n        \"ApplicationId\": \"${aws_emrserverless_application.emr_serverless.id}\",\n        \"ClientToken.$\": \"States.UUID()\",\n        \"Name\": \"${aws_emrserverless_application.emr_serverless.name}\",\n        \"ExecutionRoleArn\": \"${aws_iam_role.emr_serverless_role.arn}\",\n        \"JobDriver\": {\n          \"SparkSubmit\": {\n            \"EntryPoint\": \"s3://${aws_s3_bucket.job_source_s3_bucket.id}/${var.jar_name}\",\n            \"EntryPointArguments.$\": \"States.Array($.InputDate, 'us-east-1-clicklogger-dev-firehose-delivery-078876706719', 'us-east-1-pattern-sfn-emrserverless-dev-output-078876706719')\",\n            \"SparkSubmitParameters\": \"--class com.examples.clicklogger.Loggregator\"\n          }\n        }\n     }\n    },\n    \"GetJobStatus\": {\n        \"Next\": \"CheckJobSuccess\",\n        \"Type\": \"Task\",\n        \"ResultPath\": \"$.Job.Status\",\n        \"Resource\": \"arn:aws:states:::aws-sdk:emrserverless:getJobRun\",\n        \"Parameters\": {\n          \"ApplicationId\": \"${aws_emrserverless_application.emr_serverless.id}\",\n          \"JobRunId.$\": \"$.Job.Input.JobRunId\"\n        }\n      },\n      \"Wait\": {\n        \"Type\": \"Wait\",\n        \"Seconds\": 20,\n        \"Next\": \"GetJobStatus\"\n      },\n      \"CheckJobSuccess\": {\n        \"Type\": \"Choice\",\n        \"Choices\": [\n          {\n            \"And\": [\n              {\n                \"Variable\": \"$.Job.Status\",\n                \"IsPresent\": true\n              },\n              {\n                \"Or\": [\n                  {\n                    \"Variable\": \"$.Job.Status.JobRun.State\",\n                    \"StringEquals\": \"SUCCESS\"\n                  }\n                ]\n              }\n            ],\n            \"Next\": \"Success\"\n          }\n        ],\n        \"Default\": \"CheckJobFailure\"\n      },\n      \"CheckJobFailure\": {\n        \"Type\": \"Choice\",\n        \"Choices\": [\n          {\n            \"And\": [\n              {\n                \"Variable\": \"$.Job.Status\",\n                \"IsPresent\": true\n              },\n              {\n                \"Or\": [\n                  {\n                    \"Variable\": \"$.Job.Status.JobRun.State\",\n                    \"StringEquals\": \"CANCELLED\"\n                  },\n                  {\n                    \"Variable\": \"$.Job.Status.JobRun.State\",\n                    \"StringEquals\": \"FAILED\"\n                  }\n                ]\n              }\n            ],\n            \"Next\": \"Failure\"\n          }\n        ],\n        \"Default\": \"Wait\"\n      },\n      \"Failure\": {\n        \"Type\": \"Fail\"\n      },\n      \"Success\": {\n        \"Type\": \"Succeed\"\n      }\n    }\n}\nEOF\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"app\" {\n  description = \"Application prefix for the AWS services that are built\"\n}\n\nvariable \"stage_name\" {\n}\nvariable \"jar_name\" {\n  \n}"
+    },
+    {
+      "name": "vpc.tf",
+      "content": "resource \"aws_vpc\" \"emr_vpc\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name = \"${var.app}-${var.stage_name}-VPC\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_subnet\" \"emr_public_subnet1\" {\n  vpc_id     = aws_vpc.emr_vpc.id\n  cidr_block = \"10.0.0.0/24\"\n\n  tags = {\n    Name = \"${var.app}-${var.stage_name}-public-subnet1\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_subnet\" \"emr_private_subnet1\" {\n  vpc_id     = aws_vpc.emr_vpc.id\n  cidr_block = \"10.0.1.0/24\"\n\n  tags = {\n    Name = \"${var.app}-${var.stage_name}-private-subnet1\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_internet_gateway\" \"emr_igw\" {\n  vpc_id = aws_vpc.emr_vpc.id\n    tags = {\n    Name = \"${var.app}-${var.stage_name}-igw\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_route_table\" \"emr_route_table\" {\n  vpc_id = aws_vpc.emr_vpc.id\n    tags = {\n    Name = \"${var.app}-${var.stage_name}-route-tbl\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_route\" \"emr_public_route\" {\n  route_table_id         = aws_route_table.emr_route_table.id\n  destination_cidr_block = \"0.0.0.0/0\"\n  gateway_id             = aws_internet_gateway.emr_igw.id\n}\n\nresource \"aws_route_table_association\" \"emr_route_table_association1\" {\n  subnet_id      = aws_subnet.emr_public_subnet1.id\n  route_table_id = aws_route_table.emr_route_table.id\n}\n\nresource \"aws_eip\" \"emr_ip\" {\n  domain = \"vpc\"\n\n  tags = {\n    Name = \"${var.app}-${var.stage_name}-elastic-ip\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_nat_gateway\" \"emr_ngw\" {\n  allocation_id = aws_eip.emr_ip.id\n  subnet_id     = aws_subnet.emr_public_subnet1.id\n\n  tags = {\n    Name = \"${var.app}-${var.stage_name}-nat-gw\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_route_table\" \"emr_ngw_route_table\" {\n  vpc_id = aws_vpc.emr_vpc.id\n}\n\nresource \"aws_route\" \"emr_ngw_route\" {\n  route_table_id         = aws_route_table.emr_ngw_route_table.id\n  destination_cidr_block = \"0.0.0.0/0\"\n  gateway_id             = aws_nat_gateway.emr_ngw.id\n}\n\nresource \"aws_route_table_association\" \"emr_ngw_route_table_association1\" {\n  subnet_id      = aws_subnet.emr_private_subnet1.id\n  route_table_id = aws_route_table.emr_ngw_route_table.id\n}\n\nresource \"aws_route_table\" \"emr_vpce_route_table\" {\n  vpc_id = aws_vpc.emr_vpc.id\n}\n\nresource \"aws_route\" \"emr_vpce_route\" {\n  route_table_id         = aws_route_table.emr_vpce_route_table.id\n  destination_cidr_block = \"0.0.0.0/0\"\n  gateway_id             = aws_nat_gateway.emr_ngw.id\n}\n\nresource \"aws_security_group\" \"emr_security_group\" {\n  name        = \"${var.app}-${var.stage_name}-sg\"\n  description = \"Allowed Ports\"\n  vpc_id      = aws_vpc.emr_vpc.id\n    tags = {\n    Name = \"${var.app}-${var.stage_name}-sg\"\n    Environment = var.stage_name\n    Application = var.app\n  }\n}\n\nresource \"aws_security_group_rule\" \"emr_security_group_rule\" {\n  type              = \"egress\"\n  protocol          = \"-1\"\n  from_port         = 0\n  to_port           = 0\n  cidr_blocks       = [\"0.0.0.0/0\"]\n  security_group_id = aws_security_group.emr_security_group.id\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/sfn-emrserverless/terraform/templates\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "상태 전이와 작업 실행 권한을 함께 검토한다."
+  }
+}

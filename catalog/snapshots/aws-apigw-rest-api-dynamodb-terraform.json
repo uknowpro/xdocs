@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "AWS · DynamoDB REST API",
+  "title": "AWS · 사용량 정책을 둔 DynamoDB API",
   "settings": {
     "aws_region": "ap-northeast-2",
     "azure_subscription": "",
@@ -306,5 +306,8 @@
   "warnings": [
     "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
     "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
-  ]
+  ],
+  "review": {
+    "operations": "API 키·사용 계획·로그와 데이터 쓰기 권한을 비교한다."
+  }
 }

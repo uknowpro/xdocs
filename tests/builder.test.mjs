@@ -201,7 +201,7 @@ test("HCL source navigation ignores commented blocks and scopes child modules", 
 
 test("visual annotations preserve exported Terraform for every cloud", async () => {
   const { boundarySVG } = await import("../shared/network-boundaries.mjs");
-  for (const id of ["aws-compute", "azure-network", "gcp-compute"]) {
+  for (const id of architectureCatalog.map(t => t.id)) {
     const m = fromCatalog(id),
       before = generateArchitecture(m, "terraform");
     m.presentation = {
@@ -229,21 +229,27 @@ test("meeting harness cites original Markdown lines", () => {
   );
 });
 
-test("all 90 catalog designs are distinct and retain Terraform contents after reimport", async () => {
+test("all enterprise catalog designs are distinct and retain Terraform contents after reimport", async () => {
   const { readFile } = await import("node:fs/promises");
   const index = JSON.parse(
     await readFile(new URL("../catalog/sources.json", import.meta.url)),
   );
   const all = [...architectureCatalog, ...index];
-  assert.equal(new Set(all.map((t) => t.id)).size, 90);
+  assert.equal(new Set(all.map((t) => t.id)).size, 92);
   for (const provider of ["AWS", "Azure", "GCP"])
     assert.equal(all.filter((t) => t.provider === provider).length, 30);
+  assert.equal(all.filter(t => t.provider === "멀티클라우드").length, 2);
   for (const t of index) {
     const m = JSON.parse(
       await readFile(
         new URL("../catalog/snapshots/" + t.id + ".json", import.meta.url),
       ),
     );
+    assert.ok(t.study && m.nodes.length >= 7, t.id);
+    if(t.provider === "멀티클라우드"){
+      const families = new Set(m.nodes.map(n => n.kind.split("_")[0]));
+      assert.ok(families.has("google") && (families.has("aws") || families.has("azurerm")), t.id);
+    }
     const result = generateArchitecture(m, "terraform");
     assert.deepEqual(result.errors, [], t.id);
     const files = m.sources.map((f) => ({

@@ -1,0 +1,339 @@
+{
+  "version": 1,
+  "title": "AWS · VPC Lattice 서비스 네트워크",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_role",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 67,
+      "address": "aws_iam_role.lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.lambda_basic",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 85,
+      "address": "aws_iam_role_policy_attachment.lambda_basic",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.lambda_vpc",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 91,
+      "address": "aws_iam_role_policy_attachment.lambda_vpc",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.demo_lambda",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 117,
+      "address": "aws_lambda_function.demo_lambda",
+      "references": [
+        "aws_vpclattice_service.vl_service",
+        "aws_iam_role.lambda_role",
+        "aws_security_group.vpc_lattice_sg",
+        "aws_subnet.vpc_subnet"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.vl_function_primary",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 97,
+      "address": "aws_lambda_function.vl_function_primary",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.vl_function_secondary",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 107,
+      "address": "aws_lambda_function.vl_function_secondary",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.vpc_lattice_sg",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 35,
+      "address": "aws_security_group.vpc_lattice_sg",
+      "references": [
+        "aws_vpc.vpc_lattice_vpc"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.vpc_subnet",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "address": "aws_subnet.vpc_subnet",
+      "references": [
+        "data.aws_region.current",
+        "aws_vpc.vpc_lattice_vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc_lattice_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 478,
+        "address": "aws_vpc.vpc_lattice_vpc",
+        "otherRefs": [
+          "data.aws_region.current"
+        ]
+      }
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.vpc_lattice_vpc",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 16,
+      "address": "aws_vpc.vpc_lattice_vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_vpclattice_listener",
+      "label": "aws_vpclattice_listener.vl_listener",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 172,
+      "address": "aws_vpclattice_listener.vl_listener",
+      "references": [
+        "aws_vpclattice_target_group.primary_tg",
+        "aws_vpclattice_target_group.secondary_tg",
+        "aws_vpclattice_service.vl_service"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_vpclattice_service",
+      "label": "aws_vpclattice_service.vl_service",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 61,
+      "address": "aws_vpclattice_service.vl_service",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_vpclattice_service_network",
+      "label": "aws_vpclattice_service_network.vl_service_network",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 56,
+      "address": "aws_vpclattice_service_network.vl_service_network",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_vpclattice_service_network_service_association",
+      "label": "aws_vpclattice_service_network_service_association.service_association",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 193,
+      "address": "aws_vpclattice_service_network_service_association.service_association",
+      "references": [
+        "aws_vpclattice_service.vl_service",
+        "aws_vpclattice_service_network.vl_service_network"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_vpclattice_service_network_vpc_association",
+      "label": "aws_vpclattice_service_network_vpc_association.vpc_association",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 198,
+      "address": "aws_vpclattice_service_network_vpc_association.vpc_association",
+      "references": [
+        "aws_security_group.vpc_lattice_sg",
+        "aws_vpclattice_service_network.vl_service_network",
+        "aws_vpc.vpc_lattice_vpc"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_vpclattice_target_group",
+      "label": "aws_vpclattice_target_group.primary_tg",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 139,
+      "address": "aws_vpclattice_target_group.primary_tg",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_vpclattice_target_group",
+      "label": "aws_vpclattice_target_group.secondary_tg",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 155,
+      "address": "aws_vpclattice_target_group.secondary_tg",
+      "references": []
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_vpclattice_target_group_attachment",
+      "label": "aws_vpclattice_target_group_attachment.primary_tg_attachment",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 148,
+      "address": "aws_vpclattice_target_group_attachment.primary_tg_attachment",
+      "references": [
+        "aws_lambda_function.vl_function_primary",
+        "aws_vpclattice_target_group.primary_tg"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_vpclattice_target_group_attachment",
+      "label": "aws_vpclattice_target_group_attachment.secondary_tg_attachment",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 164,
+      "address": "aws_vpclattice_target_group_attachment.secondary_tg_attachment",
+      "references": [
+        "aws_lambda_function.vl_function_secondary",
+        "aws_vpclattice_target_group.secondary_tg"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 226,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Provider Configuration\nprovider \"aws\" {\n  region = \"us-east-1\" # Change this to your desired region\n}\n\n# Variables\nvariable \"vpc_cidr\" {\n  default = \"10.0.0.0/16\"\n}\n\nvariable \"subnet_cidr\" {\n  default = \"10.0.7.0/24\"\n}\n\n# VPC Resources\nresource \"aws_vpc\" \"vpc_lattice_vpc\" {\n  cidr_block           = var.vpc_cidr\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n  instance_tenancy     = \"default\"\n}\n\nresource \"aws_subnet\" \"vpc_subnet\" {\n  vpc_id                  = aws_vpc.vpc_lattice_vpc.id\n  cidr_block             = var.subnet_cidr\n  availability_zone      = \"${data.aws_region.current.name}b\"\n  map_public_ip_on_launch = false\n\n  tags = {\n    Name = \"Private-new-availability\"\n  }\n}\n\n# Security Group\nresource \"aws_security_group\" \"vpc_lattice_sg\" {\n  name        = \"VPCLatticeServiceNetworkSecurityGroup\"\n  description = \"Security group for VPC LatticeService\"\n  vpc_id      = aws_vpc.vpc_lattice_vpc.id\n\n  ingress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/16\"]\n  }\n\n  egress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n}\n\n# VPC Lattice Resources\nresource \"aws_vpclattice_service_network\" \"vl_service_network\" {\n  name      = \"vl-test-service-network\"\n  auth_type = \"NONE\"\n}\n\nresource \"aws_vpclattice_service\" \"vl_service\" {\n  name      = \"vl-test-service\"\n  auth_type = \"NONE\"\n}\n\n# IAM Role for Lambda Functions\nresource \"aws_iam_role\" \"lambda_role\" {\n  name = \"vpc_lattice_lambda_role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\n# Attach basic Lambda execution policy\nresource \"aws_iam_role_policy_attachment\" \"lambda_basic\" {\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n  role       = aws_iam_role.lambda_role.name\n}\n\n# Attach VPC access policy for Lambda\nresource \"aws_iam_role_policy_attachment\" \"lambda_vpc\" {\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole\"\n  role       = aws_iam_role.lambda_role.name\n}\n\n# Lambda Functions\nresource \"aws_lambda_function\" \"vl_function_primary\" {\n  filename         = \"primary.zip\"\n  function_name    = \"vl-function-primary\"\n  role            = aws_iam_role.lambda_role.arn\n  handler         = \"app.lambda_handler\"\n  runtime         = \"python3.14\"\n  architectures   = [\"x86_64\"]\n  source_code_hash = filebase64sha256(\"primary.zip\")\n}\n\nresource \"aws_lambda_function\" \"vl_function_secondary\" {\n  filename         = \"secondary.zip\"\n  function_name    = \"vl-function-secondary\"\n  role            = aws_iam_role.lambda_role.arn\n  handler         = \"app.lambda_handler\"\n  runtime         = \"python3.14\"\n  architectures   = [\"x86_64\"]\n  source_code_hash = filebase64sha256(\"secondary.zip\")\n}\n\nresource \"aws_lambda_function\" \"demo_lambda\" {\n  filename         = \"demolambda.zip\"\n  function_name    = \"demo-lambda\"\n  role            = aws_iam_role.lambda_role.arn\n  handler         = \"app.lambda_handler\"\n  runtime         = \"python3.14\"\n  architectures   = [\"x86_64\"]\n  source_code_hash = filebase64sha256(\"demolambda.zip\")\n\n  vpc_config {\n    subnet_ids         = [aws_subnet.vpc_subnet.id]\n    security_group_ids = [aws_security_group.vpc_lattice_sg.id]\n  }\n\n  environment {\n    variables = {\n      URL = aws_vpclattice_service.vl_service.dns_entry[0].domain_name\n    }\n  }\n}\n\n# VPC Lattice Target Groups\nresource \"aws_vpclattice_target_group\" \"primary_tg\" {\n  name = \"vl-primary-target-group\"\n  type = \"LAMBDA\"\n  \n  config {\n    lambda_event_structure_version = \"V2\"\n  }\n}\n\nresource \"aws_vpclattice_target_group_attachment\" \"primary_tg_attachment\" {\n  target_group_identifier = aws_vpclattice_target_group.primary_tg.id\n  target {\n    id = aws_lambda_function.vl_function_primary.arn\n  }\n}\n\nresource \"aws_vpclattice_target_group\" \"secondary_tg\" {\n  name = \"vl-secondary-target-group\"\n  type = \"LAMBDA\"\n  \n  config {\n    lambda_event_structure_version = \"V2\"\n  }\n}\n\nresource \"aws_vpclattice_target_group_attachment\" \"secondary_tg_attachment\" {\n  target_group_identifier = aws_vpclattice_target_group.secondary_tg.id\n  target {\n    id = aws_lambda_function.vl_function_secondary.arn\n  }\n}\n\n# VPC Lattice Listener\nresource \"aws_vpclattice_listener\" \"vl_listener\" {\n  name                = \"vl-service-listener\"\n  protocol            = \"HTTPS\"\n  port               = 443\n  service_identifier = aws_vpclattice_service.vl_service.id\n\n  default_action {\n    forward {\n      target_groups {\n        target_group_identifier = aws_vpclattice_target_group.primary_tg.id\n        weight                 = 60\n      }\n      target_groups {\n        target_group_identifier = aws_vpclattice_target_group.secondary_tg.id\n        weight                 = 40\n      }\n    }\n  }\n}\n\n# VPC Lattice Associations\nresource \"aws_vpclattice_service_network_service_association\" \"service_association\" {\n  service_identifier         = aws_vpclattice_service.vl_service.id\n  service_network_identifier = aws_vpclattice_service_network.vl_service_network.id\n}\n\nresource \"aws_vpclattice_service_network_vpc_association\" \"vpc_association\" {\n  vpc_identifier            = aws_vpc.vpc_lattice_vpc.id\n  service_network_identifier = aws_vpclattice_service_network.vl_service_network.id\n  security_group_ids        = [aws_security_group.vpc_lattice_sg.id]\n}\n\n# Outputs\noutput \"vl_function_primary_arn\" {\n  value = aws_lambda_function.vl_function_primary.arn\n}\n\noutput \"vl_function_secondary_arn\" {\n  value = aws_lambda_function.vl_function_secondary.arn\n}\n\noutput \"vl_service_network_id\" {\n  value = aws_vpclattice_service_network.vl_service_network.id\n}\n\noutput \"vl_service_id\" {\n  value = aws_vpclattice_service.vl_service.id\n}\n\noutput \"vl_service_dns\" {\n  value = aws_vpclattice_service.vl_service.dns_entry[0].domain_name\n}\n\n# Data source for current region\ndata \"aws_region\" \"current\" {}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/vpc-lattice-lambda/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "서비스 네트워크와 함수 대상 간의 접근 경계를 검토한다."
+  }
+}

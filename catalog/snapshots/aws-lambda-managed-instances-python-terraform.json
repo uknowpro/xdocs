@@ -1,0 +1,829 @@
+{
+  "version": 1,
+  "title": "AWS · 관리형 인스턴스 기반 함수 용량 계획",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.demo_log_group",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 43,
+      "address": "aws_cloudwatch_log_group.demo_log_group",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_default_security_group",
+      "label": "aws_default_security_group.default",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 386,
+      "address": "aws_default_security_group.default",
+      "references": [
+        "aws_vpc.lambda_managed_instances_vpc"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_eip",
+      "label": "aws_eip.nat_eip_1",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 181,
+      "address": "aws_eip.nat_eip_1",
+      "references": [
+        "aws_internet_gateway.igw"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_eip",
+      "label": "aws_eip.nat_eip_2",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 191,
+      "address": "aws_eip.nat_eip_2",
+      "references": [
+        "aws_internet_gateway.igw"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_eip",
+      "label": "aws_eip.nat_eip_3",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 201,
+      "address": "aws_eip.nat_eip_3",
+      "references": [
+        "aws_internet_gateway.igw"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.capacity_provider_role",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 452,
+      "address": "aws_iam_role.capacity_provider_role",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_role",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 54,
+      "address": "aws_iam_role.lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.capacity_provider_managed_policy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 475,
+      "address": "aws_iam_role_policy_attachment.capacity_provider_managed_policy",
+      "references": [
+        "aws_iam_role.capacity_provider_role"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.lambda_basic_execution",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 77,
+      "address": "aws_iam_role_policy_attachment.lambda_basic_execution",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.igw",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 95,
+      "address": "aws_internet_gateway.igw",
+      "references": [
+        "aws_vpc.lambda_managed_instances_vpc"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_lambda_alias",
+      "label": "aws_lambda_alias.hello_world_alias",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 444,
+      "address": "aws_lambda_alias.hello_world_alias",
+      "references": [
+        "aws_lambda_function.hello_world_function"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_lambda_capacity_provider",
+      "label": "aws_lambda_capacity_provider.lambda_capacity_provider",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 481,
+      "address": "aws_lambda_capacity_provider.lambda_capacity_provider",
+      "references": [
+        "aws_iam_role.capacity_provider_role",
+        "aws_security_group.lambda_security_group",
+        "aws_subnet.private_subnet_1",
+        "aws_subnet.private_subnet_2",
+        "aws_subnet.private_subnet_3"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.hello_world_function",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 400,
+      "address": "aws_lambda_function.hello_world_function",
+      "references": [
+        "aws_lambda_capacity_provider.lambda_capacity_provider",
+        "aws_iam_role_policy_attachment.lambda_basic_execution",
+        "aws_cloudwatch_log_group.demo_log_group",
+        "data.archive_file.lambda_zip",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.nat_gateway_1",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 212,
+      "address": "aws_nat_gateway.nat_gateway_1",
+      "references": [
+        "aws_eip.nat_eip_1",
+        "aws_internet_gateway.igw",
+        "aws_subnet.public_subnet_1"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.nat_gateway_2",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 224,
+      "address": "aws_nat_gateway.nat_gateway_2",
+      "references": [
+        "aws_eip.nat_eip_2",
+        "aws_internet_gateway.igw",
+        "aws_subnet.public_subnet_2"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.nat_gateway_3",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 236,
+      "address": "aws_nat_gateway.nat_gateway_3",
+      "references": [
+        "aws_eip.nat_eip_3",
+        "aws_internet_gateway.igw",
+        "aws_subnet.public_subnet_3"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_route_table_1",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 308,
+      "address": "aws_route_table.private_route_table_1",
+      "references": [
+        "aws_nat_gateway.nat_gateway_1",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 7491,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "aws_nat_gateway.nat_gateway_1"
+        ]
+      }
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_route_table_2",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 322,
+      "address": "aws_route_table.private_route_table_2",
+      "references": [
+        "aws_nat_gateway.nat_gateway_2",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 7802,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "aws_nat_gateway.nat_gateway_2"
+        ]
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_route_table_3",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 336,
+      "address": "aws_route_table.private_route_table_3",
+      "references": [
+        "aws_nat_gateway.nat_gateway_3",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 8113,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "aws_nat_gateway.nat_gateway_3"
+        ]
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public_route_table_1",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 249,
+      "address": "aws_route_table.public_route_table_1",
+      "references": [
+        "aws_internet_gateway.igw",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 5975,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "aws_internet_gateway.igw"
+        ]
+      }
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public_route_table_2",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 263,
+      "address": "aws_route_table.public_route_table_2",
+      "references": [
+        "aws_internet_gateway.igw",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 6271,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "aws_internet_gateway.igw"
+        ]
+      }
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public_route_table_3",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 277,
+      "address": "aws_route_table.public_route_table_3",
+      "references": [
+        "aws_internet_gateway.igw",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 6567,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "aws_internet_gateway.igw"
+        ]
+      }
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_subnet_1_association",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 351,
+      "address": "aws_route_table_association.private_subnet_1_association",
+      "references": [
+        "aws_route_table.private_route_table_1",
+        "aws_subnet.private_subnet_1"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_subnet_2_association",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 356,
+      "address": "aws_route_table_association.private_subnet_2_association",
+      "references": [
+        "aws_route_table.private_route_table_2",
+        "aws_subnet.private_subnet_2"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_subnet_3_association",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 361,
+      "address": "aws_route_table_association.private_subnet_3_association",
+      "references": [
+        "aws_route_table.private_route_table_3",
+        "aws_subnet.private_subnet_3"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_subnet_1_association",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 292,
+      "address": "aws_route_table_association.public_subnet_1_association",
+      "references": [
+        "aws_route_table.public_route_table_1",
+        "aws_subnet.public_subnet_1"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_subnet_2_association",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 297,
+      "address": "aws_route_table_association.public_subnet_2_association",
+      "references": [
+        "aws_route_table.public_route_table_2",
+        "aws_subnet.public_subnet_2"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_subnet_3_association",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 302,
+      "address": "aws_route_table_association.public_subnet_3_association",
+      "references": [
+        "aws_route_table.public_route_table_3",
+        "aws_subnet.public_subnet_3"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.lambda_security_group",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 367,
+      "address": "aws_security_group.lambda_security_group",
+      "references": [
+        "aws_vpc.lambda_managed_instances_vpc"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_subnet_1",
+      "x": 300,
+      "y": 1040,
+      "props": {
+        "cidr": "10.0.96.0/19"
+      },
+      "original": {
+        "cidr": "10.0.96.0/19"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 142,
+      "address": "aws_subnet.private_subnet_1",
+      "references": [
+        "data.aws_availability_zones.available",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3465,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "data.aws_availability_zones.available"
+        ]
+      }
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_subnet_2",
+      "x": 540,
+      "y": 1040,
+      "props": {
+        "cidr": "10.0.128.0/19"
+      },
+      "original": {
+        "cidr": "10.0.128.0/19"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 153,
+      "address": "aws_subnet.private_subnet_2",
+      "references": [
+        "data.aws_availability_zones.available",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3777,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "data.aws_availability_zones.available"
+        ]
+      }
+    },
+    {
+      "id": "n_import_31",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_subnet_3",
+      "x": 780,
+      "y": 1040,
+      "props": {
+        "cidr": "10.0.160.0/19"
+      },
+      "original": {
+        "cidr": "10.0.160.0/19"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 164,
+      "address": "aws_subnet.private_subnet_3",
+      "references": [
+        "data.aws_availability_zones.available",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 4090,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "data.aws_availability_zones.available"
+        ]
+      }
+    },
+    {
+      "id": "n_import_32",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_subnet_1",
+      "x": 60,
+      "y": 1180,
+      "props": {
+        "cidr": "10.0.0.0/19"
+      },
+      "original": {
+        "cidr": "10.0.0.0/19"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 105,
+      "address": "aws_subnet.public_subnet_1",
+      "references": [
+        "data.aws_availability_zones.available",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2370,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "data.aws_availability_zones.available"
+        ]
+      }
+    },
+    {
+      "id": "n_import_33",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_subnet_2",
+      "x": 300,
+      "y": 1180,
+      "props": {
+        "cidr": "10.0.32.0/19"
+      },
+      "original": {
+        "cidr": "10.0.32.0/19"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 117,
+      "address": "aws_subnet.public_subnet_2",
+      "references": [
+        "data.aws_availability_zones.available",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2730,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "data.aws_availability_zones.available"
+        ]
+      }
+    },
+    {
+      "id": "n_import_34",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_subnet_3",
+      "x": 540,
+      "y": 1180,
+      "props": {
+        "cidr": "10.0.64.0/19"
+      },
+      "original": {
+        "cidr": "10.0.64.0/19"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 129,
+      "address": "aws_subnet.public_subnet_3",
+      "references": [
+        "data.aws_availability_zones.available",
+        "aws_vpc.lambda_managed_instances_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_managed_instances_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3091,
+        "address": "aws_vpc.lambda_managed_instances_vpc",
+        "otherRefs": [
+          "data.aws_availability_zones.available"
+        ]
+      }
+    },
+    {
+      "id": "n_import_35",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.lambda_managed_instances_vpc",
+      "x": 780,
+      "y": 1180,
+      "props": {
+        "cidr": "10.0.0.0/16"
+      },
+      "original": {
+        "cidr": "10.0.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 83,
+      "address": "aws_vpc.lambda_managed_instances_vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_36",
+      "kind": "archive_file",
+      "label": "data.archive_file.lambda_zip",
+      "x": 60,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 36,
+      "address": "data.archive_file.lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_37",
+      "kind": "aws_availability_zones",
+      "label": "data.aws_availability_zones.available",
+      "x": 300,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 176,
+      "address": "data.aws_availability_zones.available",
+      "references": []
+    },
+    {
+      "id": "n_import_38",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 540,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 32,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_39",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 780,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 33,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Lambda Hello World on Lambda Managed Instances - Terraform Implementation\n\nterraform {\n  required_version = \">= 1.0\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.25\"\n    }\n    archive = {\n      source  = \"hashicorp/archive\"\n      version = \"~> 2.4\"\n    }\n    null = {\n      source  = \"hashicorp/null\"\n      version = \"~> 3.2\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\n# Local variables\nlocals {\n  function_name  = \"hello-world-managed-instances-tf\"\n  log_group_name = \"/demo/lambda/${local.function_name}\"\n}\n\n# Data source to get current AWS account and region\ndata \"aws_caller_identity\" \"current\" {}\ndata \"aws_region\" \"current\" {}\n\n# Create ZIP archive of Lambda function\ndata \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_dir  = \"${path.module}/lambda\"\n  output_path = \"${path.module}/lambda-function.zip\"\n}\n\n# CloudWatch Log Group\nresource \"aws_cloudwatch_log_group\" \"demo_log_group\" {\n  name              = local.log_group_name\n  retention_in_days = 14\n\n  tags = {\n    Name        = \"DemoLogGroup\"\n    Environment = \"demo\"\n  }\n}\n\n# IAM role for Lambda function\nresource \"aws_iam_role\" \"lambda_role\" {\n  name = \"${local.function_name}-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n      }\n    ]\n  })\n\n  tags = {\n    Name        = \"${local.function_name}-role\"\n    Environment = \"demo\"\n  }\n}\n\n# IAM policy attachment for basic Lambda execution\nresource \"aws_iam_role_policy_attachment\" \"lambda_basic_execution\" {\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n  role       = aws_iam_role.lambda_role.name\n}\n\n# VPC for Lambda Managed Instances\nresource \"aws_vpc\" \"lambda_managed_instances_vpc\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n\n  tags = {\n    Name        = \"LambdaManagedInstancesVPC\"\n    Environment = \"demo\"\n  }\n}\n\n# Internet Gateway\nresource \"aws_internet_gateway\" \"igw\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  tags = {\n    Name        = \"LambdaManagedInstancesIGW\"\n    Environment = \"demo\"\n  }\n}\n\n# Public subnets\nresource \"aws_subnet\" \"public_subnet_1\" {\n  vpc_id                  = aws_vpc.lambda_managed_instances_vpc.id\n  cidr_block              = \"10.0.0.0/19\"\n  availability_zone       = data.aws_availability_zones.available.names[0]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPublicSubnet1\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_subnet\" \"public_subnet_2\" {\n  vpc_id                  = aws_vpc.lambda_managed_instances_vpc.id\n  cidr_block              = \"10.0.32.0/19\"\n  availability_zone       = data.aws_availability_zones.available.names[1]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPublicSubnet2\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_subnet\" \"public_subnet_3\" {\n  vpc_id                  = aws_vpc.lambda_managed_instances_vpc.id\n  cidr_block              = \"10.0.64.0/19\"\n  availability_zone       = data.aws_availability_zones.available.names[2]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPublicSubnet3\"\n    Environment = \"demo\"\n  }\n}\n\n# Private subnets\nresource \"aws_subnet\" \"private_subnet_1\" {\n  vpc_id            = aws_vpc.lambda_managed_instances_vpc.id\n  cidr_block        = \"10.0.96.0/19\"\n  availability_zone = data.aws_availability_zones.available.names[0]\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPrivateSubnet1\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_subnet\" \"private_subnet_2\" {\n  vpc_id            = aws_vpc.lambda_managed_instances_vpc.id\n  cidr_block        = \"10.0.128.0/19\"\n  availability_zone = data.aws_availability_zones.available.names[1]\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPrivateSubnet2\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_subnet\" \"private_subnet_3\" {\n  vpc_id            = aws_vpc.lambda_managed_instances_vpc.id\n  cidr_block        = \"10.0.160.0/19\"\n  availability_zone = data.aws_availability_zones.available.names[2]\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPrivateSubnet3\"\n    Environment = \"demo\"\n  }\n}\n\n# Data source for availability zones\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\n# Elastic IPs for NAT Gateways\nresource \"aws_eip\" \"nat_eip_1\" {\n  domain     = \"vpc\"\n  depends_on = [aws_internet_gateway.igw]\n\n  tags = {\n    Name        = \"LambdaManagedInstancesNATEIP1\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_eip\" \"nat_eip_2\" {\n  domain     = \"vpc\"\n  depends_on = [aws_internet_gateway.igw]\n\n  tags = {\n    Name        = \"LambdaManagedInstancesNATEIP2\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_eip\" \"nat_eip_3\" {\n  domain     = \"vpc\"\n  depends_on = [aws_internet_gateway.igw]\n\n  tags = {\n    Name        = \"LambdaManagedInstancesNATEIP3\"\n    Environment = \"demo\"\n  }\n}\n\n# NAT Gateways\nresource \"aws_nat_gateway\" \"nat_gateway_1\" {\n  allocation_id = aws_eip.nat_eip_1.id\n  subnet_id     = aws_subnet.public_subnet_1.id\n\n  tags = {\n    Name        = \"LambdaManagedInstancesNATGateway1\"\n    Environment = \"demo\"\n  }\n\n  depends_on = [aws_internet_gateway.igw]\n}\n\nresource \"aws_nat_gateway\" \"nat_gateway_2\" {\n  allocation_id = aws_eip.nat_eip_2.id\n  subnet_id     = aws_subnet.public_subnet_2.id\n\n  tags = {\n    Name        = \"LambdaManagedInstancesNATGateway2\"\n    Environment = \"demo\"\n  }\n\n  depends_on = [aws_internet_gateway.igw]\n}\n\nresource \"aws_nat_gateway\" \"nat_gateway_3\" {\n  allocation_id = aws_eip.nat_eip_3.id\n  subnet_id     = aws_subnet.public_subnet_3.id\n\n  tags = {\n    Name        = \"LambdaManagedInstancesNATGateway3\"\n    Environment = \"demo\"\n  }\n\n  depends_on = [aws_internet_gateway.igw]\n}\n\n# Route table for public subnets\nresource \"aws_route_table\" \"public_route_table_1\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPublicRouteTable1\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_route_table\" \"public_route_table_2\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPublicRouteTable2\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_route_table\" \"public_route_table_3\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPublicRouteTable3\"\n    Environment = \"demo\"\n  }\n}\n\n# Route table associations for public subnets\nresource \"aws_route_table_association\" \"public_subnet_1_association\" {\n  subnet_id      = aws_subnet.public_subnet_1.id\n  route_table_id = aws_route_table.public_route_table_1.id\n}\n\nresource \"aws_route_table_association\" \"public_subnet_2_association\" {\n  subnet_id      = aws_subnet.public_subnet_2.id\n  route_table_id = aws_route_table.public_route_table_2.id\n}\n\nresource \"aws_route_table_association\" \"public_subnet_3_association\" {\n  subnet_id      = aws_subnet.public_subnet_3.id\n  route_table_id = aws_route_table.public_route_table_3.id\n}\n\n# Route tables for private subnets\nresource \"aws_route_table\" \"private_route_table_1\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.nat_gateway_1.id\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPrivateRouteTable1\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_route_table\" \"private_route_table_2\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.nat_gateway_2.id\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPrivateRouteTable2\"\n    Environment = \"demo\"\n  }\n}\n\nresource \"aws_route_table\" \"private_route_table_3\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.nat_gateway_3.id\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesPrivateRouteTable3\"\n    Environment = \"demo\"\n  }\n}\n\n# Route table associations for private subnets\nresource \"aws_route_table_association\" \"private_subnet_1_association\" {\n  subnet_id      = aws_subnet.private_subnet_1.id\n  route_table_id = aws_route_table.private_route_table_1.id\n}\n\nresource \"aws_route_table_association\" \"private_subnet_2_association\" {\n  subnet_id      = aws_subnet.private_subnet_2.id\n  route_table_id = aws_route_table.private_route_table_2.id\n}\n\nresource \"aws_route_table_association\" \"private_subnet_3_association\" {\n  subnet_id      = aws_subnet.private_subnet_3.id\n  route_table_id = aws_route_table.private_route_table_3.id\n}\n\n# Security Group for Lambda Managed Instances\nresource \"aws_security_group\" \"lambda_security_group\" {\n  name_prefix = \"${local.function_name}-sg\"\n  vpc_id      = aws_vpc.lambda_managed_instances_vpc.id\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic by default\"\n  }\n\n  tags = {\n    Name        = \"LambdaManagedInstancesSecurityGroup\"\n    Environment = \"demo\"\n  }\n}\n\n# Restrict default security group\nresource \"aws_default_security_group\" \"default\" {\n  vpc_id = aws_vpc.lambda_managed_instances_vpc.id\n\n  # Remove all ingress and egress rules\n  ingress = []\n  egress  = []\n\n  tags = {\n    Name        = \"LambdaManagedInstancesDefaultSecurityGroup\"\n    Environment = \"demo\"\n  }\n}\n\n# Lambda function\nresource \"aws_lambda_function\" \"hello_world_function\" {\n  filename         = data.archive_file.lambda_zip.output_path\n  function_name    = local.function_name\n  role             = aws_iam_role.lambda_role.arn\n  handler          = \"hello-world.lambda_handler\"\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n  runtime          = \"python3.13\"\n  architectures    = [\"arm64\"]\n  description      = \"Simple Hello World Lambda function on Managed Instances\"\n  memory_size      = 2048\n  publish          = true\n\n  logging_config {\n    log_format = \"JSON\"\n    log_group  = aws_cloudwatch_log_group.demo_log_group.name\n  }\n\n  # Lambda Managed Instances configuration\n  capacity_provider_config {\n    lambda_managed_instances_capacity_provider_config {\n      capacity_provider_arn = aws_lambda_capacity_provider.lambda_capacity_provider.arn\n    }\n  }\n\n  # Force recreation when capacity provider changes\n  lifecycle {\n    replace_triggered_by = [\n      aws_lambda_capacity_provider.lambda_capacity_provider\n    ]\n  }\n\n  depends_on = [\n    aws_iam_role_policy_attachment.lambda_basic_execution,\n    aws_cloudwatch_log_group.demo_log_group,\n    aws_lambda_capacity_provider.lambda_capacity_provider,\n  ]\n\n  tags = {\n    Name        = local.function_name\n    Environment = \"demo\"\n  }\n}\n\n# Lambda alias for managed instances (required for invocation)\nresource \"aws_lambda_alias\" \"hello_world_alias\" {\n  name             = \"live\"\n  description      = \"Alias for Lambda Managed Instances function\"\n  function_name    = aws_lambda_function.hello_world_function.function_name\n  function_version = aws_lambda_function.hello_world_function.version\n}\n\n# IAM role for Lambda Capacity Provider\nresource \"aws_iam_role\" \"capacity_provider_role\" {\n  name = \"${local.function_name}-capacity-provider-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n      }\n    ]\n  })\n\n  tags = {\n    Name        = \"${local.function_name}-capacity-provider-role\"\n    Environment = \"demo\"\n  }\n}\n\n# Attach AWS managed policy for Lambda Managed EC2 Resource Operator\nresource \"aws_iam_role_policy_attachment\" \"capacity_provider_managed_policy\" {\n  policy_arn = \"arn:aws:iam::aws:policy/AWSLambdaManagedEC2ResourceOperator\"\n  role       = aws_iam_role.capacity_provider_role.name\n}\n\n# Lambda Capacity Provider for Managed Instances\nresource \"aws_lambda_capacity_provider\" \"lambda_capacity_provider\" {\n  name = \"lambda-capacity-provider-tf\"\n\n  vpc_config {\n    subnet_ids         = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id, aws_subnet.private_subnet_3.id]\n    security_group_ids = [aws_security_group.lambda_security_group.id]\n  }\n\n  instance_requirements {\n    architectures = [\"arm64\"]\n  }\n\n  permissions_config {\n    capacity_provider_operator_role_arn = aws_iam_role.capacity_provider_role.arn\n  }\n\n  tags = {\n    Name        = \"lambda-capacity-provider-tf\"\n    Environment = \"demo\"\n  }\n}\n\n# Function association with capacity provider is configured in the Lambda function resource above\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "# Outputs for Lambda Managed Instances Terraform implementation\n\noutput \"function_name\" {\n  description = \"Lambda function name for CLI invocation\"\n  value       = aws_lambda_function.hello_world_function.function_name\n}\n\noutput \"function_arn\" {\n  description = \"Lambda function ARN\"\n  value       = aws_lambda_function.hello_world_function.arn\n}\n\noutput \"log_group_name\" {\n  description = \"CloudWatch Log Group name\"\n  value       = aws_cloudwatch_log_group.demo_log_group.name\n}\n\noutput \"capacity_provider_arn\" {\n  description = \"Lambda Capacity Provider ARN\"\n  value       = aws_lambda_capacity_provider.lambda_capacity_provider.arn\n}\n\noutput \"capacity_provider_name\" {\n  description = \"Lambda Capacity Provider name\"\n  value       = aws_lambda_capacity_provider.lambda_capacity_provider.name\n}\n\noutput \"vpc_id\" {\n  description = \"VPC ID for Lambda Managed Instances\"\n  value       = aws_vpc.lambda_managed_instances_vpc.id\n}\n\noutput \"private_subnet_ids\" {\n  description = \"Private subnet IDs\"\n  value       = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id, aws_subnet.private_subnet_3.id]\n}\n\noutput \"public_subnet_ids\" {\n  description = \"Public subnet IDs\"\n  value       = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id, aws_subnet.public_subnet_3.id]\n}\n\noutput \"security_group_id\" {\n  description = \"Security Group ID\"\n  value       = aws_security_group.lambda_security_group.id\n}\n\noutput \"default_security_group_id\" {\n  description = \"Default Security Group ID (restricted)\"\n  value       = aws_default_security_group.default.id\n}\n\noutput \"capacity_provider_association\" {\n  description = \"Confirmation that Lambda function is associated with capacity provider\"\n  value       = \"Function ${aws_lambda_function.hello_world_function.function_name} is configured to use capacity provider ${aws_lambda_capacity_provider.lambda_capacity_provider.name}\"\n}\n\noutput \"function_alias\" {\n  description = \"Lambda function alias for invocation\"\n  value       = \"${aws_lambda_function.hello_world_function.function_name}:${aws_lambda_alias.hello_world_alias.name}\"\n}\n\noutput \"manual_association_command\" {\n  description = \"Manual command to associate Lambda function with capacity provider\"\n  value       = \"aws lambda put-capacity-provider-function --capacity-provider-arn ${aws_lambda_capacity_provider.lambda_capacity_provider.arn} --function-name ${aws_lambda_function.hello_world_function.function_name}\"\n}\n\noutput \"nat_gateway_ids\" {\n  description = \"NAT Gateway IDs\"\n  value       = [aws_nat_gateway.nat_gateway_1.id, aws_nat_gateway.nat_gateway_2.id, aws_nat_gateway.nat_gateway_3.id]\n}\n\noutput \"elastic_ip_addresses\" {\n  description = \"Elastic IP addresses for NAT Gateways\"\n  value       = [aws_eip.nat_eip_1.public_ip, aws_eip.nat_eip_2.public_ip, aws_eip.nat_eip_3.public_ip]\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "# Variables for Lambda Managed Instances Terraform implementation\n\nvariable \"aws_region\" {\n  description = \"AWS region for deployment\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"environment\" {\n  description = \"Environment name\"\n  type        = string\n  default     = \"demo\"\n}\n\nvariable \"project_name\" {\n  description = \"Project name for resource naming\"\n  type        = string\n  default     = \"lambda-managed-instances\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/lambda-managed-instances/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "용량 공급과 실행 환경의 네트워크 의존성을 살펴본다."
+  }
+}

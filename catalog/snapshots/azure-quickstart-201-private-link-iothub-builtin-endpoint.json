@@ -1,0 +1,347 @@
+{
+  "version": 1,
+  "title": "Azure · IoT Hub 사설 수집 경로",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_iothub",
+      "label": "azurerm_iothub.iothub",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "azurerm_iothub.iothub",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_iothub_dps",
+      "label": "azurerm_iothub_dps.dps",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 47,
+      "address": "azurerm_iothub_dps.dps",
+      "references": [
+        "azurerm_iothub_shared_access_policy.iothub_policy",
+        "azurerm_resource_group.rg",
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_iothub_shared_access_policy",
+      "label": "azurerm_iothub_shared_access_policy.iothub_policy",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 35,
+      "address": "azurerm_iothub_shared_access_policy.iothub_policy",
+      "references": [
+        "azurerm_private_endpoint.iothub",
+        "azurerm_iothub.iothub",
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "random_string",
+      "label": "random_string.suffix",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_string.suffix",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_private_dns_a_record",
+      "label": "azurerm_private_dns_a_record.eventhub",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 93,
+      "address": "azurerm_private_dns_a_record.eventhub",
+      "references": [
+        "azurerm_iothub.iothub",
+        "azurerm_private_endpoint.iothub",
+        "azurerm_resource_group.rg",
+        "azurerm_private_dns_zone.eventhub"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.dps",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 26,
+      "address": "azurerm_private_dns_zone.dps",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.eventhub",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 21,
+      "address": "azurerm_private_dns_zone.eventhub",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.iothub",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 16,
+      "address": "azurerm_private_dns_zone.iothub",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.dps",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 45,
+      "address": "azurerm_private_dns_zone_virtual_network_link.dps",
+      "references": [
+        "random_string.suffix",
+        "azurerm_private_dns_zone.dps",
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.eventhub",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 38,
+      "address": "azurerm_private_dns_zone_virtual_network_link.eventhub",
+      "references": [
+        "random_string.suffix",
+        "azurerm_private_dns_zone.eventhub",
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.iothub",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 31,
+      "address": "azurerm_private_dns_zone_virtual_network_link.iothub",
+      "references": [
+        "random_string.suffix",
+        "azurerm_private_dns_zone.iothub",
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.dps",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 73,
+      "address": "azurerm_private_endpoint.dps",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.suffix",
+        "azurerm_private_dns_zone.dps",
+        "azurerm_iothub_dps.dps",
+        "azurerm_subnet.snet"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.iothub",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 53,
+      "address": "azurerm_private_endpoint.iothub",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.suffix",
+        "azurerm_private_dns_zone.iothub",
+        "azurerm_iothub.iothub",
+        "azurerm_subnet.snet"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.snet",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 8,
+      "address": "azurerm_subnet.snet",
+      "references": [
+        "random_string.suffix",
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 465,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": [
+          "random_string.suffix",
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.vnet",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 1,
+      "address": "azurerm_virtual_network.vnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.suffix"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 245,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_string.suffix"
+        ]
+      }
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_string\" \"suffix\" {\n  length  = 5\n  special = false\n  upper   = false\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  name     = \"rg-iothub-${random_string.suffix.result}\"\n  location = var.location\n}\n\nresource \"azurerm_iothub\" \"iothub\" {\n  name                          = \"iothub-${random_string.suffix.result}\"\n  resource_group_name           = azurerm_resource_group.rg.name\n  location                      = azurerm_resource_group.rg.location\n  public_network_access_enabled = false\n\n  sku {\n    name     = \"S1\"\n    capacity = 1\n  }\n\n  cloud_to_device {\n    max_delivery_count = 30\n    default_ttl        = \"PT1H\"\n    feedback {\n      time_to_live       = \"PT1H10M\"\n      max_delivery_count = 15\n      lock_duration      = \"PT30S\"\n    }\n  }\n\n}\n\nresource \"azurerm_iothub_shared_access_policy\" \"iothub_policy\" {\n  name                = \"iothub-policy\"\n  resource_group_name = azurerm_resource_group.rg.name\n  iothub_name         = azurerm_iothub.iothub.name\n\n  registry_read   = true\n  registry_write  = true\n  service_connect = true\n\n  depends_on = [azurerm_private_endpoint.iothub]\n}\n\nresource \"azurerm_iothub_dps\" \"dps\" {\n  name                          = \"test-device-${random_string.suffix.result}\"\n  resource_group_name           = azurerm_resource_group.rg.name\n  location                      = azurerm_resource_group.rg.location\n  allocation_policy             = \"Hashed\"\n  public_network_access_enabled = false\n\n  sku {\n    name     = \"S1\"\n    capacity = \"1\"\n  }\n\n  linked_hub {\n    connection_string       = azurerm_iothub_shared_access_policy.iothub_policy.primary_connection_string\n    location                = azurerm_resource_group.rg.location\n    allocation_weight       = 150\n    apply_allocation_policy = true\n  }\n}"
+    },
+    {
+      "name": "network.tf",
+      "content": "resource \"azurerm_virtual_network\" \"vnet\" {\n  name                = \"iothub-vnet-${random_string.suffix.result}\"\n  address_space       = [var.vnet_address_space]\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\nresource \"azurerm_subnet\" \"snet\" {\n  name                 = \"iothub-snet-${random_string.suffix.result}\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = [var.iothub_subnet_address_space]\n}\n\n## Private DNS Zone\nresource \"azurerm_private_dns_zone\" \"iothub\" {\n  name                = \"privatelink.azure-devices.net\"\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\nresource \"azurerm_private_dns_zone\" \"eventhub\" {\n  name                = \"privatelink.servicebus.windows.net\"\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\nresource \"azurerm_private_dns_zone\" \"dps\" {\n  name                = \"privatelink.azure-devices-provisioning.net\"\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"iothub\" {\n  name                  = \"vnet-link-iothub-${random_string.suffix.result}\"\n  resource_group_name   = azurerm_resource_group.rg.name\n  private_dns_zone_name = azurerm_private_dns_zone.iothub.name\n  virtual_network_id    = azurerm_virtual_network.vnet.id\n}\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"eventhub\" {\n  name                  = \"vnet-link-eventhub-${random_string.suffix.result}\"\n  resource_group_name   = azurerm_resource_group.rg.name\n  private_dns_zone_name = azurerm_private_dns_zone.eventhub.name\n  virtual_network_id    = azurerm_virtual_network.vnet.id\n}\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"dps\" {\n  name                  = \"vnet-link-dps-${random_string.suffix.result}\"\n  resource_group_name   = azurerm_resource_group.rg.name\n  private_dns_zone_name = azurerm_private_dns_zone.dps.name\n  virtual_network_id    = azurerm_virtual_network.vnet.id\n}\n\n## Private Endpoint\nresource \"azurerm_private_endpoint\" \"iothub\" {\n  name                = \"pep-iothub-${random_string.suffix.result}\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  subnet_id           = azurerm_subnet.snet.id\n\n  private_service_connection {\n    name                           = \"psc-iothub-${random_string.suffix.result}\"\n    private_connection_resource_id = azurerm_iothub.iothub.id\n    subresource_names              = [\"iotHub\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"privateDNSZoneGroup\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.iothub.id]\n  }\n\n}\n\nresource \"azurerm_private_endpoint\" \"dps\" {\n  name                = \"pep-dps-${random_string.suffix.result}\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  subnet_id           = azurerm_subnet.snet.id\n\n  private_service_connection {\n    name                           = \"psc-iothub-${random_string.suffix.result}\"\n    private_connection_resource_id = azurerm_iothub_dps.dps.id\n    subresource_names              = [\"iotDps\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"privateDNSZoneGroup\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.dps.id]\n  }\n}\n\n## Add DNS Record for Built-in eventhub\nresource \"azurerm_private_dns_a_record\" \"eventhub\" {\n  name                = azurerm_iothub.iothub.event_hub_events_namespace\n  ttl                 = 10000\n  zone_name           = azurerm_private_dns_zone.eventhub.name\n  resource_group_name = azurerm_resource_group.rg.name\n  records             = [azurerm_private_endpoint.iothub.custom_dns_configs[0].ip_addresses[0]]\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  description = \"The name of the created resource group.\"\n  value       = azurerm_resource_group.rg.name\n}\n\noutput \"virtual_network_name\" {\n  description = \"The name of the created virtual network.\"\n  value       = azurerm_virtual_network.vnet.name\n}\n\noutput \"iothub_subnet_name\" {\n  description = \"The name of the created subnet for iothub.\"\n  value       = azurerm_subnet.snet.name\n}\n\noutput \"iothub_name\" {\n  description = \"The name of the created iothub.\"\n  value       = azurerm_subnet.snet.name\n}"
+    },
+    {
+      "name": "provider.tf",
+      "content": "terraform {\n  required_version = \">= 1.2\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \">= 3.35.0, < 4.0.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {\n  }\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"location\" {\n  type        = string\n  default     = \"westeurope\"\n  description = \"Location of the resource group\"\n}\n\nvariable \"vnet_address_space\" {\n  type        = string\n  default     = \"10.0.0.0/16\"\n  description = \"Address range of the virtual network\"\n}\n\nvariable \"iothub_subnet_address_space\" {\n  type        = string\n  default     = \"10.0.3.0/24\"\n  description = \"Address range of the subnet containing the iothub\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/201-private-link-iothub-builtin-endpoint\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "디바이스 메시지 엔드포인트의 사설 네트워크 경계를 검토한다."
+  }
+}

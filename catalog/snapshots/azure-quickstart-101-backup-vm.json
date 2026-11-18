@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "title": "Azure · 가상 머신 백업과 복구 정책",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_backup_policy_vm",
+      "label": "azurerm_backup_policy_vm.example",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 158,
+      "address": "azurerm_backup_policy_vm.example",
+      "references": [
+        "random_string.name",
+        "azurerm_recovery_services_vault.example",
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_backup_protected_vm",
+      "label": "azurerm_backup_protected_vm.example",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 173,
+      "address": "azurerm_backup_protected_vm.example",
+      "references": [
+        "azurerm_backup_policy_vm.example",
+        "azurerm_recovery_services_vault.example",
+        "azurerm_resource_group.rg",
+        "azurerm_windows_virtual_machine.main"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.my_terraform_nic",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 73,
+      "address": "azurerm_network_interface.my_terraform_nic",
+      "references": [
+        "azurerm_public_ip.my_terraform_public_ip",
+        "azurerm_subnet.my_terraform_subnet",
+        "azurerm_resource_group.rg",
+        "random_string.name"
+      ],
+      "scopeAddress": "azurerm_subnet.my_terraform_subnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2599,
+        "address": "azurerm_subnet.my_terraform_subnet",
+        "otherRefs": [
+          "azurerm_public_ip.my_terraform_public_ip",
+          "azurerm_resource_group.rg",
+          "random_string.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_network_interface_security_group_association",
+      "label": "azurerm_network_interface_security_group_association.example",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 87,
+      "address": "azurerm_network_interface_security_group_association.example",
+      "references": [
+        "azurerm_network_interface.my_terraform_nic",
+        "azurerm_network_security_group.my_terraform_nsg"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.my_terraform_nsg",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 43,
+      "address": "azurerm_network_security_group.my_terraform_nsg",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.name"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1451,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_string.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.my_terraform_public_ip",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 35,
+      "address": "azurerm_public_ip.my_terraform_public_ip",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.name"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_recovery_services_vault",
+      "label": "azurerm_recovery_services_vault.example",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 150,
+      "address": "azurerm_recovery_services_vault.example",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.name"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.my_storage_account",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 93,
+      "address": "azurerm_storage_account.my_storage_account",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_id.random_id"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3319,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_id.random_id"
+        ]
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.my_terraform_subnet",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 27,
+      "address": "azurerm_subnet.my_terraform_subnet",
+      "references": [
+        "random_string.name",
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.my_terraform_network"
+      ],
+      "scopeAddress": "azurerm_virtual_network.my_terraform_network",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 826,
+        "address": "azurerm_virtual_network.my_terraform_network",
+        "otherRefs": [
+          "random_string.name",
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.my_terraform_network",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 19,
+      "address": "azurerm_virtual_network.my_terraform_network",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.name"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 586,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_string.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_windows_virtual_machine",
+      "label": "azurerm_windows_virtual_machine.main",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 102,
+      "address": "azurerm_windows_virtual_machine.main",
+      "references": [
+        "random_password.password",
+        "azurerm_storage_account.my_storage_account",
+        "azurerm_resource_group.rg",
+        "random_string.name",
+        "azurerm_network_interface.my_terraform_nic"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.my_terraform_nic.id}",
+      "nicAddress": "azurerm_network_interface.my_terraform_nic"
+    },
+    {
+      "id": "n_import_12",
+      "kind": "random_id",
+      "label": "random_id.random_id",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 132,
+      "address": "random_id.random_id",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "random_password",
+      "label": "random_password.password",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 141,
+      "address": "random_password.password",
+      "references": []
+    },
+    {
+      "id": "n_import_14",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "random_string",
+      "label": "random_string.name",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "random_string.name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\nresource \"random_string\" \"name\" {\n  length  = 12\n  lower   = true\n  upper   = false\n  numeric = false\n  special = false\n}\n\n# Create virtual network\nresource \"azurerm_virtual_network\" \"my_terraform_network\" {\n  name                = \"${random_string.name.id}-vnet\"\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\n# Create subnet\nresource \"azurerm_subnet\" \"my_terraform_subnet\" {\n  name                 = \"${random_string.name.id}-subnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.my_terraform_network.name\n  address_prefixes     = [\"10.0.1.0/24\"]\n}\n\n# Create public IPs\nresource \"azurerm_public_ip\" \"my_terraform_public_ip\" {\n  name                = \"${random_string.name.id}-public-ip\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  allocation_method   = \"Dynamic\"\n}\n\n# Create Network Security Group and rules\nresource \"azurerm_network_security_group\" \"my_terraform_nsg\" {\n  name                = \"${random_string.name.id}-nsg\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  security_rule {\n    name                       = \"RDP\"\n    priority                   = 1000\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"*\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"3389\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"*\"\n  }\n  security_rule {\n    name                       = \"web\"\n    priority                   = 1001\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"80\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"*\"\n  }\n}\n\n# Create network interface\nresource \"azurerm_network_interface\" \"my_terraform_nic\" {\n  name                = \"${random_string.name.id}-nic\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  ip_configuration {\n    name                          = \"my_nic_configuration\"\n    subnet_id                     = azurerm_subnet.my_terraform_subnet.id\n    private_ip_address_allocation = \"Dynamic\"\n    public_ip_address_id          = azurerm_public_ip.my_terraform_public_ip.id\n  }\n}\n\n# Connect the security group to the network interface\nresource \"azurerm_network_interface_security_group_association\" \"example\" {\n  network_interface_id      = azurerm_network_interface.my_terraform_nic.id\n  network_security_group_id = azurerm_network_security_group.my_terraform_nsg.id\n}\n\n# Create storage account for boot diagnostics\nresource \"azurerm_storage_account\" \"my_storage_account\" {\n  name                     = \"diag${random_id.random_id.hex}\"\n  location                 = azurerm_resource_group.rg.location\n  resource_group_name      = azurerm_resource_group.rg.name\n  account_tier             = \"Standard\"\n  account_replication_type = \"LRS\"\n}\n\n# Create virtual machine\nresource \"azurerm_windows_virtual_machine\" \"main\" {\n  name                              = \"${random_string.name.id}-vm\"\n  admin_username                    = \"azureuser\"\n  admin_password                    = random_password.password.result\n  location                          = azurerm_resource_group.rg.location\n  resource_group_name               = azurerm_resource_group.rg.name\n  network_interface_ids             = [azurerm_network_interface.my_terraform_nic.id]\n  size                              = \"Standard_DS1_v2\"\n  vm_agent_platform_updates_enabled = true\n\n  os_disk {\n    name                 = \"myOsDisk\"\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Premium_LRS\"\n  }\n\n  source_image_reference {\n    publisher = \"MicrosoftWindowsServer\"\n    offer     = \"WindowsServer\"\n    sku       = \"2022-datacenter-azure-edition\"\n    version   = \"latest\"\n  }\n\n\n  boot_diagnostics {\n    storage_account_uri = azurerm_storage_account.my_storage_account.primary_blob_endpoint\n  }\n}\n\n# Generate random text for a unique storage account name\nresource \"random_id\" \"random_id\" {\n  keepers = {\n    # Generate a new ID only when a new resource group is defined\n    resource_group = azurerm_resource_group.rg.name\n  }\n\n  byte_length = 8\n}\n\nresource \"random_password\" \"password\" {\n  length      = 20\n  min_lower   = 1\n  min_upper   = 1\n  min_numeric = 1\n  min_special = 1\n  special     = true\n}\n\nresource \"azurerm_recovery_services_vault\" \"example\" {\n  name                = \"${random_string.name.id}-vault\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  sku                 = \"Standard\"\n  soft_delete_enabled = var.soft_delete_enabled\n}\n\nresource \"azurerm_backup_policy_vm\" \"example\" {\n  name                = \"${random_string.name.id}-policy\"\n  resource_group_name = azurerm_resource_group.rg.name\n  recovery_vault_name = azurerm_recovery_services_vault.example.name\n\n  backup {\n    frequency = \"Daily\"\n    time      = \"23:00\"\n  }\n\n  retention_daily {\n    count = 7\n  }\n}\n\nresource \"azurerm_backup_protected_vm\" \"example\" {\n  resource_group_name = azurerm_resource_group.rg.name\n  recovery_vault_name = azurerm_recovery_services_vault.example.name\n  source_vm_id        = azurerm_windows_virtual_machine.main.id\n  backup_policy_id    = azurerm_backup_policy_vm.example.id\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"azurerm_recovery_services_vault_name\" {\n  value = azurerm_recovery_services_vault.example.name\n}\n\noutput \"azurerm_backup_policy_vm_name\" {\n  value = azurerm_backup_policy_vm.example.name\n}\n\noutput \"azurerm_windows_virtual_machine_name\" {\n  value = azurerm_windows_virtual_machine.main.name\n}\n\noutput \"public_ip_address\" {\n  value = azurerm_windows_virtual_machine.main.public_ip_address\n}\n\noutput \"admin_password\" {\n  sensitive = true\n  value     = azurerm_windows_virtual_machine.main.admin_password\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {\n    recovery_service {\n      vm_backup_stop_protection_and_retain_data_on_destroy = true\n      purge_protected_items_from_vault_on_destroy          = true\n    }\n  }\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"soft_delete_enabled\" {\n  type        = bool\n  default     = false\n  nullable    = false\n  description = \"Is soft delete enable for the recovery services vault?\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-backup-vm\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "보호 대상·보관함·백업 정책의 수명 차이를 검토한다."
+  }
+}

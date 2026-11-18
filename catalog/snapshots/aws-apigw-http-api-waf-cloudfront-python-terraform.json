@@ -1,0 +1,926 @@
+{
+  "version": 1,
+  "title": "AWS · CloudFront·WAF 기반 API 보호",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_apigatewayv2_api",
+      "label": "aws_apigatewayv2_api.http_api",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "apigateway.tf",
+      "sourceLine": 2,
+      "address": "aws_apigatewayv2_api.http_api",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_apigatewayv2_integration",
+      "label": "aws_apigatewayv2_integration.http_api_integration",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "apigateway.tf",
+      "sourceLine": 27,
+      "address": "aws_apigatewayv2_integration.http_api_integration",
+      "references": [
+        "aws_apigatewayv2_api.http_api",
+        "aws_lambda_function.http_api_lambda"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_apigatewayv2_route",
+      "label": "aws_apigatewayv2_route.http_api_route",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "apigateway.tf",
+      "sourceLine": 18,
+      "address": "aws_apigatewayv2_route.http_api_route",
+      "references": [
+        "aws_apigatewayv2_api.http_api",
+        "aws_apigatewayv2_authorizer.http_api_auth_authorizer",
+        "aws_apigatewayv2_integration.http_api_integration"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_apigatewayv2_stage",
+      "label": "aws_apigatewayv2_stage.http_api_stage",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "apigateway.tf",
+      "sourceLine": 38,
+      "address": "aws_apigatewayv2_stage.http_api_stage",
+      "references": [
+        "aws_apigatewayv2_api.http_api"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_apigatewayv2_authorizer",
+      "label": "aws_apigatewayv2_authorizer.http_api_auth_authorizer",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 18,
+      "address": "aws_apigatewayv2_authorizer.http_api_auth_authorizer",
+      "references": [
+        "aws_apigatewayv2_api.http_api",
+        "aws_lambda_function.http_api_auth_lambda"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_auth_lambda_execution_policy",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 89,
+      "address": "aws_iam_policy.http_api_auth_lambda_execution_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_auth_lambda_logs_policy",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 66,
+      "address": "aws_iam_policy.http_api_auth_lambda_logs_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_auth_lambda_secret_policy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 110,
+      "address": "aws_iam_policy.http_api_auth_lambda_secret_policy",
+      "references": [
+        "aws_secretsmanager_secret.cf_api_header_secret_store"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.http_api_auth_lambda_role",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 45,
+      "address": "aws_iam_role.http_api_auth_lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_auth_lambda_execution_policy_attachment",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 137,
+      "address": "aws_iam_role_policy_attachment.http_api_auth_lambda_execution_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_auth_lambda_execution_policy",
+        "aws_iam_role.http_api_auth_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_auth_lambda_log_policy_attachment",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 132,
+      "address": "aws_iam_role_policy_attachment.http_api_auth_lambda_log_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_auth_lambda_logs_policy",
+        "aws_iam_role.http_api_auth_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_auth_lambda_secret_policy_attachment",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 142,
+      "address": "aws_iam_role_policy_attachment.http_api_auth_lambda_secret_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_auth_lambda_secret_policy",
+        "aws_iam_role.http_api_auth_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.http_api_auth_lambda",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 2,
+      "address": "aws_lambda_function.http_api_auth_lambda",
+      "references": [
+        "aws_secretsmanager_secret.cf_api_header_secret_store",
+        "data.archive_file.http_api_auth_lambda_zip",
+        "aws_iam_role.http_api_auth_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.http_api_auth_lambda_permission",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 36,
+      "address": "aws_lambda_permission.http_api_auth_lambda_permission",
+      "references": [
+        "aws_lambda_function.http_api_auth_lambda",
+        "aws_apigatewayv2_api.http_api"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "archive_file",
+      "label": "data.archive_file.http_api_auth_lambda_zip",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "authorizer.tf",
+      "sourceLine": 29,
+      "address": "data.archive_file.http_api_auth_lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_cloudfront_distribution",
+      "label": "aws_cloudfront_distribution.http_api_distribution",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "cloudfront.tf",
+      "sourceLine": 2,
+      "address": "aws_cloudfront_distribution.http_api_distribution",
+      "references": [
+        "aws_lambda_function.http_api_edge_lambda",
+        "aws_apigatewayv2_api.http_api",
+        "aws_wafv2_web_acl.cloudfront_web_acl"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_apigatewayv2_api_mapping",
+      "label": "aws_apigatewayv2_api_mapping.http_api_mapping",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "dns.tf",
+      "sourceLine": 14,
+      "multipleInstances": true,
+      "address": "aws_apigatewayv2_api_mapping.http_api_mapping",
+      "references": [
+        "aws_apigatewayv2_api.http_api",
+        "aws_apigatewayv2_domain_name.http_api_domain_name",
+        "aws_apigatewayv2_stage.http_api_stage"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_apigatewayv2_domain_name",
+      "label": "aws_apigatewayv2_domain_name.http_api_domain_name",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "dns.tf",
+      "sourceLine": 2,
+      "multipleInstances": true,
+      "address": "aws_apigatewayv2_domain_name.http_api_domain_name",
+      "references": []
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route53_record",
+      "label": "aws_route53_record.cloudfront_route53_record",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "dns.tf",
+      "sourceLine": 36,
+      "multipleInstances": true,
+      "address": "aws_route53_record.cloudfront_route53_record",
+      "references": [
+        "aws_cloudfront_distribution.http_api_distribution"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_route53_record",
+      "label": "aws_route53_record.http_api_route53_record",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "dns.tf",
+      "sourceLine": 22,
+      "multipleInstances": true,
+      "address": "aws_route53_record.http_api_route53_record",
+      "references": [
+        "aws_apigatewayv2_domain_name.http_api_domain_name"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_edge_lambda_execution_policy",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 78,
+      "address": "aws_iam_policy.http_api_edge_lambda_execution_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_edge_lambda_logs_policy",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 55,
+      "address": "aws_iam_policy.http_api_edge_lambda_logs_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_edge_lambda_secret_policy",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 99,
+      "address": "aws_iam_policy.http_api_edge_lambda_secret_policy",
+      "references": [
+        "aws_secretsmanager_secret.cf_api_header_secret_store"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.http_api_edge_lambda_role",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 31,
+      "address": "aws_iam_role.http_api_edge_lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_24",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_edge_lambda_execution_policy_attachment",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 127,
+      "address": "aws_iam_role_policy_attachment.http_api_edge_lambda_execution_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_edge_lambda_execution_policy",
+        "aws_iam_role.http_api_edge_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_edge_lambda_log_policy_attachment",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 121,
+      "address": "aws_iam_role_policy_attachment.http_api_edge_lambda_log_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_edge_lambda_logs_policy",
+        "aws_iam_role.http_api_edge_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_edge_lambda_secret_policy_attachment",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 133,
+      "address": "aws_iam_role_policy_attachment.http_api_edge_lambda_secret_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_edge_lambda_secret_policy",
+        "aws_iam_role.http_api_edge_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.http_api_edge_lambda",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 2,
+      "address": "aws_lambda_function.http_api_edge_lambda",
+      "references": [
+        "data.archive_file.http_api_edge_lambda_zip",
+        "aws_iam_role.http_api_edge_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.http_api_edge_lambda_permission",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 21,
+      "address": "aws_lambda_permission.http_api_edge_lambda_permission",
+      "references": [
+        "aws_cloudfront_distribution.http_api_distribution"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "archive_file",
+      "label": "data.archive_file.http_api_edge_lambda_zip",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-edge.tf",
+      "sourceLine": 14,
+      "address": "data.archive_file.http_api_edge_lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.secret_rotation_lambda_execution_policy",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 79,
+      "address": "aws_iam_policy.secret_rotation_lambda_execution_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_31",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.secret_rotation_lambda_logs_policy",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 56,
+      "address": "aws_iam_policy.secret_rotation_lambda_logs_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_32",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.secret_rotation_secretsmgr_policy",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 100,
+      "address": "aws_iam_policy.secret_rotation_secretsmgr_policy",
+      "references": [
+        "aws_secretsmanager_secret.cf_api_header_secret_store"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.secret_rotation_lambda_role",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 35,
+      "address": "aws_iam_role.secret_rotation_lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_34",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.secret_rotation_lambda_execution_policy_attachment",
+      "x": 540,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 137,
+      "address": "aws_iam_role_policy_attachment.secret_rotation_lambda_execution_policy_attachment",
+      "references": [
+        "aws_iam_policy.secret_rotation_lambda_execution_policy",
+        "aws_iam_role.secret_rotation_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_35",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.secret_rotation_lambda_log_policy_attachment",
+      "x": 780,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 132,
+      "address": "aws_iam_role_policy_attachment.secret_rotation_lambda_log_policy_attachment",
+      "references": [
+        "aws_iam_policy.secret_rotation_lambda_logs_policy",
+        "aws_iam_role.secret_rotation_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_36",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.secret_rotation_secretsmgr_policy_attachment",
+      "x": 60,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 142,
+      "address": "aws_iam_role_policy_attachment.secret_rotation_secretsmgr_policy_attachment",
+      "references": [
+        "aws_iam_policy.secret_rotation_secretsmgr_policy",
+        "aws_iam_role.secret_rotation_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_37",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.secret_rotation_lambda",
+      "x": 300,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 2,
+      "address": "aws_lambda_function.secret_rotation_lambda",
+      "references": [
+        "data.archive_file.secret_rotation_lambda_zip",
+        "aws_iam_role.secret_rotation_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_38",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.secret_rotation_lambda_permission",
+      "x": 540,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 26,
+      "address": "aws_lambda_permission.secret_rotation_lambda_permission",
+      "references": [
+        "aws_lambda_function.secret_rotation_lambda",
+        "aws_secretsmanager_secret.cf_api_header_secret_store"
+      ]
+    },
+    {
+      "id": "n_import_39",
+      "kind": "archive_file",
+      "label": "data.archive_file.secret_rotation_lambda_zip",
+      "x": 780,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda-secret-rotation.tf",
+      "sourceLine": 19,
+      "address": "data.archive_file.secret_rotation_lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_40",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_lambda_execution_policy",
+      "x": 60,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 72,
+      "address": "aws_iam_policy.http_api_lambda_execution_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_41",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.http_api_lambda_logs_policy",
+      "x": 300,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 49,
+      "address": "aws_iam_policy.http_api_lambda_logs_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_42",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.http_api_lambda_role",
+      "x": 540,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 28,
+      "address": "aws_iam_role.http_api_lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_43",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_lambda_execution_policy_attachment",
+      "x": 780,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 99,
+      "address": "aws_iam_role_policy_attachment.http_api_lambda_execution_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_lambda_execution_policy",
+        "aws_iam_role.http_api_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_44",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.http_api_lambda_log_policy_attachment",
+      "x": 60,
+      "y": 1600,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 94,
+      "address": "aws_iam_role_policy_attachment.http_api_lambda_log_policy_attachment",
+      "references": [
+        "aws_iam_policy.http_api_lambda_logs_policy",
+        "aws_iam_role.http_api_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_45",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.http_api_lambda",
+      "x": 300,
+      "y": 1600,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 2,
+      "address": "aws_lambda_function.http_api_lambda",
+      "references": [
+        "data.archive_file.http_api_lambda_zip",
+        "aws_iam_role.http_api_lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_46",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.http_api_lambda_permission",
+      "x": 540,
+      "y": 1600,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 19,
+      "address": "aws_lambda_permission.http_api_lambda_permission",
+      "references": [
+        "aws_lambda_function.http_api_lambda",
+        "aws_apigatewayv2_api.http_api"
+      ]
+    },
+    {
+      "id": "n_import_47",
+      "kind": "archive_file",
+      "label": "data.archive_file.http_api_lambda_zip",
+      "x": 780,
+      "y": 1600,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 12,
+      "address": "data.archive_file.http_api_lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_48",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 60,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 16,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_49",
+      "kind": "aws_secretsmanager_secret",
+      "label": "aws_secretsmanager_secret.cf_api_header_secret_store",
+      "x": 300,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "secretsmanager.tf",
+      "sourceLine": 2,
+      "address": "aws_secretsmanager_secret.cf_api_header_secret_store",
+      "references": []
+    },
+    {
+      "id": "n_import_50",
+      "kind": "aws_secretsmanager_secret_rotation",
+      "label": "aws_secretsmanager_secret_rotation.cf_api_header_secret_store_rotation",
+      "x": 540,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "secretsmanager.tf",
+      "sourceLine": 19,
+      "address": "aws_secretsmanager_secret_rotation.cf_api_header_secret_store_rotation",
+      "references": [
+        "aws_lambda_function.secret_rotation_lambda",
+        "aws_secretsmanager_secret.cf_api_header_secret_store"
+      ]
+    },
+    {
+      "id": "n_import_51",
+      "kind": "aws_secretsmanager_secret_version",
+      "label": "aws_secretsmanager_secret_version.cf_api_header_secret_value",
+      "x": 780,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "secretsmanager.tf",
+      "sourceLine": 8,
+      "address": "aws_secretsmanager_secret_version.cf_api_header_secret_value",
+      "references": [
+        "aws_secretsmanager_secret.cf_api_header_secret_store",
+        "random_id.secret_random_value"
+      ]
+    },
+    {
+      "id": "n_import_52",
+      "kind": "random_id",
+      "label": "random_id.secret_random_value",
+      "x": 60,
+      "y": 1880,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "secretsmanager.tf",
+      "sourceLine": 14,
+      "address": "random_id.secret_random_value",
+      "references": []
+    },
+    {
+      "id": "n_import_53",
+      "kind": "aws_wafv2_web_acl",
+      "label": "aws_wafv2_web_acl.cloudfront_web_acl",
+      "x": 300,
+      "y": 1880,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "waf.tf",
+      "sourceLine": 1,
+      "address": "aws_wafv2_web_acl.cloudfront_web_acl",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "apigateway.tf",
+      "content": "# create http api gateway\nresource \"aws_apigatewayv2_api\" \"http_api\" {\n  description = var.http_api_description\n  name          = var.http_api_name\n  protocol_type = \"HTTP\"\n  tags = {\n    Name = var.http_api_name\n  }\n  cors_configuration {\n    allow_origins = [\"*\"]\n    allow_methods = [\"*\"]\n    allow_headers = [\"*\"]\n  }\n  disable_execute_api_endpoint = local.domain_enabled\n}\n\n# create http api gateway route\nresource \"aws_apigatewayv2_route\" \"http_api_route\" {\n  api_id    = aws_apigatewayv2_api.http_api.id\n  authorization_type = \"CUSTOM\"\n  authorizer_id = aws_apigatewayv2_authorizer.http_api_auth_authorizer.id\n  route_key = \"ANY /\"\n  target = \"integrations/${aws_apigatewayv2_integration.http_api_integration.id}\"\n}\n\n# create http api gateway integration\nresource \"aws_apigatewayv2_integration\" \"http_api_integration\" {\n  api_id           = aws_apigatewayv2_api.http_api.id\n  integration_type = \"AWS_PROXY\"\n  description      = \"Mock Integration for ${var.http_api_name}\"\n  integration_method = \"POST\"\n  integration_uri = aws_lambda_function.http_api_lambda.invoke_arn\n  passthrough_behavior = \"WHEN_NO_MATCH\"\n  payload_format_version = \"2.0\"\n}\n\n# create http api gateway stage\nresource \"aws_apigatewayv2_stage\" \"http_api_stage\" {\n  api_id = aws_apigatewayv2_api.http_api.id\n  name   = var.http_api_stage\n  auto_deploy = true\n  default_route_settings {\n    throttling_burst_limit   = var.throttling_burst_limit\n    throttling_rate_limit    = var.throttling_rate_limit\n  }\n  tags = {\n    Name = var.http_api_name\n  }\n}"
+    },
+    {
+      "name": "authorizer.tf",
+      "content": "# Lambda Authorizer\nresource \"aws_lambda_function\" \"http_api_auth_lambda\" {\n  function_name = var.auth_function_name\n  role          = aws_iam_role.http_api_auth_lambda_role.arn\n  handler       = \"auth_function.lambda_handler\"\n  runtime       = var.function_runtime\n  filename         = data.archive_file.http_api_auth_lambda_zip.output_path\n  source_code_hash = filebase64sha256(data.archive_file.http_api_auth_lambda_zip.output_path)\n  #environment variables\n  environment {\n    variables = {\n        \"SECRET_NAME\" = aws_secretsmanager_secret.cf_api_header_secret_store.name\n    }\n  }\n}\n\n# API Gateway\nresource \"aws_apigatewayv2_authorizer\" \"http_api_auth_authorizer\" {\n  api_id                            = aws_apigatewayv2_api.http_api.id\n  authorizer_type                   = \"REQUEST\"\n  authorizer_uri                    = aws_lambda_function.http_api_auth_lambda.invoke_arn\n  identity_sources                  = [\"$request.header.x-origin-verify\"]\n  name                              = var.auth_function_name\n  authorizer_payload_format_version = \"2.0\"\n  authorizer_result_ttl_in_seconds = 0\n}\n\n# Zip Lambda code\ndata \"archive_file\" \"http_api_auth_lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"src/auth_function.py\"\n  output_path = \"auth_function.zip\"\n}\n\n# Lambda permission\nresource \"aws_lambda_permission\" \"http_api_auth_lambda_permission\" {\n  statement_id  = \"AllowAPIGatewayInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.http_api_auth_lambda.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_apigatewayv2_api.http_api.execution_arn}/*/*\"\n}\n\n# Lambda role\nresource \"aws_iam_role\" \"http_api_auth_lambda_role\" {\n  name = \"http_api_auth_lambda_role\"\n\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"lambda.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda policies\nresource \"aws_iam_policy\" \"http_api_auth_lambda_logs_policy\" {\n  name        = \"http_api_auth_lambda_policy\"\n  path        = \"/\"\n  description = \"http_api_auth_lambda_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"arn:aws:logs:*:*:*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"http_api_auth_lambda_execution_policy\" {\n  name        = \"http_api_auth_lambda_execution_policy\"\n  path        = \"/\"\n  description = \"http_api_auth_lambda_execution_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"lambda:InvokeFunction\"\n      ],\n      \"Resource\": \"*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"http_api_auth_lambda_secret_policy\" {\n  name        = \"http_api_auth_lambda_secret_policy\"\n  path        = \"/\"\n  description = \"http_api_auth_lambda_secret_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"secretsmanager:GetSecretValue\"\n      ],\n      \"Resource\": \"${aws_secretsmanager_secret.cf_api_header_secret_store.arn}\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda Auth policy attachments\nresource \"aws_iam_role_policy_attachment\" \"http_api_auth_lambda_log_policy_attachment\" {\n  role       = aws_iam_role.http_api_auth_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_auth_lambda_logs_policy.arn\n}\n\nresource \"aws_iam_role_policy_attachment\" \"http_api_auth_lambda_execution_policy_attachment\" {\n  role       = aws_iam_role.http_api_auth_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_auth_lambda_execution_policy.arn\n}\n\nresource \"aws_iam_role_policy_attachment\" \"http_api_auth_lambda_secret_policy_attachment\" {\n  role       = aws_iam_role.http_api_auth_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_auth_lambda_secret_policy.arn\n}\n"
+    },
+    {
+      "name": "cloudfront.tf",
+      "content": "# CloudFront distribution for HTTP API Gateway\nresource \"aws_cloudfront_distribution\" \"http_api_distribution\" {\n  origin {\n    #if domain_name is not empty, domain_name else \"${aws_apigatewayv2_api.http_api.id}.execute-api.${var.region}.amazonaws.com\"\n    domain_name = local.domain_enabled ? var.domain_name : \"${aws_apigatewayv2_api.http_api.id}.execute-api.${var.region}.amazonaws.com\"\n    origin_id   = \"http_api_origin\"\n    custom_origin_config {\n      http_port              = \"80\"\n      https_port             = \"443\"\n      origin_protocol_policy = \"https-only\"\n      origin_ssl_protocols   = [\"TLSv1.2\"]\n    }\n    custom_header {\n      name  = \"X-Origin-Verify\"\n      value = var.cloudfront_api_secret_name\n    }\n    custom_header {\n      name  = \"X-Origin-Verify-Region\"\n      value = var.region\n    }    \n  }\n\n  enabled = true\n\n  aliases = local.cloudfront_domain_enabled ? [var.cloudfront_domain_name] : []\n\n  default_cache_behavior {\n    allowed_methods  = [\"GET\", \"HEAD\"]\n    cached_methods   = [\"GET\", \"HEAD\"]\n    target_origin_id = \"http_api_origin\"\n\n    forwarded_values {\n      query_string = false\n      headers      = [\"Authorization\"]\n\n      cookies {\n        forward = \"none\"\n      }\n    }\n\n    viewer_protocol_policy = \"redirect-to-https\"\n    min_ttl                = var.min_ttl\n    default_ttl            = var.default_ttl\n    max_ttl                = var.max_ttl\n\n    lambda_function_association {\n      event_type   = \"origin-request\"\n      lambda_arn   = aws_lambda_function.http_api_edge_lambda.qualified_arn\n      include_body = false\n    }\n\n  }\n\n  restrictions {\n    geo_restriction {\n      restriction_type = \"none\"\n    }\n  }\n\n  # Certificate settings when domain_name is not empty\n  dynamic \"viewer_certificate\" {\n    for_each = local.cloudfront_domain_enabled ? [1] : []\n    content {\n        acm_certificate_arn = local.cloudfront_domain_enabled ? var.cloudfront_certificate_arn : \"\"\n        cloudfront_default_certificate = !local.cloudfront_domain_enabled\n        ssl_support_method = \"sni-only\"\n    }\n  }\n\n  # Certificate settings when domain_name is empty\n  dynamic \"viewer_certificate\" {\n    for_each = !local.cloudfront_domain_enabled ? [1] : []\n    content {\n        cloudfront_default_certificate = !local.cloudfront_domain_enabled\n    }\n  }\n\n  web_acl_id = aws_wafv2_web_acl.cloudfront_web_acl.arn\n}"
+    },
+    {
+      "name": "dns.tf",
+      "content": "# create api gateway custom domain\nresource \"aws_apigatewayv2_domain_name\" \"http_api_domain_name\" {\n  count = local.domain_enabled ? 1 : 0\n  domain_name = var.domain_name\n\n  domain_name_configuration {\n    certificate_arn = var.certificate_arn\n    endpoint_type   = \"REGIONAL\"\n    security_policy = \"TLS_1_2\"\n  }\n}\n\n# create api gateway mapping\nresource \"aws_apigatewayv2_api_mapping\" \"http_api_mapping\" {\n  count = local.domain_enabled ? 1 : 0\n  api_id      = aws_apigatewayv2_api.http_api.id\n  domain_name = aws_apigatewayv2_domain_name.http_api_domain_name[0].id\n  stage       = aws_apigatewayv2_stage.http_api_stage.id\n}\n\n# create route53 record for api gateway custom domain\nresource \"aws_route53_record\" \"http_api_route53_record\" {\n  count = local.domain_enabled ? 1 : 0\n  name    = aws_apigatewayv2_domain_name.http_api_domain_name[0].domain_name\n  type    = \"A\"\n  zone_id = var.zone_id\n\n  alias {\n    name                   = aws_apigatewayv2_domain_name.http_api_domain_name[0].domain_name_configuration[0].target_domain_name\n    zone_id                = aws_apigatewayv2_domain_name.http_api_domain_name[0].domain_name_configuration[0].hosted_zone_id\n    evaluate_target_health = false\n  }\n}\n\n# create route53 record for cloudfront custom domain\nresource \"aws_route53_record\" \"cloudfront_route53_record\" {\n  count = local.cloudfront_domain_enabled ? 1 : 0\n  name    = var.cloudfront_domain_name\n  type    = \"A\"\n  zone_id = var.zone_id\n\n  alias {\n    name = \"${aws_cloudfront_distribution.http_api_distribution.domain_name}\"\n    zone_id = \"${aws_cloudfront_distribution.http_api_distribution.hosted_zone_id}\"\n    evaluate_target_health = false\n  }\n}\n"
+    },
+    {
+      "name": "lambda-edge.tf",
+      "content": "# Lambda Edge\nresource \"aws_lambda_function\" \"http_api_edge_lambda\" {\n  function_name = var.edge_function_name\n  role          = aws_iam_role.http_api_edge_lambda_role.arn\n  handler       = \"edge_function.lambda_handler\"\n  runtime       = var.function_runtime\n  filename         = data.archive_file.http_api_edge_lambda_zip.output_path\n  source_code_hash = filebase64sha256(data.archive_file.http_api_edge_lambda_zip.output_path)\n  publish = true\n  provider = aws.cloudfront\n}\n\n# Zip Lambda code\ndata \"archive_file\" \"http_api_edge_lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"src/edge_function.py\"\n  output_path = \"edge_function.zip\"\n}\n\n# Lambda permission\nresource \"aws_lambda_permission\" \"http_api_edge_lambda_permission\" {\n  statement_id  = \"AllowCloudFrontEdgeInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = var.edge_function_name\n  principal     = \"cloudfront.amazonaws.com\"\n  source_arn    = aws_cloudfront_distribution.http_api_distribution.arn\n  provider = aws.cloudfront\n}\n\n# Lambda role\nresource \"aws_iam_role\" \"http_api_edge_lambda_role\" {\n  name = \"http_api_edge_lambda_role\"\n  provider = aws.cloudfront\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": [\n            \"lambda.amazonaws.com\",\n            \"edgelambda.amazonaws.com\"\n        ]\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda policies\nresource \"aws_iam_policy\" \"http_api_edge_lambda_logs_policy\" {\n  name        = \"http_api_edge_lambda_policy\"\n  path        = \"/\"\n  description = \"http_api_edge_lambda_policy\"\n  provider = aws.cloudfront\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"arn:aws:logs:*:*:*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"http_api_edge_lambda_execution_policy\" {\n  name        = \"http_api_edge_lambda_execution_policy\"\n  path        = \"/\"\n  description = \"http_api_edge_lambda_execution_policy\"\n  provider = aws.cloudfront\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"lambda:InvokeFunction\"\n      ],\n      \"Resource\": \"*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"http_api_edge_lambda_secret_policy\" {\n  name        = \"http_api_edge_lambda_secret_policy\"\n  path        = \"/\"\n  description = \"http_api_edge_lambda_secret_policy\"\n  provider = aws.cloudfront\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"secretsmanager:GetSecretValue\"\n      ],\n      \"Resource\": \"${aws_secretsmanager_secret.cf_api_header_secret_store.arn}\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda Auth policy attachments\nresource \"aws_iam_role_policy_attachment\" \"http_api_edge_lambda_log_policy_attachment\" {\n  role       = aws_iam_role.http_api_edge_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_edge_lambda_logs_policy.arn\n  provider = aws.cloudfront\n}\n\nresource \"aws_iam_role_policy_attachment\" \"http_api_edge_lambda_execution_policy_attachment\" {\n  role       = aws_iam_role.http_api_edge_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_edge_lambda_execution_policy.arn\n  provider = aws.cloudfront\n}\n\nresource \"aws_iam_role_policy_attachment\" \"http_api_edge_lambda_secret_policy_attachment\" {\n  role       = aws_iam_role.http_api_edge_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_edge_lambda_secret_policy.arn\n  provider = aws.cloudfront\n}\n"
+    },
+    {
+      "name": "lambda-secret-rotation.tf",
+      "content": "# Secret rotation Lambda function\nresource \"aws_lambda_function\" \"secret_rotation_lambda\" {\n  function_name = var.secret_rotation_function_name\n  memory_size   = var.secret_rotation_lambda_memory\n  role          = aws_iam_role.secret_rotation_lambda_role.arn\n  handler       = \"secret_rotation_function.lambda_handler\"\n  runtime       = var.function_runtime\n  filename         = data.archive_file.secret_rotation_lambda_zip.output_path\n  source_code_hash = filebase64sha256(data.archive_file.secret_rotation_lambda_zip.output_path)\n  #environment variables\n  environment {\n    variables = {\n        \"UNIQUE_KEY_LENGTH\" = var.unique_key_length\n    }\n  }  \n}\n\n# Zip Lambda code\ndata \"archive_file\" \"secret_rotation_lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"src/secret_rotation_function.py\"\n  output_path = \"secret_rotation_function.zip\"\n}\n\n# Lambda permission\nresource \"aws_lambda_permission\" \"secret_rotation_lambda_permission\" {\n  statement_id  = \"AllowSecretRotationInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.secret_rotation_lambda.function_name\n  principal     = \"secretsmanager.amazonaws.com\"\n  source_arn    = aws_secretsmanager_secret.cf_api_header_secret_store.arn\n}\n\n# Lambda role\nresource \"aws_iam_role\" \"secret_rotation_lambda_role\" {\n  name = \"secret_rotation_lambda_role\"\n\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"lambda.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda policies\nresource \"aws_iam_policy\" \"secret_rotation_lambda_logs_policy\" {\n  name        = \"secret_rotation_lambda_policy\"\n  path        = \"/\"\n  description = \"secret_rotation_lambda_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"arn:aws:logs:*:*:*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"secret_rotation_lambda_execution_policy\" {\n  name        = \"secret_rotation_lambda_execution_policy\"\n  path        = \"/\"\n  description = \"secret_rotation_lambda_execution_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"lambda:InvokeFunction\"\n      ],\n      \"Resource\": \"*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"secret_rotation_secretsmgr_policy\" {\n  name        = \"secret_rotation_secretsmgr_policy\"\n  path        = \"/\"\n  description = \"secret_rotation_secretsmgr_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"secretsmanager:DescribeSecret\",\n        \"secretsmanager:GetSecretValue\",\n        \"secretsmanager:PutSecretValue\",\n        \"secretsmanager:UpdateSecretVersionStage\"\n      ],\n      \"Resource\": \"${aws_secretsmanager_secret.cf_api_header_secret_store.arn}\",\n      \"Effect\": \"Allow\"\n    },\n    {\n      \"Action\": [\n        \"secretsmanager:GetRandomPassword\"\n      ],\n      \"Resource\": \"*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda policy attachments\nresource \"aws_iam_role_policy_attachment\" \"secret_rotation_lambda_log_policy_attachment\" {\n  role       = aws_iam_role.secret_rotation_lambda_role.name\n  policy_arn = aws_iam_policy.secret_rotation_lambda_logs_policy.arn\n}\n\nresource \"aws_iam_role_policy_attachment\" \"secret_rotation_lambda_execution_policy_attachment\" {\n  role       = aws_iam_role.secret_rotation_lambda_role.name\n  policy_arn = aws_iam_policy.secret_rotation_lambda_execution_policy.arn\n}\n\nresource \"aws_iam_role_policy_attachment\" \"secret_rotation_secretsmgr_policy_attachment\" {\n  role       = aws_iam_role.secret_rotation_lambda_role.name\n  policy_arn = aws_iam_policy.secret_rotation_secretsmgr_policy.arn\n}"
+    },
+    {
+      "name": "lambda.tf",
+      "content": "# Lambda returning mock response\nresource \"aws_lambda_function\" \"http_api_lambda\" {\n  function_name = var.function_name\n  role          = aws_iam_role.http_api_lambda_role.arn\n  handler       = \"lambda_function.lambda_handler\"\n  runtime       = var.function_runtime\n  filename         = data.archive_file.http_api_lambda_zip.output_path\n  source_code_hash = filebase64sha256(data.archive_file.http_api_lambda_zip.output_path)\n}\n\n# Zip Lambda code\ndata \"archive_file\" \"http_api_lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"src/lambda_function.py\"\n  output_path = \"lambda_function.zip\"\n}\n\n# Lambda permission\nresource \"aws_lambda_permission\" \"http_api_lambda_permission\" {\n  statement_id  = \"AllowAPIGatewayInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.http_api_lambda.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_apigatewayv2_api.http_api.execution_arn}/*/*\"\n}\n\n# Lambda role\nresource \"aws_iam_role\" \"http_api_lambda_role\" {\n  name = \"http_api_lambda_role\"\n\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"lambda.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda policies\nresource \"aws_iam_policy\" \"http_api_lambda_logs_policy\" {\n  name        = \"http_api_lambda_policy\"\n  path        = \"/\"\n  description = \"http_api_lambda_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"arn:aws:logs:*:*:*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"http_api_lambda_execution_policy\" {\n  name        = \"http_api_lambda_execution_policy\"\n  path        = \"/\"\n  description = \"http_api_lambda_execution_policy\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"lambda:InvokeFunction\"\n      ],\n      \"Resource\": \"*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\nEOF\n}\n\n# Lambda policy attachments\nresource \"aws_iam_role_policy_attachment\" \"http_api_lambda_log_policy_attachment\" {\n  role       = aws_iam_role.http_api_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_lambda_logs_policy.arn\n}\n\nresource \"aws_iam_role_policy_attachment\" \"http_api_lambda_execution_policy_attachment\" {\n  role       = aws_iam_role.http_api_lambda_role.name\n  policy_arn = aws_iam_policy.http_api_lambda_execution_policy.arn\n}\n"
+    },
+    {
+      "name": "main.tf",
+      "content": "#aws provider\nprovider \"aws\" {\n  region = var.region\n}\n\n#aws provider for resources dependent on us-east-1 region\n#Lambda@Edge function must be deployed in us-east-1 region\n#AWS WAF is available globally for CloudFront distributions, but you must use us-east-1\n#to create your web ACL and any resources used in the web ACL, such as rule groups, IP sets, and regex pattern sets\nprovider \"aws\" {\n  alias  = \"cloudfront\"\n  region = \"us-east-1\"\n}\n\n#get current caller identity\ndata \"aws_caller_identity\" \"current\" {}\n\n#local variables\nlocals {\n  account_id = data.aws_caller_identity.current.account_id\n  cloudfront_domain_enabled = (var.cloudfront_domain_name != \"\")\n  domain_enabled = (var.domain_name != \"\")\n}"
+    },
+    {
+      "name": "output.tf",
+      "content": "# api gateway endpoint output\noutput \"api_gateway_endpoint\" {\n  value = aws_apigatewayv2_api.http_api.api_endpoint\n}\n\n# cloudfront distribution output\noutput \"cloudfront_distribution_id\" {\n  value = aws_cloudfront_distribution.http_api_distribution.domain_name\n}\n\n# cloudfront domain name\noutput \"cloudfront_domain_name\" {\n  value = var.cloudfront_domain_name\n}\n\n# domain name\noutput \"domain_name\" {\n  value = var.domain_name\n}"
+    },
+    {
+      "name": "secretsmanager.tf",
+      "content": "# Secret store for CloudFront header\nresource \"aws_secretsmanager_secret\" \"cf_api_header_secret_store\" {\n  name = var.cloudfront_api_secret_name\n  description = \"CloudFront secret\"\n}\n\n# Secret value for CloudFront header\nresource \"aws_secretsmanager_secret_version\" \"cf_api_header_secret_value\" {\n  secret_id     = aws_secretsmanager_secret.cf_api_header_secret_store.id\n  secret_string = random_id.secret_random_value.hex\n}\n\n# Random value for CloudFront header\nresource \"random_id\" \"secret_random_value\" {\n    byte_length = var.unique_key_length\n}\n\n# Secret rotation\nresource \"aws_secretsmanager_secret_rotation\" \"cf_api_header_secret_store_rotation\" {\n  secret_id           = aws_secretsmanager_secret.cf_api_header_secret_store.id\n  rotation_lambda_arn = aws_lambda_function.secret_rotation_lambda.arn\n\n  rotation_rules {\n    automatically_after_days = 30\n  }\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"http_api_description\" {\n  type = string\n  default = \"WAF HTTP API\"\n}\n\nvariable \"http_api_name\" {\n  type = string\n  default = \"waf-http-api\"\n}\n\nvariable \"http_api_stage\" {\n  type = string\n  default = \"$default\"\n}\n\nvariable \"function_name\" {\n  type = string\n  default = \"http-api-lambda\"\n}\n\nvariable \"auth_function_name\" {\n  type = string\n  default = \"http-auth-lambda\"\n}\n\nvariable \"edge_function_name\" {\n  type = string\n  default = \"http-edge-lambda\"\n}\n\nvariable \"secret_rotation_function_name\" {\n  type = string\n  default = \"http-secret-rotation-lambda\"\n}\n\nvariable \"secret_rotation_lambda_memory\" {\n  type = number\n  default = 1024\n}\n\nvariable \"function_runtime\" {\n  type = string\n  default = \"python3.14\"\n}\n\nvariable \"min_ttl\" {\n  type = number\n  default = 0\n}\n\nvariable \"default_ttl\" {\n  type = number\n  default = 3600\n}\n\nvariable \"max_ttl\" {\n  type = number\n  default = 86400\n}\n\nvariable \"region\" {\n  type = string\n  default = \"us-east-1\"\n}\n\nvariable \"waf_webacl_name\" {\n  type = string\n  default = \"http_api_webacl\"\n}\n\nvariable \"waf_rule_name\" {\n  type = string\n  default = \"http_api_rule\"\n}\n\nvariable \"cloudfront_domain_name\" {\n  type = string\n  default = \"\"\n}\n\nvariable \"domain_name\" {\n  type = string\n  default = \"\"\n}\n\nvariable \"cloudfront_certificate_arn\" {\n  type = string\n  default = \"\"\n}\n\nvariable \"certificate_arn\" {\n  type = string\n  default = \"\"\n}\n\nvariable \"zone_id\" {\n  type = string\n  default = \"\"\n}\n\nvariable \"cloudfront_api_secret_name\" {\n  type = string\n  default = \"waf-http-api\"\n}\n\nvariable \"unique_key_length\" {\n  type = string\n  default = \"32\"\n}\n\nvariable \"throttling_burst_limit\" {\n  type = number\n  default = 1000\n}\n\nvariable \"throttling_rate_limit\" {\n  type = number\n  default = 1000\n}"
+    },
+    {
+      "name": "waf.tf",
+      "content": "resource \"aws_wafv2_web_acl\" \"cloudfront_web_acl\" {\n  name        = var.waf_webacl_name\n  description = var.waf_webacl_name\n  scope       = \"CLOUDFRONT\"\n  provider    = aws.cloudfront\n\n  default_action {\n    allow {}\n  }\n\n  rule {\n    name     = \"${var.waf_rule_name}-ratebased\"\n    priority = 1\n\n    action {\n      block {}\n    }\n\n    statement {\n      rate_based_statement {\n        limit              = 100\n        aggregate_key_type = \"IP\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = false\n      metric_name                = \"${var.waf_rule_name}-ratebased-metric\"\n      sampled_requests_enabled   = false\n    }\n  }\n\n  rule {\n    name     = \"${var.waf_rule_name}-managedcommonrule\"\n    priority = 2\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesCommonRuleSet\"\n        vendor_name = \"AWS\"\n\n        rule_action_override {\n          action_to_use {\n            block {}\n          }\n\n          name = \"NoUserAgent_HEADER\"\n        }\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = false\n      metric_name                = \"${var.waf_rule_name}-managedcommonrule-metric\"\n      sampled_requests_enabled   = false\n    }\n  }\n\n  tags = {\n    Name = var.waf_webacl_name\n  }\n\n  visibility_config {\n    cloudwatch_metrics_enabled = false\n    metric_name                = \"${var.waf_webacl_name}-metric\"\n    sampled_requests_enabled   = false\n  }\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-http-api-waf-cloudfront/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "원본 API 우회와 엣지 필터의 책임 범위를 비교한다."
+  }
+}

@@ -1,0 +1,771 @@
+{
+  "version": 1,
+  "title": "Azure · 격리형 Synapse 분석 워크스페이스",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_bastion_host",
+      "label": "azurerm_bastion_host.default",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "bastion.tf",
+      "sourceLine": 1,
+      "address": "azurerm_bastion_host.default",
+      "references": [
+        "azurerm_public_ip.default",
+        "azurerm_subnet.bastion",
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.default",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "bastion.tf",
+      "sourceLine": 13,
+      "address": "azurerm_public_ip.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_dev_test_global_vm_shutdown_schedule",
+      "label": "azurerm_dev_test_global_vm_shutdown_schedule.syn_jumphost_schedule",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "jumphost.tf",
+      "sourceLine": 76,
+      "address": "azurerm_dev_test_global_vm_shutdown_schedule.syn_jumphost_schedule",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_virtual_machine.jumphost"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.jumphost_nic",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "jumphost.tf",
+      "sourceLine": 41,
+      "address": "azurerm_network_interface.jumphost_nic",
+      "references": [
+        "azurerm_subnet.default",
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_subnet.default",
+      "placementSource": {
+        "file": "jumphost.tf",
+        "offset": 1444,
+        "address": "azurerm_subnet.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_network_interface_security_group_association",
+      "label": "azurerm_network_interface_security_group_association.syn_jumphost_nsg_association",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "jumphost.tf",
+      "sourceLine": 71,
+      "address": "azurerm_network_interface_security_group_association.syn_jumphost_nsg_association",
+      "references": [
+        "azurerm_network_interface.jumphost_nic",
+        "azurerm_network_security_group.jumphost_nsg"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.jumphost_nsg",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "jumphost.tf",
+      "sourceLine": 53,
+      "address": "azurerm_network_security_group.jumphost_nsg",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "jumphost.tf",
+        "offset": 1672,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_virtual_machine",
+      "label": "azurerm_virtual_machine.jumphost",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "jumphost.tf",
+      "sourceLine": 1,
+      "address": "azurerm_virtual_machine.jumphost",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_network_interface.jumphost_nic"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.default",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.default",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_client_config",
+      "label": "data.azurerm_client_config.current",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "data.azurerm_client_config.current",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "http",
+      "label": "data.http.ip",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 3,
+      "address": "data.http.ip",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.bastion",
+      "x": 540,
+      "y": 340,
+      "props": {
+        "name": "AzureBastionSubnet"
+      },
+      "original": {
+        "name": "AzureBastionSubnet"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 19,
+      "address": "azurerm_subnet.bastion",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ],
+      "scopeAddress": "azurerm_virtual_network.default",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 883,
+        "address": "azurerm_virtual_network.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.default",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 10,
+      "address": "azurerm_subnet.default",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ],
+      "scopeAddress": "azurerm_virtual_network.default",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 511,
+        "address": "azurerm_virtual_network.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.default",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 1,
+      "address": "azurerm_virtual_network.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 224,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.zone_blob",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 51,
+      "address": "azurerm_private_dns_zone.zone_blob",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.zone_dfs",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 56,
+      "address": "azurerm_private_dns_zone.zone_dfs",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.zone_blob_link",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 63,
+      "address": "azurerm_private_dns_zone_virtual_network_link.zone_blob_link",
+      "references": [
+        "azurerm_private_dns_zone.zone_blob",
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.zone_dfs_link",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 70,
+      "address": "azurerm_private_dns_zone_virtual_network_link.zone_dfs_link",
+      "references": [
+        "azurerm_private_dns_zone.zone_dfs",
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.pe_blob",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 79,
+      "address": "azurerm_private_endpoint.pe_blob",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_storage_account.default",
+        "azurerm_private_dns_zone.zone_blob",
+        "azurerm_subnet.default"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.pe_dfs",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 98,
+      "address": "azurerm_private_endpoint.pe_dfs",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_storage_account.default",
+        "azurerm_private_dns_zone.zone_dfs",
+        "azurerm_subnet.default"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.c_syn_ws",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 23,
+      "address": "azurerm_role_assignment.c_syn_ws",
+      "references": [
+        "azurerm_synapse_workspace.default",
+        "azurerm_storage_account.default"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.sbdc_current_user",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 11,
+      "address": "azurerm_role_assignment.sbdc_current_user",
+      "references": [
+        "data.azurerm_client_config.current",
+        "azurerm_storage_account.default"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.sbdc_syn_ws",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 17,
+      "address": "azurerm_role_assignment.sbdc_syn_ws",
+      "references": [
+        "azurerm_synapse_workspace.default",
+        "azurerm_storage_account.default"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.default",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 1,
+      "address": "azurerm_storage_account.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "storage_account.tf",
+        "offset": 132,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_23",
+      "kind": "azurerm_storage_account_network_rules",
+      "label": "azurerm_storage_account_network_rules.firewall_rules",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 40,
+      "address": "azurerm_storage_account_network_rules.firewall_rules",
+      "references": [
+        "data.http.ip",
+        "azurerm_storage_account.default"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "azurerm_storage_data_lake_gen2_filesystem",
+      "label": "azurerm_storage_data_lake_gen2_filesystem.default",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage_account.tf",
+      "sourceLine": 29,
+      "address": "azurerm_storage_data_lake_gen2_filesystem.default",
+      "references": [
+        "azurerm_role_assignment.sbdc_current_user",
+        "azurerm_storage_account.default"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "azurerm_synapse_spark_pool",
+      "label": "azurerm_synapse_spark_pool.syn_pool_spark",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_pools.tf",
+      "sourceLine": 13,
+      "multipleInstances": true,
+      "address": "azurerm_synapse_spark_pool.syn_pool_spark",
+      "references": [
+        "azurerm_synapse_workspace.default"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "azurerm_synapse_sql_pool",
+      "label": "azurerm_synapse_sql_pool.syn_pool_sql",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_pools.tf",
+      "sourceLine": 3,
+      "multipleInstances": true,
+      "address": "azurerm_synapse_sql_pool.syn_pool_sql",
+      "references": [
+        "azurerm_synapse_workspace.default"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.zone_web",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_private_link_hub.tf",
+      "sourceLine": 9,
+      "address": "azurerm_private_dns_zone.zone_web",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.pe_web",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_private_link_hub.tf",
+      "sourceLine": 16,
+      "address": "azurerm_private_endpoint.pe_web",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_synapse_private_link_hub.default",
+        "azurerm_private_dns_zone.zone_web",
+        "azurerm_subnet.default"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "azurerm_synapse_private_link_hub",
+      "label": "azurerm_synapse_private_link_hub.default",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_private_link_hub.tf",
+      "sourceLine": 1,
+      "address": "azurerm_synapse_private_link_hub.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.zone_dev",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 28,
+      "address": "azurerm_private_dns_zone.zone_dev",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_31",
+      "kind": "azurerm_private_dns_zone",
+      "label": "azurerm_private_dns_zone.zone_sql",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 33,
+      "address": "azurerm_private_dns_zone.zone_sql",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_32",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.zone_dev_link",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 40,
+      "address": "azurerm_private_dns_zone_virtual_network_link.zone_dev_link",
+      "references": [
+        "azurerm_private_dns_zone.zone_dev",
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "azurerm_private_dns_zone_virtual_network_link",
+      "label": "azurerm_private_dns_zone_virtual_network_link.zone_sql_link",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 47,
+      "address": "azurerm_private_dns_zone_virtual_network_link.zone_sql_link",
+      "references": [
+        "azurerm_private_dns_zone.zone_sql",
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ]
+    },
+    {
+      "id": "n_import_34",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.pe_dev",
+      "x": 540,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 56,
+      "address": "azurerm_private_endpoint.pe_dev",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_synapse_workspace.default",
+        "azurerm_private_dns_zone.zone_dev",
+        "azurerm_subnet.default"
+      ]
+    },
+    {
+      "id": "n_import_35",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.pe_sql",
+      "x": 780,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 75,
+      "address": "azurerm_private_endpoint.pe_sql",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_synapse_workspace.default",
+        "azurerm_private_dns_zone.zone_sql",
+        "azurerm_subnet.default"
+      ]
+    },
+    {
+      "id": "n_import_36",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.pe_sqlondemand",
+      "x": 60,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 94,
+      "address": "azurerm_private_endpoint.pe_sqlondemand",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_synapse_workspace.default",
+        "azurerm_private_dns_zone.zone_sql",
+        "azurerm_subnet.default"
+      ]
+    },
+    {
+      "id": "n_import_37",
+      "kind": "azurerm_synapse_workspace",
+      "label": "azurerm_synapse_workspace.default",
+      "x": 300,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "synapse_workspace.tf",
+      "sourceLine": 1,
+      "address": "azurerm_synapse_workspace.default",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_storage_data_lake_gen2_filesystem.default"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "bastion.tf",
+      "content": "resource \"azurerm_bastion_host\" \"default\" {\n  name                = \"bas-${local.basename}\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n\n  ip_configuration {\n    name                 = \"configuration\"\n    subnet_id            = azurerm_subnet.bastion.id\n    public_ip_address_id = azurerm_public_ip.default.id\n  }\n}\n\nresource \"azurerm_public_ip\" \"default\" {\n  name                = \"pip-${local.basename}\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}"
+    },
+    {
+      "name": "jumphost.tf",
+      "content": "resource \"azurerm_virtual_machine\" \"jumphost\" {\n  name                  = \"wvm-${local.basename}\"\n  location              = azurerm_resource_group.default.location\n  resource_group_name   = azurerm_resource_group.default.name\n  network_interface_ids = [azurerm_network_interface.jumphost_nic.id]\n  vm_size               = \"Standard_DS3_v2\"\n\n  delete_os_disk_on_termination    = true\n  delete_data_disks_on_termination = true\n\n  storage_image_reference {\n    publisher = \"microsoft-dsvm\"\n    offer     = \"dsvm-win-2019\"\n    sku       = \"server-2019\"\n    version   = \"latest\"\n  }\n\n  os_profile {\n    computer_name  = \"jumphost\"\n    admin_username = var.jumphost_username\n    admin_password = var.jumphost_password\n  }\n\n  os_profile_windows_config {\n    provision_vm_agent        = true\n    enable_automatic_upgrades = true\n  }\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n\n  storage_os_disk {\n    name              = \"disk-${local.basename}\"\n    caching           = \"ReadWrite\"\n    create_option     = \"FromImage\"\n    managed_disk_type = \"StandardSSD_LRS\"\n  }\n}\n\nresource \"azurerm_network_interface\" \"jumphost_nic\" {\n  name                = \"nic-${local.basename}\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n\n  ip_configuration {\n    name                          = \"configuration\"\n    private_ip_address_allocation = \"Dynamic\"\n    subnet_id                     = azurerm_subnet.default.id\n  }\n}\n\nresource \"azurerm_network_security_group\" \"jumphost_nsg\" {\n  name                = \"nsg-${local.basename}\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n\n  security_rule {\n    name                       = \"RDP\"\n    priority                   = 1010\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = 3389\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"*\"\n  }\n}\n\nresource \"azurerm_network_interface_security_group_association\" \"syn_jumphost_nsg_association\" {\n  network_interface_id      = azurerm_network_interface.jumphost_nic.id\n  network_security_group_id = azurerm_network_security_group.jumphost_nsg.id\n}\n\nresource \"azurerm_dev_test_global_vm_shutdown_schedule\" \"syn_jumphost_schedule\" {\n  virtual_machine_id = azurerm_virtual_machine.jumphost.id\n  location           = azurerm_resource_group.default.location\n  enabled            = true\n\n  daily_recurrence_time = \"2000\"\n  timezone              = \"W. Europe Standard Time\"\n\n  notification_settings {\n    enabled = false\n  }\n}"
+    },
+    {
+      "name": "locals.tf",
+      "content": "locals {\n  basename      = \"${var.name}-${var.environment}\"\n  safe_basename = replace(local.basename, \"-\", \"\")\n}"
+    },
+    {
+      "name": "main.tf",
+      "content": "data \"azurerm_client_config\" \"current\" {}\n\ndata \"http\" \"ip\" {\n  url = \"https://ifconfig.me\"\n}\n\nresource \"azurerm_resource_group\" \"default\" {\n  name     = \"rg-${local.basename}\"\n  location = var.location\n}"
+    },
+    {
+      "name": "network.tf",
+      "content": "resource \"azurerm_virtual_network\" \"default\" {\n  name                = \"vnet-${local.basename}\"\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n}\n\n# Subnets\n\nresource \"azurerm_subnet\" \"default\" {\n  name                                      = \"snet-${local.basename}\"\n  resource_group_name                       = azurerm_resource_group.default.name\n  virtual_network_name                      = azurerm_virtual_network.default.name\n  address_prefixes                          = [\"10.0.1.0/24\"]\n  service_endpoints                         = []\n  private_endpoint_network_policies_enabled = true\n}\n\nresource \"azurerm_subnet\" \"bastion\" {\n  name                 = \"AzureBastionSubnet\"\n  resource_group_name  = azurerm_resource_group.default.name\n  virtual_network_name = azurerm_virtual_network.default.name\n  address_prefixes     = [\"10.0.10.0/27\"]\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      version = \"= 3.32.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "storage_account.tf",
+      "content": "resource \"azurerm_storage_account\" \"default\" {\n  name                     = \"st${local.safe_basename}\"\n  resource_group_name      = azurerm_resource_group.default.name\n  location                 = azurerm_resource_group.default.location\n  account_tier             = \"Standard\"\n  account_replication_type = \"LRS\"\n  account_kind             = \"StorageV2\"\n  is_hns_enabled           = true\n}\n\nresource \"azurerm_role_assignment\" \"sbdc_current_user\" {\n  scope                = azurerm_storage_account.default.id\n  role_definition_name = \"Storage Blob Data Contributor\"\n  principal_id         = data.azurerm_client_config.current.object_id\n}\n\nresource \"azurerm_role_assignment\" \"sbdc_syn_ws\" {\n  scope                = azurerm_storage_account.default.id\n  role_definition_name = \"Storage Blob Data Contributor\"\n  principal_id         = azurerm_synapse_workspace.default.identity[0].principal_id\n}\n\nresource \"azurerm_role_assignment\" \"c_syn_ws\" {\n  scope                = azurerm_storage_account.default.id\n  role_definition_name = \"Contributor\"\n  principal_id         = azurerm_synapse_workspace.default.identity[0].principal_id\n}\n\nresource \"azurerm_storage_data_lake_gen2_filesystem\" \"default\" {\n  name               = \"default\"\n  storage_account_id = azurerm_storage_account.default.id\n\n  depends_on = [\n    azurerm_role_assignment.sbdc_current_user\n  ]\n}\n\n# Virtual Network & Firewall configuration\n\nresource \"azurerm_storage_account_network_rules\" \"firewall_rules\" {\n  storage_account_id = azurerm_storage_account.default.id\n\n  default_action             = \"Deny\"\n  ip_rules                   = [data.http.ip.response_body]\n  virtual_network_subnet_ids = []\n  bypass                     = [\"None\"]\n}\n\n# DNS Zones\n\nresource \"azurerm_private_dns_zone\" \"zone_blob\" {\n  name                = \"privatelink.blob.core.windows.net\"\n  resource_group_name = azurerm_resource_group.default.name\n}\n\nresource \"azurerm_private_dns_zone\" \"zone_dfs\" {\n  name                = \"privatelink.dfs.core.windows.net\"\n  resource_group_name = azurerm_resource_group.default.name\n}\n\n# Linking of DNS zones to Virtual Network\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"zone_blob_link\" {\n  name                  = \"${local.basename}_link_blob\"\n  resource_group_name   = azurerm_resource_group.default.name\n  private_dns_zone_name = azurerm_private_dns_zone.zone_blob.name\n  virtual_network_id    = azurerm_virtual_network.default.id\n}\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"zone_dfs_link\" {\n  name                  = \"${local.basename}_link_dfs\"\n  resource_group_name   = azurerm_resource_group.default.name\n  private_dns_zone_name = azurerm_private_dns_zone.zone_dfs.name\n  virtual_network_id    = azurerm_virtual_network.default.id\n}\n\n# Private Endpoint configuration\n\nresource \"azurerm_private_endpoint\" \"pe_blob\" {\n  name                = \"pe-${azurerm_storage_account.default.name}-blob\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = azurerm_subnet.default.id\n\n  private_service_connection {\n    name                           = \"psc-blob-${local.basename}\"\n    private_connection_resource_id = azurerm_storage_account.default.id\n    subresource_names              = [\"blob\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group-blob\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.zone_blob.id]\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"pe_dfs\" {\n  name                = \"pe-${azurerm_storage_account.default.name}-dfs\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = azurerm_subnet.default.id\n\n  private_service_connection {\n    name                           = \"psc-dfs-${local.basename}\"\n    private_connection_resource_id = azurerm_storage_account.default.id\n    subresource_names              = [\"dfs\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group-dfs\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.zone_dfs.id]\n  }\n}"
+    },
+    {
+      "name": "synapse_pools.tf",
+      "content": "# Sql Pool \n\nresource \"azurerm_synapse_sql_pool\" \"syn_pool_sql\" {\n  name                 = \"syndp01\"\n  synapse_workspace_id = azurerm_synapse_workspace.default.id\n  sku_name             = \"DW100c\"\n  create_mode          = \"Default\"\n  count                = var.enable_syn_sqlpool ? 1 : 0\n}\n\n# Spark Pool \n\nresource \"azurerm_synapse_spark_pool\" \"syn_pool_spark\" {\n  name                 = \"synsp01\"\n  synapse_workspace_id = azurerm_synapse_workspace.default.id\n  node_size_family     = \"MemoryOptimized\"\n  node_size            = \"Small\"\n  count                = var.enable_syn_sparkpool ? 1 : 0\n\n  auto_scale {\n    max_node_count = 50\n    min_node_count = 3\n  }\n\n  auto_pause {\n    delay_in_minutes = 15\n  }\n}"
+    },
+    {
+      "name": "synapse_private_link_hub.tf",
+      "content": "resource \"azurerm_synapse_private_link_hub\" \"default\" {\n  name                = \"synplh${local.safe_basename}\"\n  resource_group_name = azurerm_resource_group.default.name\n  location            = azurerm_resource_group.default.location\n}\n\n# DNS Zones\n\nresource \"azurerm_private_dns_zone\" \"zone_web\" {\n  name                = \"privatelink.azuresynapse.net\"\n  resource_group_name = azurerm_resource_group.default.name\n}\n\n# Private Endpoint configuration\n\nresource \"azurerm_private_endpoint\" \"pe_web\" {\n  name                = \"pe-${azurerm_synapse_private_link_hub.default.name}-web\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = azurerm_subnet.default.id\n\n  private_service_connection {\n    name                           = \"psc-web-${local.basename}\"\n    private_connection_resource_id = azurerm_synapse_private_link_hub.default.id\n    subresource_names              = [\"web\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group-syn-web\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.zone_web.id]\n  }\n}"
+    },
+    {
+      "name": "synapse_workspace.tf",
+      "content": "resource \"azurerm_synapse_workspace\" \"default\" {\n  name                                 = \"syn-${local.basename}\"\n  resource_group_name                  = azurerm_resource_group.default.name\n  location                             = azurerm_resource_group.default.location\n  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.default.id\n\n  sql_administrator_login          = var.synadmin_username\n  sql_administrator_login_password = var.synadmin_password\n\n  managed_virtual_network_enabled = true\n  managed_resource_group_name     = \"${azurerm_resource_group.default.name}-syn-managed\"\n\n  public_network_access_enabled = false\n\n  aad_admin {\n    login     = var.aad_login.name\n    object_id = var.aad_login.object_id\n    tenant_id = var.aad_login.tenant_id\n  }\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n}\n\n# DNS Zones\n\nresource \"azurerm_private_dns_zone\" \"zone_dev\" {\n  name                = \"privatelink.dev.azuresynapse.net\"\n  resource_group_name = azurerm_resource_group.default.name\n}\n\nresource \"azurerm_private_dns_zone\" \"zone_sql\" {\n  name                = \"privatelink.sql.azuresynapse.net\"\n  resource_group_name = azurerm_resource_group.default.name\n}\n\n# Linking of DNS zones to Virtual Network\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"zone_dev_link\" {\n  name                  = \"${local.basename}_link_dev\"\n  resource_group_name   = azurerm_resource_group.default.name\n  private_dns_zone_name = azurerm_private_dns_zone.zone_dev.name\n  virtual_network_id    = azurerm_virtual_network.default.id\n}\n\nresource \"azurerm_private_dns_zone_virtual_network_link\" \"zone_sql_link\" {\n  name                  = \"${local.basename}_link_sql\"\n  resource_group_name   = azurerm_resource_group.default.name\n  private_dns_zone_name = azurerm_private_dns_zone.zone_sql.name\n  virtual_network_id    = azurerm_virtual_network.default.id\n}\n\n# Private Endpoint configuration\n\nresource \"azurerm_private_endpoint\" \"pe_dev\" {\n  name                = \"pe-${azurerm_synapse_workspace.default.name}-dev\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = azurerm_subnet.default.id\n\n  private_service_connection {\n    name                           = \"psc-dev-${local.basename}\"\n    private_connection_resource_id = azurerm_synapse_workspace.default.id\n    subresource_names              = [\"dev\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group-dev\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.zone_dev.id]\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"pe_sql\" {\n  name                = \"pe-${azurerm_synapse_workspace.default.name}-sql\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = azurerm_subnet.default.id\n\n  private_service_connection {\n    name                           = \"psc-sql-${local.basename}\"\n    private_connection_resource_id = azurerm_synapse_workspace.default.id\n    subresource_names              = [\"sql\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group-sql\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.zone_sql.id]\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"pe_sqlondemand\" {\n  name                = \"pe-${azurerm_synapse_workspace.default.name}-sqlondemand\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = azurerm_subnet.default.id\n\n  private_service_connection {\n    name                           = \"psc-sqlondemand-${local.basename}\"\n    private_connection_resource_id = azurerm_synapse_workspace.default.id\n    subresource_names              = [\"sqlondemand\"]\n    is_manual_connection           = false\n  }\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group-sqlondemand\"\n    private_dns_zone_ids = [azurerm_private_dns_zone.zone_sql.id]\n  }\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"name\" {\n  type        = string\n  description = \"Name of the deployment\"\n}\n\nvariable \"environment\" {\n  type        = string\n  description = \"Name of the environment\"\n  default     = \"dev\"\n}\n\nvariable \"location\" {\n  type        = string\n  description = \"Location of the resources\"\n  default     = \"East US\"\n}\n\nvariable \"aad_login\" {\n  description = \"AAD login\"\n  type = object({\n    name      = string\n    object_id = string\n    tenant_id = string\n  })\n}\n\nvariable \"jumphost_username\" {\n  type        = string\n  description = \"Admin username of the VM\"\n}\n\nvariable \"jumphost_password\" {\n  type        = string\n  description = \"Password for the admin username of the VM\"\n}\n\nvariable \"synadmin_username\" {\n  type        = string\n  description = \"Specifies The login name of the SQL administrator\"\n}\n\nvariable \"synadmin_password\" {\n  type        = string\n  description = \"The Password associated with the sql_administrator_login for the SQL administrator\"\n}\n\nvariable \"enable_syn_sparkpool\" {\n  type        = bool\n  description = \"Variable to enable or disable Synapse Spark pool deployment\"\n  default     = false\n}\n\nvariable \"enable_syn_sqlpool\" {\n  type        = bool\n  description = \"Variable to enable or disable Synapse Dedicated SQL pool deployment\"\n  default     = false\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/201-synapse-secure\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "스토리지·네트워크·워크스페이스 접근 경계를 추적한다."
+  }
+}

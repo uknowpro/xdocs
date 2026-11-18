@@ -1,0 +1,306 @@
+{
+  "version": 1,
+  "title": "AWS · ECS 워크로드와 공유 파일 시스템",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.aws_cloudwatch_log_group_efs_updater",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 194,
+      "address": "aws_cloudwatch_log_group.aws_cloudwatch_log_group_efs_updater",
+      "references": [
+        "aws_kms_key.aws_kms_key"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_ecr_lifecycle_policy",
+      "label": "aws_ecr_lifecycle_policy.ecr_lifecycle_policy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 119,
+      "address": "aws_ecr_lifecycle_policy.ecr_lifecycle_policy",
+      "references": [
+        "aws_ecr_repository.aws_ecr_repository_efs_updater"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_ecr_repository",
+      "label": "aws_ecr_repository.aws_ecr_repository_efs_updater",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 106,
+      "address": "aws_ecr_repository.aws_ecr_repository_efs_updater",
+      "references": [
+        "aws_kms_key.aws_kms_key"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_ecs_cluster",
+      "label": "aws_ecs_cluster.this_ecs_cluster",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 148,
+      "address": "aws_ecs_cluster.this_ecs_cluster",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_ecs_task_definition",
+      "label": "aws_ecs_task_definition.aws_ecs_task_definition_efs_updater",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 204,
+      "address": "aws_ecs_task_definition.aws_ecs_task_definition_efs_updater",
+      "references": [
+        "aws_ecr_repository.aws_ecr_repository_efs_updater",
+        "aws_cloudwatch_log_group.aws_cloudwatch_log_group_efs_updater",
+        "aws_iam_role.this_task_role",
+        "aws_efs_file_system.efs_volume"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_efs_file_system",
+      "label": "aws_efs_file_system.efs_volume",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 89,
+      "address": "aws_efs_file_system.efs_volume",
+      "references": [
+        "aws_kms_key.aws_kms_key"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_efs_mount_target",
+      "label": "aws_efs_mount_target.ecs_space_az",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 96,
+      "multipleInstances": true,
+      "address": "aws_efs_mount_target.ecs_space_az",
+      "references": [
+        "aws_efs_file_system.efs_volume",
+        "aws_security_group.this_security_group"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.this_iam_policy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 176,
+      "address": "aws_iam_policy.this_iam_policy",
+      "references": [
+        "aws_kms_key.aws_kms_key"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_policy_attachment",
+      "label": "aws_iam_policy_attachment.this_aws_iam_policy_attachment",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 185,
+      "address": "aws_iam_policy_attachment.this_aws_iam_policy_attachment",
+      "references": [
+        "aws_iam_policy.this_iam_policy",
+        "aws_iam_role.this_task_role"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.this_task_role",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 156,
+      "address": "aws_iam_role.this_task_role",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_kms_alias",
+      "label": "aws_kms_alias.aws_kms_key_alias",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 81,
+      "address": "aws_kms_alias.aws_kms_key_alias",
+      "references": [
+        "aws_kms_key.aws_kms_key"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_kms_key",
+      "label": "aws_kms_key.aws_kms_key",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 66,
+      "address": "aws_kms_key.aws_kms_key",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.this_security_group",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 44,
+      "address": "aws_security_group.this_security_group",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "null_resource",
+      "label": "null_resource.null_resource_efs_updater",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 136,
+      "address": "null_resource.null_resource_efs_updater",
+      "references": [
+        "aws_ecr_repository.aws_ecr_repository_efs_updater",
+        "data.external.external_efs_updater"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 6,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "data.aws_region.current",
+      "references": []
+    },
+    {
+      "id": "n_import_16",
+      "kind": "external",
+      "label": "data.external.external_efs_updater",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 129,
+      "address": "data.external.external_efs_updater",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_region\" \"current\" {}\ndata \"aws_caller_identity\" \"current\" {}\n\n####################################################\n# Locals and Tagging\n####################################################\n\nlocals {\n  common_tags = {\n    organization = var.organization\n    env          = var.env\n  }\n  region                 = data.aws_region.current.region\n  account_id             = data.aws_caller_identity.current.account_id\n  standard_resource_name = \"${var.env}-${var.organization}\"\n  ecr_base_arn           = \"${local.account_id}.dkr.ecr.${local.region}.amazonaws.com\"\n  aws_path               = \"/${var.env}/${var.organization}/\"\n  containercode_dir      = \"./containercode/\"\n  aws_subnets            = var.aws_subnets\n}\n\n/* Uncomment to dynamically get list of subnets based on tags\n#################################################################################\n# Query Subnets (Assumption that you have a VPC with subnets tagged as Private)\n#################################################################################\ndata \"aws_subnets\" \"private_subnet\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [var.aws_vpc_id]\n  }\n  tags = {\n    Network = \"private\"\n  }\n}\n*/\n\n##############################\n# Create Security Group\n##############################\nresource \"aws_security_group\" \"this_security_group\" {\n  name        = local.standard_resource_name\n  description = \"Allow only outbound traffic for ECS Container\"\n  vpc_id      = var.aws_vpc_id\n  tags        = local.common_tags\n  ingress {\n    from_port = 0\n    to_port   = 0\n    protocol  = \"-1\"\n    self      = true\n  }\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n}\n\n##############################\n# Create KMS Key & Policy\n##############################\nresource \"aws_kms_key\" \"aws_kms_key\" {\n  description             = local.standard_resource_name\n  deletion_window_in_days = 30\n  policy = templatefile(\"templates/kms-policy.json\",\n    {\n      account_number         = local.account_id\n      standard_resource_name = local.standard_resource_name\n      region                 = local.region\n    }\n  )\n  multi_region        = true\n  enable_key_rotation = true\n  tags                = merge(local.common_tags)\n}\n\nresource \"aws_kms_alias\" \"aws_kms_key_alias\" {\n  name          = \"alias/${local.standard_resource_name}\"\n  target_key_id = aws_kms_key.aws_kms_key.key_id\n}\n\n#################################\n# Create an EFS and Mount Target\n#################################\nresource \"aws_efs_file_system\" \"efs_volume\" {\n  encrypted        = true\n  kms_key_id       = aws_kms_key.aws_kms_key.arn\n  performance_mode = \"generalPurpose\"\n  tags             = local.common_tags\n}\n\nresource \"aws_efs_mount_target\" \"ecs_space_az\" {\n  for_each        = local.aws_subnets\n  file_system_id  = aws_efs_file_system.efs_volume.id\n  subnet_id       = each.value\n  security_groups = [aws_security_group.this_security_group.id]\n}\n\n###########\n# ECR\n###########\nresource \"aws_ecr_repository\" \"aws_ecr_repository_efs_updater\" {\n  name                 = \"${local.standard_resource_name}-efs-updater\"\n  tags                 = local.common_tags\n  image_tag_mutability = \"MUTABLE\"\n  image_scanning_configuration {\n    scan_on_push = true\n  }\n  encryption_configuration {\n    encryption_type = \"KMS\"\n    kms_key         = aws_kms_key.aws_kms_key.arn\n  }\n}\n\nresource \"aws_ecr_lifecycle_policy\" \"ecr_lifecycle_policy\" {\n  policy = templatefile(\"templates/ecr-lifecycle-policy.json\",\n    {}\n  )\n  repository = aws_ecr_repository.aws_ecr_repository_efs_updater.name\n}\n\n#####################################\n# Checks if build folder has changed\n#####################################\ndata \"external\" \"external_efs_updater\" {\n  program = [\"bash\", \"${path.module}/bin/dir_md5.sh\", \"${path.module}/${local.containercode_dir}\"]\n}\n\n########################################################\n# Builds service and pushes it into aws_ecr_repository\n########################################################\nresource \"null_resource\" \"null_resource_efs_updater\" {\n  depends_on = [aws_ecr_repository.aws_ecr_repository_efs_updater]\n  #triggers   = { always_run = \"${timestamp()}\" }\n  triggers = { build_folder_content_md5 = data.external.external_efs_updater.result.md5 }\n  provisioner \"local-exec\" {\n    command = \"bash ${path.module}/bin/build.sh ${local.ecr_base_arn} ${path.module}/${local.containercode_dir} ${aws_ecr_repository.aws_ecr_repository_efs_updater.name} ${aws_ecr_repository.aws_ecr_repository_efs_updater.repository_url} ${local.region}\"\n  }\n}\n\n########################################################\n# Create ECS Cluster\n########################################################\nresource \"aws_ecs_cluster\" \"this_ecs_cluster\" {\n  name = \"${local.standard_resource_name}-efs-updater\"\n  tags = local.common_tags\n}\n\n########################################################\n# Create ECS role, policy and policy attachment\n########################################################\nresource \"aws_iam_role\" \"this_task_role\" {\n  name               = local.standard_resource_name\n  path               = local.aws_path\n  description        = \"Role to be Assumed by ECS Task\"\n  tags               = local.common_tags\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"},\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"this_iam_policy\" {\n  name = local.standard_resource_name\n  policy = templatefile(\"templates/ecs-role.json\", {\n    account_number         = local.account_id\n    standard_resource_name = local.standard_resource_name\n    kms_key_arn            = aws_kms_key.aws_kms_key.arn\n  })\n}\n\nresource \"aws_iam_policy_attachment\" \"this_aws_iam_policy_attachment\" {\n  name       = local.standard_resource_name\n  roles      = [aws_iam_role.this_task_role.name]\n  policy_arn = aws_iam_policy.this_iam_policy.arn\n}\n\n###############################\n# Cloudwatch log Group\n###############################\nresource \"aws_cloudwatch_log_group\" \"aws_cloudwatch_log_group_efs_updater\" {\n  name              = \"/aws/${local.standard_resource_name}-efs-updater\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.aws_kms_key.arn\n  tags              = local.common_tags\n}\n\n################################\n# ECS Task Definition\n###############################\nresource \"aws_ecs_task_definition\" \"aws_ecs_task_definition_efs_updater\" {\n  family                   = \"${local.standard_resource_name}-efs-updater\"\n  execution_role_arn       = aws_iam_role.this_task_role.arn\n  task_role_arn            = aws_iam_role.this_task_role.arn\n  network_mode             = \"awsvpc\"\n  requires_compatibilities = [\"FARGATE\"]\n  cpu                      = var.task_cpu\n  memory                   = var.task_memory\n  tags                     = local.common_tags\n  container_definitions    = <<DEFINITION\n[\n  {\n    \"name\": \"${local.standard_resource_name}\",\n    \"image\": \"${aws_ecr_repository.aws_ecr_repository_efs_updater.repository_url}:latest\",\n    \"cpu\": ${var.task_cpu},\n    \"memory\": ${var.task_memory},\n    \"memoryReservation\": 300,\n    \"networkMode\": \"awsvpc\",\n    \"logConfiguration\": {\n        \"logDriver\": \"awslogs\",\n        \"options\": {\n          \"awslogs-group\": \"${aws_cloudwatch_log_group.aws_cloudwatch_log_group_efs_updater.name}\",\n          \"awslogs-region\": \"${local.region}\",\n          \"awslogs-stream-prefix\": \"${local.standard_resource_name}\"\n        }\n    },\n    \"environment\": [\n      {\n        \"name\": \"ENV\",\n        \"value\": \"${var.env}\"\n      }\n    ],\n    \"mountPoints\" : [\n      {\n        \"sourceVolume\" : \"efs-vol\",\n        \"containerPath\" : \"/efs\",\n        \"readOnly\" : false\n      }\n    ]\n  }\n]\nDEFINITION\n  volume {\n    name = \"efs-vol\"\n    efs_volume_configuration {\n      file_system_id = aws_efs_file_system.efs_volume.id\n      root_directory = \"/\"\n    }\n  }\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": ""
+    },
+    {
+      "name": "variables.tf",
+      "content": "####################################################\n# Variables with Defaults\n####################################################\nvariable \"env\" {\n  type        = string\n  description = \"Name of the environment this infrastructure is for\"\n  default     = \"testing\"\n}\n\nvariable \"organization\" {\n  type        = string\n  description = \"Name of the organization this infrastructure is for\"\n  default     = \"serverlessland\"\n}\n\nvariable \"task_cpu\" {\n  type        = number\n  description = \"VCPUs for ECS Task\"\n  default     = 512\n}\n\nvariable \"task_memory\" {\n  type        = number\n  description = \"Memory for ECS Task\"\n  default     = 2048\n}\n\n####################################################\n# Variables without Defaults\n####################################################\nvariable \"aws_vpc_id\" {\n  type        = string\n  description = \"VPC ID for ECS Task and EFS\"\n}\n\nvariable \"aws_subnets\" {\n  type        = set(any)\n  description = \"A list of subnets inside the VPC\"\n}"
+    },
+    {
+      "name": "versions.tf",
+      "content": "terraform {\n  required_version = \">= 1.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n    external = {\n      source  = \"hashicorp/external\"\n      version = \">= 2.3\"\n    }\n    null = {\n      source  = \"hashicorp/null\"\n      version = \">= 3.2\"\n    }\n  }\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/ecs-efs-integration/bash/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "태스크 교체 시 파일 수명과 네트워크 마운트 경계를 비교한다."
+  }
+}

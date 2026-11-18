@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "title": "Azure · 기밀 컴퓨팅 워크로드 경계",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_disk_encryption_set",
+      "label": "azurerm_disk_encryption_set.example",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 65,
+      "address": "azurerm_disk_encryption_set.example",
+      "references": [
+        "azurerm_key_vault_key.example",
+        "azurerm_resource_group.example",
+        "random_pet.prefix"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_key_vault",
+      "label": "azurerm_key_vault.example",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 15,
+      "address": "azurerm_key_vault.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_pet.prefix",
+        "data.azurerm_client_config.current"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_key_vault_access_policy",
+      "label": "azurerm_key_vault_access_policy.current_user",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "azurerm_key_vault_access_policy.current_user",
+      "references": [
+        "azurerm_key_vault.example",
+        "data.azurerm_client_config.current"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_key_vault_access_policy",
+      "label": "azurerm_key_vault_access_policy.disk-encryption",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 77,
+      "address": "azurerm_key_vault_access_policy.disk-encryption",
+      "references": [
+        "azurerm_key_vault.example",
+        "azurerm_disk_encryption_set.example"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_key_vault_key",
+      "label": "azurerm_key_vault_key.example",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 47,
+      "address": "azurerm_key_vault_key.example",
+      "references": [
+        "azurerm_key_vault_access_policy.current_user",
+        "azurerm_key_vault.example"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_linux_virtual_machine",
+      "label": "azurerm_linux_virtual_machine.test",
+      "x": 300,
+      "y": 200,
+      "props": {
+        "size": "Standard_DC2as_v5"
+      },
+      "original": {
+        "size": "Standard_DC2as_v5"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 122,
+      "address": "azurerm_linux_virtual_machine.test",
+      "references": [
+        "tls_private_key.vm_key",
+        "azurerm_key_vault_access_policy.disk-encryption",
+        "azurerm_resource_group.example",
+        "random_pet.prefix",
+        "azurerm_network_interface.example",
+        "azurerm_disk_encryption_set.example"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.example.id}",
+      "nicAddress": "azurerm_network_interface.example"
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.example",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 105,
+      "address": "azurerm_network_interface.example",
+      "references": [
+        "azurerm_subnet.example",
+        "azurerm_resource_group.example",
+        "random_pet.prefix"
+      ],
+      "scopeAddress": "azurerm_subnet.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3166,
+        "address": "azurerm_subnet.example",
+        "otherRefs": [
+          "azurerm_resource_group.example",
+          "random_pet.prefix"
+        ]
+      }
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.example",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 3,
+      "address": "azurerm_resource_group.example",
+      "references": [
+        "random_pet.prefix"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.example",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 98,
+      "address": "azurerm_subnet.example",
+      "references": [
+        "random_pet.prefix",
+        "azurerm_resource_group.example",
+        "azurerm_virtual_network.example"
+      ],
+      "scopeAddress": "azurerm_virtual_network.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2753,
+        "address": "azurerm_virtual_network.example",
+        "otherRefs": [
+          "random_pet.prefix",
+          "azurerm_resource_group.example"
+        ]
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.example",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 91,
+      "address": "azurerm_virtual_network.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_pet.prefix"
+      ],
+      "scopeAddress": "azurerm_resource_group.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2532,
+        "address": "azurerm_resource_group.example",
+        "otherRefs": [
+          "azurerm_resource_group.example",
+          "random_pet.prefix"
+        ]
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "random_pet",
+      "label": "random_pet.prefix",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.prefix",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "tls_private_key",
+      "label": "tls_private_key.vm_key",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 117,
+      "address": "tls_private_key.vm_key",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_client_config",
+      "label": "data.azurerm_client_config.current",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 9,
+      "address": "data.azurerm_client_config.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"prefix\" {}\n\nresource \"azurerm_resource_group\" \"example\" {\n  name     = \"${random_pet.prefix.id}-rg\"\n  location = var.location\n}\n\n// Key Vault and Disk Encryption Set\ndata \"azurerm_client_config\" \"current\" {}\n\nlocals {\n  current_user_object_id = coalesce(var.msi_id, data.azurerm_client_config.current.object_id)\n}\n\nresource \"azurerm_key_vault\" \"example\" {\n  name                        = \"${random_pet.prefix.id}-kv\"\n  location                    = azurerm_resource_group.example.location\n  resource_group_name         = azurerm_resource_group.example.name\n  sku_name                    = \"premium\"\n  tenant_id                   = data.azurerm_client_config.current.tenant_id\n  enabled_for_disk_encryption = true\n  purge_protection_enabled    = true\n  soft_delete_retention_days  = 7\n}\n\nresource \"azurerm_key_vault_access_policy\" \"current_user\" {\n  key_vault_id = azurerm_key_vault.example.id\n  tenant_id    = data.azurerm_client_config.current.tenant_id\n  object_id    = local.current_user_object_id\n\n  key_permissions = [\n    \"Create\",\n    \"Delete\",\n    \"Get\",\n    \"Purge\",\n    \"Update\",\n    \"GetRotationPolicy\",\n  ]\n\n  secret_permissions = [\n    \"Get\",\n    \"Delete\",\n    \"Set\",\n  ]\n}\n\nresource \"azurerm_key_vault_key\" \"example\" {\n  name         = \"examplekey\"\n  key_vault_id = azurerm_key_vault.example.id\n  key_type     = \"RSA-HSM\"\n  key_size     = 2048\n\n  key_opts = [\n    \"decrypt\",\n    \"encrypt\",\n    \"sign\",\n    \"unwrapKey\",\n    \"verify\",\n    \"wrapKey\",\n  ]\n\n  depends_on = [azurerm_key_vault_access_policy.current_user]\n}\n\nresource \"azurerm_disk_encryption_set\" \"example\" {\n  name                = \"${random_pet.prefix.id}-des\"\n  resource_group_name = azurerm_resource_group.example.name\n  location            = azurerm_resource_group.example.location\n  key_vault_key_id    = azurerm_key_vault_key.example.id\n  encryption_type     = \"ConfidentialVmEncryptedWithCustomerKey\"\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n}\n\nresource \"azurerm_key_vault_access_policy\" \"disk-encryption\" {\n  key_vault_id = azurerm_key_vault.example.id\n\n  key_permissions = [\n    \"Get\",\n    \"WrapKey\",\n    \"UnwrapKey\",\n  ]\n\n  tenant_id = azurerm_disk_encryption_set.example.identity.0.tenant_id\n  object_id = azurerm_disk_encryption_set.example.identity.0.principal_id\n}\n\n// Virtual Machine\nresource \"azurerm_virtual_network\" \"example\" {\n  name                = \"${random_pet.prefix.id}-vnet\"\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n}\n\nresource \"azurerm_subnet\" \"example\" {\n  name                 = \"${random_pet.prefix.id}-subnet\"\n  resource_group_name  = azurerm_resource_group.example.name\n  virtual_network_name = azurerm_virtual_network.example.name\n  address_prefixes     = [\"10.0.2.0/24\"]\n}\n\nresource \"azurerm_network_interface\" \"example\" {\n  name                = \"${random_pet.prefix.id}-nic\"\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n\n  ip_configuration {\n    name                          = \"internal\"\n    subnet_id                     = azurerm_subnet.example.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n}\n\nresource \"tls_private_key\" \"vm_key\" {\n  algorithm = \"RSA\"\n  rsa_bits  = 4096\n}\n\nresource \"azurerm_linux_virtual_machine\" \"test\" {\n  name                = \"${random_pet.prefix.id}-vm\"\n  resource_group_name = azurerm_resource_group.example.name\n  location            = azurerm_resource_group.example.location\n\n  # Available sizes for Confidential VM can be found at: https://docs.microsoft.com/azure/confidential-computing/confidential-vm-overview\n  size = \"Standard_DC2as_v5\"\n\n  admin_username        = \"azureuser\"\n  network_interface_ids = [\n    azurerm_network_interface.example.id,\n  ]\n\n  admin_ssh_key {\n    username   = \"azureuser\"\n    public_key = tls_private_key.vm_key.public_key_openssh\n  }\n\n  os_disk {\n    caching                          = \"ReadWrite\"\n    storage_account_type             = \"Standard_LRS\"\n    security_encryption_type         = \"DiskWithVMGuestState\"\n    secure_vm_disk_encryption_set_id = azurerm_disk_encryption_set.example.id\n  }\n\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"0001-com-ubuntu-confidential-vm-focal\"\n    sku       = \"20_04-lts-cvm\"\n    version   = \"latest\"\n  }\n\n  vtpm_enabled        = true\n  secure_boot_enabled = true\n\n  depends_on = [\n    azurerm_key_vault_access_policy.disk-encryption,\n  ]\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"vm_private_key\" {\r\n  sensitive = true\r\n  value     = tls_private_key.vm_key.private_key_pem\r\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\r\n  required_version = \">=1.0\"\r\n\r\n  required_providers {\r\n    azurerm = {\r\n      source  = \"hashicorp/azurerm\"\r\n      version = \">= 3.0, < 4.0\"\r\n    }\r\n    random = {\r\n      source  = \"hashicorp/random\"\r\n      version = \">= 3.0\"\r\n    }\r\n    tls = {\r\n      source  = \"hashicorp/tls\"\r\n      version = \"4.0.4\"\r\n    }\r\n  }\r\n}\r\n\r\nprovider \"azurerm\" {\r\n  features {\r\n    key_vault {\r\n      recover_soft_deleted_key_vaults    = false\r\n      purge_soft_delete_on_destroy       = false\r\n      purge_soft_deleted_keys_on_destroy = false\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location where resources will be created\"\n}\n\nvariable \"msi_id\" {\n  type = string\n  default = null\n  description = \"If you're executing the test with user assigned identity, please pass the identity principal id to this variable.\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/201-confidential-vm\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "기밀 VM과 연결된 스토리지·네트워크 의존성을 검토한다."
+  }
+}

@@ -1,0 +1,340 @@
+{
+  "version": 1,
+  "title": "AWS · Java API 버전 게시와 시작 지연",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.productapistageprod",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 182,
+      "address": "aws_api_gateway_deployment.productapistageprod",
+      "references": [
+        "aws_api_gateway_integration.createproduct-lambda",
+        "aws_api_gateway_rest_api.unicornstockbroker_apigw"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.createproduct-lambda",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 160,
+      "address": "aws_api_gateway_integration.createproduct-lambda",
+      "references": [
+        "aws_api_gateway_method.createtransactions",
+        "aws_api_gateway_rest_api.unicornstockbroker_apigw",
+        "aws_lambda_alias.UnicornStockBrokerFunction_SnapStartAlias"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.createtransactions",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 35,
+      "address": "aws_api_gateway_method.createtransactions",
+      "references": [
+        "aws_api_gateway_resource.transactions",
+        "aws_api_gateway_rest_api.unicornstockbroker_apigw"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.transactions",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 29,
+      "address": "aws_api_gateway_resource.transactions",
+      "references": [
+        "aws_api_gateway_rest_api.unicornstockbroker_apigw"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.unicornstockbroker_apigw",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 21,
+      "address": "aws_api_gateway_rest_api.unicornstockbroker_apigw",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.prod",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 191,
+      "address": "aws_api_gateway_stage.prod",
+      "references": [
+        "aws_api_gateway_deployment.productapistageprod",
+        "aws_api_gateway_rest_api.unicornstockbroker_apigw"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_dynamodb_table",
+      "label": "aws_dynamodb_table.transactions_table",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 9,
+      "address": "aws_dynamodb_table.transactions_table",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.UnicornStockBrokerFunctionPolicy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 109,
+      "address": "aws_iam_policy.UnicornStockBrokerFunctionPolicy",
+      "references": [
+        "data.aws_iam_policy_document.unicornstockbrokerfunctionpolicy"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.UnicornStockBrokerFunctionRole",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 55,
+      "address": "aws_iam_role.UnicornStockBrokerFunctionRole",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.UnicornStockBrokerFunctionRolePolicy",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 116,
+      "address": "aws_iam_role_policy_attachment.UnicornStockBrokerFunctionRolePolicy",
+      "references": [
+        "aws_iam_policy.UnicornStockBrokerFunctionPolicy",
+        "aws_iam_role.UnicornStockBrokerFunctionRole"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.UnicornStockBrokerFunctionRolePolicy2",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 120,
+      "address": "aws_iam_role_policy_attachment.UnicornStockBrokerFunctionRolePolicy2",
+      "references": [
+        "aws_iam_role.UnicornStockBrokerFunctionRole"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_lambda_alias",
+      "label": "aws_lambda_alias.UnicornStockBrokerFunction_SnapStartAlias",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 153,
+      "address": "aws_lambda_alias.UnicornStockBrokerFunction_SnapStartAlias",
+      "references": [
+        "aws_lambda_function.UnicornStockBrokerFunction"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.UnicornStockBrokerFunction",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 125,
+      "address": "aws_lambda_function.UnicornStockBrokerFunction",
+      "references": [
+        "aws_s3_bucket.validationfiles-bucket",
+        "aws_dynamodb_table.transactions_table",
+        "aws_iam_role.UnicornStockBrokerFunctionRole"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.apigw-CreateProductHandler",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 172,
+      "address": "aws_lambda_permission.apigw-CreateProductHandler",
+      "references": [
+        "aws_lambda_function.UnicornStockBrokerFunction",
+        "aws_lambda_alias.UnicornStockBrokerFunction_SnapStartAlias",
+        "aws_api_gateway_rest_api.unicornstockbroker_apigw",
+        "aws_api_gateway_method.createtransactions",
+        "aws_api_gateway_resource.transactions"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.validationfiles-bucket",
+      "x": 540,
+      "y": 480,
+      "props": {
+        "name": "validationfiless3bucket"
+      },
+      "original": {
+        "name": "validationfiless3bucket"
+      },
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 42,
+      "address": "aws_s3_bucket.validationfiles-bucket",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_s3_bucket_server_side_encryption_configuration",
+      "label": "aws_s3_bucket_server_side_encryption_configuration.bucketsseconfig",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 45,
+      "address": "aws_s3_bucket_server_side_encryption_configuration.bucketsseconfig",
+      "references": [
+        "aws_s3_bucket.validationfiles-bucket"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 3,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.unicornstockbrokerfunctionpolicy",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 74,
+      "address": "data.aws_iam_policy_document.unicornstockbrokerfunctionpolicy",
+      "references": [
+        "data.aws_region.current",
+        "data.aws_caller_identity.current",
+        "aws_dynamodb_table.transactions_table",
+        "aws_s3_bucket.validationfiles-bucket"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "stack.tf",
+      "sourceLine": 2,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "stack.tf",
+      "content": "provider \"aws\" {}\ndata \"aws_region\" \"current\" {}\ndata \"aws_caller_identity\" \"current\" {}\nvariable \"SourceCodePath\" {\n  type = string\n  default = \"./UnicornStockLambda/target/UnicornStockBroker-1.0-aws.jar\"\n}\n\nresource \"aws_dynamodb_table\" \"transactions_table\" {\n\n  name         = \"TransactionsTable\"\n  billing_mode = \"PAY_PER_REQUEST\"\n  hash_key     = \"transactionId\"\n\n  attribute {\n    name = \"transactionId\"\n    type = \"S\"\n  }\n}\n\nresource \"aws_api_gateway_rest_api\" \"unicornstockbroker_apigw\" {\n  name        = \"unicornstockbroker_apigw\"\n  description = \"Unicorn Stock Broker API Gateway\"\n  endpoint_configuration {\n    types = [\"REGIONAL\"]\n  }\n}\n\nresource \"aws_api_gateway_resource\" \"transactions\" {\n  rest_api_id = aws_api_gateway_rest_api.unicornstockbroker_apigw.id\n  parent_id   = aws_api_gateway_rest_api.unicornstockbroker_apigw.root_resource_id\n  path_part   = \"transactions\"\n}\n\nresource \"aws_api_gateway_method\" \"createtransactions\" {\n  rest_api_id   = aws_api_gateway_rest_api.unicornstockbroker_apigw.id\n  resource_id   = aws_api_gateway_resource.transactions.id\n  http_method   = \"POST\"\n  authorization = \"NONE\"\n}\n\nresource \"aws_s3_bucket\" \"validationfiles-bucket\" {\n  bucket = \"validationfiless3bucket\"\n}\nresource \"aws_s3_bucket_server_side_encryption_configuration\" \"bucketsseconfig\"{\n  bucket = aws_s3_bucket.validationfiles-bucket.bucket\n  rule {\n    apply_server_side_encryption_by_default {\n      sse_algorithm = \"AES256\"\n    }\n  }\n}\n\n\nresource \"aws_iam_role\" \"UnicornStockBrokerFunctionRole\" {\n  name               = \"UnicornStockBrokerFunctionRole\"\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"lambda.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\ndata \"aws_iam_policy_document\" \"unicornstockbrokerfunctionpolicy\" {\n  statement {\n    effect  = \"Allow\"\n    actions = [\n      \"dynamodb:GetItem\",\n      \"dynamodb:DeleteItem\",\n      \"dynamodb:PutItem\",\n      \"dynamodb:Scan\",\n      \"dynamodb:Query\",\n      \"dynamodb:UpdateItem\",\n      \"dynamodb:BatchWriteItem\",\n      \"dynamodb:BatchGetItem\",\n      \"dynamodb:DescribeTable\",\n      \"dynamodb:ConditionCheckItem\"\n    ]\n    resources = [\n      \"arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${aws_dynamodb_table.transactions_table.name}\",\n      \"arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${aws_dynamodb_table.transactions_table.name}/index/*\",\n    ]\n  }\n  statement {\n    effect  = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n      \"s3:ListBucket\",\n      \"s3:GetBucketLocation\",\n      \"s3:GetObjectVersion\",\n      \"s3:GetLifecycleConfiguration\"\n    ]\n    resources = [\n      \"arn:aws:s3:::${aws_s3_bucket.validationfiles-bucket.id}\",\n      \"arn:aws:s3:::${aws_s3_bucket.validationfiles-bucket.id}/*\"\n    ]\n  }\n}\nresource \"aws_iam_policy\" \"UnicornStockBrokerFunctionPolicy\" {\n  name        = \"UnicornStockBrokerFunctionPolicy\"\n  path        = \"/\"\n  description = \"IAM policy for Stock Broker lambda functions\"\n  policy      = data.aws_iam_policy_document.unicornstockbrokerfunctionpolicy.json\n}\n\nresource \"aws_iam_role_policy_attachment\" \"UnicornStockBrokerFunctionRolePolicy\" {\n  role       = aws_iam_role.UnicornStockBrokerFunctionRole.name\n  policy_arn = aws_iam_policy.UnicornStockBrokerFunctionPolicy.arn\n}\nresource \"aws_iam_role_policy_attachment\" \"UnicornStockBrokerFunctionRolePolicy2\" {\n  role       = aws_iam_role.UnicornStockBrokerFunctionRole.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_lambda_function\" \"UnicornStockBrokerFunction\" {\n\n  function_name = \"UnicornStockBrokerFunction\"\n\n  filename = var.SourceCodePath\n\n  handler = \"org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest\"\n  runtime = \"java25\"\n\n  environment {\n    variables = {\n      TABLE_NAME = aws_dynamodb_table.transactions_table.name\n      BUCKET_NAME = aws_s3_bucket.validationfiles-bucket.id\n      JAVA_TOOL_OPTIONS = \"-XX:+TieredCompilation -XX:TieredStopAtLevel=1\"\n    }\n  }\n\n  source_code_hash = filebase64sha256(var.SourceCodePath)\n\n  role = aws_iam_role.UnicornStockBrokerFunctionRole.arn\n\n  timeout     = \"200\"\n  memory_size = \"2048\"\n  snap_start {\n    apply_on =\"PublishedVersions\"\n  }\n  publish = true\n}\nresource \"aws_lambda_alias\" \"UnicornStockBrokerFunction_SnapStartAlias\" {\n  name             = \"SnapStart\"\n  description      = \"Alias for SnapStart\"\n  function_name    = aws_lambda_function.UnicornStockBrokerFunction.function_name\n  function_version = aws_lambda_function.UnicornStockBrokerFunction.version\n}\n\nresource \"aws_api_gateway_integration\" \"createproduct-lambda\" {\n\n  rest_api_id = aws_api_gateway_rest_api.unicornstockbroker_apigw.id\n  resource_id = aws_api_gateway_method.createtransactions.resource_id\n  http_method = aws_api_gateway_method.createtransactions.http_method\n\n  integration_http_method = \"POST\"\n  type                    = \"AWS_PROXY\"\n\n  uri = aws_lambda_alias.UnicornStockBrokerFunction_SnapStartAlias.invoke_arn\n}\n\nresource \"aws_lambda_permission\" \"apigw-CreateProductHandler\" {\n\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.UnicornStockBrokerFunction.function_name\n  qualifier = aws_lambda_alias.UnicornStockBrokerFunction_SnapStartAlias.name\n  principal     = \"apigateway.amazonaws.com\"\n\n  source_arn = \"${aws_api_gateway_rest_api.unicornstockbroker_apigw.execution_arn}/*/${aws_api_gateway_method.createtransactions.http_method}${aws_api_gateway_resource.transactions.path}\"\n}\n\nresource \"aws_api_gateway_deployment\" \"productapistageprod\" {\n\n  depends_on = [\n    aws_api_gateway_integration.createproduct-lambda\n  ]\n\n  rest_api_id = aws_api_gateway_rest_api.unicornstockbroker_apigw.id\n}\n\nresource \"aws_api_gateway_stage\" \"prod\" {\n  rest_api_id   = aws_api_gateway_rest_api.unicornstockbroker_apigw.id\n  deployment_id = aws_api_gateway_deployment.productapistageprod.id\n  stage_name    = \"prod\"\n}\n\noutput \"apigw-url\" {\n  value = aws_api_gateway_stage.prod.invoke_url\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-lambda-snapstart/java/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "함수 버전과 API 통합이 어떤 배포 단위를 참조하는지 본다."
+  }
+}

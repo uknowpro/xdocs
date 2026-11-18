@@ -137,7 +137,7 @@ export function ArchitectureStart({
       t.provider === provider &&
       (catalogMode === "전체" || catalogMode === ("repo" in t ? "Terraform 원본" : "컴포넌트 편집")) &&
       (!query ||
-        [t.name, t.id, ...t.kinds].some((v) =>
+        [t.name, t.study, t.id, ...t.kinds].some((v) =>
           (v + " " + (COMPONENTS[v]?.label || "")).toLowerCase().includes(query),
         )),
   );
@@ -253,7 +253,7 @@ export function ArchitectureStart({
                 );
               }}
             >
-              {["AWS", "Azure", "GCP"].map((p) => (
+              {["AWS", "Azure", "GCP","멀티클라우드"].map((p) => (
                 <option key={p}>{p}</option>
               ))}
             </select>
@@ -285,6 +285,7 @@ export function ArchitectureStart({
               ))}
             </div>
           )}
+          {chosen && <p className="catalog-study">{chosen.study}</p>}
           {chosen ? (
             <details>
               <summary>구성 리소스 {chosen.kinds.length}종</summary>

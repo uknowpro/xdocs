@@ -35,12 +35,12 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
     .click();
   await page.getByLabel("공급자", { exact: true }).selectOption("Azure");
   await page.getByRole("button", { name: "컴포넌트 편집", exact: true }).click();
-  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(3);
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(1);
   await page.getByLabel("템플릿 검색").fill("no-matching-template");
   await expect(page.getByRole("button", { name: "템플릿으로 시작" })).toBeDisabled();
   await page.getByRole("button", { name: "검색 조건 초기화" }).click();
   await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(30);
-  await page.getByRole("button",{name:"AVM 프라이빗 스토리지",exact:true}).click();
+  await page.getByRole("button",{name:"AVM · 사업부별 사설 데이터 구역",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await page.getByRole("button", { name: "Terraform 선언 보기" }).click();
   await expect(page.getByLabel("선택한 Terraform 선언")).toBeFocused();
@@ -55,29 +55,29 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
     "virtualnetwork",
   );
 });
-test("packaged AWS template opens without network access", async ({ page }) => {
+test("packaged multi-cloud VPN case opens without network access", async ({ page }) => {
   await page.goto("/");
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, (r) => r.abort());
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
   await page.getByRole("button", { name: "Terraform 원본", exact: true }).click();
-  await page.getByLabel("템플릿 검색").fill("DynamoDB");
+  await page.getByLabel("공급자",{exact:true}).selectOption("멀티클라우드");
   await expect.poll(() => page.locator(".template-thumbnail img").evaluateAll(
     images => images.filter(i => (i as HTMLImageElement).naturalWidth > 0).length
-  )).toBe(3);
+  )).toBe(2);
   await page.setViewportSize({width:1440,height:1100});
   await page
     .getByRole("dialog")
     .screenshot({ path: "test-results/architecture-catalog.png" });
-  await page.getByRole("button",{name:"DynamoDB REST API",exact:true}).click();
+  await page.getByRole("button",{name:"AWS ↔ GCP · HA VPN과 BGP",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await expect(page.getByLabel("아키텍처 제목")).toHaveValue(
-    "AWS · DynamoDB REST API",
+    "멀티클라우드 · AWS ↔ GCP · HA VPN과 BGP",
   );
-  await page.getByLabel("Terraform 파일").selectOption("terraform/main.tf");
+  await page.getByLabel("Terraform 파일").selectOption("terraform/aws_vpn.tf");
   await expect(page.getByLabel("Terraform 코드")).toContainText(
-    "aws_dynamodb_table",
+    "aws_vpn_connection",
   );
 });
 test("a named harness copy keeps its rules and clears the original note input", async ({
@@ -128,16 +128,16 @@ test("nested network gallery previews match the AWS subnet canvas", async ({ pag
   await page.setViewportSize({width:1440,height:1000});
   await page.goto("/");
   await page.getByRole("button", {name:"IaCD 아키텍처", exact:true}).click();
-  const compute = page.getByRole("button",{name:"서브넷 내 EC2",exact:true});
+  const compute = page.getByRole("button",{name:"결제 서비스 · 격리 복구 리허설",exact:true});
   await expect(compute.getByAltText("영역형 구성도")).toBeVisible();
   await page.getByLabel("템플릿 검색").fill("Fargate 서비스 검색");
   await expect(page.getByAltText("영역형 구성도")).toBeVisible();
-  await page.getByLabel("템플릿 검색").fill("서브넷 내 EC2");
+  await page.getByLabel("템플릿 검색").fill("결제 서비스 · 격리 복구 리허설");
   await compute.click();
   await page.getByRole("button",{name:"템플릿으로 시작"}).click();
-  await expect(page.getByLabel("아키텍처 제목")).toHaveValue("AWS · 서브넷 내 EC2");
+  await expect(page.getByLabel("아키텍처 제목")).toHaveValue("AWS · 결제 서비스 · 격리 복구 리허설");
   const diagram = page.locator(".network-sheet");
-  await expect(diagram.locator("[data-scope]")).toHaveCount(3);
+  await expect(diagram.locator("[data-scope]")).toHaveCount(11);
   await diagram.screenshot({path:"test-results/aws-subnet-template.png"});
 });
 

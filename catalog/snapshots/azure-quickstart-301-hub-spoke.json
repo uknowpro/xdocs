@@ -1,0 +1,1136 @@
+{
+  "version": 1,
+  "title": "Azure · 허브·스포크 네트워크 분리",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.hub-nva-nic",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 22,
+      "address": "azurerm_network_interface.hub-nva-nic",
+      "references": [
+        "azurerm_subnet.hub-dmz",
+        "azurerm_resource_group.hub-nva-rg"
+      ],
+      "scopeAddress": "azurerm_subnet.hub-dmz",
+      "placementSource": {
+        "file": "hub-nva.tf",
+        "offset": 815,
+        "address": "azurerm_subnet.hub-dmz",
+        "otherRefs": [
+          "azurerm_resource_group.hub-nva-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.hub-nva-rg",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 13,
+      "address": "azurerm_resource_group.hub-nva-rg",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.hub-gateway-rt",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 98,
+      "address": "azurerm_route_table.hub-gateway-rt",
+      "references": [
+        "azurerm_resource_group.hub-nva-rg"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.spoke1-rt",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 135,
+      "address": "azurerm_route_table.spoke1-rt",
+      "references": [
+        "azurerm_resource_group.hub-nva-rg"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.spoke2-rt",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 171,
+      "address": "azurerm_route_table.spoke2-rt",
+      "references": [
+        "azurerm_resource_group.hub-nva-rg"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.hub-gateway-rt-hub-vnet-gateway-subnet",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 129,
+      "address": "azurerm_subnet_route_table_association.hub-gateway-rt-hub-vnet-gateway-subnet",
+      "references": [
+        "azurerm_subnet.hub-gateway-subnet",
+        "azurerm_route_table.hub-gateway-rt"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.spoke1-rt-spoke1-vnet-mgmt",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 159,
+      "address": "azurerm_subnet_route_table_association.spoke1-rt-spoke1-vnet-mgmt",
+      "references": [
+        "azurerm_subnet.spoke1-mgmt",
+        "azurerm_route_table.spoke1-rt"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.spoke1-rt-spoke1-vnet-workload",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 165,
+      "address": "azurerm_subnet_route_table_association.spoke1-rt-spoke1-vnet-workload",
+      "references": [
+        "azurerm_subnet.spoke1-workload",
+        "azurerm_route_table.spoke1-rt"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.spoke2-rt-spoke2-vnet-mgmt",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 195,
+      "address": "azurerm_subnet_route_table_association.spoke2-rt-spoke2-vnet-mgmt",
+      "references": [
+        "azurerm_subnet.spoke2-mgmt",
+        "azurerm_route_table.spoke2-rt"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.spoke2-rt-spoke2-vnet-workload",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 201,
+      "address": "azurerm_subnet_route_table_association.spoke2-rt-spoke2-vnet-workload",
+      "references": [
+        "azurerm_subnet.spoke2-workload",
+        "azurerm_route_table.spoke2-rt"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_virtual_machine",
+      "label": "azurerm_virtual_machine.hub-nva-vm",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 40,
+      "address": "azurerm_virtual_machine.hub-nva-vm",
+      "references": [
+        "azurerm_resource_group.hub-nva-rg",
+        "azurerm_network_interface.hub-nva-nic"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_virtual_machine_extension",
+      "label": "azurerm_virtual_machine_extension.enable-routes",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 76,
+      "address": "azurerm_virtual_machine_extension.enable-routes",
+      "references": [
+        "azurerm_virtual_machine.hub-nva-vm"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "random_string",
+      "label": "random_string.suffix",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-nva.tf",
+      "sourceLine": 7,
+      "address": "random_string.suffix",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.hub-nic",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 45,
+      "address": "azurerm_network_interface.hub-nic",
+      "references": [
+        "azurerm_subnet.hub-mgmt",
+        "azurerm_resource_group.hub-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_subnet.hub-mgmt",
+      "placementSource": {
+        "file": "hub-vnet.tf",
+        "offset": 1767,
+        "address": "azurerm_subnet.hub-mgmt",
+        "otherRefs": [
+          "azurerm_resource_group.hub-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.hub-vpn-gateway1-pip",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 100,
+      "address": "azurerm_public_ip.hub-vpn-gateway1-pip",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.hub-vnet-rg",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 8,
+      "address": "azurerm_resource_group.hub-vnet-rg",
+      "references": []
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.hub-dmz",
+      "x": 60,
+      "y": 620,
+      "props": {
+        "name": "dmz"
+      },
+      "original": {
+        "name": "dmz"
+      },
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 38,
+      "address": "azurerm_subnet.hub-dmz",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg",
+        "azurerm_virtual_network.hub-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.hub-vnet",
+      "placementSource": {
+        "file": "hub-vnet.tf",
+        "offset": 1309,
+        "address": "azurerm_virtual_network.hub-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.hub-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.hub-gateway-subnet",
+      "x": 300,
+      "y": 620,
+      "props": {
+        "name": "GatewaySubnet"
+      },
+      "original": {
+        "name": "GatewaySubnet"
+      },
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 24,
+      "address": "azurerm_subnet.hub-gateway-subnet",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg",
+        "azurerm_virtual_network.hub-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.hub-vnet",
+      "placementSource": {
+        "file": "hub-vnet.tf",
+        "offset": 820,
+        "address": "azurerm_virtual_network.hub-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.hub-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.hub-mgmt",
+      "x": 540,
+      "y": 620,
+      "props": {
+        "name": "mgmt"
+      },
+      "original": {
+        "name": "mgmt"
+      },
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 31,
+      "address": "azurerm_subnet.hub-mgmt",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg",
+        "azurerm_virtual_network.hub-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.hub-vnet",
+      "placementSource": {
+        "file": "hub-vnet.tf",
+        "offset": 1067,
+        "address": "azurerm_virtual_network.hub-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.hub-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_virtual_machine",
+      "label": "azurerm_virtual_machine.hub-vm",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 63,
+      "address": "azurerm_virtual_machine.hub-vm",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg",
+        "azurerm_network_interface.hub-nic"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.hub-vnet",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 13,
+      "address": "azurerm_virtual_network.hub-vnet",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.hub-vnet-rg",
+      "placementSource": {
+        "file": "hub-vnet.tf",
+        "offset": 511,
+        "address": "azurerm_resource_group.hub-vnet-rg",
+        "otherRefs": [
+          "azurerm_resource_group.hub-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_21",
+      "kind": "azurerm_virtual_network_gateway",
+      "label": "azurerm_virtual_network_gateway.hub-vnet-gateway",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 108,
+      "address": "azurerm_virtual_network_gateway.hub-vnet-gateway",
+      "references": [
+        "azurerm_public_ip.hub-vpn-gateway1-pip",
+        "azurerm_subnet.hub-gateway-subnet",
+        "azurerm_resource_group.hub-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "azurerm_virtual_network_gateway_connection",
+      "label": "azurerm_virtual_network_gateway_connection.hub-onprem-conn",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 129,
+      "address": "azurerm_virtual_network_gateway_connection.hub-onprem-conn",
+      "references": [
+        "azurerm_resource_group.hub-vnet-rg",
+        "azurerm_virtual_network_gateway.onprem-vpn-gateway",
+        "azurerm_virtual_network_gateway.hub-vnet-gateway"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "azurerm_virtual_network_gateway_connection",
+      "label": "azurerm_virtual_network_gateway_connection.onprem-hub-conn",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "hub-vnet.tf",
+      "sourceLine": 143,
+      "address": "azurerm_virtual_network_gateway_connection.onprem-hub-conn",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg",
+        "azurerm_virtual_network_gateway.hub-vnet-gateway",
+        "azurerm_virtual_network_gateway.onprem-vpn-gateway"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "random_password",
+      "label": "random_password.password",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "multipleInstances": true,
+      "address": "random_password.password",
+      "references": []
+    },
+    {
+      "id": "n_import_25",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.onprem-nic",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 48,
+      "address": "azurerm_network_interface.onprem-nic",
+      "references": [
+        "azurerm_public_ip.onprem-pip",
+        "azurerm_subnet.onprem-mgmt",
+        "azurerm_resource_group.onprem-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_subnet.onprem-mgmt",
+      "placementSource": {
+        "file": "on-prem.tf",
+        "offset": 1866,
+        "address": "azurerm_subnet.onprem-mgmt",
+        "otherRefs": [
+          "azurerm_public_ip.onprem-pip",
+          "azurerm_resource_group.onprem-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_26",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.onprem-nsg",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 63,
+      "address": "azurerm_network_security_group.onprem-nsg",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.onprem-vnet-rg",
+      "placementSource": {
+        "file": "on-prem.tf",
+        "offset": 2263,
+        "address": "azurerm_resource_group.onprem-vnet-rg",
+        "otherRefs": [
+          "azurerm_resource_group.onprem-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_27",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.onprem-pip",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 37,
+      "address": "azurerm_public_ip.onprem-pip",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.onprem-vpn-gateway1-pip",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 126,
+      "address": "azurerm_public_ip.onprem-vpn-gateway1-pip",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.onprem-vnet-rg",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.onprem-vnet-rg",
+      "references": []
+    },
+    {
+      "id": "n_import_30",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.onprem-gateway-subnet",
+      "x": 540,
+      "y": 1040,
+      "props": {
+        "name": "GatewaySubnet"
+      },
+      "original": {
+        "name": "GatewaySubnet"
+      },
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 23,
+      "address": "azurerm_subnet.onprem-gateway-subnet",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg",
+        "azurerm_virtual_network.onprem-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.onprem-vnet",
+      "placementSource": {
+        "file": "on-prem.tf",
+        "offset": 801,
+        "address": "azurerm_virtual_network.onprem-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.onprem-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_31",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.onprem-mgmt",
+      "x": 780,
+      "y": 1040,
+      "props": {
+        "name": "mgmt"
+      },
+      "original": {
+        "name": "mgmt"
+      },
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 30,
+      "address": "azurerm_subnet.onprem-mgmt",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg",
+        "azurerm_virtual_network.onprem-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.onprem-vnet",
+      "placementSource": {
+        "file": "on-prem.tf",
+        "offset": 1060,
+        "address": "azurerm_virtual_network.onprem-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.onprem-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_32",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.mgmt-nsg-association",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 85,
+      "address": "azurerm_subnet_network_security_group_association.mgmt-nsg-association",
+      "references": [
+        "azurerm_network_security_group.onprem-nsg",
+        "azurerm_subnet.onprem-mgmt"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "azurerm_virtual_machine",
+      "label": "azurerm_virtual_machine.onprem-vm",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 90,
+      "address": "azurerm_virtual_machine.onprem-vm",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg",
+        "azurerm_network_interface.onprem-nic"
+      ]
+    },
+    {
+      "id": "n_import_34",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.onprem-vnet",
+      "x": 540,
+      "y": 1180,
+      "props": {
+        "name": "onprem-vnet"
+      },
+      "original": {
+        "name": "onprem-vnet"
+      },
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 12,
+      "address": "azurerm_virtual_network.onprem-vnet",
+      "references": [
+        "azurerm_resource_group.onprem-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.onprem-vnet-rg",
+      "placementSource": {
+        "file": "on-prem.tf",
+        "offset": 472,
+        "address": "azurerm_resource_group.onprem-vnet-rg",
+        "otherRefs": [
+          "azurerm_resource_group.onprem-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_35",
+      "kind": "azurerm_virtual_network_gateway",
+      "label": "azurerm_virtual_network_gateway.onprem-vpn-gateway",
+      "x": 780,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "on-prem.tf",
+      "sourceLine": 134,
+      "address": "azurerm_virtual_network_gateway.onprem-vpn-gateway",
+      "references": [
+        "azurerm_public_ip.onprem-vpn-gateway1-pip",
+        "azurerm_subnet.onprem-gateway-subnet",
+        "azurerm_resource_group.onprem-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_36",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.spoke1-nic",
+      "x": 60,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 50,
+      "address": "azurerm_network_interface.spoke1-nic",
+      "references": [
+        "azurerm_subnet.spoke1-mgmt",
+        "azurerm_resource_group.spoke1-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_subnet.spoke1-mgmt",
+      "placementSource": {
+        "file": "spoke1.tf",
+        "offset": 2148,
+        "address": "azurerm_subnet.spoke1-mgmt",
+        "otherRefs": [
+          "azurerm_resource_group.spoke1-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_37",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.spoke1-vnet-rg",
+      "x": 300,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.spoke1-vnet-rg",
+      "references": []
+    },
+    {
+      "id": "n_import_38",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.spoke1-mgmt",
+      "x": 540,
+      "y": 1320,
+      "props": {
+        "name": "mgmt"
+      },
+      "original": {
+        "name": "mgmt"
+      },
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 23,
+      "address": "azurerm_subnet.spoke1-mgmt",
+      "references": [
+        "azurerm_resource_group.spoke1-vnet-rg",
+        "azurerm_virtual_network.spoke1-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.spoke1-vnet",
+      "placementSource": {
+        "file": "spoke1.tf",
+        "offset": 779,
+        "address": "azurerm_virtual_network.spoke1-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.spoke1-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_39",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.spoke1-workload",
+      "x": 780,
+      "y": 1320,
+      "props": {
+        "name": "workload"
+      },
+      "original": {
+        "name": "workload"
+      },
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 30,
+      "address": "azurerm_subnet.spoke1-workload",
+      "references": [
+        "azurerm_resource_group.spoke1-vnet-rg",
+        "azurerm_virtual_network.spoke1-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.spoke1-vnet",
+      "placementSource": {
+        "file": "spoke1.tf",
+        "offset": 1040,
+        "address": "azurerm_virtual_network.spoke1-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.spoke1-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_40",
+      "kind": "azurerm_virtual_machine",
+      "label": "azurerm_virtual_machine.spoke1-vm",
+      "x": 60,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 63,
+      "address": "azurerm_virtual_machine.spoke1-vm",
+      "references": [
+        "azurerm_resource_group.spoke1-vnet-rg",
+        "azurerm_network_interface.spoke1-nic"
+      ]
+    },
+    {
+      "id": "n_import_41",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.spoke1-vnet",
+      "x": 300,
+      "y": 1460,
+      "props": {
+        "name": "spoke1-vnet"
+      },
+      "original": {
+        "name": "spoke1-vnet"
+      },
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 12,
+      "address": "azurerm_virtual_network.spoke1-vnet",
+      "references": [
+        "azurerm_resource_group.spoke1-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.spoke1-vnet-rg",
+      "placementSource": {
+        "file": "spoke1.tf",
+        "offset": 472,
+        "address": "azurerm_resource_group.spoke1-vnet-rg",
+        "otherRefs": [
+          "azurerm_resource_group.spoke1-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_42",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.hub-spoke1-peer",
+      "x": 540,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 99,
+      "address": "azurerm_virtual_network_peering.hub-spoke1-peer",
+      "references": [
+        "azurerm_virtual_network.spoke1-vnet",
+        "azurerm_virtual_network.hub-vnet",
+        "azurerm_virtual_network_gateway.hub-vnet-gateway",
+        "azurerm_resource_group.hub-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_43",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.spoke1-hub-peer",
+      "x": 780,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke1.tf",
+      "sourceLine": 37,
+      "address": "azurerm_virtual_network_peering.spoke1-hub-peer",
+      "references": [
+        "azurerm_virtual_network.spoke1-vnet",
+        "azurerm_virtual_network.hub-vnet",
+        "azurerm_virtual_network_gateway.hub-vnet-gateway",
+        "azurerm_resource_group.spoke1-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_44",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.spoke2-nic",
+      "x": 60,
+      "y": 1600,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 50,
+      "address": "azurerm_network_interface.spoke2-nic",
+      "references": [
+        "azurerm_subnet.spoke2-mgmt",
+        "azurerm_resource_group.spoke2-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_subnet.spoke2-mgmt",
+      "placementSource": {
+        "file": "spoke2.tf",
+        "offset": 2180,
+        "address": "azurerm_subnet.spoke2-mgmt",
+        "otherRefs": [
+          "azurerm_resource_group.spoke2-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_45",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.spoke2-vnet-rg",
+      "x": 300,
+      "y": 1600,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.spoke2-vnet-rg",
+      "references": []
+    },
+    {
+      "id": "n_import_46",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.spoke2-mgmt",
+      "x": 540,
+      "y": 1600,
+      "props": {
+        "name": "mgmt"
+      },
+      "original": {
+        "name": "mgmt"
+      },
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 23,
+      "address": "azurerm_subnet.spoke2-mgmt",
+      "references": [
+        "azurerm_resource_group.spoke2-vnet-rg",
+        "azurerm_virtual_network.spoke2-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.spoke2-vnet",
+      "placementSource": {
+        "file": "spoke2.tf",
+        "offset": 795,
+        "address": "azurerm_virtual_network.spoke2-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.spoke2-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_47",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.spoke2-workload",
+      "x": 780,
+      "y": 1600,
+      "props": {
+        "name": "workload"
+      },
+      "original": {
+        "name": "workload"
+      },
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 30,
+      "address": "azurerm_subnet.spoke2-workload",
+      "references": [
+        "azurerm_resource_group.spoke2-vnet-rg",
+        "azurerm_virtual_network.spoke2-vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.spoke2-vnet",
+      "placementSource": {
+        "file": "spoke2.tf",
+        "offset": 1056,
+        "address": "azurerm_virtual_network.spoke2-vnet",
+        "otherRefs": [
+          "azurerm_resource_group.spoke2-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_48",
+      "kind": "azurerm_virtual_machine",
+      "label": "azurerm_virtual_machine.spoke2-vm",
+      "x": 60,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 67,
+      "address": "azurerm_virtual_machine.spoke2-vm",
+      "references": [
+        "azurerm_resource_group.spoke2-vnet-rg",
+        "azurerm_network_interface.spoke2-nic"
+      ]
+    },
+    {
+      "id": "n_import_49",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.spoke2-vnet",
+      "x": 300,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 12,
+      "address": "azurerm_virtual_network.spoke2-vnet",
+      "references": [
+        "azurerm_resource_group.spoke2-vnet-rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.spoke2-vnet-rg",
+      "placementSource": {
+        "file": "spoke2.tf",
+        "offset": 488,
+        "address": "azurerm_resource_group.spoke2-vnet-rg",
+        "otherRefs": [
+          "azurerm_resource_group.spoke2-vnet-rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_50",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.hub-spoke2-peer",
+      "x": 540,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 103,
+      "address": "azurerm_virtual_network_peering.hub-spoke2-peer",
+      "references": [
+        "azurerm_virtual_network.spoke2-vnet",
+        "azurerm_virtual_network.hub-vnet",
+        "azurerm_virtual_network_gateway.hub-vnet-gateway",
+        "azurerm_resource_group.hub-vnet-rg"
+      ]
+    },
+    {
+      "id": "n_import_51",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.spoke2-hub-peer",
+      "x": 780,
+      "y": 1740,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "spoke2.tf",
+      "sourceLine": 37,
+      "address": "azurerm_virtual_network_peering.spoke2-hub-peer",
+      "references": [
+        "azurerm_virtual_network.spoke2-vnet",
+        "azurerm_virtual_network.hub-vnet",
+        "azurerm_virtual_network_gateway.hub-vnet-gateway",
+        "azurerm_resource_group.spoke2-vnet-rg"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "hub-nva.tf",
+      "content": "locals {\n  prefix-hub-nva         = \"hub-nva\"\n  hub-nva-location       = \"eastus\"\n  hub-nva-resource-group = \"hub-nva-rg\"\n}\n\nresource \"random_string\" \"suffix\" {\n  length  = 5\n  special = false\n  upper   = false\n}\n\nresource \"azurerm_resource_group\" \"hub-nva-rg\" {\n  name     = \"${local.prefix-hub-nva}-rg-${random_string.suffix.result}\"\n  location = local.hub-nva-location\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_network_interface\" \"hub-nva-nic\" {\n  name                 = \"${local.prefix-hub-nva}-nic\"\n  location             = azurerm_resource_group.hub-nva-rg.location\n  resource_group_name  = azurerm_resource_group.hub-nva-rg.name\n  enable_ip_forwarding = true\n\n  ip_configuration {\n    name                          = local.prefix-hub-nva\n    subnet_id                     = azurerm_subnet.hub-dmz.id\n    private_ip_address_allocation = \"Static\"\n    private_ip_address            = \"10.0.0.36\"\n  }\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_virtual_machine\" \"hub-nva-vm\" {\n  name                  = \"${local.prefix-hub-nva}-vm\"\n  location              = azurerm_resource_group.hub-nva-rg.location\n  resource_group_name   = azurerm_resource_group.hub-nva-rg.name\n  network_interface_ids = [azurerm_network_interface.hub-nva-nic.id]\n  vm_size               = var.vmsize\n\n  storage_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"16.04-LTS\"\n    version   = \"latest\"\n  }\n\n  storage_os_disk {\n    name              = \"myosdisk1\"\n    caching           = \"ReadWrite\"\n    create_option     = \"FromImage\"\n    managed_disk_type = \"Standard_LRS\"\n  }\n\n  os_profile {\n    computer_name  = \"${local.prefix-hub-nva}-vm\"\n    admin_username = var.username\n    admin_password = local.password\n  }\n\n  os_profile_linux_config {\n    disable_password_authentication = false\n  }\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_virtual_machine_extension\" \"enable-routes\" {\n  name                 = \"enable-iptables-routes\"\n  virtual_machine_id   = azurerm_virtual_machine.hub-nva-vm.id\n  publisher            = \"Microsoft.Azure.Extensions\"\n  type                 = \"CustomScript\"\n  type_handler_version = \"2.0\"\n\n\n  settings = <<SETTINGS\n    {\n        \"fileUris\": [\n        \"https://raw.githubusercontent.com/lonegunmanb/reference-architectures/refs/heads/master/scripts/linux/enable-ip-forwarding.sh\"\n        ],\n        \"commandToExecute\": \"bash enable-ip-forwarding.sh\"\n    }\nSETTINGS\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_route_table\" \"hub-gateway-rt\" {\n  name                          = \"hub-gateway-rt\"\n  location                      = azurerm_resource_group.hub-nva-rg.location\n  resource_group_name           = azurerm_resource_group.hub-nva-rg.name\n  disable_bgp_route_propagation = false\n\n  route {\n    name           = \"toHub\"\n    address_prefix = \"10.0.0.0/16\"\n    next_hop_type  = \"VnetLocal\"\n  }\n\n  route {\n    name                   = \"toSpoke1\"\n    address_prefix         = \"10.1.0.0/16\"\n    next_hop_type          = \"VirtualAppliance\"\n    next_hop_in_ip_address = \"10.0.0.36\"\n  }\n\n  route {\n    name                   = \"toSpoke2\"\n    address_prefix         = \"10.2.0.0/16\"\n    next_hop_type          = \"VirtualAppliance\"\n    next_hop_in_ip_address = \"10.0.0.36\"\n  }\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_subnet_route_table_association\" \"hub-gateway-rt-hub-vnet-gateway-subnet\" {\n  subnet_id      = azurerm_subnet.hub-gateway-subnet.id\n  route_table_id = azurerm_route_table.hub-gateway-rt.id\n  depends_on     = [azurerm_subnet.hub-gateway-subnet]\n}\n\nresource \"azurerm_route_table\" \"spoke1-rt\" {\n  name                          = \"spoke1-rt\"\n  location                      = azurerm_resource_group.hub-nva-rg.location\n  resource_group_name           = azurerm_resource_group.hub-nva-rg.name\n  disable_bgp_route_propagation = false\n\n  route {\n    name                   = \"toSpoke2\"\n    address_prefix         = \"10.2.0.0/16\"\n    next_hop_type          = \"VirtualAppliance\"\n    next_hop_in_ip_address = \"10.0.0.36\"\n  }\n\n  route {\n    name           = \"default\"\n    address_prefix = \"0.0.0.0/0\"\n    next_hop_type  = \"VnetLocal\"\n  }\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_subnet_route_table_association\" \"spoke1-rt-spoke1-vnet-mgmt\" {\n  subnet_id      = azurerm_subnet.spoke1-mgmt.id\n  route_table_id = azurerm_route_table.spoke1-rt.id\n  depends_on     = [azurerm_subnet.spoke1-mgmt]\n}\n\nresource \"azurerm_subnet_route_table_association\" \"spoke1-rt-spoke1-vnet-workload\" {\n  subnet_id      = azurerm_subnet.spoke1-workload.id\n  route_table_id = azurerm_route_table.spoke1-rt.id\n  depends_on     = [azurerm_subnet.spoke1-workload]\n}\n\nresource \"azurerm_route_table\" \"spoke2-rt\" {\n  name                          = \"spoke2-rt\"\n  location                      = azurerm_resource_group.hub-nva-rg.location\n  resource_group_name           = azurerm_resource_group.hub-nva-rg.name\n  disable_bgp_route_propagation = false\n\n  route {\n    name                   = \"toSpoke1\"\n    address_prefix         = \"10.1.0.0/16\"\n    next_hop_in_ip_address = \"10.0.0.36\"\n    next_hop_type          = \"VirtualAppliance\"\n  }\n\n  route {\n    name           = \"default\"\n    address_prefix = \"0.0.0.0/0\"\n    next_hop_type  = \"VnetLocal\"\n  }\n\n  tags = {\n    environment = local.prefix-hub-nva\n  }\n}\n\nresource \"azurerm_subnet_route_table_association\" \"spoke2-rt-spoke2-vnet-mgmt\" {\n  subnet_id      = azurerm_subnet.spoke2-mgmt.id\n  route_table_id = azurerm_route_table.spoke2-rt.id\n  depends_on     = [azurerm_subnet.spoke2-mgmt]\n}\n\nresource \"azurerm_subnet_route_table_association\" \"spoke2-rt-spoke2-vnet-workload\" {\n  subnet_id      = azurerm_subnet.spoke2-workload.id\n  route_table_id = azurerm_route_table.spoke2-rt.id\n  depends_on     = [azurerm_subnet.spoke2-workload]\n}\n"
+    },
+    {
+      "name": "hub-vnet.tf",
+      "content": "locals {\n  prefix-hub         = \"hub\"\n  hub-location       = \"eastus\"\n  hub-resource-group = \"hub-vnet-rg-${random_string.suffix.result}\"\n  shared-key         = \"4-v3ry-53cr37-1p53c-5h4r3d-k3y\"\n}\n\nresource \"azurerm_resource_group\" \"hub-vnet-rg\" {\n  name     = local.hub-resource-group\n  location = local.hub-location\n}\n\nresource \"azurerm_virtual_network\" \"hub-vnet\" {\n  name                = \"${local.prefix-hub}-vnet\"\n  location            = azurerm_resource_group.hub-vnet-rg.location\n  resource_group_name = azurerm_resource_group.hub-vnet-rg.name\n  address_space       = [\"10.0.0.0/16\"]\n\n  tags = {\n    environment = \"hub-spoke\"\n  }\n}\n\nresource \"azurerm_subnet\" \"hub-gateway-subnet\" {\n  name                 = \"GatewaySubnet\"\n  resource_group_name  = azurerm_resource_group.hub-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.hub-vnet.name\n  address_prefixes     = [\"10.0.255.224/27\"]\n}\n\nresource \"azurerm_subnet\" \"hub-mgmt\" {\n  name                 = \"mgmt\"\n  resource_group_name  = azurerm_resource_group.hub-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.hub-vnet.name\n  address_prefixes     = [\"10.0.0.64/27\"]\n}\n\nresource \"azurerm_subnet\" \"hub-dmz\" {\n  name                 = \"dmz\"\n  resource_group_name  = azurerm_resource_group.hub-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.hub-vnet.name\n  address_prefixes     = [\"10.0.0.32/27\"]\n}\n\nresource \"azurerm_network_interface\" \"hub-nic\" {\n  name                 = \"${local.prefix-hub}-nic\"\n  location             = azurerm_resource_group.hub-vnet-rg.location\n  resource_group_name  = azurerm_resource_group.hub-vnet-rg.name\n  enable_ip_forwarding = true\n\n  ip_configuration {\n    name                          = local.prefix-hub\n    subnet_id                     = azurerm_subnet.hub-mgmt.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n\n  tags = {\n    environment = local.prefix-hub\n  }\n}\n\n#Virtual Machine\nresource \"azurerm_virtual_machine\" \"hub-vm\" {\n  name                  = \"${local.prefix-hub}-vm\"\n  location              = azurerm_resource_group.hub-vnet-rg.location\n  resource_group_name   = azurerm_resource_group.hub-vnet-rg.name\n  network_interface_ids = [azurerm_network_interface.hub-nic.id]\n  vm_size               = var.vmsize\n\n  storage_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"16.04-LTS\"\n    version   = \"latest\"\n  }\n\n  storage_os_disk {\n    name              = \"myosdisk1\"\n    caching           = \"ReadWrite\"\n    create_option     = \"FromImage\"\n    managed_disk_type = \"Standard_LRS\"\n  }\n\n  os_profile {\n    computer_name  = \"${local.prefix-hub}-vm\"\n    admin_username = var.username\n    admin_password = local.password\n  }\n\n  os_profile_linux_config {\n    disable_password_authentication = false\n  }\n\n  tags = {\n    environment = local.prefix-hub\n  }\n}\n\n# Virtual Network Gateway\nresource \"azurerm_public_ip\" \"hub-vpn-gateway1-pip\" {\n  name                = \"hub-vpn-gateway1-pip\"\n  location            = azurerm_resource_group.hub-vnet-rg.location\n  resource_group_name = azurerm_resource_group.hub-vnet-rg.name\n\n  allocation_method = \"Dynamic\"\n}\n\nresource \"azurerm_virtual_network_gateway\" \"hub-vnet-gateway\" {\n  name                = \"hub-vpn-gateway1\"\n  location            = azurerm_resource_group.hub-vnet-rg.location\n  resource_group_name = azurerm_resource_group.hub-vnet-rg.name\n\n  type     = \"Vpn\"\n  vpn_type = \"RouteBased\"\n\n  active_active = false\n  enable_bgp    = false\n  sku           = \"VpnGw1\"\n\n  ip_configuration {\n    name                          = \"vnetGatewayConfig\"\n    public_ip_address_id          = azurerm_public_ip.hub-vpn-gateway1-pip.id\n    private_ip_address_allocation = \"Dynamic\"\n    subnet_id                     = azurerm_subnet.hub-gateway-subnet.id\n  }\n  depends_on = [azurerm_public_ip.hub-vpn-gateway1-pip]\n}\n\nresource \"azurerm_virtual_network_gateway_connection\" \"hub-onprem-conn\" {\n  name                = \"hub-onprem-conn\"\n  location            = azurerm_resource_group.hub-vnet-rg.location\n  resource_group_name = azurerm_resource_group.hub-vnet-rg.name\n\n  type           = \"Vnet2Vnet\"\n  routing_weight = 1\n\n  virtual_network_gateway_id      = azurerm_virtual_network_gateway.hub-vnet-gateway.id\n  peer_virtual_network_gateway_id = azurerm_virtual_network_gateway.onprem-vpn-gateway.id\n\n  shared_key = local.shared-key\n}\n\nresource \"azurerm_virtual_network_gateway_connection\" \"onprem-hub-conn\" {\n  name                            = \"onprem-hub-conn\"\n  location                        = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name             = azurerm_resource_group.onprem-vnet-rg.name\n  type                            = \"Vnet2Vnet\"\n  routing_weight                  = 1\n  virtual_network_gateway_id      = azurerm_virtual_network_gateway.onprem-vpn-gateway.id\n  peer_virtual_network_gateway_id = azurerm_virtual_network_gateway.hub-vnet-gateway.id\n\n  shared_key = local.shared-key\n}\n"
+    },
+    {
+      "name": "main.tf",
+      "content": "terraform {\n\n  required_version = \">=0.12\"\n\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~> 3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {\n    resource_group {\n      prevent_deletion_if_contains_resources = false\n    }\n  }\n}\n\nresource \"random_password\" \"password\" {\n  count  = var.password == null ? 1 : 0\n  length = 20\n}\n\nlocals {\n  password = try(random_password.password[0].result, var.password)\n}"
+    },
+    {
+      "name": "on-prem.tf",
+      "content": "locals {\n  onprem-location       = \"eastus\"\n  onprem-resource-group = \"onprem-vnet-rg-${random_string.suffix.result}\"\n  prefix-onprem         = \"onprem\"\n}\n\nresource \"azurerm_resource_group\" \"onprem-vnet-rg\" {\n  name     = local.onprem-resource-group\n  location = local.onprem-location\n}\n\nresource \"azurerm_virtual_network\" \"onprem-vnet\" {\n  name                = \"onprem-vnet\"\n  location            = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name = azurerm_resource_group.onprem-vnet-rg.name\n  address_space       = [\"192.168.0.0/16\"]\n\n  tags = {\n    environment = local.prefix-onprem\n  }\n}\n\nresource \"azurerm_subnet\" \"onprem-gateway-subnet\" {\n  name                 = \"GatewaySubnet\"\n  resource_group_name  = azurerm_resource_group.onprem-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.onprem-vnet.name\n  address_prefixes     = [\"192.168.255.224/27\"]\n}\n\nresource \"azurerm_subnet\" \"onprem-mgmt\" {\n  name                 = \"mgmt\"\n  resource_group_name  = azurerm_resource_group.onprem-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.onprem-vnet.name\n  address_prefixes     = [\"192.168.1.128/25\"]\n}\n\nresource \"azurerm_public_ip\" \"onprem-pip\" {\n  name                = \"${local.prefix-onprem}-pip\"\n  location            = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name = azurerm_resource_group.onprem-vnet-rg.name\n  allocation_method   = \"Dynamic\"\n\n  tags = {\n    environment = local.prefix-onprem\n  }\n}\n\nresource \"azurerm_network_interface\" \"onprem-nic\" {\n  name                 = \"${local.prefix-onprem}-nic\"\n  location             = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name  = azurerm_resource_group.onprem-vnet-rg.name\n  enable_ip_forwarding = true\n\n  ip_configuration {\n    name                          = local.prefix-onprem\n    subnet_id                     = azurerm_subnet.onprem-mgmt.id\n    private_ip_address_allocation = \"Dynamic\"\n    public_ip_address_id          = azurerm_public_ip.onprem-pip.id\n  }\n}\n\n# Create Network Security Group and rule\nresource \"azurerm_network_security_group\" \"onprem-nsg\" {\n  name                = \"${local.prefix-onprem}-nsg\"\n  location            = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name = azurerm_resource_group.onprem-vnet-rg.name\n\n  security_rule {\n    name                       = \"SSH\"\n    priority                   = 1001\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"22\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"*\"\n  }\n\n  tags = {\n    environment = \"onprem\"\n  }\n}\n\nresource \"azurerm_subnet_network_security_group_association\" \"mgmt-nsg-association\" {\n  subnet_id                 = azurerm_subnet.onprem-mgmt.id\n  network_security_group_id = azurerm_network_security_group.onprem-nsg.id\n}\n\nresource \"azurerm_virtual_machine\" \"onprem-vm\" {\n  name                  = \"${local.prefix-onprem}-vm\"\n  location              = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name   = azurerm_resource_group.onprem-vnet-rg.name\n  network_interface_ids = [azurerm_network_interface.onprem-nic.id]\n  vm_size               = var.vmsize\n\n  storage_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"16.04-LTS\"\n    version   = \"latest\"\n  }\n\n  storage_os_disk {\n    name              = \"myosdisk1\"\n    caching           = \"ReadWrite\"\n    create_option     = \"FromImage\"\n    managed_disk_type = \"Standard_LRS\"\n  }\n\n  os_profile {\n    computer_name  = \"${local.prefix-onprem}-vm\"\n    admin_username = var.username\n    admin_password = local.password\n  }\n\n  os_profile_linux_config {\n    disable_password_authentication = false\n  }\n\n  tags = {\n    environment = local.prefix-onprem\n  }\n}\n\nresource \"azurerm_public_ip\" \"onprem-vpn-gateway1-pip\" {\n  name                = \"${local.prefix-onprem}-vpn-gateway1-pip\"\n  location            = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name = azurerm_resource_group.onprem-vnet-rg.name\n\n  allocation_method = \"Dynamic\"\n}\n\nresource \"azurerm_virtual_network_gateway\" \"onprem-vpn-gateway\" {\n  name                = \"onprem-vpn-gateway1\"\n  location            = azurerm_resource_group.onprem-vnet-rg.location\n  resource_group_name = azurerm_resource_group.onprem-vnet-rg.name\n\n  type     = \"Vpn\"\n  vpn_type = \"RouteBased\"\n\n  active_active = false\n  enable_bgp    = false\n  sku           = \"VpnGw1\"\n\n  ip_configuration {\n    name                          = \"vnetGatewayConfig\"\n    public_ip_address_id          = azurerm_public_ip.onprem-vpn-gateway1-pip.id\n    private_ip_address_allocation = \"Dynamic\"\n    subnet_id                     = azurerm_subnet.onprem-gateway-subnet.id\n  }\n  depends_on = [azurerm_public_ip.onprem-vpn-gateway1-pip]\n\n}"
+    },
+    {
+      "name": "spoke1.tf",
+      "content": "locals {\n  spoke1-location       = \"eastus\"\n  spoke1-resource-group = \"spoke1-vnet-rg-${random_string.suffix.result}\"\n  prefix-spoke1         = \"spoke1\"\n}\n\nresource \"azurerm_resource_group\" \"spoke1-vnet-rg\" {\n  name     = local.spoke1-resource-group\n  location = local.spoke1-location\n}\n\nresource \"azurerm_virtual_network\" \"spoke1-vnet\" {\n  name                = \"spoke1-vnet\"\n  location            = azurerm_resource_group.spoke1-vnet-rg.location\n  resource_group_name = azurerm_resource_group.spoke1-vnet-rg.name\n  address_space       = [\"10.1.0.0/16\"]\n\n  tags = {\n    environment = local.prefix-spoke1\n  }\n}\n\nresource \"azurerm_subnet\" \"spoke1-mgmt\" {\n  name                 = \"mgmt\"\n  resource_group_name  = azurerm_resource_group.spoke1-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.spoke1-vnet.name\n  address_prefixes     = [\"10.1.0.64/27\"]\n}\n\nresource \"azurerm_subnet\" \"spoke1-workload\" {\n  name                 = \"workload\"\n  resource_group_name  = azurerm_resource_group.spoke1-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.spoke1-vnet.name\n  address_prefixes     = [\"10.1.1.0/24\"]\n}\n\nresource \"azurerm_virtual_network_peering\" \"spoke1-hub-peer\" {\n  name                      = \"spoke1-hub-peer\"\n  resource_group_name       = azurerm_resource_group.spoke1-vnet-rg.name\n  virtual_network_name      = azurerm_virtual_network.spoke1-vnet.name\n  remote_virtual_network_id = azurerm_virtual_network.hub-vnet.id\n\n  allow_virtual_network_access = true\n  allow_forwarded_traffic      = true\n  allow_gateway_transit        = false\n  use_remote_gateways          = true\n  depends_on                   = [azurerm_virtual_network.spoke1-vnet, azurerm_virtual_network.hub-vnet, azurerm_virtual_network_gateway.hub-vnet-gateway]\n}\n\nresource \"azurerm_network_interface\" \"spoke1-nic\" {\n  name                 = \"${local.prefix-spoke1}-nic\"\n  location             = azurerm_resource_group.spoke1-vnet-rg.location\n  resource_group_name  = azurerm_resource_group.spoke1-vnet-rg.name\n  enable_ip_forwarding = true\n\n  ip_configuration {\n    name                          = local.prefix-spoke1\n    subnet_id                     = azurerm_subnet.spoke1-mgmt.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n}\n\nresource \"azurerm_virtual_machine\" \"spoke1-vm\" {\n  name                  = \"${local.prefix-spoke1}-vm\"\n  location              = azurerm_resource_group.spoke1-vnet-rg.location\n  resource_group_name   = azurerm_resource_group.spoke1-vnet-rg.name\n  network_interface_ids = [azurerm_network_interface.spoke1-nic.id]\n  vm_size               = var.vmsize\n\n  storage_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"16.04-LTS\"\n    version   = \"latest\"\n  }\n\n  storage_os_disk {\n    name              = \"myosdisk1\"\n    caching           = \"ReadWrite\"\n    create_option     = \"FromImage\"\n    managed_disk_type = \"Standard_LRS\"\n  }\n\n  os_profile {\n    computer_name  = \"${local.prefix-spoke1}-vm\"\n    admin_username = var.username\n    admin_password = local.password\n  }\n\n  os_profile_linux_config {\n    disable_password_authentication = false\n  }\n\n  tags = {\n    environment = local.prefix-spoke1\n  }\n}\n\nresource \"azurerm_virtual_network_peering\" \"hub-spoke1-peer\" {\n  name                         = \"hub-spoke1-peer\"\n  resource_group_name          = azurerm_resource_group.hub-vnet-rg.name\n  virtual_network_name         = azurerm_virtual_network.hub-vnet.name\n  remote_virtual_network_id    = azurerm_virtual_network.spoke1-vnet.id\n  allow_virtual_network_access = true\n  allow_forwarded_traffic      = true\n  allow_gateway_transit        = true\n  use_remote_gateways          = false\n  depends_on                   = [azurerm_virtual_network.spoke1-vnet, azurerm_virtual_network.hub-vnet, azurerm_virtual_network_gateway.hub-vnet-gateway]\n}\n"
+    },
+    {
+      "name": "spoke2.tf",
+      "content": "locals {\n  spoke2-location       = \"eastus\"\n  spoke2-resource-group = \"spoke2-vnet-rg-${random_string.suffix.result}\"\n  prefix-spoke2         = \"spoke2\"\n}\n\nresource \"azurerm_resource_group\" \"spoke2-vnet-rg\" {\n  name     = local.spoke2-resource-group\n  location = local.spoke2-location\n}\n\nresource \"azurerm_virtual_network\" \"spoke2-vnet\" {\n  name                = \"${local.prefix-spoke2}-vnet\"\n  location            = azurerm_resource_group.spoke2-vnet-rg.location\n  resource_group_name = azurerm_resource_group.spoke2-vnet-rg.name\n  address_space       = [\"10.2.0.0/16\"]\n\n  tags = {\n    environment = local.prefix-spoke2\n  }\n}\n\nresource \"azurerm_subnet\" \"spoke2-mgmt\" {\n  name                 = \"mgmt\"\n  resource_group_name  = azurerm_resource_group.spoke2-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.spoke2-vnet.name\n  address_prefixes     = [\"10.2.0.64/27\"]\n}\n\nresource \"azurerm_subnet\" \"spoke2-workload\" {\n  name                 = \"workload\"\n  resource_group_name  = azurerm_resource_group.spoke2-vnet-rg.name\n  virtual_network_name = azurerm_virtual_network.spoke2-vnet.name\n  address_prefixes     = [\"10.2.1.0/24\"]\n}\n\nresource \"azurerm_virtual_network_peering\" \"spoke2-hub-peer\" {\n  name                      = \"${local.prefix-spoke2}-hub-peer\"\n  resource_group_name       = azurerm_resource_group.spoke2-vnet-rg.name\n  virtual_network_name      = azurerm_virtual_network.spoke2-vnet.name\n  remote_virtual_network_id = azurerm_virtual_network.hub-vnet.id\n\n  allow_virtual_network_access = true\n  allow_forwarded_traffic      = true\n  allow_gateway_transit        = false\n  use_remote_gateways          = true\n  depends_on                   = [azurerm_virtual_network.spoke2-vnet, azurerm_virtual_network.hub-vnet, azurerm_virtual_network_gateway.hub-vnet-gateway]\n}\n\nresource \"azurerm_network_interface\" \"spoke2-nic\" {\n  name                 = \"${local.prefix-spoke2}-nic\"\n  location             = azurerm_resource_group.spoke2-vnet-rg.location\n  resource_group_name  = azurerm_resource_group.spoke2-vnet-rg.name\n  enable_ip_forwarding = true\n\n  ip_configuration {\n    name                          = local.prefix-spoke2\n    subnet_id                     = azurerm_subnet.spoke2-mgmt.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n\n  tags = {\n    environment = local.prefix-spoke2\n  }\n}\n\nresource \"azurerm_virtual_machine\" \"spoke2-vm\" {\n  name                  = \"${local.prefix-spoke2}-vm\"\n  location              = azurerm_resource_group.spoke2-vnet-rg.location\n  resource_group_name   = azurerm_resource_group.spoke2-vnet-rg.name\n  network_interface_ids = [azurerm_network_interface.spoke2-nic.id]\n  vm_size               = var.vmsize\n\n  storage_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"16.04-LTS\"\n    version   = \"latest\"\n  }\n\n  storage_os_disk {\n    name              = \"myosdisk1\"\n    caching           = \"ReadWrite\"\n    create_option     = \"FromImage\"\n    managed_disk_type = \"Standard_LRS\"\n  }\n\n  os_profile {\n    computer_name  = \"${local.prefix-spoke2}-vm\"\n    admin_username = var.username\n    admin_password = local.password\n  }\n\n  os_profile_linux_config {\n    disable_password_authentication = false\n  }\n\n  tags = {\n    environment = local.prefix-spoke2\n  }\n}\n\nresource \"azurerm_virtual_network_peering\" \"hub-spoke2-peer\" {\n  name                         = \"hub-spoke2-peer\"\n  resource_group_name          = azurerm_resource_group.hub-vnet-rg.name\n  virtual_network_name         = azurerm_virtual_network.hub-vnet.name\n  remote_virtual_network_id    = azurerm_virtual_network.spoke2-vnet.id\n  allow_virtual_network_access = true\n  allow_forwarded_traffic      = true\n  allow_gateway_transit        = true\n  use_remote_gateways          = false\n  depends_on                   = [azurerm_virtual_network.spoke2-vnet, azurerm_virtual_network.hub-vnet, azurerm_virtual_network_gateway.hub-vnet-gateway]\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"location\" {\n  description = \"Location of the network\"\n  default     = \"eastus\"\n}\n\nvariable \"username\" {\n  description = \"Username for Virtual Machines\"\n  default     = \"azureuser\"\n}\n\nvariable \"password\" {\n  description = \"Password for Virtual Machines\"\n  sensitive   = true\n  default     = null\n}\n\nvariable \"vmsize\" {\n  description = \"Size of the VMs\"\n  default     = \"Standard_DS1_v2\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/301-hub-spoke\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "피어링과 서브넷 사이의 경로 소유권을 검토한다."
+  }
+}

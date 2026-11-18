@@ -1,4 +1,4 @@
-// Usage: node catalog/compile.mjs <AWS clone> <Azure clone> <GCP clone>
+// Usage: node catalog/compile.mjs <AWS clone> <Azure clone> <GCP clone> <GoogleCloudPlatform/professional-services clone>
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,7 +10,7 @@ const sources = JSON.parse(
   await readFile(path.join(root, "sources.json"), "utf8"),
 );
 const clones = Object.fromEntries(
-  ["AWS", "Azure", "GCP"].map((p, i) => [p, process.argv[i + 2]]),
+  ["AWS", "Azure", "GCP", "멀티클라우드"].map((p, i) => [p, process.argv[i + 2]]),
 );
 for (const s of sources) {
   const dir = clones[s.provider];
@@ -44,6 +44,7 @@ for (const s of sources) {
   });
   const m = await parseTerraformFiles(files);
   m.title = s.provider + " · " + s.name;
+  m.review = {operations:s.study};
   const output = generateArchitecture(m, "terraform");
   if (
     output.errors.length ||

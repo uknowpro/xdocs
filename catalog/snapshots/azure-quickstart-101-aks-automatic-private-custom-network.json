@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "Azure · 프라이빗 AKS 사용자 지정 네트워크",
+  "title": "Azure · 사용자 지정 네트워크의 프라이빗 AKS",
   "settings": {
     "aws_region": "ap-northeast-2",
     "azure_subscription": "",
@@ -248,5 +248,8 @@
   "warnings": [
     "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
     "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
-  ]
+  ],
+  "review": {
+    "operations": "클러스터의 사설 접근과 서브넷 위임을 검토한다."
+  }
 }

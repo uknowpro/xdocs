@@ -1,0 +1,527 @@
+{
+  "version": 1,
+  "title": "AWS · 상태 머신 기반 Batch 작업 제어",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_batch_compute_environment",
+      "label": "aws_batch_compute_environment.batch_compute_env",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 256,
+      "address": "aws_batch_compute_environment.batch_compute_env",
+      "references": [
+        "aws_iam_instance_profile.ecs_profile",
+        "aws_security_group.batch_sg",
+        "aws_subnet.subnet",
+        "aws_iam_role_policy_attachment.batch_ecs_role",
+        "aws_iam_role_policy_attachment.batch_role",
+        "random_string.random",
+        "aws_iam_role.batch_role"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_batch_job_definition",
+      "label": "aws_batch_job_definition.batch_job",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 55,
+      "address": "aws_batch_job_definition.batch_job",
+      "references": [
+        "aws_iam_role.batch_job_execution_role",
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_batch_job_queue",
+      "label": "aws_batch_job_queue.batch_job_queue",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 282,
+      "address": "aws_batch_job_queue.batch_job_queue",
+      "references": [
+        "aws_batch_compute_environment.batch_compute_env",
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_instance_profile",
+      "label": "aws_iam_instance_profile.ecs_instance_role",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 131,
+      "address": "aws_iam_instance_profile.ecs_instance_role",
+      "references": [
+        "aws_iam_role.ecs_instance_role"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_iam_instance_profile",
+      "label": "aws_iam_instance_profile.ecs_profile",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 251,
+      "address": "aws_iam_instance_profile.ecs_profile",
+      "references": [
+        "aws_iam_role.batch_ecs_role"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.sfn_batch_job_policy",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 309,
+      "address": "aws_iam_policy.sfn_batch_job_policy",
+      "references": [
+        "random_string.random",
+        "aws_sns_topic.batch_job"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.batch_ecs_role",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 229,
+      "address": "aws_iam_role.batch_ecs_role",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.batch_job_execution_role",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "address": "aws_iam_role.batch_job_execution_role",
+      "references": [
+        "data.aws_iam_policy_document.assume_role_policy"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.batch_role",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 207,
+      "address": "aws_iam_role.batch_role",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.ecs_instance_role",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 121,
+      "address": "aws_iam_role.ecs_instance_role",
+      "references": [
+        "data.aws_iam_policy_document.ec2_assume_role"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.sfn_batch_job_role",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 292,
+      "address": "aws_iam_role.sfn_batch_job_role",
+      "references": [
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.batch_ecs_role",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 245,
+      "address": "aws_iam_role_policy_attachment.batch_ecs_role",
+      "references": [
+        "aws_iam_role.batch_ecs_role"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.batch_job_execution_policy",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 50,
+      "address": "aws_iam_role_policy_attachment.batch_job_execution_policy",
+      "references": [
+        "aws_iam_role.batch_job_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.batch_role",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 223,
+      "address": "aws_iam_role_policy_attachment.batch_role",
+      "references": [
+        "aws_iam_role.batch_role"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.ecs_instance_role",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 126,
+      "address": "aws_iam_role_policy_attachment.ecs_instance_role",
+      "references": [
+        "aws_iam_role.ecs_instance_role"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.state_machine_custom_policy_attachment",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 349,
+      "address": "aws_iam_role_policy_attachment.state_machine_custom_policy_attachment",
+      "references": [
+        "aws_iam_policy.sfn_batch_job_policy",
+        "aws_iam_role.sfn_batch_job_role"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.gw",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 158,
+      "address": "aws_internet_gateway.gw",
+      "references": [
+        "aws_vpc.vpc"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public_route",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 163,
+      "address": "aws_route_table.public_route",
+      "references": [
+        "aws_internet_gateway.gw",
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3421,
+        "address": "aws_vpc.vpc",
+        "otherRefs": [
+          "aws_internet_gateway.gw"
+        ]
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.subnet_rt",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 187,
+      "address": "aws_route_table_association.subnet_rt",
+      "references": [
+        "aws_route_table.public_route",
+        "aws_subnet.subnet"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.batch_sg",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 193,
+      "address": "aws_security_group.batch_sg",
+      "references": [
+        "aws_vpc.vpc"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_sfn_state_machine",
+      "label": "aws_sfn_state_machine.sfn_batch_job",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 354,
+      "address": "aws_sfn_state_machine.sfn_batch_job",
+      "references": [
+        "aws_sns_topic.batch_job",
+        "aws_batch_job_definition.batch_job",
+        "aws_batch_job_queue.batch_job_queue",
+        "random_string.random",
+        "aws_iam_role.sfn_batch_job_role"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_sns_topic",
+      "label": "aws_sns_topic.batch_job",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 29,
+      "address": "aws_sns_topic.batch_job",
+      "references": [
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.subnet",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 180,
+      "address": "aws_subnet.subnet",
+      "references": [
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3821,
+        "address": "aws_vpc.vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.vpc",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 152,
+      "address": "aws_vpc.vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_24",
+      "kind": "random_string",
+      "label": "random_string.random",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "address": "random_string.random",
+      "references": []
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.caller",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 19,
+      "address": "data.aws_caller_identity.caller",
+      "references": []
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.assume_role_policy",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "data.aws_iam_policy_document.assume_role_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.batch_assume_role",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 136,
+      "address": "data.aws_iam_policy_document.batch_assume_role",
+      "references": []
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.ec2_assume_role",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 108,
+      "address": "data.aws_iam_policy_document.ec2_assume_role",
+      "references": []
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_partition",
+      "label": "data.aws_partition.partition",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 20,
+      "address": "data.aws_partition.partition",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region  = var.region\n}\n\nlocals {\n  project_name = \"manage-batch-job\"\n\n}\n\ndata \"aws_caller_identity\" \"caller\" {}\ndata \"aws_partition\" \"partition\" {}\n\n\nresource \"random_string\" \"random\" {\n  length           = 16\n  special          = false\n  upper            = false\n}\n\nresource \"aws_sns_topic\" \"batch_job\" {\n  name = \"StepFunctions-BatchJobManagement-${random_string.random.result}\"\n  kms_master_key_id = \"alias/aws/sns\"\n}\n\nresource \"aws_iam_role\" \"batch_job_execution_role\" {\n  name               = \"StepFunctions-BatchJobManagementRole\"\n  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json\n}\n\ndata \"aws_iam_policy_document\" \"assume_role_policy\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ecs-tasks.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role_policy_attachment\" \"batch_job_execution_policy\" {\n  role       = aws_iam_role.batch_job_execution_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy\"\n}\n\nresource \"aws_batch_job_definition\" \"batch_job\" {\n  name = \"StepFunctions-BatchJobManagement-${random_string.random.result}\"\n  type = \"container\"\n  container_properties = jsonencode({\n    command = [\"ls\", \"-la\"],\n    image   = \"busybox\"\n\n    resourceRequirements = [\n      {\n        type  = \"VCPU\"\n        value = \"1\"\n      },\n      {\n        type  = \"MEMORY\"\n        value = \"512\"\n      }\n    ]\n\n    volumes = [\n      {\n        host = {\n          sourcePath = \"/tmp\"\n        }\n        name = \"tmp\"\n      }\n    ]\n\n    environment = [\n      {\n        name  = \"VARNAME\"\n        value = \"VARVAL\"\n      }\n    ]\n\n    mountPoints = [\n      {\n        sourceVolume  = \"tmp\"\n        containerPath = \"/tmp\"\n        readOnly      = false\n      }\n    ]\n\n    ulimits = [\n      {\n        hardLimit = 1024\n        name      = \"nofile\"\n        softLimit = 1024\n      }\n    ]\n    executionRoleArn = aws_iam_role.batch_job_execution_role.arn\n  })\n}\n\ndata \"aws_iam_policy_document\" \"ec2_assume_role\" {\n  statement {\n    effect = \"Allow\"\n\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n\n    actions = [\"sts:AssumeRole\"]\n  }\n}\n\nresource \"aws_iam_role\" \"ecs_instance_role\" {\n  name               = \"ecs_instance_role\"\n  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ecs_instance_role\" {\n  role       = aws_iam_role.ecs_instance_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role\"\n}\n\nresource \"aws_iam_instance_profile\" \"ecs_instance_role\" {\n  name = \"ecs_instance_role\"\n  role = aws_iam_role.ecs_instance_role.name\n}\n\ndata \"aws_iam_policy_document\" \"batch_assume_role\" {\n  statement {\n    effect = \"Allow\"\n\n    principals {\n      type        = \"Service\"\n      identifiers = [\"batch.amazonaws.com\"]\n    }\n\n    actions = [\"sts:AssumeRole\"]\n  }\n}\n\n# This section creates a VPC and related resources for the AWS Batch environment\n\n# VPC to hold all Batch resources\nresource \"aws_vpc\" \"vpc\" {\n  cidr_block = var.vpc_cidr\n\n}\n\n# Create an Internet Gateway\nresource \"aws_internet_gateway\" \"gw\" {\n  vpc_id = aws_vpc.vpc.id\n}\n\n# Public Route Table\nresource \"aws_route_table\" \"public_route\" {\n  vpc_id = aws_vpc.vpc.id\n  route {\n\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.gw.id\n  }\n\n}\n\n/* #Attach the IGW to the VPC\nresource \"aws_internet_gateway_attachment\" \"gw_attach\" {\n  internet_gateway_id = aws_internet_gateway.gw.id\n  vpc_id              = aws_vpc.vpc.id\n} */\n\n#Create a single subnet which allows public IP's\nresource \"aws_subnet\" \"subnet\" {\n  vpc_id                  = aws_vpc.vpc.id\n  cidr_block              = var.subnet_cidr\n  map_public_ip_on_launch = true\n}\n\n# Associate the route table with the subnet\nresource \"aws_route_table_association\" \"subnet_rt\" {\n  subnet_id      = aws_subnet.subnet.id\n  route_table_id = aws_route_table.public_route.id\n}\n\n#Create a security group for the batch job\nresource \"aws_security_group\" \"batch_sg\" {\n  name        = \"${local.project_name}-sg\"\n  description = \"Security group for Batch environment\"\n  vpc_id      = aws_vpc.vpc.id\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n\n  }\n}\n\n# Create the Role and Policies for the Batch environment\nresource \"aws_iam_role\" \"batch_role\" {\n  name = \"${local.project_name}-batch-svc-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"batch.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"batch_role\" {\n  role       = aws_iam_role.batch_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole\"\n}\n\n#Create the ECS instance role\nresource \"aws_iam_role\" \"batch_ecs_role\" {\n  name = \"${local.project_name}-batch-ecs-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"batch_ecs_role\" {\n  role       = aws_iam_role.batch_ecs_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role\"\n}\n\n# Create the ECS instance profile\nresource \"aws_iam_instance_profile\" \"ecs_profile\" {\n  name = \"${local.project_name}-batch-profile\"\n  role = aws_iam_role.batch_ecs_role.name\n}\n\nresource \"aws_batch_compute_environment\" \"batch_compute_env\" {\n  name = \"BatchComputeEnvironment-${random_string.random.result}\"\n  type         = \"MANAGED\"\n  service_role = aws_iam_role.batch_role.arn\n  compute_resources {\n    max_vcpus     = 64\n    min_vcpus     = 0\n    desired_vcpus = 2\n    type          = \"EC2\"\n    instance_role = aws_iam_instance_profile.ecs_profile.arn\n    security_group_ids = [\n      aws_security_group.batch_sg.id\n    ]\n    instance_type = [\"optimal\"]\n    subnets = [\n      aws_subnet.subnet.id\n    ]\n  }\n  depends_on = [\n    aws_iam_role_policy_attachment.batch_ecs_role,\n    aws_subnet.subnet,\n    aws_security_group.batch_sg,\n    aws_iam_role_policy_attachment.batch_role\n  ]\n}\n\nresource \"aws_batch_job_queue\" \"batch_job_queue\" {\n  name     = \"StepFunctions-BatchJobManagementQueue-${random_string.random.result}\"\n  state    = \"ENABLED\"\n  priority = 1\n  compute_environment_order {\n    order               = 1\n    compute_environment = aws_batch_compute_environment.batch_compute_env.arn\n  }\n}\n\nresource \"aws_iam_role\" \"sfn_batch_job_role\" {\n  name = \"start-batch-job-${random_string.random.result}\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"states.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"sfn_batch_job_policy\" {\n  name = \"sfn-batch-job-policy-${random_string.random.result}\"\n\n  policy = jsonencode({\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Action\": [\n                \"sns:Publish\"\n            ],\n            \"Resource\": [\n                aws_sns_topic.batch_job.arn\n            ],\n            \"Effect\": \"Allow\"\n        },\n        {\n            \"Action\": [\n                \"batch:SubmitJob\",\n                \"batch:DescribeJobs\",\n                \"batch:TerminateJob\"\n            ],\n            \"Resource\": \"*\",\n            \"Effect\": \"Allow\"\n        },\n        {\n            \"Action\": [\n                \"events:PutTargets\",\n                \"events:PutRule\",\n                \"events:DescribeRule\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ],\n            \"Effect\": \"Allow\"\n        }\n    ]\n}\n   )\n}\n\nresource \"aws_iam_role_policy_attachment\" \"state_machine_custom_policy_attachment\" {\n  policy_arn = aws_iam_policy.sfn_batch_job_policy.arn\n  role       = aws_iam_role.sfn_batch_job_role.id\n}\n\nresource \"aws_sfn_state_machine\" \"sfn_batch_job\" {\n  name     = \"state-machine-manage-batch-job-${random_string.random.result}\"\n  role_arn = aws_iam_role.sfn_batch_job_role.arn\n    definition = templatefile(\"${path.module}/statemachine/statemachine.asl.json\", {\n    sns_topic = aws_sns_topic.batch_job.arn,\n    batch_job_definition  = aws_batch_job_definition.batch_job.arn,\n    batch_job_queue     = aws_batch_job_queue.batch_job_queue.arn\n\n  })\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"region\" {\n    type=string\n    description = \"AWS Region where deploying resources\"\n    default = \"us-east-1\"\n}\n\nvariable \"aws_profile_name\" {\n    type=string\n    description = \"AWS CLI credentials profile name\"\n    default=\"default\"\n}\n\nvariable \"vpc_cidr\" {\n    type=string\n    description = \"CIDR block for Batch VPC\"\n    default = \"10.0.0.0/16\"\n}\n\nvariable \"subnet_cidr\" {\n    type=string\n    description = \"CIDR block for the Batch subnet\"\n    default = \"10.0.0.0/24\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/sfn-manage-batch-job/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "작업 제출부터 완료 대기까지 실패를 재처리할 위치를 검토한다."
+  }
+}

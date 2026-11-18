@@ -1,0 +1,798 @@
+{
+  "version": 1,
+  "title": "GCP · Interconnect 위의 HA VPN",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "google_compute_address",
+      "label": "google_compute_address.address_vpn_ia_1",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 65,
+      "address": "google_compute_address.address_vpn_ia_1",
+      "references": [
+        "google_compute_network.network_havpn_ic"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "google_compute_address",
+      "label": "google_compute_address.address_vpn_ia_2",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 74,
+      "address": "google_compute_address.address_vpn_ia_2",
+      "references": [
+        "google_compute_network.network_havpn_ic"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "google_compute_external_vpn_gateway",
+      "label": "google_compute_external_vpn_gateway.external_vpngw_1",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 210,
+      "address": "google_compute_external_vpn_gateway.external_vpngw_1",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "google_compute_external_vpn_gateway",
+      "label": "google_compute_external_vpn_gateway.external_vpngw_2",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 223,
+      "address": "google_compute_external_vpn_gateway.external_vpngw_2",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "google_compute_ha_vpn_gateway",
+      "label": "google_compute_ha_vpn_gateway.vpngw_1",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 156,
+      "address": "google_compute_ha_vpn_gateway.vpngw_1",
+      "references": [
+        "google_compute_network.network_havpn_ic",
+        "google_compute_interconnect_attachment.ia_1",
+        "google_compute_interconnect_attachment.ia_2"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "google_compute_ha_vpn_gateway",
+      "label": "google_compute_ha_vpn_gateway.vpngw_2",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 169,
+      "address": "google_compute_ha_vpn_gateway.vpngw_2",
+      "references": [
+        "google_compute_network.network_havpn_ic",
+        "google_compute_interconnect_attachment.ia_1",
+        "google_compute_interconnect_attachment.ia_2"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "google_compute_ha_vpn_gateway",
+      "label": "google_compute_ha_vpn_gateway.vpngw_3",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 182,
+      "address": "google_compute_ha_vpn_gateway.vpngw_3",
+      "references": [
+        "google_compute_network.network_havpn_ic",
+        "google_compute_interconnect_attachment.ia_1",
+        "google_compute_interconnect_attachment.ia_2"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "google_compute_ha_vpn_gateway",
+      "label": "google_compute_ha_vpn_gateway.vpngw_4",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 195,
+      "address": "google_compute_ha_vpn_gateway.vpngw_4",
+      "references": [
+        "google_compute_network.network_havpn_ic",
+        "google_compute_interconnect_attachment.ia_1",
+        "google_compute_interconnect_attachment.ia_2"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "google_compute_interconnect_attachment",
+      "label": "google_compute_interconnect_attachment.ia_1",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 87,
+      "address": "google_compute_interconnect_attachment.ia_1",
+      "references": [
+        "data.google_project.project",
+        "google_compute_address.address_vpn_ia_1",
+        "google_compute_router.ic_router"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "google_compute_interconnect_attachment",
+      "label": "google_compute_interconnect_attachment.ia_2",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 104,
+      "address": "google_compute_interconnect_attachment.ia_2",
+      "references": [
+        "data.google_project.project",
+        "google_compute_address.address_vpn_ia_2",
+        "google_compute_router.ic_router"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "google_compute_network",
+      "label": "google_compute_network.network_havpn_ic",
+      "x": 540,
+      "y": 340,
+      "props": {
+        "name": "network-havpn-ic"
+      },
+      "original": {
+        "name": "network-havpn-ic"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "google_compute_network.network_havpn_ic",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "google_compute_router",
+      "label": "google_compute_router.ic_router",
+      "x": 780,
+      "y": 340,
+      "props": {
+        "name": "ic-router"
+      },
+      "original": {
+        "name": "ic-router"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 53,
+      "address": "google_compute_router.ic_router",
+      "references": [
+        "google_compute_network.network_havpn_ic"
+      ],
+      "scopeAddress": "google_compute_network.network_havpn_ic",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1839,
+        "address": "google_compute_network.network_havpn_ic",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "google_compute_router",
+      "label": "google_compute_router.vpn_router",
+      "x": 60,
+      "y": 480,
+      "props": {
+        "name": "vpn-router"
+      },
+      "original": {
+        "name": "vpn-router"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 238,
+      "address": "google_compute_router.vpn_router",
+      "references": [
+        "google_compute_network.network_havpn_ic"
+      ],
+      "scopeAddress": "google_compute_network.network_havpn_ic",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 8088,
+        "address": "google_compute_network.network_havpn_ic",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_13",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.ic_if_1",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 121,
+      "address": "google_compute_router_interface.ic_if_1",
+      "references": [
+        "google_compute_interconnect_attachment.ia_1",
+        "google_compute_router.ic_router"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.ic_if_2",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 128,
+      "address": "google_compute_router_interface.ic_if_2",
+      "references": [
+        "google_compute_interconnect_attachment.ia_2",
+        "google_compute_router.ic_router"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_1_if_0",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 330,
+      "address": "google_compute_router_interface.vpn_1_if_0",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_1"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_1_if_1",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 337,
+      "address": "google_compute_router_interface.vpn_1_if_1",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_2"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_2_if_0",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 344,
+      "address": "google_compute_router_interface.vpn_2_if_0",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_3"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_2_if_1",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 351,
+      "address": "google_compute_router_interface.vpn_2_if_1",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_4"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_3_if_0",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 358,
+      "address": "google_compute_router_interface.vpn_3_if_0",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_5"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_3_if_1",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 365,
+      "address": "google_compute_router_interface.vpn_3_if_1",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_6"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_4_if_0",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 372,
+      "address": "google_compute_router_interface.vpn_4_if_0",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_7"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.vpn_4_if_1",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 379,
+      "address": "google_compute_router_interface.vpn_4_if_1",
+      "references": [
+        "google_compute_router.vpn_router",
+        "google_compute_vpn_tunnel.tunnel_8"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.ic_peer_1",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 137,
+      "address": "google_compute_router_peer.ic_peer_1",
+      "references": [
+        "google_compute_router_interface.ic_if_1",
+        "google_compute_interconnect_attachment.ia_1",
+        "google_compute_router.ic_router"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.ic_peer_2",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 145,
+      "address": "google_compute_router_peer.ic_peer_2",
+      "references": [
+        "google_compute_router_interface.ic_if_2",
+        "google_compute_interconnect_attachment.ia_2",
+        "google_compute_router.ic_router"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_1",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 388,
+      "address": "google_compute_router_peer.vpn_peer_1",
+      "references": [
+        "google_compute_router_interface.vpn_1_if_0",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_2",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 396,
+      "address": "google_compute_router_peer.vpn_peer_2",
+      "references": [
+        "google_compute_router_interface.vpn_1_if_1",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_3",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 404,
+      "address": "google_compute_router_peer.vpn_peer_3",
+      "references": [
+        "google_compute_router_interface.vpn_2_if_0",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_4",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 412,
+      "address": "google_compute_router_peer.vpn_peer_4",
+      "references": [
+        "google_compute_router_interface.vpn_2_if_1",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_5",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 420,
+      "address": "google_compute_router_peer.vpn_peer_5",
+      "references": [
+        "google_compute_router_interface.vpn_3_if_0",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_6",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 428,
+      "address": "google_compute_router_peer.vpn_peer_6",
+      "references": [
+        "google_compute_router_interface.vpn_3_if_1",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_31",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_7",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 436,
+      "address": "google_compute_router_peer.vpn_peer_7",
+      "references": [
+        "google_compute_router_interface.vpn_4_if_0",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_32",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.vpn_peer_8",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 444,
+      "address": "google_compute_router_peer.vpn_peer_8",
+      "references": [
+        "google_compute_router_interface.vpn_4_if_1",
+        "google_compute_router.vpn_router"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "google_compute_subnetwork",
+      "label": "google_compute_subnetwork.subnet_havpn_ic",
+      "x": 300,
+      "y": 1180,
+      "props": {
+        "name": "subnet-havpn-ic",
+        "cidr": "192.168.1.0/24"
+      },
+      "original": {
+        "name": "subnet-havpn-ic",
+        "cidr": "192.168.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 44,
+      "address": "google_compute_subnetwork.subnet_havpn_ic",
+      "references": [
+        "google_compute_network.network_havpn_ic"
+      ],
+      "scopeAddress": "google_compute_network.network_havpn_ic",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1547,
+        "address": "google_compute_network.network_havpn_ic",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_34",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_1",
+      "x": 540,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 248,
+      "address": "google_compute_vpn_tunnel.tunnel_1",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_1",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_1"
+      ]
+    },
+    {
+      "id": "n_import_35",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_2",
+      "x": 780,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 258,
+      "address": "google_compute_vpn_tunnel.tunnel_2",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_1",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_1"
+      ]
+    },
+    {
+      "id": "n_import_36",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_3",
+      "x": 60,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 268,
+      "address": "google_compute_vpn_tunnel.tunnel_3",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_2",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_2"
+      ]
+    },
+    {
+      "id": "n_import_37",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_4",
+      "x": 300,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 278,
+      "address": "google_compute_vpn_tunnel.tunnel_4",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_2",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_2"
+      ]
+    },
+    {
+      "id": "n_import_38",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_5",
+      "x": 540,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 288,
+      "address": "google_compute_vpn_tunnel.tunnel_5",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_1",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_3"
+      ]
+    },
+    {
+      "id": "n_import_39",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_6",
+      "x": 780,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 298,
+      "address": "google_compute_vpn_tunnel.tunnel_6",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_1",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_3"
+      ]
+    },
+    {
+      "id": "n_import_40",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_7",
+      "x": 60,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 308,
+      "address": "google_compute_vpn_tunnel.tunnel_7",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_2",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_4"
+      ]
+    },
+    {
+      "id": "n_import_41",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.tunnel_8",
+      "x": 300,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 318,
+      "address": "google_compute_vpn_tunnel.tunnel_8",
+      "references": [
+        "google_compute_external_vpn_gateway.external_vpngw_2",
+        "google_compute_router.vpn_router",
+        "google_compute_ha_vpn_gateway.vpngw_4"
+      ]
+    },
+    {
+      "id": "n_import_42",
+      "kind": "google_project",
+      "label": "data.google_project.project",
+      "x": 540,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 85,
+      "address": "data.google_project.project",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "/**\n * Copyright 2022 Google LLC\n *\n * Licensed under the Apache License, Version 2.0 (the \"License\");\n * you may not use this file except in compliance with the License.\n * You may obtain a copy of the License at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software\n * distributed under the License is distributed on an \"AS IS\" BASIS,\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n * See the License for the specific language governing permissions and\n * limitations under the License.\n */\n\n# HA VPN over Cloud Interconnect 10GB VLAN attachments (Dedicated Interconnect)\n\n# [START cloudinterconnect_ha_vpn_over_interconnect_10gb_attachments]\n\nprovider \"google\" {\n  # Specify the project where you want\n  # to deploy HA VPN over Cloud Interconnect resources.\n  # Your Dedicated Interconnect connections can be\n  # located in a different project.\n  #\n  # project = \"your-project\"\n\n  # Create all resources in the same region, which\n  # you can specify at the provider level.\n  # Important: This region must support the creation\n  # of new VLAN attachments on Dataplane v2.\n  region = \"us-east4\"\n}\n\n# VPC Network\nresource \"google_compute_network\" \"network_havpn_ic\" {\n  name                    = \"network-havpn-ic\"\n  auto_create_subnetworks = false\n  routing_mode            = \"GLOBAL\"\n}\n\n# Subnet\nresource \"google_compute_subnetwork\" \"subnet_havpn_ic\" {\n  name          = \"subnet-havpn-ic\"\n  ip_cidr_range = \"192.168.1.0/24\"\n  network       = google_compute_network.network_havpn_ic.self_link\n}\n\n# Begin Cloud Interconnect tier\n# Create Interconnect Cloud Router, specific to HA VPN over Cloud Interconnect\n\nresource \"google_compute_router\" \"ic_router\" {\n  name                          = \"ic-router\"\n  network                       = google_compute_network.network_havpn_ic.self_link\n  encrypted_interconnect_router = true\n  bgp {\n    asn = 65000\n  }\n}\n\n# Optional: Reserve regional internal IP ranges to allocate to the HA VPN gateway\n# interfaces. Reserve an internal range for each VLAN attachment.\n\nresource \"google_compute_address\" \"address_vpn_ia_1\" {\n  name          = \"address-vpn-ia-1\"\n  address_type  = \"INTERNAL\"\n  purpose       = \"IPSEC_INTERCONNECT\"\n  address       = \"192.168.20.0\"\n  prefix_length = 29 # Allows you to reserve up to 8 IP addresses\n  network       = google_compute_network.network_havpn_ic.self_link\n}\n\nresource \"google_compute_address\" \"address_vpn_ia_2\" {\n  name          = \"address-vpn-ia-2\"\n  address_type  = \"INTERNAL\"\n  purpose       = \"IPSEC_INTERCONNECT\"\n  address       = \"192.168.21.0\"\n  prefix_length = 29 # Allows you to reserve up to 8 IP addresses\n  network       = google_compute_network.network_havpn_ic.self_link\n}\n\n# Create encrypted VLAN attachments\n\ndata \"google_project\" \"project\" {\n}\nresource \"google_compute_interconnect_attachment\" \"ia_1\" {\n  name    = \"ia-1\"\n  project = data.google_project.project.project_id\n  router  = google_compute_router.ic_router.self_link\n  # If you use the same project for your Dedicated Interconnect connection and attachments, you can keep the variable in the following URL.\n  # If not, replace the URL and variable.\n  interconnect = \"https://www.googleapis.com/compute/v1/projects/${data.google_project.project.project_id}/global/interconnects/interconnect-zone1\"\n  description  = \"\"\n  bandwidth    = \"BPS_10G\"\n  type         = \"DEDICATED\"\n  encryption   = \"IPSEC\"\n  ipsec_internal_addresses = [\n    google_compute_address.address_vpn_ia_1.self_link,\n  ]\n  vlan_tag8021q = 2001\n}\n\nresource \"google_compute_interconnect_attachment\" \"ia_2\" {\n  name         = \"ia-2\"\n  project      = data.google_project.project.project_id\n  router       = google_compute_router.ic_router.self_link\n  interconnect = \"https://www.googleapis.com/compute/v1/projects/${data.google_project.project.project_id}/global/interconnects/interconnect-zone2\"\n  description  = \"\"\n  bandwidth    = \"BPS_10G\"\n  type         = \"DEDICATED\"\n  encryption   = \"IPSEC\"\n  ipsec_internal_addresses = [\n    google_compute_address.address_vpn_ia_2.self_link,\n  ]\n  vlan_tag8021q = 2002\n}\n\n# Create VLAN attachment interfaces for Cloud Router\n\nresource \"google_compute_router_interface\" \"ic_if_1\" {\n  name                    = \"ic-if-1\"\n  router                  = google_compute_router.ic_router.name\n  ip_range                = google_compute_interconnect_attachment.ia_1.cloud_router_ip_address\n  interconnect_attachment = google_compute_interconnect_attachment.ia_1.self_link\n}\n\nresource \"google_compute_router_interface\" \"ic_if_2\" {\n  name                    = \"ic-if-2\"\n  router                  = google_compute_router.ic_router.name\n  ip_range                = google_compute_interconnect_attachment.ia_2.cloud_router_ip_address\n  interconnect_attachment = google_compute_interconnect_attachment.ia_2.self_link\n}\n\n# Create BGP peers for Interconnect Cloud Router\n\nresource \"google_compute_router_peer\" \"ic_peer_1\" {\n  name            = \"ic-peer-1\"\n  router          = google_compute_router.ic_router.name\n  peer_ip_address = trimsuffix(google_compute_interconnect_attachment.ia_1.customer_router_ip_address, \"/29\")\n  interface       = google_compute_router_interface.ic_if_1.name\n  peer_asn        = 65098\n}\n\nresource \"google_compute_router_peer\" \"ic_peer_2\" {\n  name            = \"ic-peer-2\"\n  router          = google_compute_router.ic_router.name\n  peer_ip_address = trimsuffix(google_compute_interconnect_attachment.ia_2.customer_router_ip_address, \"/29\")\n  interface       = google_compute_router_interface.ic_if_2.name\n  peer_asn        = 65099\n}\n\n# Begin VPN Layer\n# Create HA VPN Gateways and associate with the Cloud Interconnect VLAN attachments\n\nresource \"google_compute_ha_vpn_gateway\" \"vpngw_1\" {\n  name    = \"vpngw-1\"\n  network = google_compute_network.network_havpn_ic.id\n  vpn_interfaces {\n    id                      = 0\n    interconnect_attachment = google_compute_interconnect_attachment.ia_1.self_link\n  }\n  vpn_interfaces {\n    id                      = 1\n    interconnect_attachment = google_compute_interconnect_attachment.ia_2.self_link\n  }\n}\n\nresource \"google_compute_ha_vpn_gateway\" \"vpngw_2\" {\n  name    = \"vpngw-2\"\n  network = google_compute_network.network_havpn_ic.id\n  vpn_interfaces {\n    id                      = 0\n    interconnect_attachment = google_compute_interconnect_attachment.ia_1.self_link\n  }\n  vpn_interfaces {\n    id                      = 1\n    interconnect_attachment = google_compute_interconnect_attachment.ia_2.self_link\n  }\n}\n\nresource \"google_compute_ha_vpn_gateway\" \"vpngw_3\" {\n  name    = \"vpngw-3\"\n  network = google_compute_network.network_havpn_ic.id\n  vpn_interfaces {\n    id                      = 0\n    interconnect_attachment = google_compute_interconnect_attachment.ia_1.self_link\n  }\n  vpn_interfaces {\n    id                      = 1\n    interconnect_attachment = google_compute_interconnect_attachment.ia_2.self_link\n  }\n}\n\nresource \"google_compute_ha_vpn_gateway\" \"vpngw_4\" {\n  name    = \"vpngw-4\"\n  network = google_compute_network.network_havpn_ic.id\n  vpn_interfaces {\n    id                      = 0\n    interconnect_attachment = google_compute_interconnect_attachment.ia_1.self_link\n  }\n  vpn_interfaces {\n    id                      = 1\n    interconnect_attachment = google_compute_interconnect_attachment.ia_2.self_link\n  }\n}\n\n# Create external peer VPN gateway resources\n\nresource \"google_compute_external_vpn_gateway\" \"external_vpngw_1\" {\n  name            = \"external-vpngw-1\"\n  redundancy_type = \"TWO_IPS_REDUNDANCY\"\n  interface {\n    id         = 0\n    ip_address = \"192.25.67.3\"\n  }\n  interface {\n    id         = 1\n    ip_address = \"192.25.67.4\"\n  }\n}\n\nresource \"google_compute_external_vpn_gateway\" \"external_vpngw_2\" {\n  name            = \"external-vpngw-2\"\n  redundancy_type = \"TWO_IPS_REDUNDANCY\"\n  interface {\n    id         = 0\n    ip_address = \"192.25.68.5\"\n  }\n  interface {\n    id         = 1\n    ip_address = \"192.25.68.6\"\n  }\n}\n\n# Create HA VPN Cloud Router\n\nresource \"google_compute_router\" \"vpn_router\" {\n  name    = \"vpn-router\"\n  network = google_compute_network.network_havpn_ic.self_link\n  bgp {\n    asn = 65010\n  }\n}\n\n# Create HA VPN tunnels\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_1\" {\n  name                            = \"tunnel-1\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_1.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_1.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 0\n  peer_external_gateway_interface = 0\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_2\" {\n  name                            = \"tunnel-2\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_1.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_1.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 1\n  peer_external_gateway_interface = 1\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_3\" {\n  name                            = \"tunnel-3\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_2.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_2.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 0\n  peer_external_gateway_interface = 0\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_4\" {\n  name                            = \"tunnel-4\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_2.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_2.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 1\n  peer_external_gateway_interface = 1\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_5\" {\n  name                            = \"tunnel-5\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_3.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_1.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 0\n  peer_external_gateway_interface = 0\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_6\" {\n  name                            = \"tunnel-6\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_3.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_1.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 1\n  peer_external_gateway_interface = 1\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_7\" {\n  name                            = \"tunnel-7\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_4.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_2.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 0\n  peer_external_gateway_interface = 0\n}\n\nresource \"google_compute_vpn_tunnel\" \"tunnel_8\" {\n  name                            = \"tunnel-8\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.vpngw_4.id\n  peer_external_gateway           = google_compute_external_vpn_gateway.external_vpngw_2.id\n  shared_secret                   = \"shhhhh\"\n  router                          = google_compute_router.vpn_router.id\n  vpn_gateway_interface           = 1\n  peer_external_gateway_interface = 1\n}\n\n# Create VPN tunnel interfaces for Cloud Router\n\nresource \"google_compute_router_interface\" \"vpn_1_if_0\" {\n  name       = \"vpn-1-if-0\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.1.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_1.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_1_if_1\" {\n  name       = \"vpn-1-if-1\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.2.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_2.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_2_if_0\" {\n  name       = \"vpn-2-if-0\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.3.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_3.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_2_if_1\" {\n  name       = \"vpn-2-if-1\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.4.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_4.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_3_if_0\" {\n  name       = \"vpn-3-if-0\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.5.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_5.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_3_if_1\" {\n  name       = \"vpn-3-if-1\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.6.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_6.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_4_if_0\" {\n  name       = \"vpn-4-if-0\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.7.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_7.self_link\n}\n\nresource \"google_compute_router_interface\" \"vpn_4_if_1\" {\n  name       = \"vpn-4-if-1\"\n  router     = google_compute_router.vpn_router.name\n  ip_range   = \"169.254.8.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.tunnel_8.self_link\n}\n\n# Create BGP Peers for Cloud Router\n\nresource \"google_compute_router_peer\" \"vpn_peer_1\" {\n  name            = \"vpn-peer-1\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.1.2\"\n  interface       = google_compute_router_interface.vpn_1_if_0.name\n  peer_asn        = 65011\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_2\" {\n  name            = \"vpn-peer-2\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.2.2\"\n  interface       = google_compute_router_interface.vpn_1_if_1.name\n  peer_asn        = 65011\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_3\" {\n  name            = \"vpn-peer-3\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.3.2\"\n  interface       = google_compute_router_interface.vpn_2_if_0.name\n  peer_asn        = 65011\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_4\" {\n  name            = \"vpn-peer-4\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.4.2\"\n  interface       = google_compute_router_interface.vpn_2_if_1.name\n  peer_asn        = 65011\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_5\" {\n  name            = \"vpn-peer-5\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.5.2\"\n  interface       = google_compute_router_interface.vpn_3_if_0.name\n  peer_asn        = 65034\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_6\" {\n  name            = \"vpn-peer-6\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.6.2\"\n  interface       = google_compute_router_interface.vpn_3_if_1.name\n  peer_asn        = 65034\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_7\" {\n  name            = \"vpn-peer-7\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.7.2\"\n  interface       = google_compute_router_interface.vpn_4_if_0.name\n  peer_asn        = 65034\n}\n\nresource \"google_compute_router_peer\" \"vpn_peer_8\" {\n  name            = \"vpn-peer-8\"\n  router          = google_compute_router.vpn_router.name\n  peer_ip_address = \"169.254.8.2\"\n  interface       = google_compute_router_interface.vpn_4_if_1.name\n  peer_asn        = 65034\n}\n\n# [END cloudinterconnect_ha_vpn_over_interconnect_10gb_attachments]\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/terraform-google-modules/terraform-docs-samples/tree/044aade264f9207e204d4e600d2e3a494a1a5d6e/network_connectivity/interconnect/ha_vpn_over_interconnect_10GB_attach\n#                                  Apache License\n#                            Version 2.0, January 2004\n#                         http://www.apache.org/licenses/\n# \n#    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n# \n#    1. Definitions.\n# \n#       \"License\" shall mean the terms and conditions for use, reproduction,\n#       and distribution as defined by Sections 1 through 9 of this document.\n# \n#       \"Licensor\" shall mean the copyright owner or entity authorized by\n#       the copyright owner that is granting the License.\n# \n#       \"Legal Entity\" shall mean the union of the acting entity and all\n#       other entities that control, are controlled by, or are under common\n#       control with that entity. For the purposes of this definition,\n#       \"control\" means (i) the power, direct or indirect, to cause the\n#       direction or management of such entity, whether by contract or\n#       otherwise, or (ii) ownership of fifty percent (50%) or more of the\n#       outstanding shares, or (iii) beneficial ownership of such entity.\n# \n#       \"You\" (or \"Your\") shall mean an individual or Legal Entity\n#       exercising permissions granted by this License.\n# \n#       \"Source\" form shall mean the preferred form for making modifications,\n#       including but not limited to software source code, documentation\n#       source, and configuration files.\n# \n#       \"Object\" form shall mean any form resulting from mechanical\n#       transformation or translation of a Source form, including but\n#       not limited to compiled object code, generated documentation,\n#       and conversions to other media types.\n# \n#       \"Work\" shall mean the work of authorship, whether in Source or\n#       Object form, made available under the License, as indicated by a\n#       copyright notice that is included in or attached to the work\n#       (an example is provided in the Appendix below).\n# \n#       \"Derivative Works\" shall mean any work, whether in Source or Object\n#       form, that is based on (or derived from) the Work and for which the\n#       editorial revisions, annotations, elaborations, or other modifications\n#       represent, as a whole, an original work of authorship. For the purposes\n#       of this License, Derivative Works shall not include works that remain\n#       separable from, or merely link (or bind by name) to the interfaces of,\n#       the Work and Derivative Works thereof.\n# \n#       \"Contribution\" shall mean any work of authorship, including\n#       the original version of the Work and any modifications or additions\n#       to that Work or Derivative Works thereof, that is intentionally\n#       submitted to Licensor for inclusion in the Work by the copyright owner\n#       or by an individual or Legal Entity authorized to submit on behalf of\n#       the copyright owner. For the purposes of this definition, \"submitted\"\n#       means any form of electronic, verbal, or written communication sent\n#       to the Licensor or its representatives, including but not limited to\n#       communication on electronic mailing lists, source code control systems,\n#       and issue tracking systems that are managed by, or on behalf of, the\n#       Licensor for the purpose of discussing and improving the Work, but\n#       excluding communication that is conspicuously marked or otherwise\n#       designated in writing by the copyright owner as \"Not a Contribution.\"\n# \n#       \"Contributor\" shall mean Licensor and any individual or Legal Entity\n#       on behalf of whom a Contribution has been received by Licensor and\n#       subsequently incorporated within the Work.\n# \n#    2. Grant of Copyright License. Subject to the terms and conditions of\n#       this License, each Contributor hereby grants to You a perpetual,\n#       worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n#       copyright license to reproduce, prepare Derivative Works of,\n#       publicly display, publicly perform, sublicense, and distribute the\n#       Work and such Derivative Works in Source or Object form.\n# \n#    3. Grant of Patent License. Subject to the terms and conditions of\n#       this License, each Contributor hereby grants to You a perpetual,\n#       worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n#       (except as stated in this section) patent license to make, have made,\n#       use, offer to sell, sell, import, and otherwise transfer the Work,\n#       where such license applies only to those patent claims licensable\n#       by such Contributor that are necessarily infringed by their\n#       Contribution(s) alone or by combination of their Contribution(s)\n#       with the Work to which such Contribution(s) was submitted. If You\n#       institute patent litigation against any entity (including a\n#       cross-claim or counterclaim in a lawsuit) alleging that the Work\n#       or a Contribution incorporated within the Work constitutes direct\n#       or contributory patent infringement, then any patent licenses\n#       granted to You under this License for that Work shall terminate\n#       as of the date such litigation is filed.\n# \n#    4. Redistribution. You may reproduce and distribute copies of the\n#       Work or Derivative Works thereof in any medium, with or without\n#       modifications, and in Source or Object form, provided that You\n#       meet the following conditions:\n# \n#       (a) You must give any other recipients of the Work or\n#           Derivative Works a copy of this License; and\n# \n#       (b) You must cause any modified files to carry prominent notices\n#           stating that You changed the files; and\n# \n#       (c) You must retain, in the Source form of any Derivative Works\n#           that You distribute, all copyright, patent, trademark, and\n#           attribution notices from the Source form of the Work,\n#           excluding those notices that do not pertain to any part of\n#           the Derivative Works; and\n# \n#       (d) If the Work includes a \"NOTICE\" text file as part of its\n#           distribution, then any Derivative Works that You distribute must\n#           include a readable copy of the attribution notices contained\n#           within such NOTICE file, excluding those notices that do not\n#           pertain to any part of the Derivative Works, in at least one\n#           of the following places: within a NOTICE text file distributed\n#           as part of the Derivative Works; within the Source form or\n#           documentation, if provided along with the Derivative Works; or,\n#           within a display generated by the Derivative Works, if and\n#           wherever such third-party notices normally appear. The contents\n#           of the NOTICE file are for informational purposes only and\n#           do not modify the License. You may add Your own attribution\n#           notices within Derivative Works that You distribute, alongside\n#           or as an addendum to the NOTICE text from the Work, provided\n#           that such additional attribution notices cannot be construed\n#           as modifying the License.\n# \n#       You may add Your own copyright statement to Your modifications and\n#       may provide additional or different license terms and conditions\n#       for use, reproduction, or distribution of Your modifications, or\n#       for any such Derivative Works as a whole, provided Your use,\n#       reproduction, and distribution of the Work otherwise complies with\n#       the conditions stated in this License.\n# \n#    5. Submission of Contributions. Unless You explicitly state otherwise,\n#       any Contribution intentionally submitted for inclusion in the Work\n#       by You to the Licensor shall be under the terms and conditions of\n#       this License, without any additional terms or conditions.\n#       Notwithstanding the above, nothing herein shall supersede or modify\n#       the terms of any separate license agreement you may have executed\n#       with Licensor regarding such Contributions.\n# \n#    6. Trademarks. This License does not grant permission to use the trade\n#       names, trademarks, service marks, or product names of the Licensor,\n#       except as required for reasonable and customary use in describing the\n#       origin of the Work and reproducing the content of the NOTICE file.\n# \n#    7. Disclaimer of Warranty. Unless required by applicable law or\n#       agreed to in writing, Licensor provides the Work (and each\n#       Contributor provides its Contributions) on an \"AS IS\" BASIS,\n#       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n#       implied, including, without limitation, any warranties or conditions\n#       of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n#       PARTICULAR PURPOSE. You are solely responsible for determining the\n#       appropriateness of using or redistributing the Work and assume any\n#       risks associated with Your exercise of permissions under this License.\n# \n#    8. Limitation of Liability. In no event and under no legal theory,\n#       whether in tort (including negligence), contract, or otherwise,\n#       unless required by applicable law (such as deliberate and grossly\n#       negligent acts) or agreed to in writing, shall any Contributor be\n#       liable to You for damages, including any direct, indirect, special,\n#       incidental, or consequential damages of any character arising as a\n#       result of this License or out of the use or inability to use the\n#       Work (including but not limited to damages for loss of goodwill,\n#       work stoppage, computer failure or malfunction, or any and all\n#       other commercial damages or losses), even if such Contributor\n#       has been advised of the possibility of such damages.\n# \n#    9. Accepting Warranty or Additional Liability. While redistributing\n#       the Work or Derivative Works thereof, You may choose to offer,\n#       and charge a fee for, acceptance of support, warranty, indemnity,\n#       or other liability obligations and/or rights consistent with this\n#       License. However, in accepting such obligations, You may act only\n#       on Your own behalf and on Your sole responsibility, not on behalf\n#       of any other Contributor, and only if You agree to indemnify,\n#       defend, and hold each Contributor harmless for any liability\n#       incurred by, or claims asserted against, such Contributor by reason\n#       of your accepting any such warranty or additional liability.\n# \n#    END OF TERMS AND CONDITIONS\n# \n#    APPENDIX: How to apply the Apache License to your work.\n# \n#       To apply the Apache License to your work, attach the following\n#       boilerplate notice, with the fields enclosed by brackets \"[]\"\n#       replaced with your own identifying information. (Don't include\n#       the brackets!)  The text should be enclosed in the appropriate\n#       comment syntax for the file format. We also recommend that a\n#       file or class name and description of purpose be included on the\n#       same \"printed page\" as the copyright notice for easier\n#       identification within third-party archives.\n# \n#    Copyright [yyyy] [name of copyright owner]\n# \n#    Licensed under the Apache License, Version 2.0 (the \"License\");\n#    you may not use this file except in compliance with the License.\n#    You may obtain a copy of the License at\n# \n#        http://www.apache.org/licenses/LICENSE-2.0\n# \n#    Unless required by applicable law or agreed to in writing, software\n#    distributed under the License is distributed on an \"AS IS\" BASIS,\n#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n#    See the License for the specific language governing permissions and\n#    limitations under the License.\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "회선·VLAN·터널·라우터가 분담하는 이중화 역할을 확인한다."
+  }
+}

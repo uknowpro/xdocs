@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "title": "AWS · 비동기 음성 전사 서비스",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.deployment",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 167,
+      "address": "aws_api_gateway_deployment.deployment",
+      "references": [
+        "aws_api_gateway_integration.integration",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.integration",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 150,
+      "address": "aws_api_gateway_integration.integration",
+      "references": [
+        "aws_api_gateway_method.method",
+        "aws_api_gateway_resource.resource",
+        "aws_api_gateway_rest_api.api",
+        "aws_lambda_function.generate_presigned_url"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.method",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 143,
+      "address": "aws_api_gateway_method.method",
+      "references": [
+        "aws_api_gateway_resource.resource",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.resource",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 137,
+      "address": "aws_api_gateway_resource.resource",
+      "references": [
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.api",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 132,
+      "address": "aws_api_gateway_rest_api.api",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.stage",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 176,
+      "address": "aws_api_gateway_stage.stage",
+      "references": [
+        "aws_api_gateway_deployment.deployment",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.lambda_log_group",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 82,
+      "multipleInstances": true,
+      "address": "aws_cloudwatch_log_group.lambda_log_group",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_role",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 28,
+      "address": "aws_iam_role.lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.lambda_policy",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 44,
+      "address": "aws_iam_role_policy.lambda_policy",
+      "references": [
+        "aws_s3_bucket.upload_bucket",
+        "aws_s3_bucket.output_bucket",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.generate_presigned_url",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 88,
+      "address": "aws_lambda_function.generate_presigned_url",
+      "references": [
+        "aws_s3_bucket.upload_bucket",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.process_s3_event",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 102,
+      "address": "aws_lambda_function.process_s3_event",
+      "references": [
+        "aws_s3_bucket.output_bucket",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.allow_api_gateway",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 159,
+      "address": "aws_lambda_permission.allow_api_gateway",
+      "references": [
+        "aws_lambda_function.generate_presigned_url",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.allow_s3",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 124,
+      "address": "aws_lambda_permission.allow_s3",
+      "references": [
+        "aws_lambda_function.process_s3_event",
+        "aws_s3_bucket.upload_bucket"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.output_bucket",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "address": "aws_s3_bucket.output_bucket",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.upload_bucket",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 18,
+      "address": "aws_s3_bucket.upload_bucket",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_s3_bucket_notification",
+      "label": "aws_s3_bucket_notification.s3_bucket_notification",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 116,
+      "address": "aws_s3_bucket_notification.s3_bucket_notification",
+      "references": [
+        "aws_s3_bucket.upload_bucket",
+        "aws_lambda_function.process_s3_event"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "random_string",
+      "label": "random_string.suffix",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "random_string.suffix",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "variable \"region\" {}\n\nprovider \"aws\" {\n  region = var.region\n}\n\nvariable \"prefix\" {\n  description = \"Prefix to associate with the resources\"\n  type        = string\n}\n\nresource \"random_string\" \"suffix\" {\n  length  = 8\n  special = false\n  upper   = false\n}\n\nresource \"aws_s3_bucket\" \"upload_bucket\" {\n  bucket = \"${lower(var.prefix)}-s3-upload-${random_string.suffix.result}\"\n  force_destroy = true\n}\n\nresource \"aws_s3_bucket\" \"output_bucket\" {\n  bucket = \"${lower(var.prefix)}-s3-output-${random_string.suffix.result}\"\n  force_destroy = true\n}\n\nresource \"aws_iam_role\" \"lambda_role\" {\n  name = \"${lower(var.prefix)}-lambda-execution-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\",\n    Statement = [\n      {\n        Effect = \"Allow\",\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        },\n        Action = \"sts:AssumeRole\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy\" \"lambda_policy\" {\n  name = \"${lower(var.prefix)}-lambda-policy\"\n  role = aws_iam_role.lambda_role.id\n  policy = jsonencode({\n    Version = \"2012-10-17\",\n    Statement = [\n      {\n        Effect = \"Allow\",\n        Action = [\n          \"logs:CreateLogGroup\",\n          \"logs:CreateLogStream\",\n          \"logs:PutLogEvents\"\n        ],\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\",\n        Action = [\n          \"s3:PutObject\",\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ],\n        Resource = [\n          aws_s3_bucket.upload_bucket.arn,\n          \"${aws_s3_bucket.upload_bucket.arn}/*\",\n          aws_s3_bucket.output_bucket.arn,\n          \"${aws_s3_bucket.output_bucket.arn}/*\"\n        ]\n      },\n      {\n        Effect = \"Allow\",\n        Action = \"transcribe:StartTranscriptionJob\",\n        Resource = \"*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_log_group\" {\n  count             = 2\n  name              = \"/aws/lambda/${lower(var.prefix)}-${element([\"generate-presigned-url\", \"process-s3-event\"], count.index)}\"\n  retention_in_days = 14\n}\n\nresource \"aws_lambda_function\" \"generate_presigned_url\" {\n  filename      = \"generate_presigned_url.zip\"\n  function_name = \"${lower(var.prefix)}-generate-presigned-url\"\n  role          = aws_iam_role.lambda_role.arn\n  handler       = \"generate_presigned_url.lambda_handler\"\n  runtime       = \"python3.14\"\n  timeout       = 30\n  environment {\n    variables = {\n      BUCKET_NAME = aws_s3_bucket.upload_bucket.id\n    }\n  }\n}\n\nresource \"aws_lambda_function\" \"process_s3_event\" {\n  filename      = \"process_s3_event.zip\"\n  function_name = \"${lower(var.prefix)}-process-s3-event\"\n  role          = aws_iam_role.lambda_role.arn\n  handler       = \"process_s3_event.lambda_handler\"\n  runtime       = \"python3.14\"\n  timeout       = 60\n  environment {\n    variables = {\n      OUTPUT_BUCKET = aws_s3_bucket.output_bucket.id\n    }\n  }\n}\n\nresource \"aws_s3_bucket_notification\" \"s3_bucket_notification\" {\n  bucket = aws_s3_bucket.upload_bucket.id\n  lambda_function {\n    lambda_function_arn = aws_lambda_function.process_s3_event.arn\n    events              = [\"s3:ObjectCreated:*\"]\n  }\n}\n\nresource \"aws_lambda_permission\" \"allow_s3\" {\n  statement_id  = \"${lower(var.prefix)}-allow-s3-invoke-lambda\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.process_s3_event.function_name\n  principal     = \"s3.amazonaws.com\"\n  source_arn    = aws_s3_bucket.upload_bucket.arn\n}\n\nresource \"aws_api_gateway_rest_api\" \"api\" {\n  name        = \"${lower(var.prefix)}-presigned-url-api\"\n  description = \"API for generating presigned URLs\"\n}\n\nresource \"aws_api_gateway_resource\" \"resource\" {\n  rest_api_id = aws_api_gateway_rest_api.api.id\n  parent_id   = aws_api_gateway_rest_api.api.root_resource_id\n  path_part   = \"generate-presigned-url\"\n}\n\nresource \"aws_api_gateway_method\" \"method\" {\n  rest_api_id   = aws_api_gateway_rest_api.api.id\n  resource_id   = aws_api_gateway_resource.resource.id\n  http_method   = \"POST\"\n  authorization = \"NONE\"\n}\n\nresource \"aws_api_gateway_integration\" \"integration\" {\n  rest_api_id             = aws_api_gateway_rest_api.api.id\n  resource_id             = aws_api_gateway_resource.resource.id\n  http_method             = aws_api_gateway_method.method.http_method\n  integration_http_method = \"POST\"\n  type                    = \"AWS_PROXY\"\n  uri                     = \"arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${aws_lambda_function.generate_presigned_url.arn}/invocations\"\n}\n\nresource \"aws_lambda_permission\" \"allow_api_gateway\" {\n  statement_id  = \"${lower(var.prefix)}-allow-api-gateway-invoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.generate_presigned_url.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_api_gateway_rest_api.api.execution_arn}/*/*\"\n}\n\nresource \"aws_api_gateway_deployment\" \"deployment\" {\n  depends_on  = [aws_api_gateway_integration.integration]\n  rest_api_id = aws_api_gateway_rest_api.api.id\n\n  lifecycle {\n    create_before_destroy = true\n  }\n}\n\nresource \"aws_api_gateway_stage\" \"stage\" {\n  deployment_id = aws_api_gateway_deployment.deployment.id\n  rest_api_id   = aws_api_gateway_rest_api.api.id\n  stage_name    = \"dev\"\n}\n\noutput \"api_id\" {\n  description = \"The ID of the API Gateway REST API\"\n  value       = aws_api_gateway_rest_api.api.id\n}\n\noutput \"region\" {\n  description = \"The AWS region where resources are deployed\"\n  value       = var.region\n}\n\noutput \"upload_bucket_name\" {\n  description = \"The name of the S3 upload bucket\"\n  value       = aws_s3_bucket.upload_bucket.bucket\n}\n\noutput \"output_bucket_name\" {\n  description = \"The name of the S3 output bucket\"\n  value       = aws_s3_bucket.output_bucket.bucket\n}\n\noutput \"lambda_generate_presigned_url_arn\" {\n  description = \"The ARN of the generate_presigned_url Lambda function\"\n  value       = aws_lambda_function.generate_presigned_url.arn\n}\n\noutput \"lambda_process_s3_event_arn\" {\n  description = \"The ARN of the process_s3_event Lambda function\"\n  value       = aws_lambda_function.process_s3_event.arn\n}\n\noutput \"lambda_generate_presigned_url_log_group\" {\n  description = \"The name of the CloudWatch log group for the generate_presigned_url Lambda function\"\n  value       = aws_cloudwatch_log_group.lambda_log_group[0].name\n}\n\noutput \"lambda_process_s3_event_log_group\" {\n  description = \"The name of the CloudWatch log group for the process_s3_event Lambda function\"\n  value       = aws_cloudwatch_log_group.lambda_log_group[1].name\n}\n\noutput \"api_endpoint\" {\n  description = \"The API Gateway endpoint URL\"\n  value       = \"${aws_api_gateway_stage.stage.invoke_url}/${aws_api_gateway_resource.resource.path_part}\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-lambda-transcribe/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "파일 저장과 전사 작업의 역할 분담을 추적한다."
+  }
+}

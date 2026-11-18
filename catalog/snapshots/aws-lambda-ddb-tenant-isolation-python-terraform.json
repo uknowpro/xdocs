@@ -1,0 +1,780 @@
+{
+  "version": 1,
+  "title": "AWS · 멀티테넌트 DynamoDB 접근 격리",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.api_gateway_deployment",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 888,
+      "address": "aws_api_gateway_deployment.api_gateway_deployment",
+      "references": [
+        "aws_api_gateway_method.standard_method",
+        "aws_api_gateway_integration.standard_integration",
+        "aws_api_gateway_method.standard_options_method",
+        "aws_api_gateway_integration.standard_options_integration",
+        "aws_api_gateway_method.isolated_method",
+        "aws_api_gateway_integration.isolated_integration",
+        "aws_api_gateway_method.isolated_options_method",
+        "aws_api_gateway_integration.isolated_options_integration",
+        "aws_api_gateway_rest_api.api_gateway",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_resource.isolated_resource"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.isolated_integration",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 758,
+      "address": "aws_api_gateway_integration.isolated_integration",
+      "references": [
+        "aws_api_gateway_method.isolated_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway",
+        "aws_lambda_function.counter_isolated_function"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.isolated_options_integration",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 823,
+      "address": "aws_api_gateway_integration.isolated_options_integration",
+      "references": [
+        "aws_api_gateway_method.isolated_options_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.standard_integration",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 643,
+      "address": "aws_api_gateway_integration.standard_integration",
+      "references": [
+        "aws_api_gateway_method.standard_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway",
+        "aws_lambda_function.counter_standard_function"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.standard_options_integration",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 697,
+      "address": "aws_api_gateway_integration.standard_options_integration",
+      "references": [
+        "aws_api_gateway_method.standard_options_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_api_gateway_integration_response",
+      "label": "aws_api_gateway_integration_response.isolated_options_integration_response",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 847,
+      "address": "aws_api_gateway_integration_response.isolated_options_integration_response",
+      "references": [
+        "aws_api_gateway_method.isolated_options_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway",
+        "aws_api_gateway_method_response.isolated_options_response_200"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_api_gateway_integration_response",
+      "label": "aws_api_gateway_integration_response.standard_options_integration_response",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 721,
+      "address": "aws_api_gateway_integration_response.standard_options_integration_response",
+      "references": [
+        "aws_api_gateway_method.standard_options_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway",
+        "aws_api_gateway_method_response.standard_options_response_200"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.isolated_method",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 746,
+      "address": "aws_api_gateway_method.isolated_method",
+      "references": [
+        "aws_api_gateway_request_validator.request_validator",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.isolated_options_method",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 816,
+      "address": "aws_api_gateway_method.isolated_options_method",
+      "references": [
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.standard_method",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 632,
+      "address": "aws_api_gateway_method.standard_method",
+      "references": [
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.standard_options_method",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 690,
+      "address": "aws_api_gateway_method.standard_options_method",
+      "references": [
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.isolated_options_response_200",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 834,
+      "address": "aws_api_gateway_method_response.isolated_options_response_200",
+      "references": [
+        "aws_api_gateway_method.isolated_options_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.isolated_response_200",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 771,
+      "address": "aws_api_gateway_method_response.isolated_response_200",
+      "references": [
+        "aws_api_gateway_method.isolated_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.isolated_response_400",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 782,
+      "address": "aws_api_gateway_method_response.isolated_response_400",
+      "references": [
+        "aws_api_gateway_method.isolated_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_model.error_model",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.isolated_response_405",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 793,
+      "address": "aws_api_gateway_method_response.isolated_response_405",
+      "references": [
+        "aws_api_gateway_method.isolated_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_model.error_model",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.isolated_response_500",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 804,
+      "address": "aws_api_gateway_method_response.isolated_response_500",
+      "references": [
+        "aws_api_gateway_method.isolated_method",
+        "aws_api_gateway_resource.isolated_resource",
+        "aws_api_gateway_model.error_model",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.standard_options_response_200",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 708,
+      "address": "aws_api_gateway_method_response.standard_options_response_200",
+      "references": [
+        "aws_api_gateway_method.standard_options_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.standard_response_200",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 656,
+      "address": "aws_api_gateway_method_response.standard_response_200",
+      "references": [
+        "aws_api_gateway_method.standard_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.standard_response_405",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 667,
+      "address": "aws_api_gateway_method_response.standard_response_405",
+      "references": [
+        "aws_api_gateway_method.standard_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_model.error_model",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.standard_response_500",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 678,
+      "address": "aws_api_gateway_method_response.standard_response_500",
+      "references": [
+        "aws_api_gateway_method.standard_method",
+        "aws_api_gateway_resource.standard_resource",
+        "aws_api_gateway_model.error_model",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_api_gateway_model",
+      "label": "aws_api_gateway_model.error_model",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 601,
+      "address": "aws_api_gateway_model.error_model",
+      "references": [
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_api_gateway_request_validator",
+      "label": "aws_api_gateway_request_validator.request_validator",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 593,
+      "address": "aws_api_gateway_request_validator.request_validator",
+      "references": [
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.isolated_resource",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 740,
+      "address": "aws_api_gateway_resource.isolated_resource",
+      "references": [
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.standard_resource",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 626,
+      "address": "aws_api_gateway_resource.standard_resource",
+      "references": [
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.api_gateway",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 578,
+      "address": "aws_api_gateway_rest_api.api_gateway",
+      "references": []
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.api_gateway_stage",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 918,
+      "address": "aws_api_gateway_stage.api_gateway_stage",
+      "references": [
+        "aws_api_gateway_deployment.api_gateway_deployment",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.counter_isolated_log_group",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 485,
+      "address": "aws_cloudwatch_log_group.counter_isolated_log_group",
+      "references": []
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.counter_standard_log_group",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 474,
+      "address": "aws_cloudwatch_log_group.counter_standard_log_group",
+      "references": []
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_dynamodb_table",
+      "label": "aws_dynamodb_table.isolated_counter_table",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 345,
+      "address": "aws_dynamodb_table.isolated_counter_table",
+      "references": []
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_dynamodb_table",
+      "label": "aws_dynamodb_table.shared_counter_table",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 328,
+      "address": "aws_dynamodb_table.shared_counter_table",
+      "references": []
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.isolated_lambda_execution_role",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 420,
+      "address": "aws_iam_role.isolated_lambda_execution_role",
+      "references": []
+    },
+    {
+      "id": "n_import_31",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.standard_lambda_execution_role",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 368,
+      "address": "aws_iam_role.standard_lambda_execution_role",
+      "references": []
+    },
+    {
+      "id": "n_import_32",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.isolated_dynamodb_policy",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 449,
+      "address": "aws_iam_role_policy.isolated_dynamodb_policy",
+      "references": [
+        "aws_dynamodb_table.isolated_counter_table",
+        "aws_iam_role.isolated_lambda_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.standard_dynamodb_policy",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 397,
+      "address": "aws_iam_role_policy.standard_dynamodb_policy",
+      "references": [
+        "aws_dynamodb_table.shared_counter_table",
+        "aws_iam_role.standard_lambda_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_34",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.isolated_lambda_basic_execution",
+      "x": 540,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 444,
+      "address": "aws_iam_role_policy_attachment.isolated_lambda_basic_execution",
+      "references": [
+        "aws_iam_role.isolated_lambda_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_35",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.standard_lambda_basic_execution",
+      "x": 780,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 392,
+      "address": "aws_iam_role_policy_attachment.standard_lambda_basic_execution",
+      "references": [
+        "aws_iam_role.standard_lambda_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_36",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.counter_isolated_function",
+      "x": 60,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 535,
+      "address": "aws_lambda_function.counter_isolated_function",
+      "references": [
+        "aws_cloudwatch_log_group.counter_isolated_log_group",
+        "aws_iam_role_policy_attachment.isolated_lambda_basic_execution",
+        "aws_iam_role_policy.isolated_dynamodb_policy",
+        "aws_dynamodb_table.isolated_counter_table",
+        "data.archive_file.isolated_lambda_zip",
+        "aws_iam_role.isolated_lambda_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_37",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.counter_standard_function",
+      "x": 300,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 500,
+      "address": "aws_lambda_function.counter_standard_function",
+      "references": [
+        "aws_cloudwatch_log_group.counter_standard_log_group",
+        "aws_iam_role_policy_attachment.standard_lambda_basic_execution",
+        "aws_iam_role_policy.standard_dynamodb_policy",
+        "aws_dynamodb_table.shared_counter_table",
+        "data.archive_file.standard_lambda_zip",
+        "aws_iam_role.standard_lambda_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_38",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.isolated_function_permission",
+      "x": 540,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 876,
+      "address": "aws_lambda_permission.isolated_function_permission",
+      "references": [
+        "aws_lambda_function.counter_isolated_function",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_39",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.standard_function_permission",
+      "x": 780,
+      "y": 1320,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 868,
+      "address": "aws_lambda_permission.standard_function_permission",
+      "references": [
+        "aws_lambda_function.counter_standard_function",
+        "aws_api_gateway_rest_api.api_gateway"
+      ]
+    },
+    {
+      "id": "n_import_40",
+      "kind": "archive_file",
+      "label": "data.archive_file.isolated_lambda_zip",
+      "x": 60,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 197,
+      "address": "data.archive_file.isolated_lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_41",
+      "kind": "archive_file",
+      "label": "data.archive_file.standard_lambda_zip",
+      "x": 300,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 75,
+      "address": "data.archive_file.standard_lambda_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_42",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 540,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 68,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_43",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 780,
+      "y": 1460,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 69,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_version = \">= 1.0\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.31.0\"\n    }\n    archive = {\n      source  = \"hashicorp/archive\"\n      version = \"~> 2.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\n# ──────────────────────────────────────────────\n# Variables — Terraform will prompt for prefix and region\n# ──────────────────────────────────────────────\n\nvariable \"aws_region\" {\n  description = \"AWS region for resources (e.g. us-east-1, us-west-2)\"\n  type        = string\n\n  validation {\n    condition     = can(regex(\"^[a-z]{2}-[a-z]+-[0-9]+$\", var.aws_region))\n    error_message = \"Must be a valid AWS region (e.g. us-east-1, eu-west-2).\"\n  }\n}\n\nvariable \"prefix\" {\n  description = \"Unique prefix for all resource names — avoids collisions (e.g. your initials or team name)\"\n  type        = string\n\n  validation {\n    condition     = can(regex(\"^[a-z0-9][a-z0-9\\\\-]{1,20}$\", var.prefix))\n    error_message = \"Prefix must be 2-21 lowercase alphanumeric characters or hyphens, starting with a letter or number.\"\n  }\n}\n\nvariable \"environment\" {\n  description = \"Environment name for resource naming\"\n  type        = string\n  default     = \"dev\"\n  validation {\n    condition     = contains([\"dev\", \"staging\", \"prod\"], var.environment)\n    error_message = \"Environment must be dev, staging, or prod.\"\n  }\n}\n\nvariable \"log_retention_days\" {\n  description = \"CloudWatch log retention in days (0 = never expire)\"\n  type        = number\n  default     = 14\n}\n\n# ──────────────────────────────────────────────\n# Locals — single place that builds the name prefix\n# ──────────────────────────────────────────────\n\nlocals {\n  name_prefix = \"${var.prefix}-tenant-iso\"\n}\n\n# Data sources\ndata \"aws_caller_identity\" \"current\" {}\ndata \"aws_region\" \"current\" {}\n\n# ──────────────────────────────────────────────\n# Inline Lambda Code → ZIP archives\n# ──────────────────────────────────────────────\n\ndata \"archive_file\" \"standard_lambda_zip\" {\n  type        = \"zip\"\n  output_path = \"${path.module}/standard_lambda_function.zip\"\n\n  source {\n    content  = <<-PYTHON\nimport json\nimport logging\nimport os\n\nimport boto3\nfrom botocore.exceptions import ClientError\n\nlogger = logging.getLogger()\nlogger.setLevel(logging.INFO)\n\nTABLE_NAME = os.environ[\"TABLE_NAME\"]\ndynamodb = boto3.resource(\"dynamodb\")\ntable = dynamodb.Table(TABLE_NAME)\n\n# The single partition key every tenant shares — the core of the problem.\nSHARED_KEY = \"SHARED\"\n\n\ndef lambda_handler(event, context):\n    \"\"\"\n    Standard Lambda handler WITHOUT tenant isolation.\n\n    All tenants share a single DynamoDB row, so every call — regardless\n    of which tenant makes it — increments the same counter.  This is the\n    multi-tenant anti-pattern this demo exists to highlight.\n    \"\"\"\n    try:\n        if not isinstance(event, dict):\n            return _error(400, \"Bad Request\", \"Invalid request format\")\n\n        headers = event.get(\"headers\", {}) or {}\n        tenant_id_from_header = (\n            headers.get(\"x-tenant-id\")\n            or headers.get(\"Tenant-Id\")\n            or headers.get(\"TENANT-ID\")\n        )\n\n        logger.info(\n            \"Processing standard request — Method: %s, Path: %s, Tenant Header: %s\",\n            event.get(\"httpMethod\", \"UNKNOWN\"),\n            event.get(\"path\", \"UNKNOWN\"),\n            tenant_id_from_header,\n        )\n\n        http_method = event.get(\"httpMethod\", \"\")\n        if not http_method:\n            return _error(400, \"Bad Request\", \"Missing HTTP method in request\")\n        if http_method != \"GET\":\n            return _error(\n                405,\n                \"Method Not Allowed\",\n                f\"HTTP method {http_method} is not supported. Only GET requests are allowed.\",\n            )\n\n        # ── Atomic increment on the SHARED row ──────────────────────\n        response = table.update_item(\n            Key={\"pk\": SHARED_KEY},\n            UpdateExpression=\"SET #c = if_not_exists(#c, :zero) + :inc\",\n            ExpressionAttributeNames={\"#c\": \"counter\"},\n            ExpressionAttributeValues={\":zero\": 0, \":inc\": 1},\n            ReturnValues=\"UPDATED_NEW\",\n        )\n        counter = int(response[\"Attributes\"][\"counter\"])\n\n        if tenant_id_from_header:\n            logger.warning(\n                \"PROBLEM: Tenant '%s' is using SHARED counter value %d! \"\n                \"This demonstrates data leakage between tenants.\",\n                tenant_id_from_header,\n                counter,\n            )\n        else:\n            logger.info(\"Request without tenant header — shared counter: %d\", counter)\n\n        body = {\n            \"counter\": counter,\n            \"tenant_id\": tenant_id_from_header,\n            \"isolation_enabled\": False,\n            \"message\": (\n                f\"This function does NOT provide tenant isolation and every tenant reads and writes the same DynamoDB row. Incremented counter is shared across all the tenants\"\n            ),\n        }\n\n        return {\n            \"statusCode\": 200,\n            \"headers\": {\n                \"Content-Type\": \"application/json\",\n                \"Cache-Control\": \"no-cache\",\n            },\n            \"body\": json.dumps(body),\n        }\n\n    except ClientError as exc:\n        logger.error(\"DynamoDB error: %s\", exc.response[\"Error\"][\"Message\"], exc_info=True)\n        return _error(500, \"Internal Server Error\", \"Database error while updating counter\")\n    except Exception:\n        logger.error(\"Unexpected error processing request\", exc_info=True)\n        return _error(500, \"Internal Server Error\", \"An unexpected error occurred\")\n\n\ndef _error(status_code, error_type, message):\n    return {\n        \"statusCode\": status_code,\n        \"headers\": {\n            \"Content-Type\": \"application/json\",\n            \"Cache-Control\": \"no-cache\",\n        },\n        \"body\": json.dumps(\n            {\"error\": error_type, \"message\": message, \"statusCode\": status_code}\n        ),\n    }\n    PYTHON\n    filename = \"standard_lambda_function.py\"\n  }\n}\n\ndata \"archive_file\" \"isolated_lambda_zip\" {\n  type        = \"zip\"\n  output_path = \"${path.module}/isolated_lambda_function.zip\"\n\n  source {\n    content  = <<-PYTHON\nimport json\nimport logging\nimport os\nimport re\n\nimport boto3\nfrom botocore.exceptions import ClientError\n\nlogger = logging.getLogger()\nlogger.setLevel(logging.INFO)\n\nTABLE_NAME = os.environ[\"TABLE_NAME\"]\ndynamodb = boto3.resource(\"dynamodb\")\ntable = dynamodb.Table(TABLE_NAME)\n\n# Simple allowlist for tenant IDs — alphanumeric, hyphens, underscores.\nTENANT_ID_PATTERN = re.compile(r\"^[\\w\\-]{1,100}$\")\n\n\ndef lambda_handler(event, context):\n    \"\"\"\n    Tenant-isolated Lambda handler.\n\n    * The Lambda runtime guarantees a dedicated execution environment per\n      tenant (`PER_TENANT` isolation mode).\n    * Each tenant's counter is stored in its own DynamoDB row keyed by\n      ``tenant_id``, so even at the data layer there is no sharing.\n    \"\"\"\n    try:\n        if not isinstance(event, dict):\n            return _error(400, \"Bad Request\", \"Invalid request format\")\n\n        logger.info(\n            \"Processing isolated request — Method: %s, Path: %s\",\n            event.get(\"httpMethod\", \"UNKNOWN\"),\n            event.get(\"path\", \"UNKNOWN\"),\n        )\n\n        http_method = event.get(\"httpMethod\", \"\")\n        if not http_method:\n            return _error(400, \"Bad Request\", \"Missing HTTP method in request\")\n        if http_method != \"GET\":\n            return _error(\n                405,\n                \"Method Not Allowed\",\n                f\"HTTP method {http_method} is not supported. Only GET requests are allowed.\",\n            )\n\n        # ── Resolve tenant ID from Lambda context ───────────────────\n        tenant_id = getattr(context, \"tenant_id\", None)\n\n        if not tenant_id:\n            logger.error(\"Missing tenant_id in Lambda context\")\n            return _error(\n                400,\n                \"Missing Tenant ID\",\n                \"Tenant ID is required. Ensure the x-tenant-id header is provided.\",\n            )\n\n        tenant_id = tenant_id.strip()\n\n        if not TENANT_ID_PATTERN.match(tenant_id):\n            logger.error(\"Invalid tenant ID format: %s\", tenant_id)\n            return _error(\n                400,\n                \"Invalid Tenant ID\",\n                \"Tenant ID must be 1-100 alphanumeric, hyphen, or underscore characters.\",\n            )\n\n        # ── Atomic per-tenant increment ─────────────────────────────\n        response = table.update_item(\n            Key={\"tenant_id\": tenant_id},\n            UpdateExpression=\"SET #c = if_not_exists(#c, :zero) + :inc\",\n            ExpressionAttributeNames={\"#c\": \"counter\"},\n            ExpressionAttributeValues={\":zero\": 0, \":inc\": 1},\n            ReturnValues=\"UPDATED_NEW\",\n        )\n        counter = int(response[\"Attributes\"][\"counter\"])\n\n        logger.info(\"Tenant '%s' — isolated counter now at %d\", tenant_id, counter)\n\n        body = {\n            \"counter\": counter,\n            \"tenant_id\": tenant_id,\n            \"isolation_enabled\": True,\n            \"message\": f\"Counter incremented for tenant {tenant_id}\",\n        }\n\n        return {\n            \"statusCode\": 200,\n            \"headers\": {\n                \"Content-Type\": \"application/json\",\n                \"Cache-Control\": \"no-cache\",\n            },\n            \"body\": json.dumps(body),\n        }\n\n    except ClientError as exc:\n        logger.error(\"DynamoDB error: %s\", exc.response[\"Error\"][\"Message\"], exc_info=True)\n        return _error(500, \"Internal Server Error\", \"Database error while updating counter\")\n    except Exception:\n        logger.error(\"Unexpected error processing isolated request\", exc_info=True)\n        return _error(500, \"Internal Server Error\", \"An unexpected error occurred\")\n\n\ndef _error(status_code, error_type, message):\n    return {\n        \"statusCode\": status_code,\n        \"headers\": {\n            \"Content-Type\": \"application/json\",\n            \"Cache-Control\": \"no-cache\",\n        },\n        \"body\": json.dumps(\n            {\"error\": error_type, \"message\": message, \"statusCode\": status_code}\n        ),\n    }\n    PYTHON\n    filename = \"isolated_lambda_function.py\"\n  }\n}\n\n# ──────────────────────────────────────────────\n# DynamoDB Tables\n# ──────────────────────────────────────────────\n\nresource \"aws_dynamodb_table\" \"shared_counter_table\" {\n  name         = \"${local.name_prefix}-shared-counters\"\n  billing_mode = \"PAY_PER_REQUEST\"\n  hash_key     = \"pk\"\n\n  attribute {\n    name = \"pk\"\n    type = \"S\"\n  }\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n    Purpose     = \"Shared counter - demonstrates lack of tenant isolation\"\n  }\n}\n\nresource \"aws_dynamodb_table\" \"isolated_counter_table\" {\n  name         = \"${local.name_prefix}-isolated-counters\"\n  billing_mode = \"PAY_PER_REQUEST\"\n  hash_key     = \"tenant_id\"\n\n  attribute {\n    name = \"tenant_id\"\n    type = \"S\"\n  }\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n    Purpose     = \"Per-tenant counters with tenant isolation\"\n  }\n}\n\n# ──────────────────────────────────────────────\n# IAM — Per-function roles with least-privilege DynamoDB access\n# ──────────────────────────────────────────────\n\n# ──────────────── Standard Lambda Role ────────────────\n\nresource \"aws_iam_role\" \"standard_lambda_execution_role\" {\n  name = \"${local.name_prefix}-standard-lambda-role\"\n\n  force_detach_policies = true\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n        Action = \"sts:AssumeRole\"\n      }\n    ]\n  })\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n}\n\nresource \"aws_iam_role_policy_attachment\" \"standard_lambda_basic_execution\" {\n  role       = aws_iam_role.standard_lambda_execution_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_iam_role_policy\" \"standard_dynamodb_policy\" {\n  name = \"${local.name_prefix}-standard-dynamodb\"\n  role = aws_iam_role.standard_lambda_execution_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid    = \"AllowSharedTableOnly\"\n        Effect = \"Allow\"\n        Action = [\n          \"dynamodb:GetItem\",\n          \"dynamodb:PutItem\",\n          \"dynamodb:UpdateItem\"\n        ]\n        Resource = aws_dynamodb_table.shared_counter_table.arn\n      }\n    ]\n  })\n}\n\n# ──────────────── Isolated Lambda Role ────────────────\n\nresource \"aws_iam_role\" \"isolated_lambda_execution_role\" {\n  name = \"${local.name_prefix}-isolated-lambda-role\"\n\n  force_detach_policies = true\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n        Action = \"sts:AssumeRole\"\n      }\n    ]\n  })\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n}\n\nresource \"aws_iam_role_policy_attachment\" \"isolated_lambda_basic_execution\" {\n  role       = aws_iam_role.isolated_lambda_execution_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_iam_role_policy\" \"isolated_dynamodb_policy\" {\n  name = \"${local.name_prefix}-isolated-dynamodb\"\n  role = aws_iam_role.isolated_lambda_execution_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid    = \"AllowIsolatedTableOnly\"\n        Effect = \"Allow\"\n        Action = [\n          \"dynamodb:GetItem\",\n          \"dynamodb:PutItem\",\n          \"dynamodb:UpdateItem\"\n        ]\n        Resource = aws_dynamodb_table.isolated_counter_table.arn\n      }\n    ]\n  })\n}\n\n# ──────────────────────────────────────────────\n# CloudWatch Log Groups (Terraform-managed, destroyed on terraform destroy)\n# ──────────────────────────────────────────────\n\nresource \"aws_cloudwatch_log_group\" \"counter_standard_log_group\" {\n  name              = \"/aws/lambda/${local.name_prefix}-counter-standard\"\n  retention_in_days = var.log_retention_days\n  skip_destroy      = false\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n}\n\nresource \"aws_cloudwatch_log_group\" \"counter_isolated_log_group\" {\n  name              = \"/aws/lambda/${local.name_prefix}-counter-isolated\"\n  retention_in_days = var.log_retention_days\n  skip_destroy      = false\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n}\n\n# ──────────────────────────────────────────────\n# Lambda Functions\n# ──────────────────────────────────────────────\n\nresource \"aws_lambda_function\" \"counter_standard_function\" {\n  filename         = data.archive_file.standard_lambda_zip.output_path\n  source_code_hash = data.archive_file.standard_lambda_zip.output_base64sha256\n  function_name    = \"${local.name_prefix}-counter-standard\"\n  role             = aws_iam_role.standard_lambda_execution_role.arn\n  handler          = \"standard_lambda_function.lambda_handler\"\n  runtime          = \"python3.14\"\n  timeout          = 25\n  memory_size      = 128\n  description      = \"[${var.prefix}] Lambda without tenant isolation — shared DynamoDB counter\"\n\n  logging_config {\n    log_group  = aws_cloudwatch_log_group.counter_standard_log_group.name\n    log_format = \"Text\"\n  }\n\n  environment {\n    variables = {\n      LOG_LEVEL  = \"INFO\"\n      TABLE_NAME = aws_dynamodb_table.shared_counter_table.name\n    }\n  }\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n\n  depends_on = [\n    aws_cloudwatch_log_group.counter_standard_log_group,\n    aws_iam_role_policy_attachment.standard_lambda_basic_execution,\n    aws_iam_role_policy.standard_dynamodb_policy\n  ]\n}\n\nresource \"aws_lambda_function\" \"counter_isolated_function\" {\n  filename         = data.archive_file.isolated_lambda_zip.output_path\n  source_code_hash = data.archive_file.isolated_lambda_zip.output_base64sha256\n  function_name    = \"${local.name_prefix}-counter-isolated\"\n  role             = aws_iam_role.isolated_lambda_execution_role.arn\n  handler          = \"isolated_lambda_function.lambda_handler\"\n  runtime          = \"python3.14\"\n  timeout          = 25\n  memory_size      = 128\n  description      = \"[${var.prefix}] Lambda with tenant isolation — per-tenant DynamoDB counter\"\n\n  tenancy_config {\n    tenant_isolation_mode = \"PER_TENANT\"\n  }\n\n  logging_config {\n    log_group  = aws_cloudwatch_log_group.counter_isolated_log_group.name\n    log_format = \"Text\"\n  }\n\n  environment {\n    variables = {\n      LOG_LEVEL  = \"INFO\"\n      TABLE_NAME = aws_dynamodb_table.isolated_counter_table.name\n    }\n  }\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n\n  depends_on = [\n    aws_cloudwatch_log_group.counter_isolated_log_group,\n    aws_iam_role_policy_attachment.isolated_lambda_basic_execution,\n    aws_iam_role_policy.isolated_dynamodb_policy\n  ]\n}\n\n# ──────────────────────────────────────────────\n# API Gateway REST API\n# ──────────────────────────────────────────────\n\nresource \"aws_api_gateway_rest_api\" \"api_gateway\" {\n  name        = \"${local.name_prefix}-api\"\n  description = \"[${var.prefix}] API Gateway for Lambda tenant isolation demonstration\"\n\n  endpoint_configuration {\n    types = [\"REGIONAL\"]\n  }\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n}\n\n# Request Validator\nresource \"aws_api_gateway_request_validator\" \"request_validator\" {\n  name                        = \"${local.name_prefix}-request-validator\"\n  rest_api_id                 = aws_api_gateway_rest_api.api_gateway.id\n  validate_request_parameters = true\n  validate_request_body       = false\n}\n\n# Error Model\nresource \"aws_api_gateway_model\" \"error_model\" {\n  rest_api_id  = aws_api_gateway_rest_api.api_gateway.id\n  name         = \"ErrorModel\"\n  content_type = \"application/json\"\n\n  schema = jsonencode({\n    \"$schema\" = \"http://json-schema.org/draft-04/schema#\"\n    title     = \"Error Schema\"\n    type      = \"object\"\n    properties = {\n      error = {\n        type = \"string\"\n      }\n      message = {\n        type = \"string\"\n      }\n      statusCode = {\n        type = \"integer\"\n      }\n    }\n  })\n}\n\n# ──────────────── Standard endpoint ────────────────\n\nresource \"aws_api_gateway_resource\" \"standard_resource\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id\n  path_part   = \"standard\"\n}\n\nresource \"aws_api_gateway_method\" \"standard_method\" {\n  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id\n  resource_id   = aws_api_gateway_resource.standard_resource.id\n  http_method   = \"GET\"\n  authorization = \"NONE\"\n\n  request_parameters = {\n    \"method.request.header.tenant-id\" = false\n  }\n}\n\nresource \"aws_api_gateway_integration\" \"standard_integration\" {\n  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id\n  resource_id             = aws_api_gateway_resource.standard_resource.id\n  http_method             = aws_api_gateway_method.standard_method.http_method\n  integration_http_method = \"POST\"\n  type                    = \"AWS_PROXY\"\n  uri                     = aws_lambda_function.counter_standard_function.invoke_arn\n\n  request_parameters = {\n    \"integration.request.header.X-Amz-Tenant-Id\" = \"method.request.header.tenant-id\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"standard_response_200\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.standard_resource.id\n  http_method = aws_api_gateway_method.standard_method.http_method\n  status_code = \"200\"\n\n  response_models = {\n    \"application/json\" = \"Empty\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"standard_response_405\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.standard_resource.id\n  http_method = aws_api_gateway_method.standard_method.http_method\n  status_code = \"405\"\n\n  response_models = {\n    \"application/json\" = aws_api_gateway_model.error_model.name\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"standard_response_500\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.standard_resource.id\n  http_method = aws_api_gateway_method.standard_method.http_method\n  status_code = \"500\"\n\n  response_models = {\n    \"application/json\" = aws_api_gateway_model.error_model.name\n  }\n}\n\n# Standard OPTIONS (CORS)\nresource \"aws_api_gateway_method\" \"standard_options_method\" {\n  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id\n  resource_id   = aws_api_gateway_resource.standard_resource.id\n  http_method   = \"OPTIONS\"\n  authorization = \"NONE\"\n}\n\nresource \"aws_api_gateway_integration\" \"standard_options_integration\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.standard_resource.id\n  http_method = aws_api_gateway_method.standard_options_method.http_method\n  type        = \"MOCK\"\n\n  request_templates = {\n    \"application/json\" = \"{\\\"statusCode\\\": 200}\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"standard_options_response_200\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.standard_resource.id\n  http_method = aws_api_gateway_method.standard_options_method.http_method\n  status_code = \"200\"\n\n  response_parameters = {\n    \"method.response.header.Access-Control-Allow-Headers\" = true\n    \"method.response.header.Access-Control-Allow-Methods\" = true\n    \"method.response.header.Access-Control-Allow-Origin\"  = true\n  }\n}\n\nresource \"aws_api_gateway_integration_response\" \"standard_options_integration_response\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.standard_resource.id\n  http_method = aws_api_gateway_method.standard_options_method.http_method\n  status_code = aws_api_gateway_method_response.standard_options_response_200.status_code\n\n  response_parameters = {\n    \"method.response.header.Access-Control-Allow-Headers\" = \"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'\"\n    \"method.response.header.Access-Control-Allow-Methods\" = \"'GET,OPTIONS'\"\n    \"method.response.header.Access-Control-Allow-Origin\"  = \"'*'\"\n  }\n\n  response_templates = {\n    \"application/json\" = \"\"\n  }\n}\n\n# ──────────────── Isolated endpoint ────────────────\n\nresource \"aws_api_gateway_resource\" \"isolated_resource\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id\n  path_part   = \"isolated\"\n}\n\nresource \"aws_api_gateway_method\" \"isolated_method\" {\n  rest_api_id          = aws_api_gateway_rest_api.api_gateway.id\n  resource_id          = aws_api_gateway_resource.isolated_resource.id\n  http_method          = \"GET\"\n  authorization        = \"NONE\"\n  request_validator_id = aws_api_gateway_request_validator.request_validator.id\n\n  request_parameters = {\n    \"method.request.header.x-tenant-id\" = true\n  }\n}\n\nresource \"aws_api_gateway_integration\" \"isolated_integration\" {\n  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id\n  resource_id             = aws_api_gateway_resource.isolated_resource.id\n  http_method             = aws_api_gateway_method.isolated_method.http_method\n  integration_http_method = \"POST\"\n  type                    = \"AWS_PROXY\"\n  uri                     = aws_lambda_function.counter_isolated_function.invoke_arn\n\n  request_parameters = {\n    \"integration.request.header.X-Amz-Tenant-Id\" = \"method.request.header.x-tenant-id\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"isolated_response_200\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_method.http_method\n  status_code = \"200\"\n\n  response_models = {\n    \"application/json\" = \"Empty\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"isolated_response_400\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_method.http_method\n  status_code = \"400\"\n\n  response_models = {\n    \"application/json\" = aws_api_gateway_model.error_model.name\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"isolated_response_405\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_method.http_method\n  status_code = \"405\"\n\n  response_models = {\n    \"application/json\" = aws_api_gateway_model.error_model.name\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"isolated_response_500\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_method.http_method\n  status_code = \"500\"\n\n  response_models = {\n    \"application/json\" = aws_api_gateway_model.error_model.name\n  }\n}\n\n# Isolated OPTIONS (CORS)\nresource \"aws_api_gateway_method\" \"isolated_options_method\" {\n  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id\n  resource_id   = aws_api_gateway_resource.isolated_resource.id\n  http_method   = \"OPTIONS\"\n  authorization = \"NONE\"\n}\n\nresource \"aws_api_gateway_integration\" \"isolated_options_integration\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_options_method.http_method\n  type        = \"MOCK\"\n\n  request_templates = {\n    \"application/json\" = \"{\\\"statusCode\\\": 200}\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"isolated_options_response_200\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_options_method.http_method\n  status_code = \"200\"\n\n  response_parameters = {\n    \"method.response.header.Access-Control-Allow-Headers\" = true\n    \"method.response.header.Access-Control-Allow-Methods\" = true\n    \"method.response.header.Access-Control-Allow-Origin\"  = true\n  }\n}\n\nresource \"aws_api_gateway_integration_response\" \"isolated_options_integration_response\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n  resource_id = aws_api_gateway_resource.isolated_resource.id\n  http_method = aws_api_gateway_method.isolated_options_method.http_method\n  status_code = aws_api_gateway_method_response.isolated_options_response_200.status_code\n\n  response_parameters = {\n    \"method.response.header.Access-Control-Allow-Headers\" = \"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-tenant-id'\"\n    \"method.response.header.Access-Control-Allow-Methods\" = \"'GET,OPTIONS'\"\n    \"method.response.header.Access-Control-Allow-Origin\"  = \"'*'\"\n  }\n\n  response_templates = {\n    \"application/json\" = \"\"\n  }\n}\n\n# ──────────────────────────────────────────────\n# Lambda Permissions for API Gateway\n# ──────────────────────────────────────────────\n\nresource \"aws_lambda_permission\" \"standard_function_permission\" {\n  statement_id  = \"AllowAPIGatewayInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.counter_standard_function.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_api_gateway_rest_api.api_gateway.execution_arn}/*/*\"\n}\n\nresource \"aws_lambda_permission\" \"isolated_function_permission\" {\n  statement_id  = \"AllowAPIGatewayInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.counter_isolated_function.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_api_gateway_rest_api.api_gateway.execution_arn}/*/*\"\n}\n\n# ──────────────────────────────────────────────\n# API Gateway Deployment & Stage\n# ──────────────────────────────────────────────\n\nresource \"aws_api_gateway_deployment\" \"api_gateway_deployment\" {\n  rest_api_id = aws_api_gateway_rest_api.api_gateway.id\n\n  triggers = {\n    redeployment = sha1(jsonencode([\n      aws_api_gateway_resource.standard_resource.id,\n      aws_api_gateway_method.standard_method.id,\n      aws_api_gateway_integration.standard_integration.id,\n      aws_api_gateway_resource.isolated_resource.id,\n      aws_api_gateway_method.isolated_method.id,\n      aws_api_gateway_integration.isolated_integration.id,\n    ]))\n  }\n\n  lifecycle {\n    create_before_destroy = true\n  }\n\n  depends_on = [\n    aws_api_gateway_method.standard_method,\n    aws_api_gateway_integration.standard_integration,\n    aws_api_gateway_method.standard_options_method,\n    aws_api_gateway_integration.standard_options_integration,\n    aws_api_gateway_method.isolated_method,\n    aws_api_gateway_integration.isolated_integration,\n    aws_api_gateway_method.isolated_options_method,\n    aws_api_gateway_integration.isolated_options_integration,\n  ]\n}\n\nresource \"aws_api_gateway_stage\" \"api_gateway_stage\" {\n  deployment_id = aws_api_gateway_deployment.api_gateway_deployment.id\n  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id\n  stage_name    = var.environment\n  description   = \"[${var.prefix}] Stage for ${var.environment} environment\"\n\n  tags = {\n    Environment = var.environment\n    Prefix      = var.prefix\n  }\n}\n\n# ──────────────────────────────────────────────\n# Outputs\n# ──────────────────────────────────────────────\n\noutput \"prefix_used\" {\n  description = \"The prefix used for all resources\"\n  value       = var.prefix\n}\n\noutput \"standard_lambda_function_name\" {\n  description = \"Standard Lambda function name\"\n  value       = aws_lambda_function.counter_standard_function.function_name\n}\n\noutput \"isolated_lambda_function_name\" {\n  description = \"Isolated Lambda function name\"\n  value       = aws_lambda_function.counter_isolated_function.function_name\n}\n\noutput \"dynamodb_shared_counter_table_name\" {\n  description = \"DynamoDB table for shared counters\"\n  value       = aws_dynamodb_table.shared_counter_table.name\n}\n\noutput \"dynamodb_isolated_counter_table_name\" {\n  description = \"DynamoDB table for isolated per-tenant counters\"\n  value       = aws_dynamodb_table.isolated_counter_table.name\n}\n\noutput \"api_gateway_id\" {\n  description = \"API Gateway REST API ID\"\n  value       = aws_api_gateway_rest_api.api_gateway.id\n}\n\noutput \"standard_multi_tenant_api_endpoint_url\" {\n  description = \"URL for the standard Lambda function endpoint\"\n  value       = \"${aws_api_gateway_stage.api_gateway_stage.invoke_url}/standard\"\n}\n\noutput \"isolated_tenant_api_endpoint_url\" {\n  description = \"URL for the tenant-isolated Lambda function endpoint\"\n  value       = \"${aws_api_gateway_stage.api_gateway_stage.invoke_url}/isolated\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/lambda-ddb-tenant-isolation/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "테넌트 식별자가 실행 역할과 데이터 접근 조건으로 전달되는 지점을 찾는다."
+  }
+}

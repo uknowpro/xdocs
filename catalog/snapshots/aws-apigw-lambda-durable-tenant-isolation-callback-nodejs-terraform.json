@@ -1,0 +1,411 @@
+{
+  "version": 1,
+  "title": "AWS · 테넌트별 장기 작업 콜백 격리",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.deployment",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 216,
+      "address": "aws_api_gateway_deployment.deployment",
+      "references": [
+        "aws_api_gateway_integration.workflow_integration",
+        "aws_api_gateway_integration_response.workflow_202",
+        "aws_api_gateway_integration.callback_integration",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.callback_integration",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 206,
+      "address": "aws_api_gateway_integration.callback_integration",
+      "references": [
+        "aws_api_gateway_method.callback_post",
+        "aws_api_gateway_resource.callback",
+        "aws_api_gateway_rest_api.api",
+        "aws_lambda_function.callback"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.workflow_integration",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 154,
+      "address": "aws_api_gateway_integration.workflow_integration",
+      "references": [
+        "aws_api_gateway_method.workflow_post",
+        "aws_api_gateway_resource.workflow",
+        "aws_api_gateway_rest_api.api",
+        "aws_lambda_alias.workflow_live"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_api_gateway_integration_response",
+      "label": "aws_api_gateway_integration_response.workflow_202",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 179,
+      "address": "aws_api_gateway_integration_response.workflow_202",
+      "references": [
+        "aws_api_gateway_integration.workflow_integration",
+        "aws_api_gateway_method.workflow_post",
+        "aws_api_gateway_resource.workflow",
+        "aws_api_gateway_rest_api.api",
+        "aws_api_gateway_method_response.workflow_202"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.callback_post",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 199,
+      "address": "aws_api_gateway_method.callback_post",
+      "references": [
+        "aws_api_gateway_resource.callback",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.workflow_post",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 143,
+      "address": "aws_api_gateway_method.workflow_post",
+      "references": [
+        "aws_api_gateway_resource.workflow",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_api_gateway_method_response",
+      "label": "aws_api_gateway_method_response.workflow_202",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 172,
+      "address": "aws_api_gateway_method_response.workflow_202",
+      "references": [
+        "aws_api_gateway_method.workflow_post",
+        "aws_api_gateway_resource.workflow",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.callback",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 193,
+      "address": "aws_api_gateway_resource.callback",
+      "references": [
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.workflow",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 137,
+      "address": "aws_api_gateway_resource.workflow",
+      "references": [
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.api",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 128,
+      "address": "aws_api_gateway_rest_api.api",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.dev",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 238,
+      "address": "aws_api_gateway_stage.dev",
+      "references": [
+        "aws_api_gateway_deployment.deployment",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_role",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "aws_iam_role.lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.callback_policy",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 53,
+      "address": "aws_iam_role_policy.callback_policy",
+      "references": [
+        "data.aws_caller_identity.current",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.basic_execution",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 43,
+      "address": "aws_iam_role_policy_attachment.basic_execution",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.durable_execution",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 48,
+      "address": "aws_iam_role_policy_attachment.durable_execution",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_lambda_alias",
+      "label": "aws_lambda_alias.workflow_live",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 100,
+      "address": "aws_lambda_alias.workflow_live",
+      "references": [
+        "aws_lambda_function.workflow"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.callback",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 114,
+      "address": "aws_lambda_function.callback",
+      "references": [
+        "data.archive_file.callback_zip",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.workflow",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 80,
+      "address": "aws_lambda_function.workflow",
+      "references": [
+        "data.archive_file.workflow_zip",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.callback_apigw",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 254,
+      "address": "aws_lambda_permission.callback_apigw",
+      "references": [
+        "aws_lambda_function.callback",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.workflow_apigw",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 245,
+      "address": "aws_lambda_permission.workflow_apigw",
+      "references": [
+        "aws_lambda_function.workflow",
+        "aws_lambda_alias.workflow_live",
+        "aws_api_gateway_rest_api.api"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "archive_file",
+      "label": "data.archive_file.callback_zip",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 108,
+      "address": "data.archive_file.callback_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_21",
+      "kind": "archive_file",
+      "label": "data.archive_file.workflow_zip",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 74,
+      "address": "data.archive_file.workflow_zip",
+      "references": []
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.80.0\"\n    }\n  }\n  required_version = \">= 1.0\"\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to deploy resources\"\n  type        = string\n}\n\nvariable \"prefix\" {\n  description = \"Prefix for resource names\"\n  type        = string\n  default     = \"durable-tenant\"\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\n# --- IAM Role ---\n\nresource \"aws_iam_role\" \"lambda_role\" {\n  name = \"${var.prefix}-lambda-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Effect    = \"Allow\"\n      Principal = { Service = \"lambda.amazonaws.com\" }\n      Action    = \"sts:AssumeRole\"\n    }]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"basic_execution\" {\n  role       = aws_iam_role.lambda_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_iam_role_policy_attachment\" \"durable_execution\" {\n  role       = aws_iam_role.lambda_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy\"\n}\n\nresource \"aws_iam_role_policy\" \"callback_policy\" {\n  name = \"${var.prefix}-callback-policy\"\n  role = aws_iam_role.lambda_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Effect = \"Allow\"\n      Action = [\n        \"lambda:SendDurableExecutionCallbackSuccess\",\n        \"lambda:SendDurableExecutionCallbackFailure\",\n        \"lambda:SendDurableExecutionCallbackHeartbeat\"\n      ]\n      # Least privilege: scope to this account/Region's functions for this pattern\n      Resource = \"arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.prefix}-*\"\n    }]\n  })\n}\n\n# --- Workflow Lambda ---\n\ndata \"archive_file\" \"workflow_zip\" {\n  type        = \"zip\"\n  source_dir  = \"${path.module}/src/workflow\"\n  output_path = \"${path.module}/build/workflow.zip\"\n}\n\nresource \"aws_lambda_function\" \"workflow\" {\n  function_name    = \"${var.prefix}-workflow\"\n  filename         = data.archive_file.workflow_zip.output_path\n  source_code_hash = data.archive_file.workflow_zip.output_base64sha256\n  handler          = \"workflow.handler\"\n  runtime          = \"nodejs24.x\"\n  architectures    = [\"arm64\"]\n  role             = aws_iam_role.lambda_role.arn\n  timeout          = 900\n  memory_size      = 256\n\n  tenancy_config {\n    tenant_isolation_mode = \"PER_TENANT\"\n  }\n\n  durable_config {\n    execution_timeout = 86400\n  }\n}\n\nresource \"aws_lambda_alias\" \"workflow_live\" {\n  name             = \"live\"\n  function_name    = aws_lambda_function.workflow.function_name\n  function_version = aws_lambda_function.workflow.version\n}\n\n# --- Callback Lambda ---\n\ndata \"archive_file\" \"callback_zip\" {\n  type        = \"zip\"\n  source_dir  = \"${path.module}/src/callback\"\n  output_path = \"${path.module}/build/callback.zip\"\n}\n\nresource \"aws_lambda_function\" \"callback\" {\n  function_name    = \"${var.prefix}-callback\"\n  filename         = data.archive_file.callback_zip.output_path\n  source_code_hash = data.archive_file.callback_zip.output_base64sha256\n  handler          = \"callback.handler\"\n  runtime          = \"nodejs24.x\"\n  architectures    = [\"arm64\"]\n  role             = aws_iam_role.lambda_role.arn\n  timeout          = 30\n  memory_size      = 128\n}\n\n# --- API Gateway ---\n\nresource \"aws_api_gateway_rest_api\" \"api\" {\n  name = \"${var.prefix}-api\"\n\n  endpoint_configuration {\n    types = [\"REGIONAL\"]\n  }\n}\n\n# /workflow resource (non-proxy, async invocation)\nresource \"aws_api_gateway_resource\" \"workflow\" {\n  rest_api_id = aws_api_gateway_rest_api.api.id\n  parent_id   = aws_api_gateway_rest_api.api.root_resource_id\n  path_part   = \"workflow\"\n}\n\nresource \"aws_api_gateway_method\" \"workflow_post\" {\n  rest_api_id   = aws_api_gateway_rest_api.api.id\n  resource_id   = aws_api_gateway_resource.workflow.id\n  http_method   = \"POST\"\n  authorization = \"NONE\"\n\n  request_parameters = {\n    \"method.request.header.x-tenant-id\" = true\n  }\n}\n\nresource \"aws_api_gateway_integration\" \"workflow_integration\" {\n  rest_api_id             = aws_api_gateway_rest_api.api.id\n  resource_id             = aws_api_gateway_resource.workflow.id\n  http_method             = aws_api_gateway_method.workflow_post.http_method\n  integration_http_method = \"POST\"\n  type                    = \"AWS\"\n  uri                     = aws_lambda_alias.workflow_live.invoke_arn\n\n  request_parameters = {\n    \"integration.request.header.X-Amz-Tenant-Id\"       = \"method.request.header.x-tenant-id\"\n    \"integration.request.header.X-Amz-Invocation-Type\" = \"'Event'\"\n  }\n\n  request_templates = {\n    \"application/json\" = \"$input.body\"\n  }\n}\n\nresource \"aws_api_gateway_method_response\" \"workflow_202\" {\n  rest_api_id = aws_api_gateway_rest_api.api.id\n  resource_id = aws_api_gateway_resource.workflow.id\n  http_method = aws_api_gateway_method.workflow_post.http_method\n  status_code = \"202\"\n}\n\nresource \"aws_api_gateway_integration_response\" \"workflow_202\" {\n  rest_api_id = aws_api_gateway_rest_api.api.id\n  resource_id = aws_api_gateway_resource.workflow.id\n  http_method = aws_api_gateway_method.workflow_post.http_method\n  status_code = aws_api_gateway_method_response.workflow_202.status_code\n\n  response_templates = {\n    \"application/json\" = \"{\\\"message\\\": \\\"Workflow started\\\"}\"\n  }\n\n  depends_on = [aws_api_gateway_integration.workflow_integration]\n}\n\n# /callback resource (proxy integration)\nresource \"aws_api_gateway_resource\" \"callback\" {\n  rest_api_id = aws_api_gateway_rest_api.api.id\n  parent_id   = aws_api_gateway_rest_api.api.root_resource_id\n  path_part   = \"callback\"\n}\n\nresource \"aws_api_gateway_method\" \"callback_post\" {\n  rest_api_id   = aws_api_gateway_rest_api.api.id\n  resource_id   = aws_api_gateway_resource.callback.id\n  http_method   = \"POST\"\n  authorization = \"NONE\"\n}\n\nresource \"aws_api_gateway_integration\" \"callback_integration\" {\n  rest_api_id             = aws_api_gateway_rest_api.api.id\n  resource_id             = aws_api_gateway_resource.callback.id\n  http_method             = aws_api_gateway_method.callback_post.http_method\n  integration_http_method = \"POST\"\n  type                    = \"AWS_PROXY\"\n  uri                     = aws_lambda_function.callback.invoke_arn\n}\n\n# Deploy\nresource \"aws_api_gateway_deployment\" \"deployment\" {\n  rest_api_id = aws_api_gateway_rest_api.api.id\n\n  depends_on = [\n    aws_api_gateway_integration.workflow_integration,\n    aws_api_gateway_integration_response.workflow_202,\n    aws_api_gateway_integration.callback_integration\n  ]\n\n  triggers = {\n    redeployment = sha1(jsonencode([\n      aws_api_gateway_integration.workflow_integration,\n      aws_api_gateway_integration_response.workflow_202,\n      aws_api_gateway_integration.callback_integration\n    ]))\n  }\n\n  lifecycle {\n    create_before_destroy = true\n  }\n}\n\nresource \"aws_api_gateway_stage\" \"dev\" {\n  rest_api_id   = aws_api_gateway_rest_api.api.id\n  deployment_id = aws_api_gateway_deployment.deployment.id\n  stage_name    = \"dev\"\n}\n\n# Lambda permissions for API Gateway\nresource \"aws_lambda_permission\" \"workflow_apigw\" {\n  statement_id  = \"AllowAPIGateway\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.workflow.function_name\n  qualifier     = aws_lambda_alias.workflow_live.name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_api_gateway_rest_api.api.execution_arn}/*\"\n}\n\nresource \"aws_lambda_permission\" \"callback_apigw\" {\n  statement_id  = \"AllowAPIGateway\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.callback.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_api_gateway_rest_api.api.execution_arn}/*\"\n}\n\n# --- Outputs ---\n\noutput \"workflow_endpoint\" {\n  description = \"POST to start a workflow (include x-tenant-id header)\"\n  value       = \"https://${aws_api_gateway_rest_api.api.id}.execute-api.${var.aws_region}.amazonaws.com/dev/workflow\"\n}\n\noutput \"callback_endpoint\" {\n  description = \"POST to send a callback (include callbackId and payload in body)\"\n  value       = \"https://${aws_api_gateway_rest_api.api.id}.execute-api.${var.aws_region}.amazonaws.com/dev/callback\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-lambda-durable-tenant-isolation-callback/nodejs/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "콜백과 테넌트 실행 상태의 권한 경계를 확인한다."
+  }
+}

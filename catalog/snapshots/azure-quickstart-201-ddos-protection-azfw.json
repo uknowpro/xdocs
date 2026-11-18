@@ -1,0 +1,402 @@
+{
+  "version": 1,
+  "title": "Azure · DDoS 보호와 방화벽의 계층 분리",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_firewall",
+      "label": "azurerm_firewall.main",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 230,
+      "address": "azurerm_firewall.main",
+      "references": [
+        "azurerm_firewall_policy_rule_collection_group.application",
+        "azurerm_firewall_policy.main",
+        "azurerm_public_ip.firewall",
+        "azurerm_subnet.firewall",
+        "azurerm_resource_group.main",
+        "random_pet.name"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_firewall_policy",
+      "label": "azurerm_firewall_policy.main",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 135,
+      "address": "azurerm_firewall_policy.main",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.name"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.application",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 199,
+      "address": "azurerm_firewall_policy_rule_collection_group.application",
+      "references": [
+        "azurerm_firewall_policy_rule_collection_group.network",
+        "azurerm_firewall_policy.main"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.dnat",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 153,
+      "address": "azurerm_firewall_policy_rule_collection_group.dnat",
+      "references": [
+        "azurerm_firewall_policy.main",
+        "azurerm_public_ip.firewall"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.network",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 176,
+      "address": "azurerm_firewall_policy_rule_collection_group.network",
+      "references": [
+        "azurerm_firewall_policy_rule_collection_group.dnat",
+        "azurerm_firewall_policy.main"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_network_ddos_protection_plan",
+      "label": "azurerm_network_ddos_protection_plan.main",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 27,
+      "address": "azurerm_network_ddos_protection_plan.main",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.name"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.vm",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 254,
+      "address": "azurerm_network_interface.vm",
+      "references": [
+        "azurerm_public_ip.vm",
+        "azurerm_subnet.workload",
+        "azurerm_resource_group.main",
+        "random_pet.name"
+      ],
+      "scopeAddress": "azurerm_subnet.workload",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 7741,
+        "address": "azurerm_subnet.workload",
+        "otherRefs": [
+          "azurerm_public_ip.vm",
+          "azurerm_resource_group.main",
+          "random_pet.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.firewall",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "azurerm_public_ip.firewall",
+      "references": [
+        "azurerm_network_ddos_protection_plan.main",
+        "random_pet.name",
+        "azurerm_resource_group.main"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.vm",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 57,
+      "address": "azurerm_public_ip.vm",
+      "references": [
+        "azurerm_network_ddos_protection_plan.main",
+        "random_pet.name",
+        "azurerm_resource_group.main"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.main",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 16,
+      "address": "azurerm_resource_group.main",
+      "references": [
+        "random_pet.name"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.workload",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 75,
+      "address": "azurerm_route_table.workload",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.name"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.firewall",
+      "x": 780,
+      "y": 340,
+      "props": {
+        "name": "AzureFirewallSubnet"
+      },
+      "original": {
+        "name": "AzureFirewallSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 113,
+      "address": "azurerm_subnet.firewall",
+      "references": [
+        "azurerm_resource_group.main",
+        "azurerm_virtual_network.main"
+      ],
+      "scopeAddress": "azurerm_virtual_network.main",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3501,
+        "address": "azurerm_virtual_network.main",
+        "otherRefs": [
+          "azurerm_resource_group.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.workload",
+      "x": 60,
+      "y": 480,
+      "props": {
+        "name": "Workload-SN"
+      },
+      "original": {
+        "name": "Workload-SN"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 121,
+      "address": "azurerm_subnet.workload",
+      "references": [
+        "azurerm_resource_group.main",
+        "azurerm_virtual_network.main"
+      ],
+      "scopeAddress": "azurerm_virtual_network.main",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 3777,
+        "address": "azurerm_virtual_network.main",
+        "otherRefs": [
+          "azurerm_resource_group.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.workload",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 129,
+      "address": "azurerm_subnet_route_table_association.workload",
+      "references": [
+        "azurerm_route_table.workload",
+        "azurerm_subnet.workload"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.main",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 94,
+      "address": "azurerm_virtual_network.main",
+      "references": [
+        "azurerm_network_ddos_protection_plan.main",
+        "azurerm_resource_group.main",
+        "random_pet.name"
+      ],
+      "scopeAddress": "azurerm_resource_group.main",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2949,
+        "address": "azurerm_resource_group.main",
+        "otherRefs": [
+          "azurerm_network_ddos_protection_plan.main",
+          "azurerm_resource_group.main",
+          "random_pet.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_windows_virtual_machine",
+      "label": "azurerm_windows_virtual_machine.main",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 274,
+      "address": "azurerm_windows_virtual_machine.main",
+      "references": [
+        "random_password.admin_password",
+        "azurerm_resource_group.main",
+        "random_pet.name",
+        "azurerm_network_interface.vm"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.vm.id}",
+      "nicAddress": "azurerm_network_interface.vm"
+    },
+    {
+      "id": "n_import_16",
+      "kind": "random_password",
+      "label": "random_password.admin_password",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "random_password.admin_password",
+      "references": []
+    },
+    {
+      "id": "n_import_17",
+      "kind": "random_pet",
+      "label": "random_pet.name",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Generate random name for resources\nresource \"random_pet\" \"name\" {\n  length = 2\n}\n\n# Generate secure password for VM admin\nresource \"random_password\" \"admin_password\" {\n  length  = 16\n  special = true\n  upper   = true\n  lower   = true\n  numeric = true\n}\n\n# Resource Group\nresource \"azurerm_resource_group\" \"main\" {\n  name     = \"${var.resource_prefix}-${random_pet.name.id}-rg\"\n  location = var.location\n\n  tags = {\n    purpose     = \"DDoS Protection with Azure Firewall\"\n    environment = \"tutorial\"\n  }\n}\n\n# DDoS Protection Plan\nresource \"azurerm_network_ddos_protection_plan\" \"main\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-ddos-plan\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n\n  tags = {\n    purpose     = \"DDoS Protection\"\n    environment = \"tutorial\"\n  }\n}\n\n# Public IP for Azure Firewall\nresource \"azurerm_public_ip\" \"firewall\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-fw-pip\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n  domain_name_label   = \"${var.resource_prefix}-${random_pet.name.id}-fw\"\n\n  ddos_protection_mode    = \"Enabled\"\n  ddos_protection_plan_id = azurerm_network_ddos_protection_plan.main.id\n\n  tags = {\n    purpose     = \"Azure Firewall Public IP\"\n    environment = \"tutorial\"\n  }\n}\n\n# Public IP for Virtual Machine\nresource \"azurerm_public_ip\" \"vm\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-vm-pip\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n  domain_name_label   = \"${var.resource_prefix}-${random_pet.name.id}-vm\"\n\n  ddos_protection_mode    = \"Enabled\"\n  ddos_protection_plan_id = azurerm_network_ddos_protection_plan.main.id\n\n  tags = {\n    purpose     = \"Virtual Machine Public IP\"\n    environment = \"tutorial\"\n  }\n}\n\n# Route Table for Workload Subnet\nresource \"azurerm_route_table\" \"workload\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-rt-workload\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n\n  route {\n    name                   = \"route-to-firewall\"\n    address_prefix         = \"0.0.0.0/0\"\n    next_hop_type          = \"VirtualAppliance\"\n    next_hop_in_ip_address = \"10.1.1.4\" # Azure Firewall private IP\n  }\n\n  tags = {\n    purpose     = \"Force traffic through Azure Firewall\"\n    environment = \"tutorial\"\n  }\n}\n\n# Virtual Network with DDoS Protection\nresource \"azurerm_virtual_network\" \"main\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-vnet\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  address_space       = [var.virtual_network_address_prefix]\n  dns_servers         = [\"168.63.129.16\"] # Azure DNS\n\n  ddos_protection_plan {\n    id     = azurerm_network_ddos_protection_plan.main.id\n    enable = true\n  }\n\n  tags = {\n    purpose     = \"Virtual Network with DDoS Protection\"\n    environment = \"tutorial\"\n  }\n}\n\n# Azure Firewall Subnet\nresource \"azurerm_subnet\" \"firewall\" {\n  name                 = \"AzureFirewallSubnet\"\n  resource_group_name  = azurerm_resource_group.main.name\n  virtual_network_name = azurerm_virtual_network.main.name\n  address_prefixes     = [var.azure_firewall_subnet_prefix]\n}\n\n# Workload Subnet\nresource \"azurerm_subnet\" \"workload\" {\n  name                 = \"Workload-SN\"\n  resource_group_name  = azurerm_resource_group.main.name\n  virtual_network_name = azurerm_virtual_network.main.name\n  address_prefixes     = [var.workload_subnet_prefix]\n}\n\n# Associate Route Table to Workload Subnet\nresource \"azurerm_subnet_route_table_association\" \"workload\" {\n  subnet_id      = azurerm_subnet.workload.id\n  route_table_id = azurerm_route_table.workload.id\n}\n\n# Firewall Policy\nresource \"azurerm_firewall_policy\" \"main\" {\n  name                     = \"${var.resource_prefix}-${random_pet.name.id}-fw-policy\"\n  resource_group_name      = azurerm_resource_group.main.name\n  location                 = azurerm_resource_group.main.location\n  sku                      = \"Standard\"\n  threat_intelligence_mode = \"Alert\"\n\n  dns {\n    proxy_enabled = true\n  }\n\n  tags = {\n    purpose     = \"Azure Firewall Policy\"\n    environment = \"tutorial\"\n  }\n}\n\n# DNAT Rule Collection Group\nresource \"azurerm_firewall_policy_rule_collection_group\" \"dnat\" {\n  name               = \"DefaultDnatRuleCollectionGroup\"\n  firewall_policy_id = azurerm_firewall_policy.main.id\n  priority           = 100\n\n  nat_rule_collection {\n    name     = \"Dnat-Col01\"\n    priority = 200\n    action   = \"Dnat\"\n\n    rule {\n      name                = \"RDPRule\"\n      protocols           = [\"TCP\"]\n      source_addresses    = [\"*\"]\n      destination_address = azurerm_public_ip.firewall.ip_address\n      destination_ports   = [\"3389\"]\n      translated_address  = \"10.1.2.4\"\n      translated_port     = \"3389\"\n    }\n  }\n}\n\n# Network Rule Collection Group\nresource \"azurerm_firewall_policy_rule_collection_group\" \"network\" {\n  name               = \"DefaultNetworkRuleCollectionGroup\"\n  firewall_policy_id = azurerm_firewall_policy.main.id\n  priority           = 200\n\n  network_rule_collection {\n    name     = \"Net-Col01\"\n    priority = 200\n    action   = \"Allow\"\n\n    rule {\n      name                  = \"AllowWebRule\"\n      protocols             = [\"TCP\"]\n      source_addresses      = [\"10.1.2.0/24\"]\n      destination_addresses = [\"*\"]\n      destination_ports     = [\"80\", \"443\"]\n    }\n  }\n\n  depends_on = [azurerm_firewall_policy_rule_collection_group.dnat]\n}\n\n# Application Rule Collection Group\nresource \"azurerm_firewall_policy_rule_collection_group\" \"application\" {\n  name               = \"DefaultApplicationRuleCollectionGroup\"\n  firewall_policy_id = azurerm_firewall_policy.main.id\n  priority           = 300\n\n  application_rule_collection {\n    name     = \"App-Col01\"\n    priority = 200\n    action   = \"Allow\"\n\n    rule {\n      name              = \"AllowWebsitesRule\"\n      source_addresses  = [\"10.1.2.0/24\"]\n      destination_fqdns = [\"www.google.com\", \"www.microsoft.com\", \"www.bing.com\"]\n\n      protocols {\n        type = \"Http\"\n        port = 80\n      }\n\n      protocols {\n        type = \"Https\"\n        port = 443\n      }\n    }\n  }\n\n  depends_on = [azurerm_firewall_policy_rule_collection_group.network]\n}\n\n# Azure Firewall\nresource \"azurerm_firewall\" \"main\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-fw\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  sku_name            = \"AZFW_VNet\"\n  sku_tier            = \"Standard\"\n  threat_intel_mode   = \"Alert\"\n  firewall_policy_id  = azurerm_firewall_policy.main.id\n\n  ip_configuration {\n    name                 = \"FW-config\"\n    subnet_id            = azurerm_subnet.firewall.id\n    public_ip_address_id = azurerm_public_ip.firewall.id\n  }\n\n  tags = {\n    purpose     = \"Azure Firewall with DDoS Protection\"\n    environment = \"tutorial\"\n  }\n\n  depends_on = [azurerm_firewall_policy_rule_collection_group.application]\n}\n\n# Network Interface for Virtual Machine\nresource \"azurerm_network_interface\" \"vm\" {\n  name                = \"${var.resource_prefix}-${random_pet.name.id}-vm-nic\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n\n  ip_configuration {\n    name                          = \"ipconfig1\"\n    subnet_id                     = azurerm_subnet.workload.id\n    private_ip_address_allocation = \"Static\"\n    private_ip_address            = \"10.1.2.4\"\n    public_ip_address_id          = azurerm_public_ip.vm.id\n  }\n\n  tags = {\n    purpose     = \"Virtual Machine Network Interface\"\n    environment = \"tutorial\"\n  }\n}\n\n# Virtual Machine\nresource \"azurerm_windows_virtual_machine\" \"main\" {\n  name                = \"${var.resource_prefix}-${substr(random_pet.name.id, 0, 6)}-vm\" # Limit to 15 chars total\n  computer_name       = \"${substr(var.resource_prefix, 0, 6)}-vm\"                      # Explicitly set computer name to 9 chars max\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  size                = var.vm_size\n  admin_username      = var.admin_username\n  admin_password      = random_password.admin_password.result\n\n  network_interface_ids = [\n    azurerm_network_interface.vm.id,\n  ]\n\n  os_disk {\n    name                 = \"${var.resource_prefix}-${random_pet.name.id}-vm-osdisk\"\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Premium_LRS\"\n    disk_size_gb         = 128\n  }\n\n  source_image_reference {\n    publisher = \"MicrosoftWindowsServer\"\n    offer     = \"WindowsServer\"\n    sku       = \"2019-datacenter-gensecond\"\n    version   = \"latest\"\n  }\n\n  additional_capabilities {\n    ultra_ssd_enabled = false\n  }\n\n  boot_diagnostics {\n    storage_account_uri = null # Uses managed storage account\n  }\n\n  tags = {\n    purpose     = \"Test Virtual Machine\"\n    environment = \"tutorial\"\n  }\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  description = \"Name of the resource group\"\n  value       = azurerm_resource_group.main.name\n}\n\noutput \"firewall_public_ip\" {\n  description = \"Public IP address of the Azure Firewall\"\n  value       = azurerm_public_ip.firewall.ip_address\n}\n\noutput \"firewall_fqdn\" {\n  description = \"FQDN of the Azure Firewall\"\n  value       = azurerm_public_ip.firewall.fqdn\n}\n\noutput \"vm_public_ip\" {\n  description = \"Public IP address of the Virtual Machine\"\n  value       = azurerm_public_ip.vm.ip_address\n}\n\noutput \"vm_fqdn\" {\n  description = \"FQDN of the Virtual Machine\"\n  value       = azurerm_public_ip.vm.fqdn\n}\n\noutput \"firewall_private_ip\" {\n  description = \"Private IP address of the Azure Firewall\"\n  value       = \"10.1.1.4\"\n}\n\noutput \"virtual_network_name\" {\n  description = \"Name of the virtual network\"\n  value       = azurerm_virtual_network.main.name\n}\n\noutput \"ddos_protection_plan_id\" {\n  description = \"ID of the DDoS Protection Plan\"\n  value       = azurerm_network_ddos_protection_plan.main.id\n}\n\noutput \"admin_username\" {\n  description = \"Admin username for the virtual machine\"\n  value       = var.admin_username\n}\n\noutput \"admin_password\" {\n  description = \"Admin password for the virtual machine\"\n  value       = random_password.admin_password.result\n  sensitive   = true\n}\n\noutput \"rdp_connection_string\" {\n  description = \"RDP connection string for the virtual machine\"\n  value       = \"mstsc /v:${azurerm_public_ip.firewall.ip_address}:3389\"\n}\n\noutput \"random_name_suffix\" {\n  description = \"Random suffix used for resource naming\"\n  value       = random_pet.name.id\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">= 1.0\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~> 3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {\n    resource_group {\n      prevent_deletion_if_contains_resources = false\n    }\n    virtual_machine {\n      delete_os_disk_on_deletion     = true\n      skip_shutdown_and_force_delete = false\n    }\n  }\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"location\" {\n  description = \"Location for all resources\"\n  type        = string\n  default     = \"East US\"\n}\n\nvariable \"virtual_network_address_prefix\" {\n  description = \"Virtual network address prefix\"\n  type        = string\n  default     = \"10.1.0.0/16\"\n}\n\nvariable \"azure_firewall_subnet_prefix\" {\n  description = \"Azure Firewall subnet address prefix\"\n  type        = string\n  default     = \"10.1.1.0/26\"\n}\n\nvariable \"workload_subnet_prefix\" {\n  description = \"Workload subnet address prefix\"\n  type        = string\n  default     = \"10.1.2.0/24\"\n}\n\nvariable \"admin_username\" {\n  description = \"Admin username for the virtual machine\"\n  type        = string\n  default     = \"azureuser\"\n}\n\nvariable \"vm_size\" {\n  description = \"Size of the virtual machine\"\n  type        = string\n  default     = \"Standard_D2s_v3\"\n}\n\nvariable \"resource_prefix\" {\n  description = \"Name prefix for all resources\"\n  type        = string\n  default     = \"fw-ddos\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/201-ddos-protection-azfw\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "네트워크 보호 계획과 트래픽 필터의 책임을 대조한다."
+  }
+}

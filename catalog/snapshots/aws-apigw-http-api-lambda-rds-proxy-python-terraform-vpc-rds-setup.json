@@ -1,0 +1,646 @@
+{
+  "version": 1,
+  "title": "AWS · 격리형 RDS Proxy 데이터 계층",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.this",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 335,
+      "address": "aws_cloudwatch_log_group.this",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_db_proxy",
+      "label": "aws_db_proxy.mysql_proxy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 282,
+      "address": "aws_db_proxy.mysql_proxy",
+      "references": [
+        "aws_secretsmanager_secret.aurora-mysql-secret",
+        "aws_secretsmanager_secret.lambda_secret",
+        "aws_cloudwatch_log_group.this",
+        "aws_iam_role.rds_proxy",
+        "aws_security_group.db_mysql",
+        "aws_subnet.app"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_db_proxy_default_target_group",
+      "label": "aws_db_proxy_default_target_group.default",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 308,
+      "address": "aws_db_proxy_default_target_group.default",
+      "references": [
+        "aws_db_proxy.mysql_proxy"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_db_proxy_endpoint",
+      "label": "aws_db_proxy_endpoint.aurora",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 325,
+      "address": "aws_db_proxy_endpoint.aurora",
+      "references": [
+        "aws_db_proxy.mysql_proxy",
+        "aws_security_group.db_mysql",
+        "aws_subnet.app"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_db_proxy_target",
+      "label": "aws_db_proxy_target.db_cluster",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 318,
+      "address": "aws_db_proxy_target.db_cluster",
+      "references": [
+        "aws_rds_cluster.aurora_mysql",
+        "aws_db_proxy.mysql_proxy",
+        "aws_rds_cluster_instance.cluster_instance",
+        "aws_db_proxy_default_target_group.default"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_db_subnet_group",
+      "label": "aws_db_subnet_group.default",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 182,
+      "address": "aws_db_subnet_group.default",
+      "references": [
+        "aws_subnet.db"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_eip",
+      "label": "aws_eip.nat_eip",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 82,
+      "address": "aws_eip.nat_eip",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.rds_proxy_iam",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 358,
+      "address": "aws_iam_policy.rds_proxy_iam",
+      "references": [
+        "random_string.random",
+        "aws_secretsmanager_secret.lambda_secret",
+        "aws_secretsmanager_secret.aurora-mysql-secret"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.rds_proxy",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 341,
+      "address": "aws_iam_role.rds_proxy",
+      "references": [
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.rds_policy",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 390,
+      "address": "aws_iam_role_policy_attachment.rds_policy",
+      "references": [
+        "aws_iam_policy.rds_proxy_iam",
+        "aws_iam_role.rds_proxy"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_instance",
+      "label": "aws_instance.this",
+      "x": 540,
+      "y": 340,
+      "props": {
+        "instance_type": "t3.micro"
+      },
+      "original": {
+        "instance_type": "t3.micro"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 221,
+      "multipleInstances": true,
+      "address": "aws_instance.this",
+      "references": [
+        "aws_rds_cluster_instance.cluster_instance",
+        "aws_secretsmanager_secret_version.sversion",
+        "aws_secretsmanager_secret_version.sversion1",
+        "aws_subnet.app",
+        "random_password.db_password",
+        "random_password.lambda_password",
+        "aws_security_group.lambda_sg",
+        "aws_security_group.ec2"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${aws_subnet.app[0].id}"
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.poc_vpc_igw",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 77,
+      "address": "aws_internet_gateway.poc_vpc_igw",
+      "references": [
+        "aws_vpc.poc_vpc"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.poc_nat_gwy",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 84,
+      "address": "aws_nat_gateway.poc_nat_gwy",
+      "references": [
+        "aws_eip.nat_eip",
+        "aws_internet_gateway.poc_vpc_igw",
+        "aws_subnet.public"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_rds_cluster",
+      "label": "aws_rds_cluster.aurora_mysql",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 197,
+      "address": "aws_rds_cluster.aurora_mysql",
+      "references": [
+        "aws_db_subnet_group.default",
+        "random_password.db_password",
+        "aws_security_group.db_mysql"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_rds_cluster_instance",
+      "label": "aws_rds_cluster_instance.cluster_instance",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 212,
+      "address": "aws_rds_cluster_instance.cluster_instance",
+      "references": [
+        "aws_rds_cluster.aurora_mysql",
+        "aws_db_subnet_group.default"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_rt",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 99,
+      "address": "aws_route_table.private_rt",
+      "references": [
+        "aws_nat_gateway.poc_nat_gwy",
+        "aws_vpc.poc_vpc"
+      ],
+      "scopeAddress": "aws_vpc.poc_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2222,
+        "address": "aws_vpc.poc_vpc",
+        "otherRefs": [
+          "aws_nat_gateway.poc_nat_gwy"
+        ]
+      }
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public_rt",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 90,
+      "address": "aws_route_table.public_rt",
+      "references": [
+        "aws_internet_gateway.poc_vpc_igw",
+        "aws_vpc.poc_vpc"
+      ],
+      "scopeAddress": "aws_vpc.poc_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2050,
+        "address": "aws_vpc.poc_vpc",
+        "otherRefs": [
+          "aws_internet_gateway.poc_vpc_igw"
+        ]
+      }
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 114,
+      "multipleInstances": true,
+      "address": "aws_route_table_association.private",
+      "references": [
+        "aws_route_table.private_rt",
+        "aws_subnet.app"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 108,
+      "multipleInstances": true,
+      "address": "aws_route_table_association.public",
+      "references": [
+        "aws_route_table.public_rt",
+        "aws_subnet.public"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_secretsmanager_secret",
+      "label": "aws_secretsmanager_secret.aurora-mysql-secret",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 267,
+      "address": "aws_secretsmanager_secret.aurora-mysql-secret",
+      "references": []
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_secretsmanager_secret",
+      "label": "aws_secretsmanager_secret.lambda_secret",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 252,
+      "address": "aws_secretsmanager_secret.lambda_secret",
+      "references": []
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_secretsmanager_secret_version",
+      "label": "aws_secretsmanager_secret_version.sversion",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 257,
+      "address": "aws_secretsmanager_secret_version.sversion",
+      "references": [
+        "aws_secretsmanager_secret.lambda_secret",
+        "random_password.lambda_password"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_secretsmanager_secret_version",
+      "label": "aws_secretsmanager_secret_version.sversion1",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 272,
+      "address": "aws_secretsmanager_secret_version.sversion1",
+      "references": [
+        "aws_secretsmanager_secret.aurora-mysql-secret",
+        "random_password.db_password"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.db_mysql",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 147,
+      "address": "aws_security_group.db_mysql",
+      "references": [
+        "aws_security_group.lambda_sg",
+        "aws_vpc.poc_vpc"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.ec2",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 133,
+      "address": "aws_security_group.ec2",
+      "references": [
+        "aws_vpc.poc_vpc"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.lambda_sg",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 120,
+      "address": "aws_security_group.lambda_sg",
+      "references": [
+        "aws_vpc.poc_vpc"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.app",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 55,
+      "multipleInstances": true,
+      "address": "aws_subnet.app",
+      "references": [
+        "aws_vpc.poc_vpc"
+      ],
+      "scopeAddress": "aws_vpc.poc_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1198,
+        "address": "aws_vpc.poc_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.db",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 66,
+      "multipleInstances": true,
+      "address": "aws_subnet.db",
+      "references": [
+        "aws_vpc.poc_vpc"
+      ],
+      "scopeAddress": "aws_vpc.poc_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1479,
+        "address": "aws_vpc.poc_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 44,
+      "multipleInstances": true,
+      "address": "aws_subnet.public",
+      "references": [
+        "aws_vpc.poc_vpc"
+      ],
+      "scopeAddress": "aws_vpc.poc_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 909,
+        "address": "aws_vpc.poc_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.poc_vpc",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "aws_vpc.poc_vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_30",
+      "kind": "random_password",
+      "label": "random_password.db_password",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 191,
+      "address": "random_password.db_password",
+      "references": []
+    },
+    {
+      "id": "n_import_31",
+      "kind": "random_password",
+      "label": "random_password.lambda_password",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 246,
+      "address": "random_password.lambda_password",
+      "references": []
+    },
+    {
+      "id": "n_import_32",
+      "kind": "random_string",
+      "label": "random_string.random",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "random_string.random",
+      "references": []
+    },
+    {
+      "id": "n_import_33",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 24,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.1.0\"\n    }\n    archive = {\n      source  = \"hashicorp/archive\"\n      version = \"~> 2.2.0\"\n    }\n  }\n\n  required_version = \"~> 1.0\"\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nlocals {\n  account_id = data.aws_caller_identity.current.account_id\n}\n\nresource \"random_string\" \"random\" {\n  length           = 6\n  special          = false\n}\n\n################################################################################\n# VPC\n################################################################################\n\nresource \"aws_vpc\" \"poc_vpc\" {\n  cidr_block       = var.vpc_cidr\n  instance_tenancy = \"default\"\n}\n\nresource \"aws_subnet\" \"public\" {\n  count = length(var.public_cidr)\n  vpc_id = aws_vpc.poc_vpc.id\n  cidr_block = element(var.public_cidr,count.index)\n  availability_zone = element(var.azs,count.index)\n  map_public_ip_on_launch = true\n  tags = {\n    Name = \"public-subnet-${count.index+1}\"\n  }\n}\n\nresource \"aws_subnet\" \"app\" {\n  count = length(var.app_cidr)\n  vpc_id = aws_vpc.poc_vpc.id\n  cidr_block = element(var.app_cidr,count.index)\n  availability_zone = element(var.azs,count.index)\n  map_public_ip_on_launch = true\n  tags = {\n    Name = \"app-subnet-${count.index+1}\"\n  }\n}\n\nresource \"aws_subnet\" \"db\" {\n  count = length(var.db_cidr)\n  vpc_id = aws_vpc.poc_vpc.id\n  cidr_block = element(var.db_cidr,count.index)\n  availability_zone = element(var.db_azs,count.index)\n  map_public_ip_on_launch = true\n  tags = {\n    Name = \"db-subnet-${count.index+1}\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"poc_vpc_igw\" {\n  vpc_id = aws_vpc.poc_vpc.id\n\n}\n\nresource \"aws_eip\" \"nat_eip\" {}\n\nresource \"aws_nat_gateway\" \"poc_nat_gwy\" {\n  subnet_id     = aws_subnet.public[0].id\n  allocation_id = aws_eip.nat_eip.id\n  depends_on = [aws_internet_gateway.poc_vpc_igw, aws_eip.nat_eip]\n}\n\nresource \"aws_route_table\" \"public_rt\" {\n  vpc_id = aws_vpc.poc_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.poc_vpc_igw.id\n  }\n}\n\nresource \"aws_route_table\" \"private_rt\" {\n  vpc_id = aws_vpc.poc_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.poc_nat_gwy.id\n  }\n}\n\nresource \"aws_route_table_association\" \"public\" {\n  count = length(var.public_cidr)\n  subnet_id      = element(aws_subnet.public.*.id,count.index)\n  route_table_id = aws_route_table.public_rt.id\n}\n\nresource \"aws_route_table_association\" \"private\" {\n  count = length(var.public_cidr)\n  subnet_id      = element(aws_subnet.app.*.id,count.index)\n  route_table_id = aws_route_table.private_rt.id\n}\n\nresource \"aws_security_group\" \"lambda_sg\" {\n  name        = \"lambda-vpc-access\"\n  description = \"associated with lambda function\"\n  vpc_id      = aws_vpc.poc_vpc.id\n\n  egress {\n    from_port        = 0\n    to_port          = 0\n    protocol         = \"-1\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n  }\n}\n\nresource \"aws_security_group\" \"ec2\" {\n  name        = \"internet_out\"\n  description = \"Allow outbound to internet\"\n  vpc_id      = aws_vpc.poc_vpc.id\n\n  egress {\n    from_port        = 0\n    to_port          = 0\n    protocol         = \"-1\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n  }\n\n}\n\nresource \"aws_security_group\" \"db_mysql\" {\n  name        = \"allow_mysql\"\n  description = \"Allow mysql inbound traffic\"\n  vpc_id      = aws_vpc.poc_vpc.id\n\n  ingress {\n    description      = \"mysql from private subnets\"\n    from_port        = 3306\n    to_port          = 3306\n    protocol         = \"tcp\"\n    cidr_blocks      = var.app_cidr\n  }\n  \n    ingress {\n    description      = \"mysql from lambda sg\"\n    from_port        = 3306\n    to_port          = 3306\n    protocol         = \"tcp\"\n    security_groups      = [aws_security_group.lambda_sg.id]\n  }\n  \n\n  egress {\n    from_port        = 0\n    to_port          = 0\n    protocol         = \"-1\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n  }\n\n}\n\n################################################################################\n# RDS\n################################################################################\n\nresource \"aws_db_subnet_group\" \"default\" {\n  name       = \"db main\"\n  subnet_ids = [aws_subnet.db[0].id, aws_subnet.db[1].id, aws_subnet.db[2].id]\n\n  tags = {\n    Name = \"My DB subnet group\"\n  }\n}\n\nresource \"random_password\" \"db_password\" {\n  length           = 16\n  special          = true\n  override_special = \"()-_=+\"\n}\n\nresource \"aws_rds_cluster\" \"aurora_mysql\" {\n  cluster_identifier      = \"aurora-cluster-demo\"\n  engine                  = \"aurora-mysql\"\n  engine_version          = \"5.7.mysql_aurora.2.11.2\"\n  availability_zones      = [\"us-east-1a\", \"us-east-1b\", \"us-east-1c\"]\n  db_subnet_group_name    = aws_db_subnet_group.default.id\n  database_name           = \"mydb\"\n  master_username         = \"admin\"\n  master_password         = random_password.db_password.result\n  backup_retention_period = 5\n  preferred_backup_window = \"07:00-09:00\"\n  skip_final_snapshot     = true\n  vpc_security_group_ids  = [aws_security_group.db_mysql.id]\n}\n\nresource \"aws_rds_cluster_instance\" \"cluster_instance\" {\n  identifier         = \"aurora-cluster-demo-1\"\n  cluster_identifier = aws_rds_cluster.aurora_mysql.id\n  instance_class     = \"db.t3.medium\"\n  db_subnet_group_name    = aws_db_subnet_group.default.id\n  engine             = aws_rds_cluster.aurora_mysql.engine\n  engine_version     = aws_rds_cluster.aurora_mysql.engine_version\n}\n\nresource \"aws_instance\" \"this\" {\n  ami           = var.ami_id\n  instance_type = \"t3.micro\"\n  count = 1\n  vpc_security_group_ids = [aws_security_group.lambda_sg.id, aws_security_group.ec2.id]\n  subnet_id = aws_subnet.app[0].id\n  associate_public_ip_address = false\n  depends_on = [aws_rds_cluster_instance.cluster_instance, aws_secretsmanager_secret_version.sversion, aws_secretsmanager_secret_version.sversion1]\n  user_data = <<EOF\n#!/bin/bash\n\nsudo yum update\nsudo yum install mysql -y\n\nmysql -u admin -p'${random_password.db_password.result}' -h '${aws_rds_cluster_instance.cluster_instance.endpoint}' <<MY_QUERY\nCREATE USER '${var.username}'@'%' IDENTIFIED BY '${random_password.lambda_password.result}';\nCREATE DATABASE IF NOT EXISTS dbname;\nGRANT SELECT, INSERT, UPDATE ON dbname.* TO '${var.username}';\nFLUSH PRIVILEGES;\nMY_QUERY\n\necho done\nEOF\n}\n\nresource \"random_password\" \"lambda_password\" {\n  length           = 16\n  special          = true\n  override_special = \"()-_=+\"\n}\n\nresource \"aws_secretsmanager_secret\" \"lambda_secret\" {\n  name = \"lambda_secret\"\n  recovery_window_in_days = 0\n}\n\nresource \"aws_secretsmanager_secret_version\" \"sversion\" {\n  secret_id = aws_secretsmanager_secret.lambda_secret.id\n  secret_string = <<EOF\n   {\n    \"username\": \"lambda\",\n    \"password\": \"${random_password.lambda_password.result}\"\n   }\nEOF\n}\n\nresource \"aws_secretsmanager_secret\" \"aurora-mysql-secret\" {\n  name = \"aurora-mysql-secret\"\n  recovery_window_in_days = 0\n}\n\nresource \"aws_secretsmanager_secret_version\" \"sversion1\" {\n  secret_id = aws_secretsmanager_secret.aurora-mysql-secret.id\n  secret_string = <<EOF\n   {\n    \"username\": \"admin\",\n    \"password\": \"${random_password.db_password.result}\"\n   }\nEOF\n}\n\nresource \"aws_db_proxy\" \"mysql_proxy\" {\n  name                   = var.rds_proxy_name\n  debug_logging          = true\n  engine_family          = \"MYSQL\"\n  idle_client_timeout    = 1800\n  require_tls            = true\n  role_arn               = aws_iam_role.rds_proxy.arn\n  vpc_security_group_ids = [aws_security_group.db_mysql.id]\n  vpc_subnet_ids         = [aws_subnet.app[0].id, aws_subnet.app[1].id]\n\n  auth {\n    auth_scheme = \"SECRETS\"\n    description = \"RDS Proxy with IAM auth for master user\"\n    iam_auth    = \"REQUIRED\"\n    secret_arn  = aws_secretsmanager_secret.aurora-mysql-secret.arn\n  }\n  \n  auth {\n    auth_scheme = \"SECRETS\"\n    description = \"RDS Proxy with IAM auth for lambda\"\n    iam_auth    = \"REQUIRED\"\n    secret_arn  = aws_secretsmanager_secret.lambda_secret.arn\n  }\n  depends_on = [aws_cloudwatch_log_group.this]\n}\n\nresource \"aws_db_proxy_default_target_group\" \"default\" {\n  db_proxy_name = aws_db_proxy.mysql_proxy.name\n\n  connection_pool_config {\n    connection_borrow_timeout    = 120\n    max_connections_percent      = 100\n    max_idle_connections_percent = 50\n  }\n}\n\nresource \"aws_db_proxy_target\" \"db_cluster\" {\n  db_cluster_identifier  = aws_rds_cluster.aurora_mysql.id\n  db_proxy_name          = aws_db_proxy.mysql_proxy.name\n  target_group_name      = aws_db_proxy_default_target_group.default.name\n  depends_on = [aws_rds_cluster.aurora_mysql, aws_db_proxy.mysql_proxy, aws_rds_cluster_instance.cluster_instance]\n}\n\nresource \"aws_db_proxy_endpoint\" \"aurora\" {\n  db_proxy_name          = aws_db_proxy.mysql_proxy.name\n  db_proxy_endpoint_name = \"lambda-aurora-proxy\"\n  vpc_subnet_ids         = aws_subnet.app.*.id\n  target_role            = \"READ_WRITE\"\n  vpc_security_group_ids = [aws_security_group.db_mysql.id]\n}\n\n// coudwatch \n\nresource \"aws_cloudwatch_log_group\" \"this\" {\n  name              = \"/aws/rds/proxy/${var.rds_proxy_name}\"\n  retention_in_days = var.log_retention\n}\n// IAM Role for rds proxy\n\nresource \"aws_iam_role\" \"rds_proxy\" {\n  name = \"RdsProxyRole-${random_string.random.id}\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = \"sts:AssumeRole\"\n      Effect = \"Allow\"\n      Sid    = \"\"\n      Principal = {\n        Service = \"rds.amazonaws.com\"\n      }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"rds_proxy_iam\" {\n  name = \"RdsProxySecretsManager-${random_string.random.id}\"\n\n  policy = <<POLICY\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"VisualEditor0\",\n            \"Effect\": \"Allow\",\n            \"Action\": \"secretsmanager:GetSecretValue\",\n            \"Resource\": [\n                \"${aws_secretsmanager_secret.lambda_secret.arn}\",\n                \"${aws_secretsmanager_secret.aurora-mysql-secret.arn}\"\n            ]\n        },\n        {\n            \"Sid\": \"VisualEditor1\",\n            \"Effect\": \"Allow\",\n            \"Action\": \"kms:Decrypt\",\n            \"Resource\": \"arn:aws:kms:${var.aws_region}:${local.account_id}:key/aws/secretsmanager\",\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"kms:ViaService\": \"secretsmanager.${var.aws_region}.amazonaws.com\"\n                }\n            }\n        }\n    ]\n}\nPOLICY\n}\n\nresource \"aws_iam_role_policy_attachment\" \"rds_policy\" {\n  role       = aws_iam_role.rds_proxy.name\n  policy_arn = aws_iam_policy.rds_proxy_iam.arn\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "# Output value definitions\n\noutput \"vpc_id\" {\n  description = \"the vpc id\"\n  value = aws_vpc.poc_vpc.id\n}\n\noutput \"lambda_sg\" {\n  description = \"security group to be assigned to lambda function\"\n  value = aws_security_group.lambda_sg.id\n}\n\noutput \"lambda_subnet_1\" {\n  description = \"private subnet id for lambda function\"\n  value = aws_subnet.app[0].id\n}\n\noutput \"lambda_subnet_2\" {\n  description = \"private subnet id for lambda function\"\n  value = aws_subnet.app[1].id\n}\n\noutput \"rds_proxy_arn\" {\n  description = \"the arn of the RDS proxy, includes the rds proxy resource id, prx-<hash>\"\n  value = aws_db_proxy.mysql_proxy.arn\n}\n\noutput \"rds_proxy_endpoint\" {\n  description = \"the name of the endpoint for the RDS proxy\"\n  value = aws_db_proxy_endpoint.aurora.endpoint\n}\n\noutput \"lambda_secret\" {\n  description = \"the name of the Secrets Manager secret that stores the database user credentials\"\n  value = aws_secretsmanager_secret.lambda_secret.name\n}\n\noutput \"rds_proxy_log\" {\n  description = \"CloudWatch log group name for RDS Proxy logs\"\n  value = aws_cloudwatch_log_group.this.id\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "# Input variable definitions\n\nvariable \"aws_region\" {\n  description = \"AWS region for all resources.\"\n  type    = string\n  default = \"us-east-1\"\n}\n\nvariable \"vpc_cidr\" {\n  description = \"CIDR block for the vpc\"\n  type    = string\n  default = \"10.0.0.0/16\"\n}\n\nvariable \"public_cidr\" {\n\ttype = list\n\tdefault = [\"10.0.11.0/24\", \"10.0.12.0/24\"]\n}\n\nvariable \"app_cidr\" {\n\ttype = list\n\tdefault = [\"10.0.21.0/24\", \"10.0.22.0/24\"]\n}\n\nvariable \"db_cidr\" {\n\ttype = list\n\tdefault = [\"10.0.31.0/24\", \"10.0.32.0/24\", \"10.0.33.0/24\"]\n}\n\nvariable \"azs\" {\n\ttype = list\n\tdefault = [\"us-east-1a\", \"us-east-1b\"]\n}\n\nvariable \"db_azs\" {\n\ttype = list\n\tdefault = [\"us-east-1a\", \"us-east-1b\", \"us-east-1c\"]\n}\n\nvariable \"username\" {\n\ttype = string\n\tdefault = \"lambda\"\n}\n\nvariable \"ami_id\" {\n\ttype = string\n\tdefault = \"ami-0c02fb55956c7d316\"\n}\n\nvariable \"rds_proxy_name\" {\n\ttype = string\n\tdefault = \"test-aurora-mysql\"\n}\n\nvariable \"log_retention\" {\n  description = \"log retention in days\"\n  type = number\n  default = 7\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-http-api-lambda-rds-proxy/python/terraform/vpc-rds-setup\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "DB 프록시와 데이터베이스의 자격 증명 및 네트워크 경계를 검토한다."
+  }
+}

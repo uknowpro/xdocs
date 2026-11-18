@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "title": "AWS · 이미지 생성 API의 모델 호출 경계",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.api_deployment",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 147,
+      "address": "aws_api_gateway_deployment.api_deployment",
+      "references": [
+        "aws_api_gateway_integration.lambda_integration",
+        "aws_api_gateway_rest_api.bedrock_api"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.lambda_integration",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 136,
+      "address": "aws_api_gateway_integration.lambda_integration",
+      "references": [
+        "aws_api_gateway_method.image_gen_post",
+        "aws_api_gateway_resource.image_gen",
+        "aws_api_gateway_rest_api.bedrock_api",
+        "aws_lambda_function.invoke_bedrock_function"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.image_gen_post",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 129,
+      "address": "aws_api_gateway_method.image_gen_post",
+      "references": [
+        "aws_api_gateway_resource.image_gen",
+        "aws_api_gateway_rest_api.bedrock_api"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.image_gen",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 123,
+      "address": "aws_api_gateway_resource.image_gen",
+      "references": [
+        "aws_api_gateway_rest_api.bedrock_api"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.bedrock_api",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 119,
+      "address": "aws_api_gateway_rest_api.bedrock_api",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.api_stage",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 156,
+      "address": "aws_api_gateway_stage.api_stage",
+      "references": [
+        "aws_api_gateway_deployment.api_deployment",
+        "aws_api_gateway_rest_api.bedrock_api"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.lambda_log_group",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 53,
+      "address": "aws_cloudwatch_log_group.lambda_log_group",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.invoke_model_policy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 25,
+      "address": "aws_iam_policy.invoke_model_policy",
+      "references": [
+        "random_string.suffix",
+        "data.aws_region.current"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_role",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 85,
+      "address": "aws_iam_role.lambda_role",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.lambda_basic_execution",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 108,
+      "address": "aws_iam_role_policy_attachment.lambda_basic_execution",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.lambda_invoke_model_policy",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 103,
+      "address": "aws_iam_role_policy_attachment.lambda_invoke_model_policy",
+      "references": [
+        "aws_iam_policy.invoke_model_policy",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.lambda_s3_access",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 113,
+      "address": "aws_iam_role_policy_attachment.lambda_s3_access",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.invoke_bedrock_function",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 63,
+      "address": "aws_lambda_function.invoke_bedrock_function",
+      "references": [
+        "aws_cloudwatch_log_group.lambda_log_group",
+        "aws_s3_bucket.image_bucket",
+        "aws_lambda_layer_version.pillow_layer",
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_lambda_layer_version",
+      "label": "aws_lambda_layer_version.pillow_layer",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 17,
+      "address": "aws_lambda_layer_version.pillow_layer",
+      "references": []
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.api_gateway_lambda",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 163,
+      "address": "aws_lambda_permission.api_gateway_lambda",
+      "references": [
+        "aws_lambda_function.invoke_bedrock_function",
+        "aws_api_gateway_rest_api.bedrock_api"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.image_bucket",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 47,
+      "address": "aws_s3_bucket.image_bucket",
+      "references": [
+        "random_string.suffix"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "random_string",
+      "label": "random_string.suffix",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "random_string.suffix",
+      "references": []
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 188,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"prefix\" {\n  description = \"Prefix to associate with the resources\"\n  type        = string\n}\n\nresource \"random_string\" \"suffix\" {\n  length  = 8\n  special = false\n  upper   = false\n}\n\n# Create Lambda layer for Pillow from provided zip file\nresource \"aws_lambda_layer_version\" \"pillow_layer\" {\n  filename            = \"pillow.zip\"  # Make sure this zip file exists in your terraform directory\n  layer_name         = \"pillow_layer\"\n  compatible_runtimes = [\"python3.14\"]\n  description        = \"Pillow library layer for image processing\"\n}\n\n# IAM Policy for invoking Bedrock model\nresource \"aws_iam_policy\" \"invoke_model_policy\" {\n  name        = \"${lower(var.prefix)}-InvokeModelPolicy-${random_string.suffix.result}\"\n  path        = \"/\"\n  description = \"Policy to invoke Bedrock model\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"bedrock:InvokeModel\",\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:bedrock:${data.aws_region.current.region}::foundation-model/amazon.nova-canvas-v1:0\"\n        ]\n      },\n    ]\n  })\n}\n\n# S3 bucket for storing images\nresource \"aws_s3_bucket\" \"image_bucket\" {\n  bucket        = \"${lower(var.prefix)}-image-bucket-${random_string.suffix.result}\"\n  force_destroy = true\n}\n\n# Create CloudWatch Log Group for Lambda\nresource \"aws_cloudwatch_log_group\" \"lambda_log_group\" {\n  name              = \"/aws/lambda/${lower(var.prefix)}-invoke-bedrock\"\n  retention_in_days = 14\n\n  lifecycle {\n    prevent_destroy = false\n  }\n}\n\n# Lambda function\nresource \"aws_lambda_function\" \"invoke_bedrock_function\" {\n  filename      = \"index.zip\" # Replace with your Lambda code zip file\n  function_name = \"${lower(var.prefix)}-invoke-bedrock\"\n  role          = aws_iam_role.lambda_role.arn\n  handler       = \"index.handler\"\n  runtime       = \"python3.14\"\n  timeout       = 30\n\n  layers = [\n    aws_lambda_layer_version.pillow_layer.arn\n  ]\n\n  environment {\n    variables = {\n      BUCKET = aws_s3_bucket.image_bucket.id\n    }\n  }\n\n  depends_on = [aws_cloudwatch_log_group.lambda_log_group]\n}\n\n# IAM role for Lambda function\nresource \"aws_iam_role\" \"lambda_role\" {\n  name = \"${lower(var.prefix)}-lambda_role-${random_string.suffix.result}\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\n# Attach policies to Lambda role\nresource \"aws_iam_role_policy_attachment\" \"lambda_invoke_model_policy\" {\n  policy_arn = aws_iam_policy.invoke_model_policy.arn\n  role       = aws_iam_role.lambda_role.name\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_basic_execution\" {\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n  role       = aws_iam_role.lambda_role.name\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_s3_access\" {\n  policy_arn = \"arn:aws:iam::aws:policy/AmazonS3FullAccess\"\n  role       = aws_iam_role.lambda_role.name\n}\n\n# API Gateway\nresource \"aws_api_gateway_rest_api\" \"bedrock_api\" {\n  name = \"${lower(var.prefix)}-BedrockImageAPI-${random_string.suffix.result}\"\n}\n\nresource \"aws_api_gateway_resource\" \"image_gen\" {\n  rest_api_id = aws_api_gateway_rest_api.bedrock_api.id\n  parent_id   = aws_api_gateway_rest_api.bedrock_api.root_resource_id\n  path_part   = \"image_gen\"\n}\n\nresource \"aws_api_gateway_method\" \"image_gen_post\" {\n  rest_api_id   = aws_api_gateway_rest_api.bedrock_api.id\n  resource_id   = aws_api_gateway_resource.image_gen.id\n  http_method   = \"POST\"\n  authorization = \"NONE\"\n}\n\nresource \"aws_api_gateway_integration\" \"lambda_integration\" {\n  rest_api_id = aws_api_gateway_rest_api.bedrock_api.id\n  resource_id = aws_api_gateway_resource.image_gen.id\n  http_method = aws_api_gateway_method.image_gen_post.http_method\n\n  integration_http_method = \"POST\"\n  type                    = \"AWS_PROXY\"\n  uri                     = aws_lambda_function.invoke_bedrock_function.invoke_arn\n}\n\n# API Gateway Deployment\nresource \"aws_api_gateway_deployment\" \"api_deployment\" {\n  rest_api_id = aws_api_gateway_rest_api.bedrock_api.id\n\n  depends_on = [\n    aws_api_gateway_integration.lambda_integration\n  ]\n}\n\n# API Gateway Stage\nresource \"aws_api_gateway_stage\" \"api_stage\" {\n  deployment_id = aws_api_gateway_deployment.api_deployment.id\n  rest_api_id   = aws_api_gateway_rest_api.bedrock_api.id\n  stage_name    = \"dev\"\n}\n\n# Lambda permission for API Gateway\nresource \"aws_lambda_permission\" \"api_gateway_lambda\" {\n  statement_id  = \"AllowAPIGatewayInvoke\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.invoke_bedrock_function.function_name\n  principal     = \"apigateway.amazonaws.com\"\n  source_arn    = \"${aws_api_gateway_rest_api.bedrock_api.execution_arn}/*/*\"\n}\n\n# Outputs\noutput \"lambda_function\" {\n  description = \"The ARN of the Lambda function\"\n  value       = aws_lambda_function.invoke_bedrock_function.arn\n}\n\noutput \"api_endpoint\" {\n  description = \"The API Gateway endpoint URL \"\n  value       = \"${aws_api_gateway_stage.api_stage.invoke_url}/image_gen\"\n}\n\noutput \"s3_image_bucket\" {\n  description = \"The Output S3 bucket is \"\n  value       = aws_s3_bucket.image_bucket.id\n}\n\n# Data source for current region\ndata \"aws_region\" \"current\" {}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-bedrock-nova-canvas/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "모델 호출 권한과 사용자 요청 경로를 대조한다."
+  }
+}

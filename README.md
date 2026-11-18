@@ -12,7 +12,7 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 
 - **Notes** — Organize pages in nested folders. Edit Markdown or blocks, follow backlinks, browse the graph, restore revisions, attach images and PDFs, import HTML or Markdown, and export Markdown, HTML or PDF. Choose light, gray, dark or system appearance.
 - **Sheets** — Import Excel, CSV and TSV. Import a folder of workbooks to preserve the directory tree, with a page per workbook and a tab per sheet. Copy a selection as tab-separated text. [Sheet guide](docs/sheets.md)
-- **Infrastructure** — Inventory Terraform/OpenTofu, Kubernetes and Compose resources, inspect relationships and record operational notes. Design nested cloud networks and move between a component and its Terraform declaration. Compare module input and output declarations across two versions using local terraform-docs JSON files. Preview each design in the template gallery before opening it. Browse 30 offline templates each for AWS, Azure and GCP. Export supported components to Terraform, CloudFormation, Helm or Kubernetes manifests. [IaCD guide](docs/iacd.md) · [Infrastructure guide](docs/infrastructure.md)
+- **Infrastructure** — Inventory Terraform/OpenTofu, Kubernetes and Compose resources, inspect relationships and record operational notes. Design nested cloud networks and move between a component and its Terraform declaration. Compare module input and output declarations across two versions using local terraform-docs JSON files. Preview each design in the template gallery before opening it. Browse 30 architecture case studies each for AWS, Azure and GCP plus two cross-cloud HA VPN designs. Each case includes a design question. Export supported components to Terraform, CloudFormation, Helm or Kubernetes manifests. [IaCD guide](docs/iacd.md) · [Infrastructure guide](docs/infrastructure.md)
 - **Automation canvases** — Import GitHub Actions, Jenkins Declarative, Ansible and CloudFormation files, edit individual blocks, and embed a linked canvas preview in a note. [Canvas guide](docs/automation-canvas-review.md)
 - **Analyzer** — Inspect project network paths, Kubernetes manifests and Helm charts. Compare Kubernetes versions and save findings as a linked report for Builder. [Analyzer guide](docs/analyzer.md)
 - **Builder** — Assemble review steps around a sheet or note, trace findings to cells or lines, and save results to a child note. Desktop users can connect compatible model endpoints and MCP resources, retry with a saved model profile, and check structured responses for missing evidence. [Builder guide](docs/brainboard-builder.md)
@@ -21,7 +21,7 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 <details>
 <summary>Architecture and automation screenshots</summary>
 
-In the AWS catalog, open **서브넷 내 EC2** to see an EC2 instance inside its subnet and VPC. Cards marked **영역형** show nested resource boundaries.
+In the AWS catalog, open **결제 서비스 · 격리 복구 리허설** to see an EC2 instance inside its subnet and VPC. Cards marked **영역형** show nested resource boundaries.
 
 ![EC2 inside a subnet and VPC](docs/images/aws-subnet-template.png)
 
@@ -39,7 +39,7 @@ In the AWS catalog, open **서브넷 내 EC2** to see an EC2 instance inside its
 <summary>Builder and cloud template catalog</summary>
 
 ![Sheet review with cell references](docs/images/builder.png)
-![Searching for DynamoDB templates](docs/images/architecture-catalog.png)
+![Offline AWS–GCP and Azure–GCP VPN case studies](docs/images/architecture-catalog.png)
 
 </details>
 

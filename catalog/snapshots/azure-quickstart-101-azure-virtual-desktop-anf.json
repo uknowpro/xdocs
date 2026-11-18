@@ -1,0 +1,653 @@
+{
+  "version": 1,
+  "title": "Azure · 가상 데스크톱과 NetApp 사용자 프로필",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.avd_vm_nic",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "host.tf",
+      "sourceLine": 18,
+      "multipleInstances": true,
+      "address": "azurerm_network_interface.avd_vm_nic",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_subnet.subnet"
+      ],
+      "scopeAddress": "azurerm_subnet.subnet",
+      "placementSource": {
+        "file": "host.tf",
+        "offset": 797,
+        "address": "azurerm_subnet.subnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "host.tf",
+      "sourceLine": 13,
+      "address": "azurerm_resource_group.rg",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_virtual_machine_extension",
+      "label": "azurerm_virtual_machine_extension.domain_join",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "host.tf",
+      "sourceLine": 65,
+      "multipleInstances": true,
+      "address": "azurerm_virtual_machine_extension.domain_join",
+      "references": [
+        "azurerm_virtual_network_peering.peer1",
+        "azurerm_virtual_network_peering.peer2",
+        "azurerm_windows_virtual_machine.avd_vm"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_virtual_machine_extension",
+      "label": "azurerm_virtual_machine_extension.vmext_dsc",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "host.tf",
+      "sourceLine": 100,
+      "multipleInstances": true,
+      "address": "azurerm_virtual_machine_extension.vmext_dsc",
+      "references": [
+        "azurerm_virtual_machine_extension.domain_join",
+        "azurerm_virtual_desktop_host_pool.hostpool",
+        "azurerm_windows_virtual_machine.avd_vm"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_windows_virtual_machine",
+      "label": "azurerm_windows_virtual_machine.avd_vm",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "host.tf",
+      "sourceLine": 35,
+      "multipleInstances": true,
+      "address": "azurerm_windows_virtual_machine.avd_vm",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_network_interface.avd_vm_nic"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.avd_vm_nic.*.id[count.index]}"
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_string",
+      "label": "random_string.AVD_local_password",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "host.tf",
+      "sourceLine": 5,
+      "multipleInstances": true,
+      "address": "random_string.AVD_local_password",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_log_analytics_workspace",
+      "label": "azurerm_log_analytics_workspace.law",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "loganalytics.tf",
+      "sourceLine": 8,
+      "address": "azurerm_log_analytics_workspace.law",
+      "references": [
+        "azurerm_resource_group.log",
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.log",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "loganalytics.tf",
+      "sourceLine": 1,
+      "address": "azurerm_resource_group.log",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.sh",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "azurerm_resource_group.sh",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_virtual_desktop_application_group",
+      "label": "azurerm_virtual_desktop_application_group.dag",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 36,
+      "address": "azurerm_virtual_desktop_application_group.dag",
+      "references": [
+        "azurerm_virtual_desktop_host_pool.hostpool",
+        "azurerm_virtual_desktop_workspace.workspace",
+        "azurerm_resource_group.sh"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_virtual_desktop_host_pool",
+      "label": "azurerm_virtual_desktop_host_pool.hostpool",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 17,
+      "address": "azurerm_virtual_desktop_host_pool.hostpool",
+      "references": [
+        "azurerm_resource_group.sh"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_virtual_desktop_host_pool_registration_info",
+      "label": "azurerm_virtual_desktop_host_pool_registration_info.registrationinfo",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "azurerm_virtual_desktop_host_pool_registration_info.registrationinfo",
+      "references": [
+        "azurerm_virtual_desktop_host_pool.hostpool"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_virtual_desktop_workspace",
+      "label": "azurerm_virtual_desktop_workspace.workspace",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 8,
+      "address": "azurerm_virtual_desktop_workspace.workspace",
+      "references": [
+        "azurerm_resource_group.sh"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_virtual_desktop_workspace_application_group_association",
+      "label": "azurerm_virtual_desktop_workspace_application_group_association.ws-dag",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 48,
+      "address": "azurerm_virtual_desktop_workspace_application_group_association.ws-dag",
+      "references": [
+        "azurerm_virtual_desktop_application_group.dag",
+        "azurerm_virtual_desktop_workspace.workspace"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_netapp_account",
+      "label": "azurerm_netapp_account.netapp_acct",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "netappstorage.tf",
+      "sourceLine": 18,
+      "address": "azurerm_netapp_account.netapp_acct",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_netapp_pool",
+      "label": "azurerm_netapp_pool.netapp_pool",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "netappstorage.tf",
+      "sourceLine": 37,
+      "address": "azurerm_netapp_pool.netapp_pool",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_netapp_account.netapp_acct"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_netapp_volume",
+      "label": "azurerm_netapp_volume.NetApp_Vol",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "netappstorage.tf",
+      "sourceLine": 50,
+      "address": "azurerm_netapp_volume.NetApp_Vol",
+      "references": [
+        "azurerm_netapp_pool.netapp_pool",
+        "azurerm_subnet.netapp_subnet"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.netapp_subnet",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "netappstorage.tf",
+      "sourceLine": 3,
+      "address": "azurerm_subnet.netapp_subnet",
+      "references": [
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "netappstorage.tf",
+        "offset": 511,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.nsg",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 18,
+      "address": "azurerm_network_security_group.nsg",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${var.rg_name}"
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.subnet",
+      "x": 780,
+      "y": 620,
+      "props": {
+        "name": "default"
+      },
+      "original": {
+        "name": "default"
+      },
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 10,
+      "address": "azurerm_subnet.subnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 437,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.nsg_assoc",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 36,
+      "address": "azurerm_subnet_network_security_group_association.nsg_assoc",
+      "references": [
+        "azurerm_network_security_group.nsg",
+        "azurerm_subnet.subnet"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.vnet",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 1,
+      "address": "azurerm_virtual_network.vnet",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${var.rg_name}"
+    },
+    {
+      "id": "n_import_22",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.peer1",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 46,
+      "address": "azurerm_virtual_network_peering.peer1",
+      "references": [
+        "data.azurerm_virtual_network.ad_vnet_data",
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.peer2",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 52,
+      "address": "azurerm_virtual_network_peering.peer2",
+      "references": [
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "azurerm_virtual_network",
+      "label": "data.azurerm_virtual_network.ad_vnet_data",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 41,
+      "address": "data.azurerm_virtual_network.ad_vnet_data",
+      "references": [],
+      "placementUnknown": true,
+      "placementValue": "${var.ad_rg}"
+    },
+    {
+      "id": "n_import_25",
+      "kind": "azuread_group",
+      "label": "azuread_group.aad_group",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "rbac.tf",
+      "sourceLine": 10,
+      "address": "azuread_group.aad_group",
+      "references": []
+    },
+    {
+      "id": "n_import_26",
+      "kind": "azuread_group_member",
+      "label": "azuread_group_member.aad_group_member",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "rbac.tf",
+      "sourceLine": 15,
+      "multipleInstances": true,
+      "address": "azuread_group_member.aad_group_member",
+      "references": [
+        "data.azuread_user.aad_user",
+        "azuread_group.aad_group"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.role",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "rbac.tf",
+      "sourceLine": 21,
+      "address": "azurerm_role_assignment.role",
+      "references": [
+        "azuread_group.aad_group",
+        "data.azurerm_role_definition.role",
+        "azurerm_virtual_desktop_application_group.dag"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "azuread_user",
+      "label": "data.azuread_user.aad_user",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "rbac.tf",
+      "sourceLine": 1,
+      "multipleInstances": true,
+      "address": "data.azuread_user.aad_user",
+      "references": []
+    },
+    {
+      "id": "n_import_29",
+      "kind": "azurerm_role_definition",
+      "label": "data.azurerm_role_definition.role",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "rbac.tf",
+      "sourceLine": 6,
+      "address": "data.azurerm_role_definition.role",
+      "references": []
+    },
+    {
+      "id": "n_import_30",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.sigrg",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "sig.tf",
+      "sourceLine": 1,
+      "address": "azurerm_resource_group.sigrg",
+      "references": []
+    },
+    {
+      "id": "n_import_31",
+      "kind": "azurerm_shared_image",
+      "label": "azurerm_shared_image.example",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "sig.tf",
+      "sourceLine": 30,
+      "address": "azurerm_shared_image.example",
+      "references": [
+        "azurerm_shared_image_gallery.sig",
+        "azurerm_resource_group.sigrg"
+      ]
+    },
+    {
+      "id": "n_import_32",
+      "kind": "azurerm_shared_image_gallery",
+      "label": "azurerm_shared_image_gallery.sig",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "sig.tf",
+      "sourceLine": 16,
+      "address": "azurerm_shared_image_gallery.sig",
+      "references": [
+        "azurerm_resource_group.sigrg",
+        "random_string.random"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "random_string",
+      "label": "random_string.random",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "sig.tf",
+      "sourceLine": 8,
+      "address": "random_string.random",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "host.tf",
+      "content": "locals {\n  registration_token = azurerm_virtual_desktop_host_pool_registration_info.registrationinfo.token\n}\n\nresource \"random_string\" \"AVD_local_password\" {\n  count            = var.rdsh_count\n  length           = 16\n  special          = true\n  min_special      = 2\n  override_special = \"*!@#?\"\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  name     = var.rg\n  location = var.resource_group_location\n}\n\nresource \"azurerm_network_interface\" \"avd_vm_nic\" {\n  count               = var.rdsh_count\n  name                = \"${var.prefix}-${count.index + 1}-nic\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n\n  ip_configuration {\n    name                          = \"nic${count.index + 1}_config\"\n    subnet_id                     = azurerm_subnet.subnet.id\n    private_ip_address_allocation = \"dynamic\"\n  }\n\n  depends_on = [\n    azurerm_resource_group.rg\n  ]\n}\n\nresource \"azurerm_windows_virtual_machine\" \"avd_vm\" {\n  count                 = var.rdsh_count\n  name                  = \"${var.prefix}-${count.index + 1}\"\n  resource_group_name   = azurerm_resource_group.rg.name\n  location              = azurerm_resource_group.rg.location\n  size                  = var.vm_size\n  network_interface_ids = [\"${azurerm_network_interface.avd_vm_nic.*.id[count.index]}\"]\n  provision_vm_agent    = true\n  admin_username        = var.local_admin_username\n  admin_password        = var.local_admin_password\n\n  os_disk {\n    name                 = \"${lower(var.prefix)}-${count.index + 1}\"\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Standard_LRS\"\n  }\n\n  source_image_reference {\n    publisher = \"MicrosoftWindowsDesktop\"\n    offer     = \"Windows-10\"\n    sku       = \"20h2-evd\"\n    version   = \"latest\"\n  }\n\n  depends_on = [\n    azurerm_resource_group.rg,\n    azurerm_network_interface.avd_vm_nic\n  ]\n}\n\nresource \"azurerm_virtual_machine_extension\" \"domain_join\" {\n  count                      = var.rdsh_count\n  name                       = \"${var.prefix}-${count.index + 1}-domainJoin\"\n  virtual_machine_id         = azurerm_windows_virtual_machine.avd_vm.*.id[count.index]\n  publisher                  = \"Microsoft.Compute\"\n  type                       = \"JsonADDomainExtension\"\n  type_handler_version       = \"1.3\"\n  auto_upgrade_minor_version = true\n\n  settings = <<SETTINGS\n    {\n      \"Name\": \"${var.domain_name}\",\n      \"OUPath\": \"${var.ou_path}\",\n      \"User\": \"${var.domain_user_upn}@${var.domain_name}\",\n      \"Restart\": \"true\",\n      \"Options\": \"3\"\n    }\nSETTINGS\n\n  protected_settings = <<PROTECTED_SETTINGS\n    {\n      \"Password\": \"${var.domain_password}\"\n    }\nPROTECTED_SETTINGS\n\n  lifecycle {\n    ignore_changes = [settings, protected_settings]\n  }\n\n  depends_on = [\n    azurerm_virtual_network_peering.peer1,\n    azurerm_virtual_network_peering.peer2\n  ]\n}\n\nresource \"azurerm_virtual_machine_extension\" \"vmext_dsc\" {\n  count                      = var.rdsh_count\n  name                       = \"${var.prefix}${count.index + 1}-avd_dsc\"\n  virtual_machine_id         = azurerm_windows_virtual_machine.avd_vm.*.id[count.index]\n  publisher                  = \"Microsoft.Powershell\"\n  type                       = \"DSC\"\n  type_handler_version       = \"2.73\"\n  auto_upgrade_minor_version = true\n\n  settings = <<-SETTINGS\n    {\n      \"modulesUrl\": \"https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_3-10-2021.zip\",\n      \"configurationFunction\": \"Configuration.ps1\\\\AddSessionHost\",\n      \"properties\": {\n        \"HostPoolName\":\"${azurerm_virtual_desktop_host_pool.hostpool.name}\"\n      }\n    }\nSETTINGS\n\n  protected_settings = <<PROTECTED_SETTINGS\n  {\n    \"properties\": {\n      \"registrationInfoToken\": \"${local.registration_token}\"\n    }\n  }\nPROTECTED_SETTINGS\n\n  depends_on = [\n    azurerm_virtual_machine_extension.domain_join,\n    azurerm_virtual_desktop_host_pool.hostpool\n  ]\n}\n"
+    },
+    {
+      "name": "loganalytics.tf",
+      "content": "resource \"azurerm_resource_group\" \"log\" {\n  name     = var.rg_shared_name\n  location = var.deploy_location\n}\n\n# Creates Log Anaylytics Workspace\n# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace\nresource \"azurerm_log_analytics_workspace\" \"law\" {\n  name                = \"log${random_string.random.id}\"\n  location            = azurerm_resource_group.log.location\n  resource_group_name = azurerm_resource_group.log.name\n  sku                 = \"PerGB2018\"\n  retention_in_days   = 30\n}\n"
+    },
+    {
+      "name": "main.tf",
+      "content": "# Resource group name is output when execution plan is applied.\nresource \"azurerm_resource_group\" \"sh\" {\n  name     = var.rg_name\n  location = var.resource_group_location\n}\n\n# Create AVD workspace\nresource \"azurerm_virtual_desktop_workspace\" \"workspace\" {\n  name                = var.workspace\n  resource_group_name = azurerm_resource_group.sh.name\n  location            = azurerm_resource_group.sh.location\n  friendly_name       = \"${var.prefix} Workspace\"\n  description         = \"${var.prefix} Workspace\"\n}\n\n# Create AVD host pool\nresource \"azurerm_virtual_desktop_host_pool\" \"hostpool\" {\n  resource_group_name      = azurerm_resource_group.sh.name\n  location                 = azurerm_resource_group.sh.location\n  name                     = var.hostpool\n  friendly_name            = var.hostpool\n  validate_environment     = true\n  custom_rdp_properties    = \"audiocapturemode:i:1;audiomode:i:0;\"\n  description              = \"${var.prefix} Terraform HostPool\"\n  type                     = \"Pooled\"\n  maximum_sessions_allowed = 16\n  load_balancer_type       = \"DepthFirst\" #[BreadthFirst DepthFirst]\n}\n\nresource \"azurerm_virtual_desktop_host_pool_registration_info\" \"registrationinfo\" {\n  hostpool_id     = azurerm_virtual_desktop_host_pool.hostpool.id\n  expiration_date = var.rfc3339\n}\n\n# Create AVD DAG\nresource \"azurerm_virtual_desktop_application_group\" \"dag\" {\n  resource_group_name = azurerm_resource_group.sh.name\n  host_pool_id        = azurerm_virtual_desktop_host_pool.hostpool.id\n  location            = azurerm_resource_group.sh.location\n  type                = \"Desktop\"\n  name                = \"${var.prefix}-dag\"\n  friendly_name       = \"Desktop AppGroup\"\n  description         = \"AVD application group\"\n  depends_on          = [azurerm_virtual_desktop_host_pool.hostpool, azurerm_virtual_desktop_workspace.workspace]\n}\n\n# Associate Workspace and DAG\nresource \"azurerm_virtual_desktop_workspace_application_group_association\" \"ws-dag\" {\n  application_group_id = azurerm_virtual_desktop_application_group.dag.id\n  workspace_id         = azurerm_virtual_desktop_workspace.workspace.id\n}\n"
+    },
+    {
+      "name": "netappstorage.tf",
+      "content": "# As an alternate to Azure Files storage use this file to replace afstorage.tf to deploy NetApp Files storage for profiles in a dedicated subnet (access needs to be granted to the ANF service)\n# Set up Azure NetApp Files https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-quickstart-set-up-account-create-volumes?tabs=azure-portal\nresource \"azurerm_subnet\" \"netapp_subnet\" {\n  name                 = var.netapp_subnet_name\n  resource_group_name  = var.rg_stor\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = var.netapp_address\n\n  delegation {\n    name = \"NetAppdelegation\"\n\n    service_delegation {\n      name = \"Microsoft.Netapp/volumes\"\n    }\n  }\n}\n\nresource \"azurerm_netapp_account\" \"netapp_acct\" {\n  name                = var.netapp_acct_name\n  resource_group_name = var.rg_stor\n  location            = var.deploy_location\n\n  active_directory {\n    username            = var.domain_user_upn\n    password            = var.domain_password\n    smb_server_name     = var.netapp_smb_name\n    dns_servers         = var.dns_servers\n    domain              = var.domain_name\n    organizational_unit = var.ou_path\n  }\n\n  depends_on = [\n    azurerm_resource_group.rg\n  ]\n}\n\nresource \"azurerm_netapp_pool\" \"netapp_pool\" {\n  name                = var.netapp_pool_name\n  location            = var.deploy_location\n  resource_group_name = var.rg_stor\n  account_name        = var.netapp_acct_name\n  service_level       = \"Standard\"\n  size_in_tb          = 4\n\n  depends_on = [\n    azurerm_resource_group.rg, azurerm_netapp_account.netapp_acct\n  ]\n}\n\nresource \"azurerm_netapp_volume\" \"NetApp_Vol\" {\n  lifecycle {\n    prevent_destroy = true\n  }\n\n  name                = var.netapp_volume_name\n  location            = var.deploy_location\n  resource_group_name = var.rg_stor\n  account_name        = var.netapp_acct_name\n  pool_name           = var.netapp_pool_name\n  volume_path         = var.netapp_volume_path\n  service_level       = \"Standard\"\n  subnet_id           = azurerm_subnet.netapp_subnet.id\n  protocols           = [\"CIFS\"]\n  storage_quota_in_gb = 100\n\n  depends_on = [\n    azurerm_netapp_pool.netapp_pool\n  ]\n}\n"
+    },
+    {
+      "name": "networking.tf",
+      "content": "resource \"azurerm_virtual_network\" \"vnet\" {\n  name                = \"${var.prefix}-VNet\"\n  address_space       = var.vnet_range\n  dns_servers         = var.dns_servers\n  location            = var.deploy_location\n  resource_group_name = var.rg_name\n  depends_on          = [azurerm_resource_group.rg]\n}\n\nresource \"azurerm_subnet\" \"subnet\" {\n  name                 = \"default\"\n  resource_group_name  = var.rg_name\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = var.subnet_range\n  depends_on           = [azurerm_resource_group.rg]\n}\n\nresource \"azurerm_network_security_group\" \"nsg\" {\n  name                = \"${var.prefix}-NSG\"\n  location            = var.deploy_location\n  resource_group_name = var.rg_name\n  security_rule {\n    name                       = \"HTTPS\"\n    priority                   = 1001\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"443\"\n    source_address_prefix      = \"*\"\n    destination_address_prefix = \"*\"\n  }\n  depends_on = [azurerm_resource_group.rg]\n}\n\nresource \"azurerm_subnet_network_security_group_association\" \"nsg_assoc\" {\n  subnet_id                 = azurerm_subnet.subnet.id\n  network_security_group_id = azurerm_network_security_group.nsg.id\n}\n\ndata \"azurerm_virtual_network\" \"ad_vnet_data\" {\n  name                = var.ad_vnet\n  resource_group_name = var.ad_rg\n}\n\nresource \"azurerm_virtual_network_peering\" \"peer1\" {\n  name                      = \"peer_avd_ad\"\n  resource_group_name       = var.rg_name\n  virtual_network_name      = azurerm_virtual_network.vnet.name\n  remote_virtual_network_id = data.azurerm_virtual_network.ad_vnet_data.id\n}\nresource \"azurerm_virtual_network_peering\" \"peer2\" {\n  name                      = \"peer_ad_avd\"\n  resource_group_name       = var.ad_rg\n  virtual_network_name      = var.ad_vnet\n  remote_virtual_network_id = azurerm_virtual_network.vnet.id\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"azure_virtual_desktop_compute_resource_group\" {\n  description = \"Name of the Resource group in which to deploy session host\"\n  value       = azurerm_resource_group.rg.name\n}\n\noutput \"azure_virtual_desktop_host_pool\" {\n  description = \"Name of the Azure Virtual Desktop host pool\"\n  value       = azurerm_virtual_desktop_host_pool.hostpool.name\n}\n\noutput \"azurerm_virtual_desktop_application_group\" {\n  description = \"Name of the Azure Virtual Desktop DAG\"\n  value       = azurerm_virtual_desktop_application_group.dag.name\n}\n\noutput \"azurerm_virtual_desktop_workspace\" {\n  description = \"Name of the Azure Virtual Desktop workspace\"\n  value       = azurerm_virtual_desktop_workspace.workspace.name\n}\n\noutput \"location\" {\n  description = \"The Azure region\"\n  value       = azurerm_resource_group.rg.location\n}\n\noutput \"storage_account\" {\n  description = \"Storage account for Profiles\"\n  value       = azurerm_storage_account.storage.name\n}\n\noutput \"storage_account_share\" {\n  description = \"Name of the Azure File Share created for FSLogix\"\n  value       = azurerm_storage_share.FSShare.name\n}\n\noutput \"session_host_count\" {\n  description = \"The number of VMs created\"\n  value       = var.rdsh_count\n}\n\noutput \"dnsservers\" {\n  description = \"Custom DNS configuration\"\n  value       = azurerm_virtual_network.vnet.dns_servers\n}\n\noutput \"vnetrange\" {\n  description = \"Address range for deployment vnet\"\n  value       = azurerm_virtual_network.vnet.address_space\n}\n\noutput \"AVD_user_groupname\" {\n  description = \"Azure Active Directory Group for AVD users\"\n  value       = azuread_group.aad_group.display_name\n}\n"
+    },
+    {
+      "name": "provider.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>2.0\"\n    }\n    azuread = {\n      source = \"hashicorp/azuread\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "rbac.tf",
+      "content": "data \"azuread_user\" \"aad_user\" {\n  for_each            = toset(var.avd_users)\n  user_principal_name = format(\"%s\", each.key)\n}\n\ndata \"azurerm_role_definition\" \"role\" { # access an existing built-in role\n  name = \"Desktop Virtualization User\"\n}\n\nresource \"azuread_group\" \"aad_group\" {\n  display_name     = var.aad_group_name\n  security_enabled = true\n}\n\nresource \"azuread_group_member\" \"aad_group_member\" {\n  for_each         = data.azuread_user.aad_user\n  group_object_id  = azuread_group.aad_group.id\n  member_object_id = each.value[\"id\"]\n}\n\nresource \"azurerm_role_assignment\" \"role\" {\n  scope              = azurerm_virtual_desktop_application_group.dag.id\n  role_definition_id = data.azurerm_role_definition.role.id\n  principal_id       = azuread_group.aad_group.id\n}\n"
+    },
+    {
+      "name": "sig.tf",
+      "content": "resource \"azurerm_resource_group\" \"sigrg\" {\n  location = var.deploy_location\n  name     = var.rg_shared_name\n}\n\n# generate a random string (consisting of four characters)\n# https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string\nresource \"random_string\" \"random\" {\n  length  = 4\n  upper   = false\n  special = false\n}\n\n# Creates Shared Image Gallery\n# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/shared_image_gallery\nresource \"azurerm_shared_image_gallery\" \"sig\" {\n  name                = \"sig${random_string.random.id}\"\n  resource_group_name = azurerm_resource_group.sigrg.name\n  location            = azurerm_resource_group.sigrg.location\n  description         = \"Shared images\"\n\n  tags = {\n    Environment = \"Demo\"\n    Tech        = \"Terraform\"\n  }\n}\n\n#Creates image definition\n# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/shared_image\nresource \"azurerm_shared_image\" \"example\" {\n  name                = \"avd-image\"\n  gallery_name        = azurerm_shared_image_gallery.sig.name\n  resource_group_name = azurerm_resource_group.sigrg.name\n  location            = azurerm_resource_group.sigrg.location\n  os_type             = \"Windows\"\n\n  identifier {\n    publisher = \"MicrosoftWindowsDesktop\"\n    offer     = \"office-365\"\n    sku       = \"20h2-evd-o365pp\"\n  }\n}\n\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"rg\" {\n  type        = string\n  default     = \"rg-avd-compute\"\n  description = \"Name of the Resource group in which to deploy session host\"\n}\n\nvariable \"rg_name\" {\n  type        = string\n  default     = \"rg-avd-resources\"\n  description = \"Name of the Resource group in which to deploy service objects\"\n}\n\nvariable \"rg_stor\" {\n  type        = string\n  default     = \"rg-avd-storage\"\n  description = \"Name of the Resource group in which to deploy storage\"\n}\n\nvariable \"rg_shared_name\" {\n  type        = string\n  default     = \"rg-shared-resources\"\n  description = \"Name of the Resource group in which to deploy shared resources\"\n}\n\nvariable \"deploy_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"The Azure Region in which all resources in this example should be created.\"\n}\n\nvariable \"workspace\" {\n  type        = string\n  description = \"Name of the Azure Virtual Desktop workspace\"\n  default     = \"AVD TF Workspace\"\n}\n\nvariable \"hostpool\" {\n  type        = string\n  description = \"Name of the Azure Virtual Desktop host pool\"\n  default     = \"AVD-TF-HP\"\n}\n\nvariable \"ad_vnet\" {\n  type        = string\n  default     = \"infra-network\"\n  description = \"Name of domain controller vnet\"\n}\n\nvariable \"rfc3339\" {\n  type        = string\n  default     = \"2022-03-30T12:43:13Z\"\n  description = \"Registration token expiration\"\n}\n\n\nvariable \"dns_servers\" {\n  type        = list(string)\n  default     = [\"10.0.1.4\", \"168.63.129.16\"]\n  description = \"Custom DNS configuration\"\n}\n\nvariable \"vnet_range\" {\n  type        = list(string)\n  default     = [\"10.2.0.0/16\"]\n  description = \"Address range for deployment VNet\"\n}\nvariable \"subnet_range\" {\n  type        = list(string)\n  default     = [\"10.2.0.0/24\"]\n  description = \"Address range for session host subnet\"\n}\n\nvariable \"ad_rg\" {\n  type        = string\n  default     = \"infra-rg\"\n  description = \"The resource group for AD VM\"\n}\n\nvariable \"avd_users\" {\n  description = \"AVD users\"\n  default = [\n    \"avduser01@contoso.net\",\n    \"avduser02@contoso.net\"\n  ]\n}\n\nvariable \"aad_group_name\" {\n  type        = string\n  default     = \"AVDUsers\"\n  description = \"Azure Active Directory Group for AVD users\"\n}\n\nvariable \"rdsh_count\" {\n  description = \"Number of AVD machines to deploy\"\n  default     = 2\n}\n\nvariable \"prefix\" {\n  type        = string\n  default     = \"avdtf\"\n  description = \"Prefix of the name of the AVD machine(s)\"\n}\n\nvariable \"domain_name\" {\n  type        = string\n  default     = \"infra.local\"\n  description = \"Name of the domain to join\"\n}\n\nvariable \"domain_user_upn\" {\n  type        = string\n  default     = \"domainjoineruser\" # do not include domain name as this is appended\n  description = \"Username for domain join (do not include domain name as this is appended)\"\n}\n\nvariable \"domain_password\" {\n  type        = string\n  default     = \"ChangeMe123!\"\n  description = \"Password of the user to authenticate with the domain\"\n  sensitive   = true\n}\n\nvariable \"vm_size\" {\n  description = \"Size of the machine to deploy\"\n  default     = \"Standard_DS2_v2\"\n}\n\nvariable \"ou_path\" {\n  default = \"\"\n}\n\nvariable \"local_admin_username\" {\n  type        = string\n  default     = \"localadm\"\n  description = \"local admin username\"\n}\n\nvariable \"local_admin_password\" {\n  type        = string\n  default     = \"ChangeMe123!\"\n  description = \"local admin password\"\n  sensitive   = true\n}\n\nvariable \"netapp_acct_name\" {\n  default = \"AVD_NetApp\"\n}\n\nvariable \"netapp_pool_name\" {\n  default = \"AVD_NetApp_pool\"\n}\n\nvariable \"netapp_volume_name\" {\n  default = \"AVD_NetApp_volume\"\n}\n\nvariable \"netapp_smb_name\" {\n  default = \"AVDNetApp\"\n}\n\nvariable \"netapp_volume_path\" {\n  default = \"AVDNetAppVolume\"\n}\n\nvariable \"netapp_subnet_name\" {\n  default = \"NetAppSubnet\"\n}\nvariable \"netapp_address\" {\n  default     = [\"10.1.1.0/24\"]\n  description = \"Address range for NetApp Subnet\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azure-virtual-desktop-anf\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "세션 호스트 확장과 영구 프로필 저장소의 수명을 구분한다."
+  }
+}

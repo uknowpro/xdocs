@@ -1,0 +1,627 @@
+{
+  "version": 1,
+  "title": "AWS · 공개 ALB와 사설 API의 진입 경계",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_lb",
+      "label": "aws_lb.public_alb",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "alb.tf",
+      "sourceLine": 2,
+      "address": "aws_lb.public_alb",
+      "references": [
+        "aws_security_group.allow_https",
+        "aws_subnet.public_subnet",
+        "aws_subnet.public_subnet2"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_lb_listener",
+      "label": "aws_lb_listener.front_end",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "alb.tf",
+      "sourceLine": 32,
+      "address": "aws_lb_listener.front_end",
+      "references": [
+        "aws_acm_certificate.cert",
+        "aws_lb_target_group.test",
+        "aws_lb.public_alb"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_lb_target_group",
+      "label": "aws_lb_target_group.test",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "alb.tf",
+      "sourceLine": 11,
+      "address": "aws_lb_target_group.test",
+      "references": [
+        "aws_vpc.vpc"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_lb_target_group_attachment",
+      "label": "aws_lb_target_group_attachment.nic01",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "alb.tf",
+      "sourceLine": 25,
+      "address": "aws_lb_target_group_attachment.nic01",
+      "references": [
+        "aws_lb_target_group.test",
+        "data.aws_network_interface.nic1"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_acm_certificate",
+      "label": "aws_acm_certificate.cert",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "cert.tf",
+      "sourceLine": 1,
+      "address": "aws_acm_certificate.cert",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_acm_certificate_validation",
+      "label": "aws_acm_certificate_validation.validation",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "cert.tf",
+      "sourceLine": 28,
+      "address": "aws_acm_certificate_validation.validation",
+      "references": [
+        "aws_acm_certificate.cert",
+        "aws_route53_record.cert_record"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_route53_record",
+      "label": "aws_route53_record.cert_record",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "cert.tf",
+      "sourceLine": 11,
+      "multipleInstances": true,
+      "address": "aws_route53_record.cert_record",
+      "references": [
+        "aws_acm_certificate.cert",
+        "data.aws_route53_zone.r53"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_route53_record",
+      "label": "aws_route53_record.record",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "cert.tf",
+      "sourceLine": 33,
+      "address": "aws_route53_record.record",
+      "references": [
+        "aws_lb.public_alb",
+        "data.aws_route53_zone.r53"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_route53_zone",
+      "label": "data.aws_route53_zone.r53",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "cert.tf",
+      "sourceLine": 6,
+      "address": "data.aws_route53_zone.r53",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.role",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 25,
+      "address": "aws_iam_role.role",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.lambda",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 13,
+      "address": "aws_lambda_function.lambda",
+      "references": [
+        "aws_iam_role.role"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_lambda_permission",
+      "label": "aws_lambda_permission.apigw_lambda",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "lambda.tf",
+      "sourceLine": 3,
+      "address": "aws_lambda_permission.apigw_lambda",
+      "references": [
+        "aws_lambda_function.lambda",
+        "aws_api_gateway_rest_api.private_api",
+        "aws_api_gateway_method.get"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 27,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.igw",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 36,
+      "address": "aws_internet_gateway.igw",
+      "references": [
+        "aws_vpc.vpc"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_rt",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 45,
+      "address": "aws_route_table.private_rt",
+      "references": [
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 889,
+        "address": "aws_vpc.vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public_rt",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 53,
+      "address": "aws_route_table.public_rt",
+      "references": [
+        "aws_internet_gateway.igw",
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 999,
+        "address": "aws_vpc.vpc",
+        "otherRefs": [
+          "aws_internet_gateway.igw"
+        ]
+      }
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.a",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 66,
+      "address": "aws_route_table_association.a",
+      "references": [
+        "aws_route_table.private_rt",
+        "aws_subnet.private_subnet"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.b",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 71,
+      "address": "aws_route_table_association.b",
+      "references": [
+        "aws_route_table.public_rt",
+        "aws_subnet.public_subnet"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.c",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 76,
+      "address": "aws_route_table_association.c",
+      "references": [
+        "aws_route_table.public_rt",
+        "aws_subnet.public_subnet2"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.allow_https",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 83,
+      "address": "aws_security_group.allow_https",
+      "references": [
+        "aws_vpc.vpc"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_subnet",
+      "x": 60,
+      "y": 760,
+      "props": {
+        "cidr": "20.0.0.0/24"
+      },
+      "original": {
+        "cidr": "20.0.0.0/24"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 8,
+      "address": "aws_subnet.private_subnet",
+      "references": [
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 176,
+        "address": "aws_vpc.vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_subnet",
+      "x": 300,
+      "y": 760,
+      "props": {
+        "cidr": "20.0.1.0/24"
+      },
+      "original": {
+        "cidr": "20.0.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 17,
+      "address": "aws_subnet.public_subnet",
+      "references": [
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 396,
+        "address": "aws_vpc.vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_22",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_subnet2",
+      "x": 540,
+      "y": 760,
+      "props": {
+        "cidr": "20.0.2.0/24"
+      },
+      "original": {
+        "cidr": "20.0.2.0/24"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 26,
+      "address": "aws_subnet.public_subnet2",
+      "references": [
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 588,
+        "address": "aws_vpc.vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_23",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.vpc",
+      "x": 780,
+      "y": 760,
+      "props": {
+        "cidr": "20.0.0.0/16"
+      },
+      "original": {
+        "cidr": "20.0.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 2,
+      "address": "aws_vpc.vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_24",
+      "kind": "aws_vpc_endpoint",
+      "label": "aws_vpc_endpoint.execute_api",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 111,
+      "address": "aws_vpc_endpoint.execute_api",
+      "references": [
+        "aws_security_group.allow_https",
+        "aws_subnet.private_subnet",
+        "aws_vpc.vpc"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "aws_network_interface",
+      "label": "data.aws_network_interface.nic1",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 124,
+      "address": "data.aws_network_interface.nic1",
+      "references": [
+        "aws_vpc_endpoint.execute_api"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.deploy",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "privateapi.tf",
+      "sourceLine": 31,
+      "address": "aws_api_gateway_deployment.deploy",
+      "references": [
+        "aws_api_gateway_rest_api.private_api",
+        "aws_api_gateway_method.get",
+        "aws_api_gateway_integration.lambda_proxy"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_api_gateway_integration",
+      "label": "aws_api_gateway_integration.lambda_proxy",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "privateapi.tf",
+      "sourceLine": 21,
+      "address": "aws_api_gateway_integration.lambda_proxy",
+      "references": [
+        "aws_api_gateway_method.get",
+        "aws_api_gateway_rest_api.private_api",
+        "aws_lambda_function.lambda"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.get",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "privateapi.tf",
+      "sourceLine": 13,
+      "address": "aws_api_gateway_method.get",
+      "references": [
+        "aws_api_gateway_rest_api.private_api"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.private_api",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "privateapi.tf",
+      "sourceLine": 2,
+      "address": "aws_api_gateway_rest_api.private_api",
+      "references": [
+        "aws_vpc_endpoint.execute_api"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_api_gateway_rest_api_policy",
+      "label": "aws_api_gateway_rest_api_policy.policy",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "privateapi.tf",
+      "sourceLine": 66,
+      "address": "aws_api_gateway_rest_api_policy.policy",
+      "references": [
+        "aws_api_gateway_rest_api.private_api",
+        "aws_vpc_endpoint.execute_api"
+      ]
+    },
+    {
+      "id": "n_import_31",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.dev",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "privateapi.tf",
+      "sourceLine": 55,
+      "address": "aws_api_gateway_stage.dev",
+      "references": [
+        "aws_api_gateway_deployment.deploy",
+        "aws_api_gateway_rest_api.private_api"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "alb.tf",
+      "content": "#Create ALB\nresource \"aws_lb\" \"public_alb\" {\n  name               = \"public-alb-test\"\n  internal           = false\n  load_balancer_type = \"application\"\n  security_groups    = [aws_security_group.allow_https.id]\n  subnets            = [aws_subnet.public_subnet.id,aws_subnet.public_subnet2.id]\n}\n\n#Create target group\nresource \"aws_lb_target_group\" \"test\" {\n  name     = \"tf-example-lb-tg\"\n  port     = 443\n  protocol = \"HTTPS\"\n  target_type = \"ip\"\n  vpc_id   = aws_vpc.vpc.id\n  \n  health_check {\n    matcher     = \"200,403\"\n    port        = 443    \n  }\n}\n\n#Add target to target group\nresource \"aws_lb_target_group_attachment\" \"nic01\" {\n  target_group_arn = aws_lb_target_group.test.arn\n  target_id        = data.aws_network_interface.nic1.private_ip\n  port             = 443\n}\n\n#Create listener\nresource \"aws_lb_listener\" \"front_end\" {\n  load_balancer_arn = aws_lb.public_alb.arn\n  port              = \"443\"\n  protocol          = \"HTTPS\"\n  ssl_policy        = \"ELBSecurityPolicy-2016-08\"\n  certificate_arn   = aws_acm_certificate.cert.arn\n\n  default_action {\n    type             = \"forward\"\n    target_group_arn = aws_lb_target_group.test.arn\n  }\n}\n\noutput \"final_url\" {\n    value = \"https://${var.custom_domain_name_prefix}.${var.domain_name}/${aws_api_gateway_stage.dev.stage_name} -H 'Host:${aws_api_gateway_rest_api.private_api.id}.execute-api.${var.region}.amazonaws.com'\"\n}"
+    },
+    {
+      "name": "cert.tf",
+      "content": "resource \"aws_acm_certificate\" \"cert\" {\n  domain_name       = \"${var.custom_domain_name_prefix}.${var.domain_name}\"\n  validation_method = \"DNS\"\n}\n\ndata \"aws_route53_zone\" \"r53\" {\n  name         = \"${var.domain_name}\"\n  private_zone = false\n}\n\nresource \"aws_route53_record\" \"cert_record\" {\n  for_each = {\n    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {\n      name   = dvo.resource_record_name\n      record = dvo.resource_record_value\n      type   = dvo.resource_record_type\n    }\n  }\n\n  allow_overwrite = true\n  name            = each.value.name\n  records         = [each.value.record]\n  ttl             = 60\n  type            = each.value.type\n  zone_id         = data.aws_route53_zone.r53.zone_id\n}\n\nresource \"aws_acm_certificate_validation\" \"validation\" {\n  certificate_arn         = aws_acm_certificate.cert.arn\n  validation_record_fqdns = [for record in aws_route53_record.cert_record : record.fqdn]\n}\n\nresource \"aws_route53_record\" \"record\" {\n  zone_id = data.aws_route53_zone.r53.zone_id\n  name    = \"${var.custom_domain_name_prefix}\"\n  type    = \"CNAME\"\n  ttl     = \"300\"\n  records = [aws_lb.public_alb.dns_name]\n}"
+    },
+    {
+      "name": "lambda.tf",
+      "content": "\n#Ceating Lambda\nresource \"aws_lambda_permission\" \"apigw_lambda\" {\n  statement_id  = \"AllowExecutionFromAPIGateway\"\n  action        = \"lambda:InvokeFunction\"\n  function_name = aws_lambda_function.lambda.function_name\n  principal     = \"apigateway.amazonaws.com\"\n\n  source_arn = \"${aws_api_gateway_rest_api.private_api.execution_arn}/*/${aws_api_gateway_method.get.http_method}/\"\n  provider = aws.crossaccount\n}\n\nresource \"aws_lambda_function\" \"lambda\" {\n  filename      = \"code.zip\"\n  function_name = \"mylambda\"\n  role          = aws_iam_role.role.arn\n  handler       = \"lambda_function.lambda_handler\"\n  runtime       = \"python3.14\"\n\n  source_code_hash = filebase64sha256(\"code.zip\")\n  provider = aws.crossaccount\n}\n\n#Creating IAM role for lambda\nresource \"aws_iam_role\" \"role\" {\n  name = \"myrole\"\n\n  assume_role_policy = <<POLICY\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"lambda.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nPOLICY\nprovider = aws.crossaccount\n}"
+    },
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n}\n\nvariable \"region\" {}\nvariable \"custom_domain_name_prefix\" {}\nvariable \"domain_name\" {}\n\n# Configure the AWS Provider\nprovider \"aws\" {\n profile = \"default\"\n region  = \"${var.region}\"\n}\n \n#Production account\nprovider \"aws\" {\n profile = \"crossaccount\"\n region  = \"${var.region}\"\n alias   = \"crossaccount\"\n}\n\ndata \"aws_caller_identity\" \"current\" {\n  provider = aws.crossaccount\n}"
+    },
+    {
+      "name": "network.tf",
+      "content": "# Creates VPCs\nresource \"aws_vpc\" \"vpc\" {\n  cidr_block = \"20.0.0.0/16\"\n  enable_dns_hostnames = \"true\" \n}\n\n#Creates subnets\nresource \"aws_subnet\" \"private_subnet\" {\n  vpc_id = aws_vpc.vpc.id\n  cidr_block = \"20.0.0.0/24\"\n  availability_zone = \"${var.region}a\"\n  tags = {\n    Name = \"Subnet for ${var.region}a\"\n  }\n}\n\nresource \"aws_subnet\" \"public_subnet\" {\n  cidr_block = \"20.0.1.0/24\"\n  vpc_id = aws_vpc.vpc.id\n  availability_zone = \"${var.region}a\"\n  tags = {\n    Name = \"Subnet for ${var.region}a\"\n  }\n}\n\nresource \"aws_subnet\" \"public_subnet2\" {\n  cidr_block = \"20.0.2.0/24\"\n  vpc_id = aws_vpc.vpc.id\n  availability_zone = \"${var.region}c\"\n  tags = {\n    Name = \"Subnet for ${var.region}c\"\n  }\n}\n\n#Creates IGW \nresource \"aws_internet_gateway\" \"igw\" {\n  vpc_id = aws_vpc.vpc.id\n\n  tags = {\n    Name = \"igw\"\n  }\n}\n\n#Creates RouteTables\nresource \"aws_route_table\" \"private_rt\" {\n  vpc_id = aws_vpc.vpc.id\n\n  tags = {\n    Name = \"private_rt\"\n  }\n}\n\nresource \"aws_route_table\" \"public_rt\" {\n  vpc_id = aws_vpc.vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name = \"public_rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"a\" {\n  subnet_id      = aws_subnet.private_subnet.id\n  route_table_id = aws_route_table.private_rt.id\n}\n\nresource \"aws_route_table_association\" \"b\" {\n  subnet_id      = aws_subnet.public_subnet.id\n  route_table_id = aws_route_table.public_rt.id\n}\n\nresource \"aws_route_table_association\" \"c\" {\n  subnet_id      = aws_subnet.public_subnet2.id\n  route_table_id = aws_route_table.public_rt.id\n}\n\n\n#Creates SecurityGroup\nresource \"aws_security_group\" \"allow_https\" {\n  name        = \"allow_https\"\n  description = \"Allow HTTPS inbound traffic\"\n  vpc_id      = aws_vpc.vpc.id\n\n  ingress {\n    description      = \"HTTPS from VPC\"\n    from_port        = 443\n    to_port          = 443\n    protocol         = \"tcp\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n  }\n\n  egress {\n    from_port        = 0\n    to_port          = 0\n    protocol         = \"-1\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n    ipv6_cidr_blocks = [\"::/0\"]\n  }\n\n  tags = {\n    Name = \"allow_https\"\n  }\n}\n\n#Create VPC endpoints\n\nresource \"aws_vpc_endpoint\" \"execute_api\" {\n  vpc_id            = aws_vpc.vpc.id\n  service_name      = \"com.amazonaws.${var.region}.execute-api\"\n  vpc_endpoint_type = \"Interface\"\n\n  security_group_ids = [\n    aws_security_group.allow_https.id,\n  ]\n  \n  subnet_ids        = [aws_subnet.private_subnet.id]\n  private_dns_enabled = true\n}\n\ndata \"aws_network_interface\" \"nic1\" {\n  id = tolist(aws_vpc_endpoint.execute_api.network_interface_ids)[0]\n}\n\n#data \"aws_network_interface\" \"nic2\" {\n#  id = tolist(aws_vpc_endpoint.execute_api.network_interface_ids)[1]\n#}\n\n#for_each = aws_vpc_endpoint.execute_api.network_interface_ids\n#  id = each.value"
+    },
+    {
+      "name": "privateapi.tf",
+      "content": "\nresource \"aws_api_gateway_rest_api\" \"private_api\" {\n    name = \"private_api\"\n\n    endpoint_configuration {\n        types = [\"PRIVATE\"]\n        vpc_endpoint_ids = [aws_vpc_endpoint.execute_api.id]\n    }\n    provider = aws.crossaccount\n}\n\n\nresource \"aws_api_gateway_method\" \"get\" {\n    authorization = \"NONE\"\n    http_method   = \"GET\"\n    resource_id   = aws_api_gateway_rest_api.private_api.root_resource_id\n    rest_api_id   = aws_api_gateway_rest_api.private_api.id\n    provider = aws.crossaccount\n}\n\nresource \"aws_api_gateway_integration\" \"lambda_proxy\" {\n    rest_api_id             = aws_api_gateway_rest_api.private_api.id\n    resource_id             = aws_api_gateway_rest_api.private_api.root_resource_id\n    http_method             = aws_api_gateway_method.get.http_method\n    integration_http_method = \"POST\"\n    type                    = \"AWS_PROXY\"\n    uri                     = aws_lambda_function.lambda.invoke_arn\n    provider = aws.crossaccount\n}\n\nresource \"aws_api_gateway_deployment\" \"deploy\" {\n    rest_api_id = aws_api_gateway_rest_api.private_api.id\n\n  triggers = {\n    # NOTE: The configuration below will satisfy ordering considerations,\n    #       but not pick up all future REST API changes. More advanced patterns\n    #       are possible, such as using the filesha1() function against the\n    #       Terraform configuration file(s) or removing the .id references to\n    #       calculate a hash against whole resources. Be aware that using whole\n    #       resources will show a difference after the initial implementation.\n    #       It will stabilize to only change when resources change afterwards.\n    redeployment = sha1(jsonencode([\n        aws_api_gateway_rest_api.private_api.root_resource_id,\n        aws_api_gateway_method.get.id,\n        aws_api_gateway_integration.lambda_proxy.id,\n    ]))\n  }\n\n  lifecycle {\n        create_before_destroy = true\n  }\n  provider = aws.crossaccount\n}\n\nresource \"aws_api_gateway_stage\" \"dev\" {\n    deployment_id = aws_api_gateway_deployment.deploy.id\n    rest_api_id   = aws_api_gateway_rest_api.private_api.id\n    stage_name    = \"dev\"\n    provider = aws.crossaccount\n}\n\n#output \"invoke_url\" {\n#    value = \"${aws_api_gateway_deployment.deploy.invoke_url}${aws_api_gateway_stage.dev.stage_name}\"\n#}\n\nresource \"aws_api_gateway_rest_api_policy\" \"policy\" {\n    rest_api_id   = aws_api_gateway_rest_api.private_api.id\n\n  policy = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Deny\",\n            \"Principal\": \"*\",\n            \"Action\": \"execute-api:Invoke\",\n            \"Resource\": \"${aws_api_gateway_rest_api.private_api.execution_arn}*\",\n            \"Condition\": {\n                \"StringNotEquals\": {\n                    \"aws:sourceVpce\": \"${aws_vpc_endpoint.execute_api.id}\"\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Principal\": \"*\",\n            \"Action\": \"execute-api:Invoke\",\n            \"Resource\": \"${aws_api_gateway_rest_api.private_api.execution_arn}*\"\n        }\n    ]\n}\nEOF\n    provider = aws.crossaccount\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/public-alb-private-api/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "인터넷 요청이 사설 API에 도달하는 경로와 인증 경계를 추적한다."
+  }
+}

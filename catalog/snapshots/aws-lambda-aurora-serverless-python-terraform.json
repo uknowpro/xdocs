@@ -1,0 +1,441 @@
+{
+  "version": 1,
+  "title": "AWS · 사설 Aurora와 함수 기반 데이터 계층",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_db_subnet_group",
+      "label": "aws_db_subnet_group.aurora_subnet_group",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 164,
+      "address": "aws_db_subnet_group.aurora_subnet_group",
+      "references": [
+        "aws_subnet.lambda_subnet_1",
+        "aws_subnet.lambda_subnet_2"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_eip",
+      "label": "aws_eip.nat",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 60,
+      "address": "aws_eip.nat",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.lambda_role",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 215,
+      "address": "aws_iam_role.lambda_role",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.lambda_policy",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 231,
+      "address": "aws_iam_role_policy.lambda_policy",
+      "references": [
+        "aws_iam_role.lambda_role"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.main",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "aws_internet_gateway.main",
+      "references": [
+        "aws_vpc.lambda_vpc"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_lambda_function",
+      "label": "aws_lambda_function.aurora_lambda",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 267,
+      "address": "aws_lambda_function.aurora_lambda",
+      "references": [
+        "aws_vpc.lambda_vpc",
+        "aws_subnet.lambda_subnet_1",
+        "aws_subnet.lambda_subnet_2",
+        "aws_security_group.aurora_sg",
+        "aws_rds_cluster.aurora_cluster",
+        "aws_iam_role.lambda_role",
+        "aws_secretsmanager_secret.aurora_secret",
+        "data.archive_file.lambda_zip"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.main",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 64,
+      "address": "aws_nat_gateway.main",
+      "references": [
+        "aws_eip.nat",
+        "aws_subnet.public"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_rds_cluster",
+      "label": "aws_rds_cluster.aurora_cluster",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 174,
+      "address": "aws_rds_cluster.aurora_cluster",
+      "references": [
+        "aws_db_subnet_group.aurora_subnet_group",
+        "aws_vpc.lambda_vpc",
+        "aws_subnet.lambda_subnet_1",
+        "aws_subnet.lambda_subnet_2",
+        "aws_security_group.aurora_sg",
+        "aws_secretsmanager_secret_version.aurora_secret_version"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_rds_cluster_instance",
+      "label": "aws_rds_cluster_instance.aurora_instance",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 205,
+      "address": "aws_rds_cluster_instance.aurora_instance",
+      "references": [
+        "aws_rds_cluster.aurora_cluster"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 89,
+      "address": "aws_route_table.private",
+      "references": [
+        "aws_nat_gateway.main",
+        "aws_vpc.lambda_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1918,
+        "address": "aws_vpc.lambda_vpc",
+        "otherRefs": [
+          "aws_nat_gateway.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 75,
+      "address": "aws_route_table.public",
+      "references": [
+        "aws_internet_gateway.main",
+        "aws_vpc.lambda_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1673,
+        "address": "aws_vpc.lambda_vpc",
+        "otherRefs": [
+          "aws_internet_gateway.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_1",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 109,
+      "address": "aws_route_table_association.private_1",
+      "references": [
+        "aws_route_table.private",
+        "aws_subnet.lambda_subnet_1"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_2",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 114,
+      "address": "aws_route_table_association.private_2",
+      "references": [
+        "aws_route_table.private",
+        "aws_subnet.lambda_subnet_2"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 104,
+      "address": "aws_route_table_association.public",
+      "references": [
+        "aws_route_table.public",
+        "aws_subnet.public"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_secretsmanager_secret",
+      "label": "aws_secretsmanager_secret.aurora_secret",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 147,
+      "address": "aws_secretsmanager_secret.aurora_secret",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_secretsmanager_secret_version",
+      "label": "aws_secretsmanager_secret_version.aurora_secret_version",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 154,
+      "address": "aws_secretsmanager_secret_version.aurora_secret_version",
+      "references": [
+        "aws_secretsmanager_secret.aurora_secret"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.aurora_sg",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 120,
+      "address": "aws_security_group.aurora_sg",
+      "references": [
+        "aws_vpc.lambda_vpc"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.lambda_subnet_1",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "aws_subnet.lambda_subnet_1",
+      "references": [
+        "aws_vpc.lambda_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 866,
+        "address": "aws_vpc.lambda_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.lambda_subnet_2",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 48,
+      "address": "aws_subnet.lambda_subnet_2",
+      "references": [
+        "aws_vpc.lambda_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1144,
+        "address": "aws_vpc.lambda_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 24,
+      "address": "aws_subnet.public",
+      "references": [
+        "aws_vpc.lambda_vpc"
+      ],
+      "scopeAddress": "aws_vpc.lambda_vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 512,
+        "address": "aws_vpc.lambda_vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.lambda_vpc",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "aws_vpc.lambda_vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_21",
+      "kind": "archive_file",
+      "label": "data.archive_file.lambda_zip",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 261,
+      "address": "data.archive_file.lambda_zip",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# VPC and Networking\nresource \"aws_vpc\" \"lambda_vpc\" {\n  cidr_block           = var.vpc_cidr\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n\n  tags = {\n    Name        = \"lambda-aurora-vpc\"\n    Environment = var.environment\n  }\n}\n\n# Internet Gateway\nresource \"aws_internet_gateway\" \"main\" {\n  vpc_id = aws_vpc.lambda_vpc.id\n\n  tags = {\n    Name        = \"main-igw\"\n    Environment = var.environment\n  }\n}\n\n# Public Subnet for NAT Gateway\nresource \"aws_subnet\" \"public\" {\n  vpc_id                  = aws_vpc.lambda_vpc.id\n  cidr_block              = cidrsubnet(var.vpc_cidr, 8, 0)\n  availability_zone       = \"${var.aws_region}a\"\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name        = \"public-subnet\"\n    Environment = var.environment\n  }\n}\n\n# Private Subnets for Lambda and Aurora\nresource \"aws_subnet\" \"lambda_subnet_1\" {\n  vpc_id            = aws_vpc.lambda_vpc.id\n  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 1)\n  availability_zone = \"${var.aws_region}a\"\n\n  tags = {\n    Name        = \"lambda-aurora-subnet-1\"\n    Environment = var.environment\n  }\n}\n\nresource \"aws_subnet\" \"lambda_subnet_2\" {\n  vpc_id            = aws_vpc.lambda_vpc.id\n  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 2)\n  availability_zone = \"${var.aws_region}b\"\n\n  tags = {\n    Name        = \"lambda-aurora-subnet-2\"\n    Environment = var.environment\n  }\n}\n\n# NAT Gateway\nresource \"aws_eip\" \"nat\" {\n  domain = \"vpc\"\n}\n\nresource \"aws_nat_gateway\" \"main\" {\n  allocation_id = aws_eip.nat.id\n  subnet_id     = aws_subnet.public.id\n\n  tags = {\n    Name        = \"main-nat\"\n    Environment = var.environment\n  }\n}\n\n# Route Tables\nresource \"aws_route_table\" \"public\" {\n  vpc_id = aws_vpc.lambda_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.main.id\n  }\n\n  tags = {\n    Name        = \"public-rt\"\n    Environment = var.environment\n  }\n}\n\nresource \"aws_route_table\" \"private\" {\n  vpc_id = aws_vpc.lambda_vpc.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.main.id\n  }\n\n  tags = {\n    Name        = \"private-rt\"\n    Environment = var.environment\n  }\n}\n\n# Route Table Associations\nresource \"aws_route_table_association\" \"public\" {\n  subnet_id      = aws_subnet.public.id\n  route_table_id = aws_route_table.public.id\n}\n\nresource \"aws_route_table_association\" \"private_1\" {\n  subnet_id      = aws_subnet.lambda_subnet_1.id\n  route_table_id = aws_route_table.private.id\n}\n\nresource \"aws_route_table_association\" \"private_2\" {\n  subnet_id      = aws_subnet.lambda_subnet_2.id\n  route_table_id = aws_route_table.private.id\n}\n\n# Security Groups\nresource \"aws_security_group\" \"aurora_sg\" {\n  name        = \"aurora-security-group\"\n  description = \"Security group for Aurora Serverless\"\n  vpc_id      = aws_vpc.lambda_vpc.id\n\n  ingress {\n    from_port   = 3306\n    to_port     = 3306\n    protocol    = \"tcp\"\n    cidr_blocks = [var.vpc_cidr]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name        = \"aurora-sg\"\n    Environment = var.environment\n  }\n}\n\n# Secrets Manager Configuration - stores db credentials\n\nresource \"aws_secretsmanager_secret\" \"aurora_secret\" {\n  name = \"aurora-db-credentials\"\n  tags = {\n    Environment = var.environment\n  }\n}\n\nresource \"aws_secretsmanager_secret_version\" \"aurora_secret_version\" {\n  secret_id = aws_secretsmanager_secret.aurora_secret.id\n  secret_string = jsonencode({\n    username = var.db_username\n    password = var.db_password\n  })\n}\n\n\n# Aurora Configuration\nresource \"aws_db_subnet_group\" \"aurora_subnet_group\" {\n  name       = \"aurora-subnet-group\"\n  subnet_ids = [aws_subnet.lambda_subnet_1.id, aws_subnet.lambda_subnet_2.id]\n\n  tags = {\n    Name        = \"Aurora subnet group\"\n    Environment = var.environment\n  }\n}\n\nresource \"aws_rds_cluster\" \"aurora_cluster\" {\n  cluster_identifier     = \"aurora-serverless-cluster\"\n  engine                 = \"aurora-mysql\"\n  engine_version         = \"8.0.mysql_aurora.3.04.1\"\n  engine_mode            = \"provisioned\"\n  database_name          = var.database_name\n  master_username        = jsondecode(aws_secretsmanager_secret_version.aurora_secret_version.secret_string)[\"username\"]\n  master_password        = jsondecode(aws_secretsmanager_secret_version.aurora_secret_version.secret_string)[\"password\"]\n  storage_encrypted      = true\n  skip_final_snapshot    = true\n  db_subnet_group_name   = aws_db_subnet_group.aurora_subnet_group.name\n  vpc_security_group_ids = [aws_security_group.aurora_sg.id]\n\n  serverlessv2_scaling_configuration {\n    min_capacity = 0.5\n    max_capacity = 16.0\n  }\n\n  tags = {\n    Environment = var.environment\n  }\n  # Add explicit dependencies\n  depends_on = [\n    aws_vpc.lambda_vpc,\n    aws_subnet.lambda_subnet_1,\n    aws_subnet.lambda_subnet_2,\n    aws_security_group.aurora_sg\n  ]\n}\n\n# Create Aurora Instance\nresource \"aws_rds_cluster_instance\" \"aurora_instance\" {\n  cluster_identifier = aws_rds_cluster.aurora_cluster.id\n  instance_class    = \"db.serverless\"\n  engine            = aws_rds_cluster.aurora_cluster.engine\n  engine_version    = aws_rds_cluster.aurora_cluster.engine_version\n\n  depends_on = [aws_rds_cluster.aurora_cluster]\n}\n\n# IAM Configuration\nresource \"aws_iam_role\" \"lambda_role\" {\n  name = \"lambda_aurora_role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"lambda.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy\" \"lambda_policy\" {\n  name = \"lambda_aurora_policy\"\n  role = aws_iam_role.lambda_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"rds-data:ExecuteStatement\",\n          \"rds-data:BatchExecuteStatement\",\n          \"rds-data:BeginTransaction\",\n          \"rds-data:CommitTransaction\",\n          \"rds-data:RollbackTransaction\",\n          \"logs:CreateLogGroup\",\n          \"logs:CreateLogStream\",\n          \"logs:PutLogEvents\",\n          \"ec2:CreateNetworkInterface\",\n          \"ec2:DescribeNetworkInterfaces\",\n          \"ec2:DeleteNetworkInterface\",\n          \"secretsmanager:GetSecretValue\"\n        ]\n        Resource = \"*\"\n      }\n    ]\n  })\n}\n\n# Lambda Function\ndata \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_dir  = \"${path.module}/src/function\"\n  output_path = \"${path.module}/function.zip\"\n}\n\nresource \"aws_lambda_function\" \"aurora_lambda\" {\n  depends_on = [\n    aws_vpc.lambda_vpc,\n    aws_subnet.lambda_subnet_1,\n    aws_subnet.lambda_subnet_2,\n    aws_security_group.aurora_sg,\n    aws_rds_cluster.aurora_cluster,\n    aws_iam_role.lambda_role\n  ]\n\n  function_name    = var.lambda_function_name\n  role             = aws_iam_role.lambda_role.arn\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n  handler          = var.lambda_handler\n  runtime          = var.lambda_runtime\n  timeout          = var.lambda_timeout\n  memory_size      = var.lambda_memory_size\n\n  environment {\n    variables = {\n      DB_ENDPOINT = aws_rds_cluster.aurora_cluster.endpoint\n      DB_NAME     = var.database_name\n      SECRET_ARN  = aws_secretsmanager_secret.aurora_secret.arn\n    }\n  }\n\n  vpc_config {\n    subnet_ids         = [aws_subnet.lambda_subnet_1.id, aws_subnet.lambda_subnet_2.id]\n    security_group_ids = [aws_security_group.aurora_sg.id]\n  }\n\n  tags = {\n    Environment = var.environment\n  }\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"lambda_function_arn\" {\n  description = \"ARN of the Lambda function\"\n  value       = aws_lambda_function.aurora_lambda.arn\n}\n\noutput \"lambda_function_name\" {\n  description = \"Name of the Lambda function\"\n  value       = aws_lambda_function.aurora_lambda.function_name\n}\n\noutput \"aurora_cluster_endpoint\" {\n  description = \"Aurora cluster endpoint\"\n  value       = aws_rds_cluster.aurora_cluster.endpoint\n}\n\noutput \"aurora_cluster_arn\" {\n  description = \"Aurora cluster ARN\"\n  value       = aws_rds_cluster.aurora_cluster.arn\n}\n\noutput \"vpc_id\" {\n  description = \"ID of the VPC\"\n  value       = aws_vpc.lambda_vpc.id\n}\n\noutput \"subnet_ids\" {\n  description = \"IDs of the subnets\"\n  value       = [aws_subnet.lambda_subnet_1.id, aws_subnet.lambda_subnet_2.id]\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"aws_region\" {\n  description = \"AWS region\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"environment\" {\n  description = \"Environment name\"\n  type        = string\n  default     = \"dev\"\n}\n\nvariable \"vpc_cidr\" {\n  description = \"CIDR block for VPC\"\n  type        = string\n  default     = \"10.100.0.0/16\"\n}\n\nvariable \"db_username\" {\n  description = \"Database administrator username\"\n  type        = string\n  default     = \"admin\"\n}\n\n# Example of valid password: \"MyDBPassword123!\"\nvariable \"db_password\" {\n  description = \"Database administrator password, please change it\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"database_name\" {\n  description = \"Name of the database\"\n  type        = string\n  default     = \"mydb\"\n}\n\nvariable \"aurora_min_capacity\" {\n  description = \"Minimum Aurora capacity unit\"\n  type        = number\n  default     = 1\n}\n\nvariable \"aurora_max_capacity\" {\n  description = \"Maximum Aurora capacity unit\"\n  type        = number\n  default     = 2\n}\n\nvariable \"lambda_function_name\" {\n  description = \"Name of the Lambda function\"\n  type        = string\n  default     = \"aurora-lambda\"\n}\n\nvariable \"lambda_src_path\" {\n  description = \"Path to the Lambda function zip file\"\n  type        = string\n  default     = \"src/function\"\n}\n\nvariable \"lambda_handler\" {\n  description = \"Lambda function handler\"\n  type        = string\n  default     = \"app.lambda_handler\"\n}\n\nvariable \"lambda_runtime\" {\n  description = \"Lambda function runtime\"\n  type        = string\n  default     = \"python3.14\"\n}\n\nvariable \"lambda_timeout\" {\n  description = \"Lambda function timeout in seconds\"\n  type        = number\n  default     = 30\n}\n\nvariable \"lambda_memory_size\" {\n  description = \"Lambda function memory size in MB\"\n  type        = number\n  default     = 128\n}\n"
+    },
+    {
+      "name": "versions.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/lambda-aurora-serverless/python/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "서브넷 배치와 DB 연결 경로를 추적한다."
+  }
+}

@@ -1,0 +1,393 @@
+{
+  "version": 1,
+  "title": "AWS · VPC Link 기반 사설 REST 서비스",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_api_gateway_deployment",
+      "label": "aws_api_gateway_deployment.deployment",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 346,
+      "address": "aws_api_gateway_deployment.deployment",
+      "references": [
+        "null_resource.vpclink_integration",
+        "aws_api_gateway_rest_api.rest_api",
+        "aws_api_gateway_resource.proxy",
+        "aws_api_gateway_method.proxy_any"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_api_gateway_method",
+      "label": "aws_api_gateway_method.proxy_any",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 299,
+      "address": "aws_api_gateway_method.proxy_any",
+      "references": [
+        "aws_api_gateway_resource.proxy",
+        "aws_api_gateway_rest_api.rest_api"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_api_gateway_resource",
+      "label": "aws_api_gateway_resource.proxy",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 292,
+      "address": "aws_api_gateway_resource.proxy",
+      "references": [
+        "aws_api_gateway_rest_api.rest_api"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_api_gateway_rest_api",
+      "label": "aws_api_gateway_rest_api.rest_api",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 282,
+      "address": "aws_api_gateway_rest_api.rest_api",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_api_gateway_stage",
+      "label": "aws_api_gateway_stage.prod",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 365,
+      "address": "aws_api_gateway_stage.prod",
+      "references": [
+        "aws_api_gateway_deployment.deployment",
+        "aws_api_gateway_rest_api.rest_api"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_apigatewayv2_vpc_link",
+      "label": "aws_apigatewayv2_vpc_link.vpclink",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 267,
+      "address": "aws_apigatewayv2_vpc_link.vpclink",
+      "references": [
+        "aws_security_group.vpclink_sg"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_ecs_cluster",
+      "label": "aws_ecs_cluster.main",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 104,
+      "address": "aws_ecs_cluster.main",
+      "references": []
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_ecs_service",
+      "label": "aws_ecs_service.app",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 183,
+      "address": "aws_ecs_service.app",
+      "references": [
+        "aws_ecs_cluster.main",
+        "aws_lb_target_group.ecs_tg",
+        "aws_lb_listener.http",
+        "aws_security_group.ecs_sg",
+        "aws_ecs_task_definition.app"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_ecs_task_definition",
+      "label": "aws_ecs_task_definition.app",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 154,
+      "address": "aws_ecs_task_definition.app",
+      "references": [
+        "aws_iam_role.ecs_task_execution_role",
+        "aws_iam_role.ecs_task_role"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.ecs_task_execution_role",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 113,
+      "address": "aws_iam_role.ecs_task_execution_role",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.ecs_task_role",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 136,
+      "address": "aws_iam_role.ecs_task_role",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.ecs_task_execution_role_policy",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 130,
+      "address": "aws_iam_role_policy_attachment.ecs_task_execution_role_policy",
+      "references": [
+        "aws_iam_role.ecs_task_execution_role"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lb",
+      "label": "aws_lb.private_alb",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 214,
+      "address": "aws_lb.private_alb",
+      "references": [
+        "aws_security_group.alb_sg"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_lb_listener",
+      "label": "aws_lb_listener.http",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 252,
+      "address": "aws_lb_listener.http",
+      "references": [
+        "aws_lb_target_group.ecs_tg",
+        "aws_lb.private_alb"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_lb_target_group",
+      "label": "aws_lb_target_group.ecs_tg",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 227,
+      "address": "aws_lb_target_group.ecs_tg",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.alb_sg",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 41,
+      "address": "aws_security_group.alb_sg",
+      "references": []
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.ecs_sg",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 74,
+      "address": "aws_security_group.ecs_sg",
+      "references": []
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.vpclink_sg",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 22,
+      "address": "aws_security_group.vpclink_sg",
+      "references": []
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.alb_from_vpclink",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 52,
+      "address": "aws_security_group_rule.alb_from_vpclink",
+      "references": [
+        "aws_security_group.alb_sg",
+        "aws_security_group.vpclink_sg"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.alb_to_ecs",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 63,
+      "address": "aws_security_group_rule.alb_to_ecs",
+      "references": [
+        "aws_security_group.alb_sg",
+        "aws_security_group.ecs_sg"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.ecs_from_alb",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 93,
+      "address": "aws_security_group_rule.ecs_from_alb",
+      "references": [
+        "aws_security_group.ecs_sg",
+        "aws_security_group.alb_sg"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "null_resource",
+      "label": "null_resource.vpclink_integration",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 313,
+      "address": "null_resource.vpclink_integration",
+      "references": [
+        "aws_apigatewayv2_vpc_link.vpclink",
+        "aws_lb_listener.http",
+        "aws_api_gateway_method.proxy_any",
+        "aws_ecs_service.app",
+        "aws_api_gateway_rest_api.rest_api",
+        "aws_api_gateway_resource.proxy",
+        "aws_lb.private_alb"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Required providers configuration\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n  required_version = \">= 1.9\"\n}\n\nprovider \"aws\" {\n  profile = \"default\"\n  region  = var.aws_region\n}\n\n##############################################\n# PART 1: Private ALB with ECS Fargate Target\n##############################################\n\n# VPC Link V2 security group\nresource \"aws_security_group\" \"vpclink_sg\" {\n  name        = \"rest-api-vpclink-sg\"\n  description = \"Security group for VPC Link V2\"\n  vpc_id      = var.vpc_id\n\n  egress {\n    description = \"Allow HTTP to ALB\"\n    from_port   = 80\n    to_port     = 80\n    protocol    = \"tcp\"\n    cidr_blocks = [var.vpc_cidr]\n  }\n\n  tags = {\n    Name = \"rest-api-vpclink-sg\"\n  }\n}\n\n# ALB security group\nresource \"aws_security_group\" \"alb_sg\" {\n  name        = \"rest-api-alb-sg\"\n  description = \"Security group for private ALB\"\n  vpc_id      = var.vpc_id\n\n  tags = {\n    Name = \"rest-api-alb-sg\"\n  }\n}\n\n# ALB ingress from VPC Link\nresource \"aws_security_group_rule\" \"alb_from_vpclink\" {\n  type                     = \"ingress\"\n  description              = \"Allow HTTP from VPC Link\"\n  from_port                = 80\n  to_port                  = 80\n  protocol                 = \"tcp\"\n  security_group_id        = aws_security_group.alb_sg.id\n  source_security_group_id = aws_security_group.vpclink_sg.id\n}\n\n# ALB egress rule to ECS\nresource \"aws_security_group_rule\" \"alb_to_ecs\" {\n  type                     = \"egress\"\n  description              = \"Allow traffic to ECS tasks\"\n  from_port                = 80\n  to_port                  = 80\n  protocol                 = \"tcp\"\n  security_group_id        = aws_security_group.alb_sg.id\n  source_security_group_id = aws_security_group.ecs_sg.id\n}\n\n# ECS task security group\nresource \"aws_security_group\" \"ecs_sg\" {\n  name        = \"rest-api-ecs-sg\"\n  description = \"Security group for ECS tasks\"\n  vpc_id      = var.vpc_id\n\n  egress {\n    description = \"Allow all outbound\"\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"rest-api-ecs-sg\"\n  }\n}\n\n# ECS ingress rule from ALB\nresource \"aws_security_group_rule\" \"ecs_from_alb\" {\n  type                     = \"ingress\"\n  description              = \"Allow traffic from ALB\"\n  from_port                = 80\n  to_port                  = 80\n  protocol                 = \"tcp\"\n  security_group_id        = aws_security_group.ecs_sg.id\n  source_security_group_id = aws_security_group.alb_sg.id\n}\n\n# ECS Cluster\nresource \"aws_ecs_cluster\" \"main\" {\n  name = \"rest-api-cluster\"\n\n  tags = {\n    Name = \"rest-api-cluster\"\n  }\n}\n\n# ECS Task Execution Role\nresource \"aws_iam_role\" \"ecs_task_execution_role\" {\n  name = \"rest-api-ecs-task-execution-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ecs-tasks.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ecs_task_execution_role_policy\" {\n  role       = aws_iam_role.ecs_task_execution_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy\"\n}\n\n# ECS Task Role\nresource \"aws_iam_role\" \"ecs_task_role\" {\n  name = \"rest-api-ecs-task-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ecs-tasks.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\n# ECS Task Definition\nresource \"aws_ecs_task_definition\" \"app\" {\n  family                   = \"rest-api-task\"\n  network_mode             = \"awsvpc\"\n  requires_compatibilities = [\"FARGATE\"]\n  cpu                      = \"512\"\n  memory                   = \"1024\"\n  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn\n  task_role_arn            = aws_iam_role.ecs_task_role.arn\n\n  container_definitions = jsonencode([\n    {\n      name      = \"web\"\n      image     = \"nginx\"\n      essential = true\n      portMappings = [\n        {\n          containerPort = 80\n          protocol      = \"tcp\"\n        }\n      ]\n    }\n  ])\n\n  tags = {\n    Name = \"rest-api-task\"\n  }\n}\n\n# ECS Service\nresource \"aws_ecs_service\" \"app\" {\n  name                               = \"rest-api-service\"\n  cluster                            = aws_ecs_cluster.main.id\n  task_definition                    = aws_ecs_task_definition.app.arn\n  desired_count                      = 2\n  deployment_maximum_percent         = 200\n  deployment_minimum_healthy_percent = 50\n  enable_ecs_managed_tags            = false\n  health_check_grace_period_seconds  = 120\n  launch_type                        = \"FARGATE\"\n  wait_for_steady_state              = true\n\n  network_configuration {\n    subnets         = var.private_subnets\n    security_groups = [aws_security_group.ecs_sg.id]\n  }\n\n  load_balancer {\n    target_group_arn = aws_lb_target_group.ecs_tg.arn\n    container_name   = \"web\"\n    container_port   = 80\n  }\n\n  depends_on = [aws_lb_target_group.ecs_tg, aws_lb_listener.http]\n\n  tags = {\n    Name = \"rest-api-service\"\n  }\n}\n\n# Create private Application Load Balancer\nresource \"aws_lb\" \"private_alb\" {\n  name               = \"rest-api-private-alb\"\n  internal           = true\n  load_balancer_type = \"application\"\n  security_groups    = [aws_security_group.alb_sg.id]\n  subnets            = var.private_subnets\n\n  tags = {\n    Name = \"rest-api-private-alb\"\n  }\n}\n\n# Create target group for ECS\nresource \"aws_lb_target_group\" \"ecs_tg\" {\n  name        = \"rest-api-ecs-tg\"\n  port        = 80\n  protocol    = \"HTTP\"\n  vpc_id      = var.vpc_id\n  target_type = \"ip\"\n\n  health_check {\n    enabled             = true\n    path                = \"/\"\n    protocol            = \"HTTP\"\n    port                = \"traffic-port\"\n    healthy_threshold   = 2\n    unhealthy_threshold = 2\n    timeout             = 5\n    interval            = 15\n    matcher             = \"200\"\n  }\n\n  tags = {\n    Name = \"rest-api-ecs-tg\"\n  }\n}\n\n# Create ALB listener\nresource \"aws_lb_listener\" \"http\" {\n  load_balancer_arn = aws_lb.private_alb.arn\n  port              = \"80\"\n  protocol          = \"HTTP\"\n\n  default_action {\n    type             = \"forward\"\n    target_group_arn = aws_lb_target_group.ecs_tg.arn\n  }\n}\n\n##############################################\n# PART 2: VPC Link V2\n##############################################\n\nresource \"aws_apigatewayv2_vpc_link\" \"vpclink\" {\n  name               = \"rest-api-vpclink-v2\"\n  security_group_ids = [aws_security_group.vpclink_sg.id]\n  subnet_ids         = var.private_subnets\n\n  tags = {\n    Name = \"rest-api-vpclink-v2\"\n  }\n}\n\n##############################################\n# PART 3: REST API with VPC Link Integration\n##############################################\n\n# Create REST API\nresource \"aws_api_gateway_rest_api\" \"rest_api\" {\n  name        = \"rest-api-vpclink-demo\"\n  description = \"REST API with VPC Link V2 to private ALB\"\n\n  endpoint_configuration {\n    types = [\"REGIONAL\"]\n  }\n}\n\n# Create proxy resource\nresource \"aws_api_gateway_resource\" \"proxy\" {\n  rest_api_id = aws_api_gateway_rest_api.rest_api.id\n  parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id\n  path_part   = \"{proxy+}\"\n}\n\n# Create ANY method\nresource \"aws_api_gateway_method\" \"proxy_any\" {\n  rest_api_id   = aws_api_gateway_rest_api.rest_api.id\n  resource_id   = aws_api_gateway_resource.proxy.id\n  http_method   = \"ANY\"\n  authorization = \"NONE\"\n\n  request_parameters = {\n    \"method.request.path.proxy\" = true\n  }\n}\n\n# Create VPC Link integration with VPC Link V2\n# Note: REST API + VPC Link V2 integration requires using AWS CLI directly\n# as Terraform AWS provider doesn't fully support the integration_target parameter yet\nresource \"null_resource\" \"vpclink_integration\" {\n  triggers = {\n    rest_api_id    = aws_api_gateway_rest_api.rest_api.id\n    resource_id    = aws_api_gateway_resource.proxy.id\n    vpc_link_id    = aws_apigatewayv2_vpc_link.vpclink.id\n    alb_arn        = aws_lb.private_alb.arn\n  }\n\n  provisioner \"local-exec\" {\n    command = <<-EOT\n      aws apigateway put-integration \\\n        --rest-api-id ${aws_api_gateway_rest_api.rest_api.id} \\\n        --resource-id ${aws_api_gateway_resource.proxy.id} \\\n        --http-method ANY \\\n        --type HTTP_PROXY \\\n        --integration-http-method ANY \\\n        --connection-type VPC_LINK \\\n        --connection-id ${aws_apigatewayv2_vpc_link.vpclink.id} \\\n        --integration-target ${aws_lb.private_alb.arn} \\\n        --uri http://${aws_lb.private_alb.dns_name}/{proxy} \\\n        --request-parameters '{\"integration.request.path.proxy\":\"method.request.path.proxy\"}'\n    EOT\n  }\n\n  depends_on = [\n    aws_apigatewayv2_vpc_link.vpclink,\n    aws_lb_listener.http,\n    aws_api_gateway_method.proxy_any,\n    aws_ecs_service.app\n  ]\n}\n\n# Create deployment\nresource \"aws_api_gateway_deployment\" \"deployment\" {\n  rest_api_id = aws_api_gateway_rest_api.rest_api.id\n\n  triggers = {\n    redeployment = sha1(jsonencode([\n      aws_api_gateway_resource.proxy.id,\n      aws_api_gateway_method.proxy_any.id,\n      null_resource.vpclink_integration.id,\n    ]))\n  }\n\n  lifecycle {\n    create_before_destroy = true\n  }\n\n  depends_on = [null_resource.vpclink_integration]\n}\n\n# Create stage\nresource \"aws_api_gateway_stage\" \"prod\" {\n  deployment_id = aws_api_gateway_deployment.deployment.id\n  rest_api_id   = aws_api_gateway_rest_api.rest_api.id\n  stage_name    = \"prod\"\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"rest_api_endpoint\" {\n  value       = aws_api_gateway_stage.prod.invoke_url\n  description = \"REST API Gateway Endpoint URL\"\n}\n\noutput \"vpc_link_id\" {\n  value       = aws_apigatewayv2_vpc_link.vpclink.id\n  description = \"VPC Link V2 ID\"\n}\n\noutput \"alb_dns_name\" {\n  value       = aws_lb.private_alb.dns_name\n  description = \"Private ALB DNS name\"\n}\n\noutput \"ecs_cluster_name\" {\n  value       = aws_ecs_cluster.main.name\n  description = \"ECS cluster name\"\n}\n\noutput \"ecs_service_name\" {\n  value       = aws_ecs_service.app.name\n  description = \"ECS service name\"\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"aws_region\" {\n  description = \"AWS region\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  description = \"VPC ID where resources will be created\"\n  type        = string\n}\n\nvariable \"private_subnets\" {\n  description = \"List of private subnet IDs\"\n  type        = list(string)\n}\n\nvariable \"vpc_cidr\" {\n  description = \"CIDR block of the VPC (used to restrict ALB ingress)\"\n  type        = string\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-rest-vpclink-pvt-alb/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "공개 API와 내부 로드 밸런서의 장애 도메인을 구분한다."
+  }
+}

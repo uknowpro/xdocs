@@ -1,0 +1,571 @@
+{
+  "version": 1,
+  "title": "Azure · 엔터프라이즈 AKS 플랫폼",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_kubernetes_cluster",
+      "label": "azurerm_kubernetes_cluster.default",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "aks.tf",
+      "sourceLine": 1,
+      "address": "azurerm_kubernetes_cluster.default",
+      "references": [
+        "azurerm_log_analytics_workspace.default",
+        "azurerm_subnet.aks",
+        "azurerm_role_assignment.default",
+        "azurerm_resource_group.default",
+        "azuread_application.default",
+        "azuread_service_principal_password.default"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azuread_application",
+      "label": "azuread_application.default",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "azuread.tf",
+      "sourceLine": 1,
+      "address": "azuread_application.default",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azuread_service_principal",
+      "label": "azuread_service_principal.default",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "azuread.tf",
+      "sourceLine": 5,
+      "address": "azuread_service_principal.default",
+      "references": [
+        "azuread_application.default"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azuread_service_principal_password",
+      "label": "azuread_service_principal_password.default",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "azuread.tf",
+      "sourceLine": 14,
+      "address": "azuread_service_principal_password.default",
+      "references": [
+        "azuread_service_principal.default",
+        "random_string.password"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.default",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "azuread.tf",
+      "sourceLine": 20,
+      "address": "azurerm_role_assignment.default",
+      "references": [
+        "azuread_service_principal.default",
+        "data.azurerm_subscription.current",
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_string",
+      "label": "random_string.password",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "azuread.tf",
+      "sourceLine": 9,
+      "address": "random_string.password",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "helm_release",
+      "label": "helm_release.ghost",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "helm.tf",
+      "sourceLine": 34,
+      "address": "helm_release.ghost",
+      "references": [
+        "kubernetes_cluster_role_binding.tiller"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "helm_release",
+      "label": "helm_release.ingress",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "helm.tf",
+      "sourceLine": 15,
+      "address": "helm_release.ingress",
+      "references": [
+        "kubernetes_cluster_role_binding.tiller",
+        "azurerm_subnet.ingress"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "kubernetes_cluster_role_binding",
+      "label": "kubernetes_cluster_role_binding.default",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "kubernetes.tf",
+      "sourceLine": 39,
+      "address": "kubernetes_cluster_role_binding.default",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "kubernetes_cluster_role_binding",
+      "label": "kubernetes_cluster_role_binding.tiller",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "kubernetes.tf",
+      "sourceLine": 19,
+      "address": "kubernetes_cluster_role_binding.tiller",
+      "references": [
+        "kubernetes_service_account.tiller"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "kubernetes_service_account",
+      "label": "kubernetes_service_account.tiller",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "kubernetes.tf",
+      "sourceLine": 11,
+      "address": "kubernetes_service_account.tiller",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.default",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "azurerm_resource_group.default",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_subscription",
+      "label": "data.azurerm_subscription.current",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 6,
+      "address": "data.azurerm_subscription.current",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_application_insights",
+      "label": "azurerm_application_insights.default",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "monitoring.tf",
+      "sourceLine": 1,
+      "address": "azurerm_application_insights.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_log_analytics_solution",
+      "label": "azurerm_log_analytics_solution.default",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "monitoring.tf",
+      "sourceLine": 16,
+      "address": "azurerm_log_analytics_solution.default",
+      "references": [
+        "azurerm_log_analytics_workspace.default",
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_log_analytics_workspace",
+      "label": "azurerm_log_analytics_workspace.default",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "monitoring.tf",
+      "sourceLine": 8,
+      "address": "azurerm_log_analytics_workspace.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_application_gateway",
+      "label": "azurerm_application_gateway.gateway",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 93,
+      "address": "azurerm_application_gateway.gateway",
+      "references": [
+        "azurerm_public_ip.gateway",
+        "azurerm_subnet.gateway",
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.aks",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "address": "azurerm_network_security_group.aks",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 1436,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.gateway",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "address": "azurerm_network_security_group.gateway",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 1926,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.ingress",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "address": "azurerm_network_security_group.ingress",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 1681,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.gateway",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 84,
+      "address": "azurerm_public_ip.gateway",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.aks",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 10,
+      "address": "azurerm_subnet.aks",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ],
+      "scopeAddress": "azurerm_virtual_network.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 581,
+        "address": "azurerm_virtual_network.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_22",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.gateway",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 24,
+      "address": "azurerm_subnet.gateway",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ],
+      "scopeAddress": "azurerm_virtual_network.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 1110,
+        "address": "azurerm_virtual_network.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_23",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.ingress",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 17,
+      "address": "azurerm_subnet.ingress",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_virtual_network.default"
+      ],
+      "scopeAddress": "azurerm_virtual_network.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 815,
+        "address": "azurerm_virtual_network.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_24",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.aks",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 51,
+      "address": "azurerm_subnet_network_security_group_association.aks",
+      "references": [
+        "azurerm_network_security_group.aks",
+        "azurerm_subnet.aks"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.gateway",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 61,
+      "address": "azurerm_subnet_network_security_group_association.gateway",
+      "references": [
+        "azurerm_network_security_group.gateway",
+        "azurerm_subnet.gateway"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.ingress",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 56,
+      "address": "azurerm_subnet_network_security_group_association.ingress",
+      "references": [
+        "azurerm_network_security_group.ingress",
+        "azurerm_subnet.ingress"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.default",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "networking.tf",
+      "sourceLine": 2,
+      "address": "azurerm_virtual_network.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "networking.tf",
+        "offset": 233,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    }
+  ],
+  "sources": [
+    {
+      "name": "aks.tf",
+      "content": "resource \"azurerm_kubernetes_cluster\" \"default\" {\r\n  name                = \"${var.name}-aks\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n  dns_prefix          = \"${var.dns_prefix}-${var.name}-aks-${var.environment}\"\r\n  depends_on          = [\"azurerm_role_assignment.default\"]\r\n\r\n  agent_pool_profile {\r\n    name            = \"default\"\r\n    count           = \"${var.node_count}\"\r\n    vm_size         = \"${var.node_type}\"\r\n    os_type         = \"${var.node_os}\"\r\n    os_disk_size_gb = 30\r\n    vnet_subnet_id  = \"${azurerm_subnet.aks.id}\"\r\n  }\r\n\r\n  service_principal {\r\n    client_id     = \"${azuread_application.default.application_id}\"\r\n    client_secret = \"${azuread_service_principal_password.default.value}\"\r\n  }\r\n\r\n  role_based_access_control {\r\n    enabled = true\r\n  }\r\n\r\n  network_profile {\r\n    network_plugin = \"azure\"\r\n  }\r\n\r\n  addon_profile {\r\n    oms_agent {\r\n      enabled                    = true\r\n      log_analytics_workspace_id = \"${azurerm_log_analytics_workspace.default.id}\"\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "name": "azuread.tf",
+      "content": "resource \"azuread_application\" \"default\" {\r\n  name = \"${var.name}-${var.environment}\"\r\n}\r\n\r\nresource \"azuread_service_principal\" \"default\" {\r\n  application_id = \"${azuread_application.default.application_id}\"\r\n}\r\n\r\nresource \"random_string\" \"password\" {\r\n  length  = 32\r\n  special = true\r\n}\r\n\r\nresource \"azuread_service_principal_password\" \"default\" {\r\n  service_principal_id = \"${azuread_service_principal.default.id}\"\r\n  value                = \"${random_string.password.result}\"\r\n  end_date             = \"2099-01-01T01:00:00Z\"\r\n}\r\n\r\nresource \"azurerm_role_assignment\" \"default\" {\r\n  scope                = \"${data.azurerm_subscription.current.id}/resourceGroups/${azurerm_resource_group.default.name}\"\r\n  role_definition_name = \"Network Contributor\"\r\n  principal_id         = \"${azuread_service_principal.default.id}\"\r\n}\r\n"
+    },
+    {
+      "name": "helm.tf",
+      "content": "# Define the helm provider to use the AKS cluster\r\nprovider \"helm\" {\r\n  kubernetes {\r\n    host = \"${azurerm_kubernetes_cluster.default.kube_config.0.host}\"\r\n\r\n    client_certificate     = \"${base64decode(azurerm_kubernetes_cluster.default.kube_config.0.client_certificate)}\"\r\n    client_key             = \"${base64decode(azurerm_kubernetes_cluster.default.kube_config.0.client_key)}\"\r\n    cluster_ca_certificate = \"${base64decode(azurerm_kubernetes_cluster.default.kube_config.0.cluster_ca_certificate)}\"\r\n  }\r\n\r\n  service_account = \"tiller\"\r\n}\r\n\r\n# Install a load-balanced nginx-ingress controller onto the cluster\r\nresource \"helm_release\" \"ingress\" {\r\n  name      = \"nginx-ingress\"\r\n  chart     = \"stable/nginx-ingress\"\r\n  namespace = \"kube-system\"\r\n\r\n  values = [<<EOF\r\ncontroller:\r\n  replicaCount: 2\r\n  service:\r\n    loadBalancerIP: ${var.ingress_load_balancer_ip}\r\n    annotations:\r\n      service.beta.kubernetes.io/azure-load-balancer-internal: \"true\"\r\n      service.beta.kubernetes.io/azure-load-balancer-internal-subnet: \"${azurerm_subnet.ingress.name}\"\r\nEOF\r\n  ]\r\n\r\n  depends_on = [\"kubernetes_cluster_role_binding.tiller\"]\r\n}\r\n\r\nresource \"helm_release\" \"ghost\" {\r\n  name      = \"ghost-blog\"\r\n  chart     = \"bitnami/ghost\"\r\n\r\n  depends_on = [\"kubernetes_cluster_role_binding.tiller\"]\r\n}\r\n"
+    },
+    {
+      "name": "kubernetes.tf",
+      "content": "# Define Kubernetes provider to use the AKS cluster\r\nprovider \"kubernetes\" {\r\n  host = \"${azurerm_kubernetes_cluster.default.kube_config.0.host}\"\r\n\r\n  client_certificate     = \"${base64decode(azurerm_kubernetes_cluster.default.kube_config.0.client_certificate)}\"\r\n  client_key             = \"${base64decode(azurerm_kubernetes_cluster.default.kube_config.0.client_key)}\"\r\n  cluster_ca_certificate = \"${base64decode(azurerm_kubernetes_cluster.default.kube_config.0.cluster_ca_certificate)}\"\r\n}\r\n\r\n# Create a service account for the Helm Tiller\r\nresource \"kubernetes_service_account\" \"tiller\" {\r\n  metadata {\r\n    name      = \"tiller\"\r\n    namespace = \"kube-system\"\r\n  }\r\n}\r\n\r\n# Grant cluster-admin rights to the Tiller Service Account\r\nresource \"kubernetes_cluster_role_binding\" \"tiller\" {\r\n  metadata {\r\n    name = \"${kubernetes_service_account.tiller.metadata.0.name}\"\r\n  }\r\n\r\n  role_ref {\r\n    api_group = \"rbac.authorization.k8s.io\"\r\n    kind      = \"ClusterRole\"\r\n    name      = \"cluster-admin\"\r\n  }\r\n\r\n  subject {\r\n    kind      = \"ServiceAccount\"\r\n    name      = \"${kubernetes_service_account.tiller.metadata.0.name}\"\r\n    namespace = \"kube-system\"\r\n  }\r\n}\r\n\r\n# Grant cluster-admin rights to the default service account\r\n# This is a terrible idea in general, but a feature of the game is killing other pods\r\nresource \"kubernetes_cluster_role_binding\" \"default\" {\r\n  metadata {\r\n    name = \"default\"\r\n  }\r\n\r\n  role_ref {\r\n    api_group = \"rbac.authorization.k8s.io\"\r\n    kind      = \"ClusterRole\"\r\n    name      = \"cluster-admin\"\r\n  }\r\n\r\n  subject {\r\n    kind      = \"ServiceAccount\"\r\n    name      = \"default\"\r\n    namespace = \"default\"\r\n  }\r\n}\r\n"
+    },
+    {
+      "name": "main.tf",
+      "content": "resource \"azurerm_resource_group\" \"default\" {\r\n  name     = \"${var.name}-${var.environment}-rg\"\r\n  location = \"${var.location}\"\r\n}\r\n\r\ndata \"azurerm_subscription\" \"current\" {}\r\n"
+    },
+    {
+      "name": "monitoring.tf",
+      "content": "resource \"azurerm_application_insights\" \"default\" {\r\n  name                = \"${var.name}-${var.environment}-ai\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n  application_type    = \"Web\"\r\n}\r\n\r\nresource \"azurerm_log_analytics_workspace\" \"default\" {\r\n  name                = \"${var.name}-${var.environment}-law\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n  sku                 = \"PerGB2018\"\r\n  retention_in_days   = 30\r\n}\r\n\r\nresource \"azurerm_log_analytics_solution\" \"default\" {\r\n  solution_name         = \"ContainerInsights\"\r\n  location              = \"${azurerm_log_analytics_workspace.default.location}\"\r\n  resource_group_name   = \"${azurerm_resource_group.default.name}\"\r\n  workspace_resource_id = \"${azurerm_log_analytics_workspace.default.id}\"\r\n  workspace_name        = \"${azurerm_log_analytics_workspace.default.name}\"\r\n\r\n  plan {\r\n    publisher = \"Microsoft\"\r\n    product   = \"OMSGallery/ContainerInsights\"\r\n  }\r\n}\r\n"
+    },
+    {
+      "name": "networking.tf",
+      "content": "# Virtual Network to deploy resources into\r\nresource \"azurerm_virtual_network\" \"default\" {\r\n  name                = \"${var.name}-vnet\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n  address_space       = [\"${var.vnet_address_space}\"]\r\n}\r\n\r\n# Subnets\r\nresource \"azurerm_subnet\" \"aks\" {\r\n  name                 = \"${var.name}-aks-subnet\"\r\n  resource_group_name  = \"${azurerm_resource_group.default.name}\"\r\n  address_prefix       = \"${var.vnet_aks_subnet_space}\"\r\n  virtual_network_name = \"${azurerm_virtual_network.default.name}\"\r\n}\r\n\r\nresource \"azurerm_subnet\" \"ingress\" {\r\n  name                 = \"${var.name}-ingress-subnet\"\r\n  resource_group_name  = \"${azurerm_resource_group.default.name}\"\r\n  virtual_network_name = \"${azurerm_virtual_network.default.name}\"\r\n  address_prefix       = \"${var.vnet_ingress_subnet_space}\"\r\n}\r\n\r\nresource \"azurerm_subnet\" \"gateway\" {\r\n  name                 = \"${var.name}-gateway-subnet\"\r\n  resource_group_name  = \"${azurerm_resource_group.default.name}\"\r\n  virtual_network_name = \"${azurerm_virtual_network.default.name}\"\r\n  address_prefix       = \"${var.vnet_gateway_subnet_space}\"\r\n}\r\n\r\n# Network security groups\r\nresource azurerm_network_security_group \"aks\" {\r\n  name                = \"${var.name}-aks-nsg\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n}\r\n\r\nresource azurerm_network_security_group \"ingress\" {\r\n  name                = \"${var.name}-ingress-nsg\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n}\r\n\r\nresource azurerm_network_security_group \"gateway\" {\r\n  name                = \"${var.name}-gateway-nsg\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n}\r\n\r\n# Network security group associations\r\nresource \"azurerm_subnet_network_security_group_association\" \"aks\" {\r\n  subnet_id                 = \"${azurerm_subnet.aks.id}\"\r\n  network_security_group_id = \"${azurerm_network_security_group.aks.id}\"\r\n}\r\n\r\nresource \"azurerm_subnet_network_security_group_association\" \"ingress\" {\r\n  subnet_id                 = \"${azurerm_subnet.ingress.id}\"\r\n  network_security_group_id = \"${azurerm_network_security_group.ingress.id}\"\r\n}\r\n\r\nresource \"azurerm_subnet_network_security_group_association\" \"gateway\" {\r\n  subnet_id                 = \"${azurerm_subnet.gateway.id}\"\r\n  network_security_group_id = \"${azurerm_network_security_group.gateway.id}\"\r\n}\r\n\r\n\r\nlocals {\r\n\r\n  gateway_name                   = \"${var.dns_prefix}-${var.name}-${var.environment}-gateway\"\r\n  gateway_ip_name                = \"${var.dns_prefix}-${var.name}-${var.environment}-gateway-ip\"\r\n  gateway_ip_config_name         = \"${var.name}-gateway-ipconfig\"\r\n  frontend_port_name             = \"${var.name}-gateway-feport\"\r\n  frontend_ip_configuration_name = \"${var.name}-gateway-feip\"\r\n  backend_address_pool_name      = \"${var.name}-gateway-bepool\"\r\n  http_setting_name              = \"${var.name}-gateway-http\"\r\n  probe_name                     = \"${var.name}-gateway-probe\"\r\n  listener_name                  = \"${var.name}-gateway-lstn\"\r\n  ssl_name                       = \"${var.name}-gateway-ssl\"\r\n  url_path_map_name              = \"${var.name}-gateway-urlpath\"\r\n  url_path_map_rule_name         = \"${var.name}-gateway-urlrule\"\r\n  request_routing_rule_name      = \"${var.name}-gateway-router\"\r\n}\r\n\r\nresource \"azurerm_public_ip\" \"gateway\" {\r\n  name                = \"${local.gateway_ip_name}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n  domain_name_label   = \"${local.gateway_name}\"\r\n  allocation_method   = \"Static\"\r\n  sku                 = \"Standard\"\r\n}\r\n\r\nresource \"azurerm_application_gateway\" \"gateway\" {\r\n  name                = \"${local.gateway_name}\"\r\n  resource_group_name = \"${azurerm_resource_group.default.name}\"\r\n  location            = \"${azurerm_resource_group.default.location}\"\r\n\r\n  sku {\r\n    name     = \"WAF_v2\"\r\n    tier     = \"WAF_v2\"\r\n    capacity = \"${var.gateway_instance_count}\"\r\n  }\r\n\r\n  gateway_ip_configuration {\r\n    name      = \"${local.gateway_ip_config_name}\"\r\n    subnet_id = \"${azurerm_subnet.gateway.id}\"\r\n  }\r\n\r\n  frontend_port {\r\n    name = \"${local.frontend_port_name}-http\"\r\n    port = 80\r\n  }\r\n\r\n  frontend_port {\r\n    name = \"${local.frontend_port_name}-https\"\r\n    port = 443\r\n  }\r\n\r\n  frontend_ip_configuration {\r\n    name                 = \"${local.frontend_ip_configuration_name}\"\r\n    public_ip_address_id = \"${azurerm_public_ip.gateway.id}\"\r\n  }\r\n\r\n  backend_address_pool {\r\n    name         = \"${local.backend_address_pool_name}\"\r\n    ip_addresses = [\"${var.ingress_load_balancer_ip}\"]\r\n  }\r\n\r\n  backend_http_settings {\r\n    name                  = \"${local.http_setting_name}\"\r\n    cookie_based_affinity = \"Disabled\"\r\n    port                  = 80\r\n    protocol              = \"http\"\r\n    request_timeout       = 1\r\n    probe_name            = \"${local.probe_name}\"\r\n  }\r\n\r\n  http_listener {\r\n    name                           = \"${local.listener_name}-http\"\r\n    frontend_ip_configuration_name = \"${local.frontend_ip_configuration_name}\"\r\n    frontend_port_name             = \"${local.frontend_port_name}-http\"\r\n    protocol                       = \"http\"\r\n  }\r\n\r\n  probe {\r\n    name                = \"${local.probe_name}\"\r\n    protocol            = \"http\"\r\n    path                = \"/nginx-health\"\r\n    interval            = 30\r\n    timeout             = 30\r\n    unhealthy_threshold = 3\r\n    host                = \"${var.ingress_load_balancer_ip}\"\r\n  }\r\n\r\n  request_routing_rule {\r\n    name                           = \"${local.request_routing_rule_name}-http\"\r\n    rule_type                      = \"PathBasedRouting\"\r\n    http_listener_name             = \"${local.listener_name}-http\"\r\n    url_path_map_name              = \"${local.url_path_map_name}\"\r\n  }\r\n\r\n  url_path_map {\r\n    name                               = \"${local.url_path_map_name}\"\r\n    default_backend_address_pool_name  = \"${local.backend_address_pool_name}\"\r\n    default_backend_http_settings_name = \"${local.http_setting_name}\"\r\n    \r\n    path_rule {\r\n      name                       = \"${local.url_path_map_rule_name}\"\r\n      backend_address_pool_name  = \"${local.backend_address_pool_name}\"\r\n      backend_http_settings_name = \"${local.http_setting_name}\"\r\n      paths = [\r\n        \"/*\"\r\n      ]\r\n    }\r\n  }\r\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "// Naming\r\nvariable \"name\" {\r\n  type        = \"string\"\r\n  description = \"Location of the azure resource group.\"\r\n  default     = \"demo-tfquickstart\"\r\n}\r\n\r\nvariable \"environment\" {\r\n  type        = \"string\"\r\n  description = \"Name of the deployment environment\"\r\n  default     = \"dev\"\r\n}\r\n\r\n// Resource information\r\n\r\nvariable \"location\" {\r\n  type        = \"string\"\r\n  description = \"Location of the azure resource group.\"\r\n  default     = \"WestUS2\"\r\n}\r\n\r\n// Node type information\r\n\r\nvariable \"node_count\" {\r\n  type        = \"string\"\r\n  description = \"The number of K8S nodes to provision.\"\r\n  default     = 3\r\n}\r\n\r\nvariable \"node_type\" {\r\n  type        = \"string\"\r\n  description = \"The size of each node.\"\r\n  default     = \"Standard_D1_v2\"\r\n}\r\n\r\nvariable \"node_os\" {\r\n  type        = \"string\"\r\n  description = \"Windows or Linux\"\r\n  default     = \"Linux\"\r\n}\r\n\r\nvariable \"dns_prefix\" {\r\n  type        = \"string\"\r\n  description = \"DNS Prefix\"\r\n  default     = \"mtcden\"\r\n}\r\n\r\n// Network information\r\n\r\nvariable \"vnet_address_space\" {\r\n  type        = \"string\"\r\n  description = \"Address space for the vnet\"\r\n  default     = \"10.0.0.0/8\"\r\n}\r\n\r\nvariable \"vnet_aks_subnet_space\" {\r\n  type        = \"string\"\r\n  description = \"Address space for the AKS subnet\"\r\n  default     = \"10.1.0.0/16\"\r\n}\r\n\r\nvariable \"vnet_ingress_subnet_space\" {\r\n  type        = \"string\"\r\n  description = \"Address space for the gateway subnet\"\r\n  default     = \"10.2.0.0/24\"\r\n}\r\n\r\nvariable \"vnet_gateway_subnet_space\" {\r\n  type        = \"string\"\r\n  description = \"Address space for the gateway subnet\"\r\n  default     = \"10.2.1.0/24\"\r\n}\r\n\r\nvariable \"ingress_load_balancer_ip\" {\r\n  type        = \"string\"\r\n  description = \"Address for the ingress controller load balancer\"\r\n  default     = \"10.2.0.10\"\r\n}\r\n\r\n\r\nvariable \"gateway_instance_count\" {\r\n  type        = \"string\"\r\n  description = \"The number of application gateways to deploy\"\r\n  default     = \"1\"\r\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/301-aks-enterprise\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "클러스터·네트워크·운영 계정의 권한 경계를 구분한다."
+  }
+}

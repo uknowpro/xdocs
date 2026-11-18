@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "Azure · Virtual Network Manager 메시",
+  "title": "Azure · 메시 네트워크의 중앙 구성",
   "settings": {
     "aws_region": "ap-northeast-2",
     "azure_subscription": "",
@@ -278,5 +278,8 @@
   "warnings": [
     "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
     "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
-  ]
+  ],
+  "review": {
+    "operations": "그룹 구성과 연결 정책이 적용되는 범위를 비교한다."
+  }
 }

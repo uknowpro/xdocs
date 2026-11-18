@@ -1,0 +1,426 @@
+{
+  "version": 1,
+  "title": "Azure · 서비스 엔드포인트 기반 저장소 격리",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azapi_resource",
+      "label": "azapi_resource.subnet",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 73,
+      "address": "azapi_resource.subnet",
+      "references": [
+        "azurerm_nat_gateway.nat",
+        "azurerm_public_ip.network_identifier",
+        "azurerm_nat_gateway_public_ip_association.nat",
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_linux_virtual_machine",
+      "label": "azurerm_linux_virtual_machine.vm",
+      "x": 300,
+      "y": 60,
+      "props": {
+        "name": "vm-1"
+      },
+      "original": {
+        "name": "vm-1"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 118,
+      "address": "azurerm_linux_virtual_machine.vm",
+      "references": [
+        "azapi_resource_action.ssh_public_key_gen",
+        "azurerm_resource_group.rg",
+        "azurerm_network_interface.nic"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.nic.id}",
+      "nicAddress": "azurerm_network_interface.nic"
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_nat_gateway",
+      "label": "azurerm_nat_gateway.nat",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 31,
+      "address": "azurerm_nat_gateway.nat",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_nat_gateway_public_ip_association",
+      "label": "azurerm_nat_gateway_public_ip_association.nat",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 40,
+      "address": "azurerm_nat_gateway_public_ip_association.nat",
+      "references": [
+        "azurerm_nat_gateway.nat",
+        "azurerm_public_ip.nat"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.nic",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 105,
+      "address": "azurerm_network_interface.nic",
+      "references": [
+        "azapi_resource.subnet",
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azapi_resource.subnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 4052,
+        "address": "azapi_resource.subnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_network_security_perimeter",
+      "label": "azurerm_network_security_perimeter.nsp",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 180,
+      "address": "azurerm_network_security_perimeter.nsp",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_network_security_perimeter_access_rule",
+      "label": "azurerm_network_security_perimeter_access_rule.inbound",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 206,
+      "address": "azurerm_network_security_perimeter_access_rule.inbound",
+      "references": [
+        "azurerm_public_ip_prefix.network_identifier",
+        "azurerm_network_security_perimeter_profile.profile"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_network_security_perimeter_association",
+      "label": "azurerm_network_security_perimeter_association.storage",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 196,
+      "address": "azurerm_network_security_perimeter_association.storage",
+      "references": [
+        "azurerm_network_security_perimeter_profile.profile",
+        "azurerm_storage_account.sa"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_network_security_perimeter_profile",
+      "label": "azurerm_network_security_perimeter_profile.profile",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 188,
+      "address": "azurerm_network_security_perimeter_profile.profile",
+      "references": [
+        "azurerm_network_security_perimeter.nsp"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.nat",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "address": "azurerm_public_ip.nat",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.network_identifier",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 59,
+      "address": "azurerm_public_ip.network_identifier",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_public_ip_prefix.network_identifier"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_public_ip_prefix",
+      "label": "azurerm_public_ip_prefix.network_identifier",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 47,
+      "address": "azurerm_public_ip_prefix.network_identifier",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.sa",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 161,
+      "address": "azurerm_storage_account.sa",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.name"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 5564,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_string.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_storage_share",
+      "label": "azurerm_storage_share.share",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 173,
+      "address": "azurerm_storage_share.share",
+      "references": [
+        "azurerm_storage_account.sa"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.vnet",
+      "x": 780,
+      "y": 480,
+      "props": {
+        "name": "vnet-1"
+      },
+      "original": {
+        "name": "vnet-1"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "azurerm_virtual_network.vnet",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 551,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_16",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_17",
+      "kind": "random_string",
+      "label": "random_string.name",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 150,
+      "address": "random_string.name",
+      "references": []
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azapi_resource",
+      "label": "azapi_resource.ssh_public_key",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 15,
+      "address": "azapi_resource.ssh_public_key",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_pet.ssh_key_name"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azapi_resource_action",
+      "label": "azapi_resource_action.ssh_public_key_gen",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 6,
+      "address": "azapi_resource_action.ssh_public_key_gen",
+      "references": [
+        "azapi_resource.ssh_public_key"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "random_pet",
+      "label": "random_pet.ssh_key_name",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 1,
+      "address": "random_pet.ssh_key_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Create a random name for the resource group using random_pet\nresource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\n# Create the resource group using the generated random name\nresource \"azurerm_resource_group\" \"rg\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\n# Create the virtual network\nresource \"azurerm_virtual_network\" \"vnet\" {\n  name                = \"vnet-1\"\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\n# Create the public IP address for the NAT gateway\nresource \"azurerm_public_ip\" \"nat\" {\n  name                = \"public-ip-nat\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\n# Create the NAT gateway that provides outbound internet connectivity for the\n# virtual machine. The virtual machine has no public IP address of its own.\nresource \"azurerm_nat_gateway\" \"nat\" {\n  name                    = \"nat-gateway\"\n  resource_group_name     = azurerm_resource_group.rg.name\n  location                = azurerm_resource_group.rg.location\n  sku_name                = \"Standard\"\n  idle_timeout_in_minutes = 4\n}\n\n# Associate the public IP address with the NAT gateway\nresource \"azurerm_nat_gateway_public_ip_association\" \"nat\" {\n  nat_gateway_id       = azurerm_nat_gateway.nat.id\n  public_ip_address_id = azurerm_public_ip.nat.id\n}\n\n# Create the public IP prefix that backs the network identifier. The prefix\n# range is what the network security perimeter inbound access rule authorizes.\nresource \"azurerm_public_ip_prefix\" \"network_identifier\" {\n  name                = \"public-ip-prefix\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  prefix_length       = 31\n  sku                 = \"Standard\"\n  ip_version          = \"IPv4\"\n}\n\n# Create the public IP address that is used as the network identifier for the\n# standard service endpoint. It must be Standard SKU, Static, and IPv4, and it\n# must exist before it is associated with the subnet service endpoint.\nresource \"azurerm_public_ip\" \"network_identifier\" {\n  name                = \"public-ip-1\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n  ip_version          = \"IPv4\"\n  public_ip_prefix_id = azurerm_public_ip_prefix.network_identifier.id\n}\n\n# Create the subnet with a standard service endpoint. The azapi provider is used\n# because the service endpoint networkIdentifier property is not yet exposed by\n# the azurerm provider. Associating the network identifier with the service\n# endpoint is the key configuration step for a standard service endpoint.\nresource \"azapi_resource\" \"subnet\" {\n  type      = \"Microsoft.Network/virtualNetworks/subnets@2025-07-01\"\n  name      = \"subnet-1\"\n  parent_id = azurerm_virtual_network.vnet.id\n\n  body = {\n    properties = {\n      addressPrefix = \"10.0.0.0/24\"\n\n      natGateway = {\n        id = azurerm_nat_gateway.nat.id\n      }\n\n      serviceEndpoints = [\n        {\n          service = var.service_endpoint_service\n\n          networkIdentifier = {\n            id = azurerm_public_ip.network_identifier.id\n          }\n        }\n      ]\n    }\n  }\n\n  response_export_values = [\"properties.serviceEndpoints\"]\n\n  depends_on = [azurerm_nat_gateway_public_ip_association.nat]\n}\n\n# Create the network interface for the virtual machine. The virtual machine uses\n# a private IP address only and reaches Azure Storage through the service endpoint.\nresource \"azurerm_network_interface\" \"nic\" {\n  name                = \"nic-1\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  ip_configuration {\n    name                          = \"ipconfig-1\"\n    subnet_id                     = azapi_resource.subnet.id\n    private_ip_address_allocation = \"Dynamic\"\n  }\n}\n\n# Create the Linux virtual machine that represents the IaaS workload\nresource \"azurerm_linux_virtual_machine\" \"vm\" {\n  name                  = \"vm-1\"\n  location              = azurerm_resource_group.rg.location\n  resource_group_name   = azurerm_resource_group.rg.name\n  network_interface_ids = [azurerm_network_interface.nic.id]\n  size                  = var.vm_size\n\n  os_disk {\n    name                 = \"osdisk-1\"\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Standard_LRS\"\n  }\n\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"0001-com-ubuntu-server-jammy\"\n    sku       = \"22_04-lts-gen2\"\n    version   = \"latest\"\n  }\n\n  computer_name  = \"vm-1\"\n  admin_username = var.username\n\n  admin_ssh_key {\n    username   = var.username\n    public_key = azapi_resource_action.ssh_public_key_gen.output.publicKey\n  }\n\n  boot_diagnostics {}\n}\n\n# Generate a unique suffix for the globally unique storage account name\nresource \"random_string\" \"name\" {\n  length  = 8\n  special = false\n  upper   = false\n  lower   = true\n  numeric = true\n}\n\n# Create the Azure Storage account that acts as the PaaS resource behind the\n# standard service endpoint. Access is governed by the network security\n# perimeter rather than by subnet-scoped storage network rules.\nresource \"azurerm_storage_account\" \"sa\" {\n  name                            = \"sa${random_string.name.result}\"\n  resource_group_name             = azurerm_resource_group.rg.name\n  location                        = azurerm_resource_group.rg.location\n  account_tier                    = \"Standard\"\n  account_replication_type        = \"LRS\"\n  account_kind                    = \"StorageV2\"\n  min_tls_version                 = \"TLS1_2\"\n  allow_nested_items_to_be_public = false\n}\n\n# Create a file share used to validate connectivity through the service endpoint\nresource \"azurerm_storage_share\" \"share\" {\n  name               = \"fileshare-1\"\n  storage_account_id = azurerm_storage_account.sa.id\n  quota              = 50\n}\n\n# Create the network security perimeter that secures the PaaS resource\nresource \"azurerm_network_security_perimeter\" \"nsp\" {\n  name                = \"nsp-1\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n}\n\n# Create a profile in the network security perimeter. Access rules are defined\n# on the profile and applied to every resource associated with it.\nresource \"azurerm_network_security_perimeter_profile\" \"profile\" {\n  name                          = \"profile-1\"\n  network_security_perimeter_id = azurerm_network_security_perimeter.nsp.id\n}\n\n# Associate the storage account with the network security perimeter profile.\n# Learning mode logs traffic without blocking it, which is the recommended\n# starting point when you evaluate access rules.\nresource \"azurerm_network_security_perimeter_association\" \"storage\" {\n  name                                  = \"assoc-storage\"\n  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.profile.id\n  resource_id                           = azurerm_storage_account.sa.id\n  access_mode                           = var.nsp_access_mode\n}\n\n# Add the IP-based inbound access rule that authorizes traffic from the network\n# identifier. The rule matches the public IP prefix that the network identifier\n# was allocated from.\nresource \"azurerm_network_security_perimeter_access_rule\" \"inbound\" {\n  name                                  = \"allow-se-standard\"\n  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.profile.id\n  direction                             = \"Inbound\"\n  address_prefixes                      = [azurerm_public_ip_prefix.network_identifier.ip_prefix]\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"virtual_network_name\" {\n  value = azurerm_virtual_network.vnet.name\n}\n\noutput \"subnet_name\" {\n  value = azapi_resource.subnet.name\n}\n\noutput \"subnet_service_endpoints\" {\n  description = \"The service endpoints on the subnet, including the associated network identifier.\"\n  value       = azapi_resource.subnet.output.properties.serviceEndpoints\n}\n\noutput \"network_identifier_public_ip_name\" {\n  value = azurerm_public_ip.network_identifier.name\n}\n\noutput \"network_identifier_public_ip_address\" {\n  value = azurerm_public_ip.network_identifier.ip_address\n}\n\noutput \"network_identifier_prefix\" {\n  description = \"The public IP prefix range authorized by the network security perimeter inbound access rule.\"\n  value       = azurerm_public_ip_prefix.network_identifier.ip_prefix\n}\n\noutput \"storage_account_name\" {\n  value = azurerm_storage_account.sa.name\n}\n\noutput \"storage_share_name\" {\n  value = azurerm_storage_share.share.name\n}\n\noutput \"network_security_perimeter_name\" {\n  value = azurerm_network_security_perimeter.nsp.name\n}\n\noutput \"virtual_machine_name\" {\n  value = azurerm_linux_virtual_machine.vm.name\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n\n  required_providers {\n    azapi = {\n      source  = \"azure/azapi\"\n      version = \"~>2.0\"\n    }\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>4.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "ssh.tf",
+      "content": "resource \"random_pet\" \"ssh_key_name\" {\n  prefix    = \"ssh\"\n  separator = \"\"\n}\n\nresource \"azapi_resource_action\" \"ssh_public_key_gen\" {\n  type        = \"Microsoft.Compute/sshPublicKeys@2022-11-01\"\n  resource_id = azapi_resource.ssh_public_key.id\n  action      = \"generateKeyPair\"\n  method      = \"POST\"\n\n  response_export_values = [\"publicKey\", \"privateKey\"]\n}\n\nresource \"azapi_resource\" \"ssh_public_key\" {\n  type      = \"Microsoft.Compute/sshPublicKeys@2022-11-01\"\n  name      = random_pet.ssh_key_name.id\n  location  = azurerm_resource_group.rg.location\n  parent_id = azurerm_resource_group.rg.id\n}\n\noutput \"key_data\" {\n  value = azapi_resource_action.ssh_public_key_gen.output.publicKey\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus2\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"username\" {\n  type        = string\n  default     = \"azureadmin\"\n  description = \"The username for the local account that will be created on the new virtual machine.\"\n}\n\nvariable \"vm_size\" {\n  type        = string\n  default     = \"Standard_DS1_v2\"\n  description = \"The size of the virtual machine.\"\n}\n\nvariable \"service_endpoint_service\" {\n  type        = string\n  default     = \"Microsoft.Storage\"\n  description = \"The service that the standard service endpoint is configured for.\"\n}\n\nvariable \"nsp_access_mode\" {\n  type        = string\n  default     = \"Learning\"\n  description = \"The access mode of the network security perimeter association. Learning logs traffic without blocking it; Enforced applies the access rules.\"\n\n  validation {\n    condition     = contains([\"Learning\", \"Enforced\", \"Audit\"], var.nsp_access_mode)\n    error_message = \"The nsp_access_mode value must be Learning, Enforced, or Audit.\"\n  }\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-standard-service-endpoint-storage\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "서브넷 정책과 저장소 허용 규칙의 결합을 확인한다."
+  }
+}

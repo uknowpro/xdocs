@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "AWS · WebSocket 메시지 알림",
+  "title": "AWS · WebSocket 알림 분배와 이벤트 전달",
   "settings": {
     "aws_region": "ap-northeast-2",
     "azure_subscription": "",
@@ -330,5 +330,8 @@
     "일부 표현식의 참조를 해석하지 못했습니다. 원본은 보존합니다.",
     "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
     "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
-  ]
+  ],
+  "review": {
+    "operations": "연결 상태와 비동기 알림 경로의 실패 지점을 비교한다."
+  }
 }

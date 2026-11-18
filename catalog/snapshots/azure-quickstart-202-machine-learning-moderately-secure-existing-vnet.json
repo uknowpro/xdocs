@@ -1,0 +1,616 @@
+{
+  "version": 1,
+  "title": "Azure · 기존 VNet에 ML 환경 통합",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_machine_learning_compute_cluster",
+      "label": "azurerm_machine_learning_compute_cluster.compute",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "compute.tf",
+      "sourceLine": 23,
+      "address": "azurerm_machine_learning_compute_cluster.compute",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_machine_learning_workspace.default",
+        "data.azurerm_subnet.training"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_machine_learning_compute_instance",
+      "label": "azurerm_machine_learning_compute_instance.compute_instance",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "compute.tf",
+      "sourceLine": 10,
+      "address": "azurerm_machine_learning_compute_instance.compute_instance",
+      "references": [
+        "azurerm_private_endpoint.mlw_ple",
+        "azurerm_resource_group.default",
+        "azurerm_machine_learning_workspace.default",
+        "random_string.ci_prefix",
+        "data.azurerm_subnet.training"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "random_string",
+      "label": "random_string.ci_prefix",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "compute.tf",
+      "sourceLine": 2,
+      "address": "random_string.ci_prefix",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.default",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 31,
+      "address": "azurerm_resource_group.default",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_client_config",
+      "label": "data.azurerm_client_config.current",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 29,
+      "address": "data.azurerm_client_config.current",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.nsg-aks",
+      "x": 300,
+      "y": 200,
+      "props": {
+        "name": "nsg-aks"
+      },
+      "original": {
+        "name": "nsg-aks"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 57,
+      "address": "azurerm_network_security_group.nsg-aks",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 2013,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.nsg-training",
+      "x": 540,
+      "y": 200,
+      "props": {
+        "name": "nsg-training"
+      },
+      "original": {
+        "name": "nsg-training"
+      },
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 22,
+      "address": "azurerm_network_security_group.nsg-training",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "network.tf",
+        "offset": 749,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_route",
+      "label": "azurerm_route.aks-Internet-Route",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 115,
+      "address": "azurerm_route.aks-Internet-Route",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_route_table.rt-aks"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_route",
+      "label": "azurerm_route.training-AzureMLRoute",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 87,
+      "address": "azurerm_route.training-AzureMLRoute",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_route_table.rt-training"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_route",
+      "label": "azurerm_route.training-BatchRoute",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 95,
+      "address": "azurerm_route.training-BatchRoute",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_route_table.rt-training"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_route",
+      "label": "azurerm_route.training-Internet-Route",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 79,
+      "address": "azurerm_route.training-Internet-Route",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_route_table.rt-training"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.rt-aks",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 109,
+      "address": "azurerm_route_table.rt-aks",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.rt-training",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 73,
+      "address": "azurerm_route_table.rt-training",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.nsg-aks-link",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 65,
+      "address": "azurerm_subnet_network_security_group_association.nsg-aks-link",
+      "references": [
+        "azurerm_network_security_group.nsg-aks",
+        "data.azurerm_subnet.aks"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_subnet_network_security_group_association",
+      "label": "azurerm_subnet_network_security_group_association.nsg-training-link",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 52,
+      "address": "azurerm_subnet_network_security_group_association.nsg-training-link",
+      "references": [
+        "azurerm_network_security_group.nsg-training",
+        "data.azurerm_subnet.training"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.rt-aks-link",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 123,
+      "address": "azurerm_subnet_route_table_association.rt-aks-link",
+      "references": [
+        "azurerm_route_table.rt-aks",
+        "data.azurerm_subnet.aks"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.rt-training-link",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 103,
+      "address": "azurerm_subnet_route_table_association.rt-training-link",
+      "references": [
+        "azurerm_route_table.rt-training",
+        "data.azurerm_subnet.training"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_subnet",
+      "label": "data.azurerm_subnet.aks",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 9,
+      "address": "data.azurerm_subnet.aks",
+      "references": [],
+      "placementUnknown": true,
+      "placementValue": "${var.vnet_name}"
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_subnet",
+      "label": "data.azurerm_subnet.ml",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 15,
+      "address": "data.azurerm_subnet.ml",
+      "references": [],
+      "placementUnknown": true,
+      "placementValue": "${var.vnet_name}"
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_subnet",
+      "label": "data.azurerm_subnet.training",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "network.tf",
+      "sourceLine": 3,
+      "address": "data.azurerm_subnet.training",
+      "references": [],
+      "placementUnknown": true,
+      "placementValue": "${var.vnet_name}"
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_application_insights",
+      "label": "azurerm_application_insights.default",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 2,
+      "address": "azurerm_application_insights.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "azurerm_container_registry",
+      "label": "azurerm_container_registry.default",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 37,
+      "address": "azurerm_container_registry.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "azurerm_key_vault",
+      "label": "azurerm_key_vault.default",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 9,
+      "address": "azurerm_key_vault.default",
+      "references": [
+        "azurerm_resource_group.default",
+        "data.azurerm_client_config.current"
+      ]
+    },
+    {
+      "id": "n_import_23",
+      "kind": "azurerm_machine_learning_compute_cluster",
+      "label": "azurerm_machine_learning_compute_cluster.image-builder",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 175,
+      "address": "azurerm_machine_learning_compute_cluster.image-builder",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_machine_learning_workspace.default",
+        "data.azurerm_subnet.training"
+      ]
+    },
+    {
+      "id": "n_import_24",
+      "kind": "azurerm_machine_learning_workspace",
+      "label": "azurerm_machine_learning_workspace.default",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 56,
+      "address": "azurerm_machine_learning_workspace.default",
+      "references": [
+        "azurerm_application_insights.default",
+        "azurerm_container_registry.default",
+        "azurerm_key_vault.default",
+        "azurerm_resource_group.default",
+        "random_string.workspace_suffix",
+        "azurerm_storage_account.default"
+      ]
+    },
+    {
+      "id": "n_import_25",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.cr_ple",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 132,
+      "address": "azurerm_private_endpoint.cr_ple",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_container_registry.default",
+        "data.azurerm_subnet.ml"
+      ]
+    },
+    {
+      "id": "n_import_26",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.kv_ple",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 75,
+      "address": "azurerm_private_endpoint.kv_ple",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_key_vault.default",
+        "data.azurerm_subnet.ml"
+      ]
+    },
+    {
+      "id": "n_import_27",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.mlw_ple",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 151,
+      "address": "azurerm_private_endpoint.mlw_ple",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_machine_learning_workspace.default",
+        "data.azurerm_subnet.ml"
+      ]
+    },
+    {
+      "id": "n_import_28",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.st_ple_blob",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 94,
+      "address": "azurerm_private_endpoint.st_ple_blob",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_storage_account.default",
+        "data.azurerm_subnet.ml"
+      ]
+    },
+    {
+      "id": "n_import_29",
+      "kind": "azurerm_private_endpoint",
+      "label": "azurerm_private_endpoint.storage_ple_file",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 113,
+      "address": "azurerm_private_endpoint.storage_ple_file",
+      "references": [
+        "azurerm_resource_group.default",
+        "azurerm_storage_account.default",
+        "data.azurerm_subnet.ml"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.default",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 23,
+      "address": "azurerm_storage_account.default",
+      "references": [
+        "azurerm_resource_group.default"
+      ],
+      "scopeAddress": "azurerm_resource_group.default",
+      "placementSource": {
+        "file": "workspace.tf",
+        "offset": 1020,
+        "address": "azurerm_resource_group.default",
+        "otherRefs": [
+          "azurerm_resource_group.default"
+        ]
+      }
+    },
+    {
+      "id": "n_import_31",
+      "kind": "random_string",
+      "label": "random_string.workspace_suffix",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "workspace.tf",
+      "sourceLine": 50,
+      "address": "random_string.workspace_suffix",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "compute.tf",
+      "content": "# Generate random string for unique compute instance name\nresource \"random_string\" \"ci_prefix\" {\n  length  = 8\n  upper   = false\n  special = false\n  numeric = false\n}\n\n# Compute instance\nresource \"azurerm_machine_learning_compute_instance\" \"compute_instance\" {\n  name                          = \"${random_string.ci_prefix.result}instance\"\n  location                      = azurerm_resource_group.default.location\n  machine_learning_workspace_id = azurerm_machine_learning_workspace.default.id\n  virtual_machine_size          = \"STANDARD_DS2_V2\"\n  subnet_resource_id            = data.azurerm_subnet.training.id\n\n  depends_on = [\n    azurerm_private_endpoint.mlw_ple\n  ]\n}\n\n# Compute cluster\nresource \"azurerm_machine_learning_compute_cluster\" \"compute\" {\n  name                          = \"cpu-cluster\"\n  location                      = azurerm_resource_group.default.location\n  machine_learning_workspace_id = azurerm_machine_learning_workspace.default.id\n  vm_priority                   = \"Dedicated\"\n  vm_size                       = \"STANDARD_DS2_V2\"\n  subnet_resource_id            = data.azurerm_subnet.training.id\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n\n  scale_settings {\n    min_node_count                       = 0\n    max_node_count                       = 3\n    scale_down_nodes_after_idle_duration = \"PT15M\" # 15 minutes\n  }\n\n}"
+    },
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~> 3.0\"\n    }\n\n    azureml = {\n      source  = \"registry.terraform.io/orobix/azureml\"\n      version = \"0.0.5\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"3.6.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {\n    resource_group {\n      prevent_deletion_if_contains_resources = false\n    }\n  }\n}\n\ndata \"azurerm_client_config\" \"current\" {}\n\nresource \"azurerm_resource_group\" \"default\" {\n  name     = \"rg-${var.name}-${var.environment}\"\n  location = var.location\n}\n"
+    },
+    {
+      "name": "network.tf",
+      "content": "# Data Sources\n\ndata \"azurerm_subnet\" \"training\" {\n  name                 = var.training_subnet_name\n  virtual_network_name = var.vnet_name\n  resource_group_name  = var.vnet_resource_group_name\n}\n\ndata \"azurerm_subnet\" \"aks\" {\n  name                 = var.aks_subnet_name\n  virtual_network_name = var.vnet_name\n  resource_group_name  = var.vnet_resource_group_name\n}\n\ndata \"azurerm_subnet\" \"ml\" {\n  name                 = var.ml_subnet_name\n  virtual_network_name = var.vnet_name\n  resource_group_name  = var.vnet_resource_group_name\n}\n\n# Network Security Groups\nresource \"azurerm_network_security_group\" \"nsg-training\" {\n  name                = \"nsg-training\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n\n  security_rule {\n    name                       = \"BatchNodeManagement\"\n    priority                   = 100\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"29876-29877\"\n    source_address_prefix      = \"BatchNodeManagement\"\n    destination_address_prefix = \"*\"\n  }\n\n  security_rule {\n    name                       = \"AzureMachineLearning\"\n    priority                   = 110\n    direction                  = \"Inbound\"\n    access                     = \"Allow\"\n    protocol                   = \"Tcp\"\n    source_port_range          = \"*\"\n    destination_port_range     = \"44224\"\n    source_address_prefix      = \"AzureMachineLearning\"\n    destination_address_prefix = \"*\"\n  }\n}\n\nresource \"azurerm_subnet_network_security_group_association\" \"nsg-training-link\" {\n  subnet_id                 = data.azurerm_subnet.training.id\n  network_security_group_id = azurerm_network_security_group.nsg-training.id\n}\n\nresource \"azurerm_network_security_group\" \"nsg-aks\" {\n  name                = \"nsg-aks\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n\n\n}\n\nresource \"azurerm_subnet_network_security_group_association\" \"nsg-aks-link\" {\n  subnet_id                 = data.azurerm_subnet.aks.id\n  network_security_group_id = azurerm_network_security_group.nsg-aks.id\n}\n\n# User Defined Routes\n\n# UDR for Compute instance and compute clusters\nresource \"azurerm_route_table\" \"rt-training\" {\n  name                = \"rt-training\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n}\n\nresource \"azurerm_route\" \"training-Internet-Route\" {\n  name                = \"Internet\"\n  resource_group_name = azurerm_resource_group.default.name\n  route_table_name    = azurerm_route_table.rt-training.name\n  address_prefix      = \"0.0.0.0/0\"\n  next_hop_type       = \"Internet\"\n}\n\nresource \"azurerm_route\" \"training-AzureMLRoute\" {\n  name                = \"AzureMLRoute\"\n  resource_group_name = azurerm_resource_group.default.name\n  route_table_name    = azurerm_route_table.rt-training.name\n  address_prefix      = \"AzureMachineLearning\"\n  next_hop_type       = \"Internet\"\n}\n\nresource \"azurerm_route\" \"training-BatchRoute\" {\n  name                = \"BatchRoute\"\n  resource_group_name = azurerm_resource_group.default.name\n  route_table_name    = azurerm_route_table.rt-training.name\n  address_prefix      = \"BatchNodeManagement\"\n  next_hop_type       = \"Internet\"\n}\n\nresource \"azurerm_subnet_route_table_association\" \"rt-training-link\" {\n  subnet_id      = data.azurerm_subnet.training.id\n  route_table_id = azurerm_route_table.rt-training.id\n}\n\n# Inferencing (AKS) Route\nresource \"azurerm_route_table\" \"rt-aks\" {\n  name                = \"rt-aks\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n}\n\nresource \"azurerm_route\" \"aks-Internet-Route\" {\n  name                = \"Internet\"\n  resource_group_name = azurerm_resource_group.default.name\n  route_table_name    = azurerm_route_table.rt-aks.name\n  address_prefix      = \"0.0.0.0/0\"\n  next_hop_type       = \"Internet\"\n}\n\nresource \"azurerm_subnet_route_table_association\" \"rt-aks-link\" {\n  subnet_id      = data.azurerm_subnet.aks.id\n  route_table_id = azurerm_route_table.rt-aks.id\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"name\" {\n  type        = string\n  description = \"Name of the deployment\"\n  default     = \"202mlmsev\"\n}\n\nvariable \"environment\" {\n  type        = string\n  description = \"Name of the environment\"\n  default     = \"dev\"\n}\n\nvariable \"location\" {\n  type        = string\n  description = \"Location of the resources\"\n  default     = \"East US\"\n}\n\nvariable \"image_build_compute_name\" {\n  type        = string\n  description = \"Name of the compute cluster to be created and set to build docker images\"\n  default     = \"image-builder\"\n}\n\n# Existing vnet and subnets variables\n\nvariable \"vnet_resource_group_name\" {\n  type        = string\n  description = \"Name of the resource group for the existing VNet\"\n}\n\nvariable \"vnet_name\" {\n  type        = string\n  description = \"Name of the existing VNet\"\n}\n\nvariable \"training_subnet_name\" {\n  type        = string\n  description = \"Name of the existing training subnet\"\n}\n\nvariable \"aks_subnet_name\" {\n  type        = string\n  description = \"Name of the existing aks subnet\"\n}\n\nvariable \"ml_subnet_name\" {\n  type        = string\n  description = \"Name of the existing ML workspace subnet\"\n}\n\n\n# Existing private DNS zones variables\nvariable \"privatelink_api_azureml_ms_resource_id\" {\n  type        = string\n  description = \"Resource ID of the existing privatelink.api.azureml.ms private dns zone\"\n}\n\nvariable \"privatelink_azurecr_io_resource_id\" {\n  type        = string\n  description = \"Resource ID of the existing privatelink.azurecr.io private dns zone\"\n}\n\nvariable \"privatelink_notebooks_azure_net_resource_id\" {\n  type        = string\n  description = \"Resource ID of the existing privatelink.notebooks.azure.net private dns zone\"\n}\n\nvariable \"privatelink_blob_core_windows_net_resource_id\" {\n  type        = string\n  description = \"Resource ID of the existing privatelink.blob.core.windows.net private dns zone\"\n}\n\nvariable \"privatelink_file_core_windows_net_resource_id\" {\n  type        = string\n  description = \"Resource ID of the existing privatelink.file.core.windows.net private dns zone\"\n}\n\nvariable \"privatelink_vaultcore_azure_net_resource_id\" {\n  type        = string\n  description = \"Resource ID of the existing privatelink.vaultcore.azure.net private dns zone\"\n}\n"
+    },
+    {
+      "name": "workspace.tf",
+      "content": "# Dependent resources for Azure Machine Learning\nresource \"azurerm_application_insights\" \"default\" {\n  name                = \"appi-${var.name}-${var.environment}\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  application_type    = \"web\"\n}\n\nresource \"azurerm_key_vault\" \"default\" {\n  name                     = \"kv-${var.name}-${var.environment}\"\n  location                 = azurerm_resource_group.default.location\n  resource_group_name      = azurerm_resource_group.default.name\n  tenant_id                = data.azurerm_client_config.current.tenant_id\n  sku_name                 = \"premium\"\n  purge_protection_enabled = true\n\n  network_acls {\n    default_action = \"Deny\"\n    bypass         = \"AzureServices\"\n  }\n}\n\nresource \"azurerm_storage_account\" \"default\" {\n  name                          = \"st${var.name}${var.environment}\"\n  location                      = azurerm_resource_group.default.location\n  resource_group_name           = azurerm_resource_group.default.name\n  account_tier                  = \"Standard\"\n  account_replication_type      = \"GRS\"\n  public_network_access_enabled = false\n\n  network_rules {\n    default_action = \"Deny\"\n    bypass         = [\"AzureServices\"]\n  }\n}\n\nresource \"azurerm_container_registry\" \"default\" {\n  name                = \"cr${var.name}${var.environment}\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  sku                 = \"Premium\"\n  admin_enabled       = true\n\n  network_rule_set {\n    default_action = \"Deny\"\n  }\n  public_network_access_enabled = false\n}\n\nresource \"random_string\" \"workspace_suffix\" {\n  length  = 10\n  special = false\n}\n\n# Machine Learning workspace\nresource \"azurerm_machine_learning_workspace\" \"default\" {\n  name                    = \"mlw-${var.name}-${var.environment}-${random_string.workspace_suffix.result}\"\n  location                = azurerm_resource_group.default.location\n  resource_group_name     = azurerm_resource_group.default.name\n  application_insights_id = azurerm_application_insights.default.id\n  key_vault_id            = azurerm_key_vault.default.id\n  storage_account_id      = azurerm_storage_account.default.id\n  container_registry_id   = azurerm_container_registry.default.id\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n\n  # Args of use when using an Azure Private Link configuration\n  public_network_access_enabled = false\n  image_build_compute_name      = var.image_build_compute_name\n}\n\n# Private endpoints\nresource \"azurerm_private_endpoint\" \"kv_ple\" {\n  name                = \"ple-${var.name}-${var.environment}-kv\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = data.azurerm_subnet.ml.id\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group\"\n    private_dns_zone_ids = [var.privatelink_vaultcore_azure_net_resource_id]\n  }\n\n  private_service_connection {\n    name                           = \"psc-${var.name}-kv\"\n    private_connection_resource_id = azurerm_key_vault.default.id\n    subresource_names              = [\"vault\"]\n    is_manual_connection           = false\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"st_ple_blob\" {\n  name                = \"ple-${var.name}-${var.environment}-st-blob\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = data.azurerm_subnet.ml.id\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group\"\n    private_dns_zone_ids = [var.privatelink_blob_core_windows_net_resource_id]\n  }\n\n  private_service_connection {\n    name                           = \"psc-${var.name}-st\"\n    private_connection_resource_id = azurerm_storage_account.default.id\n    subresource_names              = [\"blob\"]\n    is_manual_connection           = false\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"storage_ple_file\" {\n  name                = \"ple-${var.name}-${var.environment}-st-file\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = data.azurerm_subnet.ml.id\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group\"\n    private_dns_zone_ids = [var.privatelink_file_core_windows_net_resource_id]\n  }\n\n  private_service_connection {\n    name                           = \"psc-${var.name}-st\"\n    private_connection_resource_id = azurerm_storage_account.default.id\n    subresource_names              = [\"file\"]\n    is_manual_connection           = false\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"cr_ple\" {\n  name                = \"ple-${var.name}-${var.environment}-cr\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = data.azurerm_subnet.ml.id\n\n  private_dns_zone_group {\n    name                 = \"private-dns-zone-group\"\n    private_dns_zone_ids = [var.privatelink_azurecr_io_resource_id]\n  }\n\n  private_service_connection {\n    name                           = \"psc-${var.name}-cr\"\n    private_connection_resource_id = azurerm_container_registry.default.id\n    subresource_names              = [\"registry\"]\n    is_manual_connection           = false\n  }\n}\n\nresource \"azurerm_private_endpoint\" \"mlw_ple\" {\n  name                = \"ple-${var.name}-${var.environment}-mlw\"\n  location            = azurerm_resource_group.default.location\n  resource_group_name = azurerm_resource_group.default.name\n  subnet_id           = data.azurerm_subnet.ml.id\n\n  private_dns_zone_group {\n    name = \"private-dns-zone-group\"\n    private_dns_zone_ids = [\n      var.privatelink_api_azureml_ms_resource_id,\n      var.privatelink_notebooks_azure_net_resource_id\n    ]\n  }\n\n  private_service_connection {\n    name                           = \"psc-${var.name}-mlw\"\n    private_connection_resource_id = azurerm_machine_learning_workspace.default.id\n    subresource_names              = [\"amlworkspace\"]\n    is_manual_connection           = false\n  }\n}\n\n# Compute cluster for image building required since the workspace is behind a vnet.\n# For more details, see https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-create-secure-workspace#configure-image-builds.\nresource \"azurerm_machine_learning_compute_cluster\" \"image-builder\" {\n  name                          = var.image_build_compute_name\n  location                      = azurerm_resource_group.default.location\n  vm_priority                   = \"LowPriority\"\n  vm_size                       = \"Standard_DS2_v2\"\n  machine_learning_workspace_id = azurerm_machine_learning_workspace.default.id\n  subnet_resource_id            = data.azurerm_subnet.training.id\n\n  scale_settings {\n    min_node_count                       = 0\n    max_node_count                       = 3\n    scale_down_nodes_after_idle_duration = \"PT15M\" # 15 minutes\n  }\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/202-machine-learning-moderately-secure-existing-VNet\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "review": {
+    "operations": "기존 네트워크와 신규 워크스페이스 간 운영 경계를 확인한다."
+  }
+}

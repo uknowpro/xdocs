@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "Azure · Front Door와 Private Link Blob",
+  "title": "Azure · Front Door와 사설 Blob 원본",
   "settings": {
     "aws_region": "ap-northeast-2",
     "azure_subscription": "",
@@ -289,5 +289,8 @@
   "warnings": [
     "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
     "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
-  ]
+  ],
+  "review": {
+    "operations": "공개 엣지에서 저장소까지 사설 원본 경로를 검토한다."
+  }
 }

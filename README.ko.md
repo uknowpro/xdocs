@@ -37,7 +37,7 @@ main의 보관함 **페이지 트리**에서 노트와 캔버스를 함께 탐�
 <details>
 <summary>IaCD 아키텍처 캔버스 보기</summary>
 
-AWS 카탈로그에서 **서브넷 내 EC2**를 열면 VPC 안의 서브넷과 그 안의 EC2를 볼 수 있습니다. 중첩된 경계가 있는 카드에는 **영역형**이 표시됩니다.
+AWS 카탈로그에서 **결제 서비스 · 격리 복구 리허설**를 열면 VPC 안의 서브넷과 그 안의 EC2를 볼 수 있습니다. 중첩된 경계가 있는 카드에는 **영역형**이 표시됩니다.
 
 ![VPC 안의 서브넷과 EC2](docs/images/aws-subnet-template.png)
 
@@ -91,13 +91,13 @@ Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과�
 
 [IaCD 사용법](docs/iacd.md) · [인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)
 
-main 개발판에는 **AWS·Azure·GCP 각 30종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
+main 개발판에는 **AWS·Azure·GCP 각 30종과 멀티클라우드 VPN 2종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
 
 <details>
 <summary>Builder와 IaCD 템플릿 화면</summary>
 
 ![셀 주소를 포함하는 시트 검토 하네스](docs/images/builder.png)
 
-![AWS DynamoDB 템플릿 검색](docs/images/architecture-catalog.png)
+![AWS–GCP·Azure–GCP VPN 사례 비교](docs/images/architecture-catalog.png)
 
 </details>
