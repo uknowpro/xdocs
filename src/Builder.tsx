@@ -458,43 +458,45 @@ export default function Builder({
                 onChange={(e) => updateRule(i, { instruction: e.target.value })}
               />
             </label>
-            <SkillFile
-              name={rule.label}
-              instruction={rule.instruction}
-              onRead={(s) =>
-                updateRule(i, { label: s.name, instruction: s.instruction })
-              }
-              onError={setError}
-            />
-            <button
-              disabled={!i}
-              onClick={() => {
-                const rules = [...config.rules];
-                [rules[i - 1], rules[i]] = [rules[i], rules[i - 1]];
-                patch({ rules });
-              }}
-            >
-              위로
-            </button>
-            <button
-              onClick={() =>
-                patch({
-                  rules: [
-                    ...config.rules,
-                    { ...rule, label: rule.label + " 사본" },
-                  ],
-                })
-              }
-            >
-              단계 복제
-            </button>
-            <button
-              onClick={() =>
-                patch({ rules: config.rules.filter((_, j) => i !== j) })
-              }
-            >
-              삭제
-            </button>
+            <div className="stage-actions">
+              <SkillFile
+                name={rule.label}
+                instruction={rule.instruction}
+                onRead={(s) =>
+                  updateRule(i, { label: s.name, instruction: s.instruction })
+                }
+                onError={setError}
+              />
+              <button
+                disabled={!i}
+                onClick={() => {
+                  const rules = [...config.rules];
+                  [rules[i - 1], rules[i]] = [rules[i], rules[i - 1]];
+                  patch({ rules });
+                }}
+              >
+                위로
+              </button>
+              <button
+                onClick={() =>
+                  patch({
+                    rules: [
+                      ...config.rules,
+                      { ...rule, label: rule.label + " 사본" },
+                    ],
+                  })
+                }
+              >
+                단계 복제
+              </button>
+              <button
+                onClick={() =>
+                  patch({ rules: config.rules.filter((_, j) => i !== j) })
+                }
+              >
+                삭제
+              </button>
+            </div>
           </div>
         ))}
         <button

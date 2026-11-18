@@ -20,7 +20,7 @@ export default function DocumentPermissions({
   }, [id]);
   return (
     <div className="overlay">
-      <section className="dialog" role="dialog" aria-label="문서 권한">
+      <section className="dialog recovery-dialog" role="dialog" aria-label="문서 권한">
         <header>
           <h2>문서 권한</h2>
           <button

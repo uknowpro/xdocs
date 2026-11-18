@@ -80,3 +80,43 @@ test("narrow screens can navigate, read code and reach dialog controls", async (
   await expect(open).toHaveAttribute("aria-expanded", "false");
   await expect(page.locator(".network-sheet")).toBeVisible();
 });
+
+for (const width of [390, 780, 1440]) {
+  test(`captions and action groups remain separated at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+    const menu = page.getByRole("button", { name: "왼쪽 메뉴 펼치기" });
+    async function openFromMenu(name: string) {
+      if (await menu.isVisible()) await menu.click();
+      await page.getByRole("button", { name, exact: true }).click();
+    }
+    async function gapAbove(selector: string) {
+      return page.locator(selector).first().evaluate((e) =>
+        e.getBoundingClientRect().top - e.previousElementSibling!.getBoundingClientRect().bottom,
+      );
+    }
+    for (const [entry, section, actions] of [
+      ["IaCD 아키텍처", ".architecture-start", ".arch-start-options"],
+      ["인프라 문서", ".infrastructure-start", ".infra-actions"],
+    ]) {
+      await openFromMenu(entry);
+      expect(await gapAbove(section + " > " + actions)).toBeGreaterThanOrEqual(12);
+      expect(await page.locator(section).evaluate(e => parseFloat(getComputedStyle(e).paddingLeft))).toBeGreaterThanOrEqual(16);
+      await fitsWidth(page, section);
+      await page.locator(section + " header button").click();
+    }
+    await openFromMenu("새 시트 테이블");
+    expect(await gapAbove(".sheet-toolbar + p")).toBeGreaterThanOrEqual(8);
+    await openFromMenu("Builder 만들기");
+    const actions = page.locator(".stage-actions").first();
+    await expect(actions).toBeVisible();
+    await fitsWidth(page, ".stage-actions");
+    const boxes = await actions.locator("button").evaluateAll(items =>
+      items.map(e => { const r = e.getBoundingClientRect(); return { left:r.left, right:r.right, top:r.top, bottom:r.bottom }; }),
+    );
+    for (let i = 1; i < boxes.length; i++) {
+      const a = boxes[i - 1], b = boxes[i];
+      expect(Math.max(b.left - a.right, b.top - a.bottom)).toBeGreaterThanOrEqual(5.9);
+    }
+  });
+}

@@ -242,7 +242,7 @@ export function WorkflowCanvas({
       </div>
       {(full || active || !nodes.length) && (
         <div>
-          <label>
+          <label className="workflow-source">
             {full || !active ? "전체 원문" : active.label + " 블록"}
             <textarea
               ref={editor}

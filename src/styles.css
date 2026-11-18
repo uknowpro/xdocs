@@ -724,6 +724,7 @@ textarea {
 }
 .editor-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   border: 1px solid var(--line);
@@ -733,8 +734,10 @@ textarea {
   background: var(--surface);
 }
 .editor-toolbar button {
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 6px;
   border-radius: 4px;
 }
@@ -2445,7 +2448,7 @@ textarea {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin: 24px 0;
+  margin: 0;
 }
 @media (min-width: 1300px) {
   .document-layout.sheet-layout:has(.architecture-document) .document {
@@ -2689,3 +2692,27 @@ textarea {
 .architecture-catalog select[size] option { padding: 4px 6px; }
 .code-jump { margin-block: 4px; }
 .terraform-live pre:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+
+/* Give explanatory text a separate row from the action it describes. */
+.dialog:is(.architecture-start, .infrastructure-start) {
+  padding: clamp(16px, 3vw, 24px);
+}
+:is(.architecture-start, .infrastructure-start) > header { gap: 12px; }
+:is(.architecture-start, .infrastructure-start) > * + * { margin-block-start: 12px; }
+.architecture-start > .architecture-catalog { margin-block-end: 0; }
+.catalog-empty p { margin-block-end: 8px; }
+.sheet-toolbar + p { margin-block: 8px; }
+:is(.infra-preview, .infra-comparison, .infra-detail) > :is(p, label, textarea) + :is(.button, .infra-actions),
+.workflow-source + .infra-actions { margin-block-start: 12px; }
+.workflow-source { display: grid; gap: 6px; }
+.builder-stage .stage-actions {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 6px; grid-column: 1 / -1;
+}
+.builder-stage .stage-actions button { margin: 0; }
+.terraform-live label:has(select) { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; }
+.terraform-live label + .code-jump { margin-inline-start: 8px; }
+@media (max-width: 600px) {
+  .terraform-live label:has(select) { display: grid; }
+  .terraform-live label + .code-jump { margin-inline-start: 0; }
+}
