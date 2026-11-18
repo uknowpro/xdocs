@@ -47,7 +47,15 @@ try {
     page.getByRole("button", { name: "컴포넌트 custom_resource.special" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "컴포넌트 aws_vpc.main", exact: true })
+    .getByRole("button", { name: "컴포넌트 aws_subnet.app", exact: true })
+    .click();
+  const evidence = page.getByRole("region", { name: "Terraform 배치 근거" });
+  await expect(evidence).toContainText("vpc_id = aws_vpc.main.id");
+  await expect(evidence).toContainText("main.tf");
+  await page.getByText("참조하는 대상", { exact: true }).click();
+  await page
+    .locator(".arch-properties")
+    .getByRole("button", { name: "aws_vpc.main", exact: true })
     .click();
   await page
     .getByRole("textbox", { name: "CIDR", exact: true })

@@ -194,6 +194,8 @@ export async function parseTerraformFiles(files) {
       };
     } else if (value !== undefined || n.kind === "google_compute_instance")
       n.placementUnknown = true;
+    if (!n.placementSource && typeof value === "string")
+      n.placementValue = value;
     const refs = new Set();
     await scan(raw, refs);
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));

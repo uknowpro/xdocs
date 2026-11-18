@@ -65,6 +65,7 @@ export type ArchitectureNode = {
   };
   scopeAddress?: string;
   placementUnknown?: boolean;
+  placementValue?: string;
 };
 export type ArchitectureModel = {
   version: number;
@@ -393,6 +394,29 @@ export default function ArchitectureDocument({
     ? { ...model, presentation: { ...model.presentation, ...navigationView } }
     : model;
   const rules: Record<string, string[]> = placementFields;
+  const binding = node?.placementSource;
+  const placementField =
+    node &&
+    (rules[node.kind]?.[2] ||
+      (node.kind === "google_compute_instance"
+        ? "network_interface.subnetwork"
+        : undefined));
+  const source = binding && model.sources.find((f) => f.name === binding.file);
+  const directExpression =
+    source &&
+    binding &&
+    source.content.slice(binding.offset).match(/^[\w.-]+/)?.[0];
+  const evidence =
+    directExpression ||
+    (node?.placementValue !== undefined
+      ? JSON.stringify(node.placementValue)
+      : undefined);
+  const scope =
+    node?.scopeAddress &&
+    model.nodes.find(
+      (n) =>
+        n.address === node.scopeAddress && n.kind === rules[node.kind]?.[1],
+    );
   const contextParent =
     boundary &&
     node &&
@@ -1139,9 +1163,32 @@ export default function ArchitectureDocument({
                     </select>
                   </label>
                 )}
-                {node.placementUnknown && (
-                  <p>소속 미확정 · 원본 표현식을 유지합니다.</p>
-                )}
+                {node.imported &&
+                  (binding || node.placementUnknown || evidence) && (
+                    <section
+                      aria-label="Terraform 배치 근거"
+                      className="placement-evidence"
+                    >
+                      <strong>Terraform 배치 근거</strong>
+                      <p>
+                        {scope
+                          ? "소속 경계 · " + scope.address
+                          : "소속 미확정 · 원본 표현식을 유지합니다."}
+                      </p>
+                      {placementField && evidence && (
+                        <code>
+                          {placementField} = {evidence}
+                        </code>
+                      )}
+                      {binding && <small>{binding.file}</small>}
+                      {node.placementUnknown && !evidence && (
+                        <small>
+                          저장된 식을 표시할 수 없습니다. 가져온 Terraform
+                          원문을 확인하세요.
+                        </small>
+                      )}
+                    </section>
+                  )}
                 {node.imported ? (
                   <p className="small-text muted">
                     소속을 옮기면 보관된 Terraform 사본의 직접 참조가 바뀝니다.
@@ -1170,7 +1217,9 @@ export default function ArchitectureDocument({
                     .filter((e) => e.source === node.id)
                     .map((e: any, i: number) => (
                       <p key={i}>
-                        {model.nodes.find((n) => n.id === e.target)?.label}{" "}
+                        <button onClick={() => openDetail(e.target)}>
+                          {model.nodes.find((n) => n.id === e.target)?.label}
+                        </button>{" "}
                         {!e.locked && (
                           <button
                             disabled={readonly}

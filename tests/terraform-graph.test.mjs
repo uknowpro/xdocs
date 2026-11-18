@@ -54,6 +54,14 @@ test("Terraform graph comparison preserves dependency and containment through ex
   assert.deepEqual(byAddress(model, "module.network").references, [
     "aws_subnet.app",
   ]);
+  assert.equal(
+    byAddress(model, "aws_instance.variable").placementValue,
+    "${var.subnet_id}",
+  );
+  assert.equal(
+    byAddress(model, "aws_instance.via_module").placementValue,
+    "${module.network.subnet_id}",
+  );
   const direct = byAddress(model, "aws_instance.direct");
   direct.x += 100;
   assert.equal(exportRoot(model), content);

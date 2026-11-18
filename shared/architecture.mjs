@@ -400,6 +400,7 @@ export function validateArchitecture(m) {
     if (
       n.imported &&
       (!/^(?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*$/.test(n.address) ||
+        (n.placementValue !== undefined && typeof n.placementValue !== "string") ||
         (n.placementSource !== undefined &&
           (!plain(n.placementSource) ||
             n.placementSource.address !== n.scopeAddress ||

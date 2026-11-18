@@ -2625,3 +2625,7 @@ textarea {
   .arch-editor .arch-properties {display:none;}
   .arch-editor.inspector-open .arch-properties {display:block;position:fixed;z-index:22;inset:auto 12px 36px auto;width:min(360px,calc(100vw - 24px));max-height:70dvh;overflow:auto;border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);}
 }
+
+.placement-evidence { padding: 10px; border: 1px solid var(--line); border-radius: 6px; overflow-wrap: anywhere; }
+.placement-evidence p { margin: 6px 0; }
+.placement-evidence code, .placement-evidence small { display: block; white-space: pre-wrap; }
