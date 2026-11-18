@@ -1,3 +1,4 @@
+import TemplateThumbnail from "./TemplateThumbnail";
 import ModuleContractReview from "./ModuleContractReview";
 import { terraformDeclarations } from "../shared/architecture-catalog.mjs";
 import { cloudTemplates, openCloudTemplate } from "./cloudCatalog";
@@ -271,22 +272,19 @@ export function ArchitectureStart({
                 onClick={() => setCatalogMode(mode)}>{mode}</button>
             ))}
           </div>
-          <label>
-            설계 템플릿
-            <select
-              aria-label="설계 템플릿"
-              size={Math.min(5, Math.max(2, matches.length))}
-              disabled={!matches.length}
-              value={chosen?.id || ""}
-              onChange={(e) => setTemplateId(e.target.value)}
-            >
-              {matches.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
+          {matches.length > 0 && (
+            <div className="template-gallery" role="group" aria-label="설계 템플릿">
+              {matches.map(t => (
+                <button key={t.id} type="button" className="template-card"
+                  aria-label={t.name} aria-pressed={chosen?.id === t.id}
+                  onClick={() => setTemplateId(t.id)}>
+                  <TemplateThumbnail id={t.id} />
+                  <strong>{t.name}</strong>
+                  <small>{t.provider} · {"repo" in t ? "Terraform 원본" : "컴포넌트 편집"}</small>
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          )}
           {chosen ? (
             <details>
               <summary>구성 리소스 {chosen.kinds.length}종</summary>

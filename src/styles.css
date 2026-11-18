@@ -2680,7 +2680,7 @@ textarea {
 .builder-panel button:hover:enabled { background: var(--hover); }
 .builder-panel pre { max-height: 24rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface); padding: .75rem; }
 .architecture-catalog { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: end; gap: .7rem; min-width: 0; margin-block: 1rem; padding: .8rem; border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); }
-.architecture-catalog :is(label:nth-of-type(3), details, p, small) {grid-column:1/-1;}
+.architecture-catalog :is(details, p, small) {grid-column:1/-1;}
 .architecture-catalog :is(input,select) {width:100%; background:var(--bg); color:inherit; border:1px solid var(--line); border-radius:4px; padding:.4rem;}
 .architecture-catalog .button {grid-column:1/-1;justify-self:end;}
 .architecture-catalog details p {overflow-wrap:anywhere;}
@@ -2728,3 +2728,20 @@ textarea {
 .module-contract label { display: grid; gap: 4px; margin-block: 8px; }
 .module-contract input { max-width: 100%; }
 .module-contract p, .module-contract li { margin-block-start: 8px; overflow-wrap: anywhere; }
+
+
+.dialog.architecture-start { width: min(800px, 100%); max-width: 100%; }
+.template-gallery {
+  grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 10px; max-height: clamp(220px, 46dvh, 460px); overflow-y: auto; padding: 4px;
+}
+.template-card {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 8px;
+  text-align: start; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+}
+.template-card:hover { background: var(--hover); }
+.template-card[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.template-card strong { font-size: 13px; overflow-wrap: anywhere; }
+.template-card small { font-size: 11px; color: var(--muted); }
+.template-thumbnail { width: 100%; height: 120px; grid-template: minmax(0, 1fr) / minmax(0, 1fr); background: white; border: 1px solid var(--line); border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
+.template-thumbnail img { width: 100%; height: 100%; object-fit: contain; }

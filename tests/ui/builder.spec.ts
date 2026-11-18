@@ -35,12 +35,12 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
     .click();
   await page.getByLabel("공급자", { exact: true }).selectOption("Azure");
   await page.getByRole("button", { name: "컴포넌트 편집", exact: true }).click();
-  await expect(page.getByLabel("설계 템플릿").locator("option")).toHaveCount(3);
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(3);
   await page.getByLabel("템플릿 검색").fill("no-matching-template");
   await expect(page.getByRole("button", { name: "템플릿으로 시작" })).toBeDisabled();
   await page.getByRole("button", { name: "검색 조건 초기화" }).click();
-  await expect(page.getByLabel("설계 템플릿").locator("option")).toHaveCount(30);
-  await page.getByLabel("설계 템플릿").selectOption("azure-avm");
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(30);
+  await page.getByRole("button",{name:"AVM 프라이빗 스토리지",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await page.getByRole("button", { name: "Terraform 선언 보기" }).click();
   await expect(page.getByLabel("선택한 Terraform 선언")).toBeFocused();
@@ -63,10 +63,14 @@ test("packaged AWS template opens without network access", async ({ page }) => {
     .click();
   await page.getByRole("button", { name: "Terraform 원본", exact: true }).click();
   await page.getByLabel("템플릿 검색").fill("DynamoDB");
+  await expect.poll(() => page.locator(".template-thumbnail img").evaluateAll(
+    images => images.filter(i => (i as HTMLImageElement).naturalWidth > 0).length
+  )).toBe(3);
+  await page.setViewportSize({width:1440,height:1100});
   await page
     .getByRole("dialog")
     .screenshot({ path: "test-results/architecture-catalog.png" });
-  await page.getByLabel("설계 템플릿").selectOption({ label: "DynamoDB REST API" });
+  await page.getByRole("button",{name:"DynamoDB REST API",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await expect(page.getByLabel("아키텍처 제목")).toHaveValue(
     "AWS · DynamoDB REST API",
