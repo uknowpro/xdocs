@@ -1,0 +1,232 @@
+{
+  "version": 1,
+  "title": "AWS · SNS 다중 큐 팬아웃",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_sns_topic",
+      "label": "aws_sns_topic.MetricsSnsTopic",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 6,
+      "address": "aws_sns_topic.MetricsSnsTopic",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_sns_topic_subscription",
+      "label": "aws_sns_topic_subscription.HumiditySqsQueueSubscription",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 139,
+      "address": "aws_sns_topic_subscription.HumiditySqsQueueSubscription",
+      "references": [
+        "aws_sqs_queue.HumiditySqsQueue",
+        "aws_sns_topic.MetricsSnsTopic"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_sns_topic_subscription",
+      "label": "aws_sns_topic_subscription.MetricsQueueSubscription",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 122,
+      "address": "aws_sns_topic_subscription.MetricsQueueSubscription",
+      "references": [
+        "aws_sqs_queue.AllMetricsSqsQueue",
+        "aws_sns_topic.MetricsSnsTopic"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_sns_topic_subscription",
+      "label": "aws_sns_topic_subscription.TemperatureSqsQueueSubscription",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 129,
+      "address": "aws_sns_topic_subscription.TemperatureSqsQueueSubscription",
+      "references": [
+        "aws_sqs_queue.TemperatureSqsQueue",
+        "aws_sns_topic.MetricsSnsTopic"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.AllMetricsSqsQueue",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "aws_sqs_queue.AllMetricsSqsQueue",
+      "references": [
+        "aws_sqs_queue.MetricsSqsDLQueue"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.HumiditySqsDLQueue",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 45,
+      "address": "aws_sqs_queue.HumiditySqsDLQueue",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.HumiditySqsQueue",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 28,
+      "address": "aws_sqs_queue.HumiditySqsQueue",
+      "references": [
+        "aws_sqs_queue.HumiditySqsDLQueue"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.MetricsSqsDLQueue",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "aws_sqs_queue.MetricsSqsDLQueue",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.TemperatureSqsDLQueue",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 41,
+      "address": "aws_sqs_queue.TemperatureSqsDLQueue",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.TemperatureSqsQueue",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 20,
+      "address": "aws_sqs_queue.TemperatureSqsQueue",
+      "references": [
+        "aws_sqs_queue.TemperatureSqsDLQueue"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_sqs_queue_policy",
+      "label": "aws_sqs_queue_policy.HumiditySqsQueuePolicy",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 98,
+      "address": "aws_sqs_queue_policy.HumiditySqsQueuePolicy",
+      "references": [
+        "aws_sqs_queue.HumiditySqsQueue",
+        "aws_sns_topic.MetricsSnsTopic"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_sqs_queue_policy",
+      "label": "aws_sqs_queue_policy.SnsToSqsPolicy",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 50,
+      "address": "aws_sqs_queue_policy.SnsToSqsPolicy",
+      "references": [
+        "aws_sqs_queue.AllMetricsSqsQueue",
+        "aws_sns_topic.MetricsSnsTopic"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_sqs_queue_policy",
+      "label": "aws_sqs_queue_policy.TemperatureSqsQueuePolicy",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 74,
+      "address": "aws_sqs_queue_policy.TemperatureSqsQueuePolicy",
+      "references": [
+        "aws_sqs_queue.TemperatureSqsQueue",
+        "aws_sns_topic.MetricsSnsTopic"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\n# Create an SNS topic\nresource \"aws_sns_topic\" \"MetricsSnsTopic\" {\n  name = \"MetricsSnsTopic\"\n  display_name = \"MetricsSnsTopic\"\n}\n\n# Define SQS Queues\nresource \"aws_sqs_queue\" \"AllMetricsSqsQueue\" {\n  name = \"AllMetricsSqsQueue\"\n  redrive_policy = jsonencode({\n    deadLetterTargetArn = aws_sqs_queue.MetricsSqsDLQueue.arn\n    maxReceiveCount     = 5\n  })\n}\n\nresource \"aws_sqs_queue\" \"TemperatureSqsQueue\" {\n  name = \"TemperatureSqsQueue\"\n  redrive_policy = jsonencode({\n    deadLetterTargetArn = aws_sqs_queue.TemperatureSqsDLQueue.arn\n    maxReceiveCount     = 5\n  })\n}\n\nresource \"aws_sqs_queue\" \"HumiditySqsQueue\" {\n  name = \"HumiditySqsQueue\"\n  redrive_policy = jsonencode({\n    deadLetterTargetArn = aws_sqs_queue.HumiditySqsDLQueue.arn\n    maxReceiveCount     = 5\n  })\n}\n\n# Define dead letter queues\nresource \"aws_sqs_queue\" \"MetricsSqsDLQueue\" {\n  name = \"MetricsSqsDLQueue\"\n}\n\nresource \"aws_sqs_queue\" \"TemperatureSqsDLQueue\" {\n  name = \"TemperatureSqsDLQueue\"\n}\n\nresource \"aws_sqs_queue\" \"HumiditySqsDLQueue\" {\n  name = \"HumiditySqsDLQueue\"\n}\n\n# SNS to SQS Policy\nresource \"aws_sqs_queue_policy\" \"SnsToSqsPolicy\" {\n  queue_url = aws_sqs_queue.AllMetricsSqsQueue.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"Allow SNS publish to SQS\"\n        Effect    = \"Allow\"\n        Principal = \"*\"\n        Action    = \"sqs:SendMessage\"\n        Resource  = aws_sqs_queue.AllMetricsSqsQueue.arn\n\n        Condition = {\n          ArnEquals = {\n            \"aws:SourceArn\" = aws_sns_topic.MetricsSnsTopic.arn\n          }\n        }\n      },\n    ]\n  })\n}\n\n# Access policy for TemperatureSqsQueue\nresource \"aws_sqs_queue_policy\" \"TemperatureSqsQueuePolicy\" {\n  queue_url = aws_sqs_queue.TemperatureSqsQueue.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"Allow SNS publish to TemperatureSqsQueue\"\n        Effect    = \"Allow\"\n        Principal = \"*\"\n        Action    = \"sqs:SendMessage\"\n        Resource  = aws_sqs_queue.TemperatureSqsQueue.arn\n\n        Condition = {\n          ArnEquals = {\n            \"aws:SourceArn\" = aws_sns_topic.MetricsSnsTopic.arn\n          }\n        }\n      },\n    ]\n  })\n}\n\n# Access policy for HumiditySqsQueue\nresource \"aws_sqs_queue_policy\" \"HumiditySqsQueuePolicy\" {\n  queue_url = aws_sqs_queue.HumiditySqsQueue.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"Allow SNS publish to HumiditySqsQueue\"\n        Effect    = \"Allow\"\n        Principal = \"*\"\n        Action    = \"sqs:SendMessage\"\n        Resource  = aws_sqs_queue.HumiditySqsQueue.arn\n\n        Condition = {\n          ArnEquals = {\n            \"aws:SourceArn\" = aws_sns_topic.MetricsSnsTopic.arn\n          }\n        }\n      },\n    ]\n  })\n}\n\n# Define SNS Subscriptions\nresource \"aws_sns_topic_subscription\" \"MetricsQueueSubscription\" {\n  topic_arn = aws_sns_topic.MetricsSnsTopic.arn\n  protocol  = \"sqs\"\n  endpoint  = aws_sqs_queue.AllMetricsSqsQueue.arn\n  raw_message_delivery = true\n}\n\nresource \"aws_sns_topic_subscription\" \"TemperatureSqsQueueSubscription\" {\n  topic_arn            = aws_sns_topic.MetricsSnsTopic.arn\n  protocol             = \"sqs\"\n  endpoint             = aws_sqs_queue.TemperatureSqsQueue.arn\n  raw_message_delivery = true\n  filter_policy        = jsonencode({\n    MetricType = [\"Temperature\"]\n  })\n}\n\nresource \"aws_sns_topic_subscription\" \"HumiditySqsQueueSubscription\" {\n  topic_arn            = aws_sns_topic.MetricsSnsTopic.arn\n  protocol             = \"sqs\"\n  endpoint             = aws_sqs_queue.HumiditySqsQueue.arn\n  raw_message_delivery = true\n  filter_policy        = jsonencode({\n    MetricType = [\"Humidity\"]\n  })\n}\n\n# Outputs\noutput \"SNStopicName\" {\n  value = aws_sns_topic.MetricsSnsTopic.name\n}\n\noutput \"SNStopicARN\" {\n  value = aws_sns_topic.MetricsSnsTopic.arn\n}\n\noutput \"AllMetricsSqsQueueName\" {\n  value = aws_sqs_queue.AllMetricsSqsQueue.name\n}\n\noutput \"AllMetricsSqsQueueArn\" {\n  value = aws_sqs_queue.AllMetricsSqsQueue.arn\n}\n\noutput \"AllMetricsSqsQueueURL\" {\n  value = aws_sqs_queue.AllMetricsSqsQueue.id\n}\n\noutput \"TemperatureSqsQueueName\" {\n  value = aws_sqs_queue.TemperatureSqsQueue.name\n}\n\noutput \"TemperatureSqsQueueArn\" {\n  value = aws_sqs_queue.TemperatureSqsQueue.arn\n}\n\noutput \"TemperatureSqsQueueURL\" {\n  value = aws_sqs_queue.TemperatureSqsQueue.id\n}\n\noutput \"HumiditySqsQueueName\" {\n  value = aws_sqs_queue.HumiditySqsQueue.name\n}\n\noutput \"HumiditySqsQueueArn\" {\n  value = aws_sqs_queue.HumiditySqsQueue.arn\n}\n\noutput \"HumiditySqsQueueURL\" {\n  value = aws_sqs_queue.HumiditySqsQueue.id\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/sns-sqs-fanout/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

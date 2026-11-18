@@ -1,0 +1,246 @@
+{
+  "version": 1,
+  "title": "Azure · Azure Firewall 정책",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_firewall",
+      "label": "azurerm_firewall.fw",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 108,
+      "address": "azurerm_firewall.fw",
+      "references": [
+        "azurerm_firewall_policy.azfw_policy",
+        "azurerm_public_ip.pip_azfw",
+        "azurerm_subnet.azfw_subnet",
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_firewall_policy",
+      "label": "azurerm_firewall_policy.azfw_policy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 45,
+      "address": "azurerm_firewall_policy.azfw_policy",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.app_policy_rule_collection_group",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 71,
+      "address": "azurerm_firewall_policy_rule_collection_group.app_policy_rule_collection_group",
+      "references": [
+        "azurerm_ip_group.workload_ip_group",
+        "azurerm_ip_group.infra_ip_group",
+        "azurerm_firewall_policy.azfw_policy"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.net_policy_rule_collection_group",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 53,
+      "address": "azurerm_firewall_policy_rule_collection_group.net_policy_rule_collection_group",
+      "references": [
+        "azurerm_firewall_policy.azfw_policy",
+        "azurerm_ip_group.workload_ip_group",
+        "azurerm_ip_group.infra_ip_group"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_ip_group",
+      "label": "azurerm_ip_group.infra_ip_group",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "address": "azurerm_ip_group.infra_ip_group",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_ip_group",
+      "label": "azurerm_ip_group.workload_ip_group",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 17,
+      "address": "azurerm_ip_group.workload_ip_group",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.pip_azfw",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "azurerm_public_ip.pip_azfw",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg-name"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.azfw_subnet",
+      "x": 60,
+      "y": 340,
+      "props": {
+        "name": "AzureFirewallSubnet"
+      },
+      "original": {
+        "name": "AzureFirewallSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "azurerm_subnet.azfw_subnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.azfw_vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.azfw_vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1141,
+        "address": "azurerm_virtual_network.azfw_vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.azfw_vnet",
+      "x": 300,
+      "y": 340,
+      "props": {
+        "name": "azfw-vnet"
+      },
+      "original": {
+        "name": "azfw-vnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "azurerm_virtual_network.azfw_vnet",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 367,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "random_pet",
+      "label": "random_pet.rg-name",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg-name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"rg-name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  name     = random_pet.rg-name.id\n  location = var.resource_group_location\n}\n\nresource \"azurerm_virtual_network\" \"azfw_vnet\" {\n  name                = \"azfw-vnet\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  address_space       = [\"10.10.0.0/24\"]\n}\n\nresource \"azurerm_ip_group\" \"workload_ip_group\" {\n  name                = \"workload-ip-group\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  cidrs               = [\"10.20.0.0/24\", \"10.30.0.0/24\"]\n}\nresource \"azurerm_ip_group\" \"infra_ip_group\" {\n  name                = \"infra-ip-group\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  cidrs               = [\"10.40.0.0/24\", \"10.50.0.0/24\"]\n}\n\nresource \"azurerm_subnet\" \"azfw_subnet\" {\n  name                 = \"AzureFirewallSubnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.azfw_vnet.name\n  address_prefixes     = [\"10.10.0.0/26\"]\n}\n\nresource \"azurerm_public_ip\" \"pip_azfw\" {\n  name                = \"pip-azfw\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\nresource \"azurerm_firewall_policy\" \"azfw_policy\" {\n  name                     = \"azfw-policy\"\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  sku                      = var.firewall_sku_tier\n  threat_intelligence_mode = \"Alert\"\n}\n\nresource \"azurerm_firewall_policy_rule_collection_group\" \"net_policy_rule_collection_group\" {\n  name               = \"DefaultNetworkRuleCollectionGroup\"\n  firewall_policy_id = azurerm_firewall_policy.azfw_policy.id\n  priority           = 200\n  network_rule_collection {\n    name     = \"DefaultNetworkRuleCollection\"\n    action   = \"Allow\"\n    priority = 200\n    rule {\n      name                  = \"time-windows\"\n      protocols             = [\"UDP\"]\n      source_ip_groups      = [azurerm_ip_group.workload_ip_group.id, azurerm_ip_group.infra_ip_group.id]\n      destination_ports     = [\"123\"]\n      destination_addresses = [\"132.86.101.172\"]\n    }\n  }\n}\n\nresource \"azurerm_firewall_policy_rule_collection_group\" \"app_policy_rule_collection_group\" {\n  name               = \"DefaulApplicationtRuleCollectionGroup\"\n  firewall_policy_id = azurerm_firewall_policy.azfw_policy.id\n  priority           = 300\n  application_rule_collection {\n    name     = \"DefaultApplicationRuleCollection\"\n    action   = \"Allow\"\n    priority = 500\n    rule {\n      name = \"AllowWindowsUpdate\"\n\n      description = \"Allow Windows Update\"\n      protocols {\n        type = \"Http\"\n        port = 80\n      }\n      protocols {\n        type = \"Https\"\n        port = 443\n      }\n      source_ip_groups      = [azurerm_ip_group.workload_ip_group.id, azurerm_ip_group.infra_ip_group.id]\n      destination_fqdn_tags = [\"WindowsUpdate\"]\n    }\n    rule {\n      name        = \"Global Rule\"\n      description = \"Allow access to Microsoft.com\"\n      protocols {\n        type = \"Https\"\n        port = 443\n      }\n      destination_fqdns = [\"*.microsoft.com\"]\n      terminate_tls     = false\n      source_ip_groups  = [azurerm_ip_group.workload_ip_group.id, azurerm_ip_group.infra_ip_group.id]\n    }\n  }\n}\n\nresource \"azurerm_firewall\" \"fw\" {\n  name                = \"azfw\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  sku_name            = \"AZFW_VNet\"\n  sku_tier            = var.firewall_sku_tier\n  ip_configuration {\n    name                 = \"azfw-ipconfig\"\n    subnet_id            = azurerm_subnet.azfw_subnet.id\n    public_ip_address_id = azurerm_public_ip.pip_azfw.id\n  }\n  firewall_policy_id = azurerm_firewall_policy.azfw_policy.id\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"firewall_name\" {\n  value = azurerm_firewall.fw.name\n}"
+    },
+    {
+      "name": "provider.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  description = \"Location for all resources.\"\n  default     = \"eastus\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type = string\n  description = \"Prefix for the Resource Group Name that's combined with a random id so name is unique in your Azure subcription.\"  \n  default = \"rg\"\n}\n\nvariable \"firewall_sku_tier\" {\n  type        = string\n  description = \"Firewall SKU.\"\n  default     = \"Premium\" # Valid values are Standard and Premium\n  validation {\n    condition = contains([\"Standard\", \"Premium\"], var.firewall_sku_tier)\n    error_message = \"The sku must be one of the following: Standard, Premium\"\n  }\n}\n\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azfw-with-fwpolicy\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

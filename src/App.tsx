@@ -1,3 +1,11 @@
+import Builder from "./Builder";
+import {
+  publishedHarness,
+  newBuilder,
+  encodeBuilder,
+  decodeBuilder,
+  replaceBuilder,
+} from "../shared/builder.mjs";
 import { version as appVersion } from "../package.json";
 import PageTree, { type PageKind } from "./PageTree";
 import {
@@ -222,6 +230,7 @@ export default function App() {
       return null;
     }
   }, [body]);
+  const builder = useMemo(() => decodeBuilder(body), [body]);
   const flow = useMemo(() => {
     try {
       return decodeWorkflow(body);
@@ -320,6 +329,7 @@ export default function App() {
     const note = isDesktop
       ? {
           ...full,
+          sheet: /^```xdocs-sheets\r?$/m.test(full.body),
           canvas: Boolean(isCanvas(full)),
           body: JSON.parse(JSON.stringify(full.body.slice(0, 240))),
           links: linksIn(full.body),
@@ -630,12 +640,20 @@ export default function App() {
       return;
     }
     await action(async () => {
-      const title = name || templates[kind].label + " 캔버스";
+      const title =
+        name ||
+        (kind === "builder" ? "새 Builder" : templates[kind].label + " 캔버스");
       const n = await api.create(
         title,
         withParent(
           parent,
-          "# " + title + "\n\n" + encodeWorkflow(blankFlow(kind)) + "\n",
+          "# " +
+            title +
+            "\n\n" +
+            (kind === "builder"
+              ? encodeBuilder(newBuilder())
+              : encodeWorkflow(blankFlow(kind))) +
+            "\n",
         ),
       );
       setWorkspace(await api.refresh());
@@ -998,6 +1016,14 @@ export default function App() {
           <Workflow size={16} />
           IaCD 아키텍처
         </button>
+        <button
+          className="nav-item"
+          disabled={!workspace || readonly || busy}
+          onClick={() => void createPage("builder")}
+        >
+          <Workflow size={16} />
+          Builder 만들기
+        </button>
         <select
           className="nav-item"
           aria-label="자동화 캔버스 만들기"
@@ -1178,6 +1204,7 @@ export default function App() {
                 !sheetData &&
                 !infraData &&
                 !architectureData &&
+                !builder &&
                 !flow && (
                   <button
                     className="mode-switch"
@@ -1246,7 +1273,7 @@ export default function App() {
           </section>
         ) : (
           <div
-            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || flow ? "sheet-layout" : ""}`}
+            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || builder || flow ? "sheet-layout" : ""}`}
           >
             <article className="document">
               <div className="document-kicker">
@@ -1269,6 +1296,7 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
+                    !builder &&
                     !flow &&
                     canvases.length > 0 && (
                       <select
@@ -1301,6 +1329,7 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
+                    !builder &&
                     !flow && (
                       <button
                         className="button small"
@@ -1318,6 +1347,7 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
+                    !builder &&
                     !flow && (
                       <div className="segmented">
                         <button
@@ -1367,6 +1397,48 @@ export default function App() {
               )}
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
+              ) : builder ? (
+                <Builder
+                  key={active}
+                  config={builder}
+                  notes={notes}
+                  readonly={readonly}
+                  onChange={(c) => changeBody(replaceBuilder(draft.current, c))}
+                  onCopy={async (name, c, publish = false) => {
+                    if (readonly || !(await flush())) return;
+                    const n = await api.create(
+                      name,
+                      withParent(
+                        active,
+                        (publish ? publishedHarness + "\n" : "") +
+                          "# " +
+                          name +
+                          "\n\n" +
+                          encodeBuilder({
+                            ...c,
+                            origin: {
+                              page: active,
+                              revision: current.current!.revision,
+                            },
+                          }) +
+                          "\n",
+                      ),
+                    );
+                    update(n);
+                    select(n);
+                    setEdit(false);
+                  }}
+                  onSave={async (content) => {
+                    if (readonly || !(await flush())) return;
+                    const n = await api.create(
+                      "업무 검토 결과",
+                      withParent(active, content),
+                    );
+                    update(n);
+                    select(n);
+                    setEdit(false);
+                  }}
+                />
               ) : flow ? (
                 <WorkflowCanvas
                   key={active}

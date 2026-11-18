@@ -30,6 +30,56 @@ async function locateReferences(file) {
     return {};
   }
 }
+// Let the HCL parser distinguish real block headers from matches in comments or heredocs.
+async function declarationLines(file) {
+  const lines = new Map();
+  if (file.name.endsWith(".json")) return lines;
+  let prefix = "xdocsdecl";
+  while (file.content.includes(prefix)) prefix += "x";
+  const candidates = [];
+  const marked = file.content
+    .split("\n")
+    .map((line, i) =>
+      line.replace(
+        /^(\s*)(?:(resource|data)\s+"([^"]+)"\s+|(module)\s+)"([\w-]+)"(\s*\{)/,
+        (header, space, block, kind, module, name, brace) => {
+          const marker = prefix + candidates.length;
+          candidates.push({
+            block: block || module,
+            kind,
+            name,
+            marker,
+            line: i + 1,
+          });
+          return (
+            space +
+            (block ? block + ' "' + kind + '" ' : "module ") +
+            '"' +
+            marker +
+            '"' +
+            brace
+          );
+        },
+      ),
+    )
+    .join("\n");
+  if (!candidates.length) return lines;
+  try {
+    const parsed = await parse(file.name, marked);
+    for (const c of candidates) {
+      const items =
+        c.block === "module" ? parsed.module : parsed[c.block]?.[c.kind];
+      if (items && Object.hasOwn(items, c.marker)) {
+        const address =
+          c.block === "module"
+            ? "module." + c.name
+            : (c.block === "data" ? "data." : "") + c.kind + "." + c.name;
+        lines.set(address, c.line);
+      }
+    }
+  } catch {}
+  return lines;
+}
 const nestedPlacement = {
   google_compute_instance: ["network_interface", "subnetwork"],
   azurerm_network_interface: ["ip_configuration", "subnet_id"],
@@ -74,6 +124,7 @@ export async function parseTerraformFiles(files) {
         "계획·state JSON 대신 .tf 또는 구성 .tf.json 파일을 선택하세요.",
       );
     const located = await locateReferences(file);
+    const lines = await declarationLines(file);
     for (const block of ["resource", "data", "module"]) {
       const entries =
         block === "module"
@@ -115,6 +166,8 @@ export async function parseTerraformFiles(files) {
           props,
           original: { ...props },
           imported: true,
+          sourceFile: file.name,
+          ...(lines.has(address) ? { sourceLine: lines.get(address) } : {}),
           ...(raw?.count !== undefined || raw?.for_each !== undefined
             ? { multipleInstances: true }
             : {}),

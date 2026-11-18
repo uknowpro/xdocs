@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "title": "AWS · SQS 이벤트 버스 브리지",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_event_bus",
+      "label": "aws_cloudwatch_event_bus.target",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "aws_cloudwatch_event_bus.target",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.demo_policy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 66,
+      "address": "aws_iam_policy.demo_policy",
+      "references": [
+        "aws_sqs_queue.source",
+        "aws_cloudwatch_event_bus.target"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.demo_role",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 48,
+      "address": "aws_iam_role.demo_role",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.demo-attach",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 96,
+      "address": "aws_iam_role_policy_attachment.demo-attach",
+      "references": [
+        "aws_iam_policy.demo_policy",
+        "aws_iam_role.demo_role"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_pipes_pipe",
+      "label": "aws_pipes_pipe.demo_pipe",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 22,
+      "address": "aws_pipes_pipe.demo_pipe",
+      "references": [
+        "aws_iam_role.demo_role",
+        "aws_sqs_queue.source",
+        "aws_cloudwatch_event_bus.target"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.source",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 17,
+      "address": "aws_sqs_queue.source",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n}\nprovider \"aws\" {}\n\n# Create EventBus Target\nresource \"aws_cloudwatch_event_bus\" \"target\" {\n  name = \"demo_bus\"\n}\n\n# Create SQS Source\nresource \"aws_sqs_queue\" \"source\" {\n  name = \"demo_queue\"\n}\n\n# Create EventBridge Pipe\nresource \"aws_pipes_pipe\" \"demo_pipe\" {\n  name     = \"demo_pipe\"\n  role_arn = aws_iam_role.demo_role.arn\n  source   = aws_sqs_queue.source.arn\n  target   = aws_cloudwatch_event_bus.target.arn\n  source_parameters {\n    sqs_queue_parameters {\n      batch_size = 1\n      maximum_batching_window_in_seconds = 2\n    }\n  filter_criteria {\n      filter {\n        pattern = jsonencode({\n          \"body\":{\"type\":[\"NEW\"]}\n        })\n      }\n    }\n  }\n  target_parameters {\n    eventbridge_event_bus_parameters {\n      source = \"myapp.demo\"\n    }\n  }\n}\n\n# Create IAM role for EventBridge Pipe\nresource \"aws_iam_role\" \"demo_role\" {\n  name = \"demo_role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Sid    = \"\"\n        Principal = {\n          Service = \"pipes.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\n# Create an IAM policy for EventBridge Pipe\nresource \"aws_iam_policy\" \"demo_policy\" {\n  name = \"demo_policy\"\n  policy = jsonencode({\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {   \"Sid\": \"SourcePermissions\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"sqs:ReceiveMessage\",\n                \"sqs:DeleteMessage\",\n                \"sqs:GetQueueAttributes\"\n            ],\n            \"Resource\": [\n                aws_sqs_queue.source.arn\n            ]\n        },\n        {   \"Sid\": \"TargetPermissions\"\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"events:PutEvents\"\n            ],\n            \"Resource\": [\n                aws_cloudwatch_event_bus.target.arn\n            ]\n        }\n    ]\n})\n\n# Attach the IAM policy to the IAM role\n}\nresource \"aws_iam_role_policy_attachment\" \"demo-attach\" {\n  role       = aws_iam_role.demo_role.name\n  policy_arn = aws_iam_policy.demo_policy.arn\n}\n\noutput \"SQS_url\" {\n  value       = aws_sqs_queue.source.url\n  description = \"The URL of the SQS queue.\"\n}\n\noutput \"Pipes_arn\" {\n  value       = aws_pipes_pipe.demo_pipe.arn\n  description = \"The ARN of the Pipe.\"\n}\n\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/eventbridge-pipes-sqs-to-eventbridge/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

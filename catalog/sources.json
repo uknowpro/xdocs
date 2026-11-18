@@ -1,0 +1,1344 @@
+[
+  {
+    "id": "aws-apigw-rest-api-dynamodb-terraform",
+    "provider": "AWS",
+    "name": "DynamoDB REST API",
+    "kinds": [
+      "aws_api_gateway_account",
+      "aws_api_gateway_api_key",
+      "aws_api_gateway_deployment",
+      "aws_api_gateway_method_settings",
+      "aws_api_gateway_rest_api",
+      "aws_api_gateway_stage",
+      "aws_api_gateway_usage_plan",
+      "aws_api_gateway_usage_plan_key",
+      "aws_cloudwatch_log_group",
+      "aws_cloudwatch_log_resource_policy",
+      "aws_dynamodb_table",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_iam_role_policy_attachment"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "apigw-rest-api-dynamodb/terraform"
+  },
+  {
+    "id": "aws-apigw-rest-api-http-integration-terraform",
+    "provider": "AWS",
+    "name": "HTTP 백엔드용 REST API",
+    "kinds": [
+      "aws_api_gateway_deployment",
+      "aws_api_gateway_integration",
+      "aws_api_gateway_method",
+      "aws_api_gateway_rest_api",
+      "aws_api_gateway_stage"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "apigw-rest-api-http-integration/terraform"
+  },
+  {
+    "id": "aws-apigw-sqs-terraform",
+    "provider": "AWS",
+    "name": "API Gateway 요청 큐",
+    "kinds": [
+      "aws_api_gateway_account",
+      "aws_api_gateway_deployment",
+      "aws_api_gateway_method_settings",
+      "aws_api_gateway_rest_api",
+      "aws_api_gateway_stage",
+      "aws_cloudwatch_log_group",
+      "aws_cloudwatch_log_resource_policy",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_iam_role_policy_attachment",
+      "aws_sqs_queue"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "apigw-sqs/terraform"
+  },
+  {
+    "id": "aws-apigw-vpclink-pvt-alb-terraform",
+    "provider": "AWS",
+    "name": "VPC Link와 내부 ALB",
+    "kinds": [
+      "aws_apigatewayv2_api",
+      "aws_apigatewayv2_integration",
+      "aws_apigatewayv2_route",
+      "aws_apigatewayv2_stage",
+      "aws_apigatewayv2_vpc_link",
+      "aws_ecs_cluster",
+      "aws_ecs_service",
+      "aws_ecs_task_definition",
+      "aws_iam_role",
+      "aws_lb",
+      "aws_lb_listener",
+      "aws_lb_target_group",
+      "aws_security_group",
+      "aws_security_group_rule"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "apigw-vpclink-pvt-alb/terraform"
+  },
+  {
+    "id": "aws-apigw-websocket-api-sns-terraform",
+    "provider": "AWS",
+    "name": "WebSocket 메시지 알림",
+    "kinds": [
+      "aws_apigatewayv2_api",
+      "aws_apigatewayv2_integration",
+      "aws_apigatewayv2_integration_response",
+      "aws_apigatewayv2_model",
+      "aws_apigatewayv2_route",
+      "aws_apigatewayv2_route_response",
+      "aws_apigatewayv2_stage",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_sns_topic"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "apigw-websocket-api-sns/terraform"
+  },
+  {
+    "id": "aws-cloudmap-fargate-terraform",
+    "provider": "AWS",
+    "name": "Fargate 서비스 검색",
+    "kinds": [
+      "aws_default_security_group",
+      "aws_ecs_cluster",
+      "aws_ecs_cluster_capacity_providers",
+      "aws_ecs_service",
+      "aws_ecs_task_definition",
+      "aws_internet_gateway",
+      "aws_route",
+      "aws_route_table",
+      "aws_route_table_association",
+      "aws_security_group",
+      "aws_service_discovery_public_dns_namespace",
+      "aws_service_discovery_service",
+      "aws_subnet",
+      "aws_vpc"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "cloudmap-fargate/terraform"
+  },
+  {
+    "id": "aws-cloudwatch-metric-streams-firehose-terraform",
+    "provider": "AWS",
+    "name": "CloudWatch 지표 스트리밍",
+    "kinds": [
+      "aws_cloudwatch_metric_stream",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_kinesis_firehose_delivery_stream",
+      "aws_s3_bucket"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "cloudwatch-metric-streams-firehose/terraform"
+  },
+  {
+    "id": "aws-dynamodb-glue-s3-python-terraform",
+    "provider": "AWS",
+    "name": "DynamoDB와 Glue 데이터 처리",
+    "kinds": [
+      "aws_dynamodb_table",
+      "aws_glue_catalog_database",
+      "aws_glue_job",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_s3_bucket",
+      "aws_s3_bucket_lifecycle_configuration",
+      "aws_s3_bucket_public_access_block",
+      "aws_s3_bucket_server_side_encryption_configuration",
+      "aws_s3_object"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "dynamodb-glue-s3/python/terraform"
+  },
+  {
+    "id": "aws-eventbridge-cloudwatch-terraform",
+    "provider": "AWS",
+    "name": "이벤트를 CloudWatch Logs로 수집",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_cloudwatch_log_group",
+      "aws_cloudwatch_log_resource_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-cloudwatch/terraform"
+  },
+  {
+    "id": "aws-eventbridge-pipes-dynamodbstream-to-sqs-terraform",
+    "provider": "AWS",
+    "name": "DynamoDB Stream 큐 전달",
+    "kinds": [
+      "aws_dynamodb_table",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_pipes_pipe",
+      "aws_sqs_queue"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-pipes-dynamodbstream-to-sqs/terraform"
+  },
+  {
+    "id": "aws-eventbridge-pipes-sqs-to-eventbridge-terraform",
+    "provider": "AWS",
+    "name": "SQS 이벤트 버스 브리지",
+    "kinds": [
+      "aws_cloudwatch_event_bus",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_pipes_pipe",
+      "aws_sqs_queue"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-pipes-sqs-to-eventbridge/terraform"
+  },
+  {
+    "id": "aws-eventbridge-schedule-ecs-terraform",
+    "provider": "AWS",
+    "name": "ECS 예약 작업",
+    "kinds": [
+      "aws_cloudwatch_log_group",
+      "aws_ecs_cluster",
+      "aws_ecs_task_definition",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_internet_gateway",
+      "aws_route",
+      "aws_route_table",
+      "aws_route_table_association",
+      "aws_scheduler_schedule",
+      "aws_security_group",
+      "aws_subnet",
+      "aws_vpc"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-schedule-ecs/terraform"
+  },
+  {
+    "id": "aws-eventbridge-schedule-to-batch-terraform",
+    "provider": "AWS",
+    "name": "Batch 작업 스케줄",
+    "kinds": [
+      "aws_batch_compute_environment",
+      "aws_batch_job_definition",
+      "aws_batch_job_queue",
+      "aws_iam_instance_profile",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_internet_gateway",
+      "aws_route_table",
+      "aws_route_table_association",
+      "aws_scheduler_schedule",
+      "aws_security_group",
+      "aws_subnet",
+      "aws_vpc",
+      "random_string"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-schedule-to-batch/terraform"
+  },
+  {
+    "id": "aws-eventbridge-schedule-to-cloudwatch-alarm-terraform",
+    "provider": "AWS",
+    "name": "CloudWatch 알람 스케줄",
+    "kinds": [
+      "aws_cloudwatch_metric_alarm",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_instance",
+      "aws_scheduler_schedule",
+      "aws_subnet",
+      "aws_vpc"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-schedule-to-cloudwatch-alarm/terraform"
+  },
+  {
+    "id": "aws-eventbridge-schedule-to-sns-terraform",
+    "provider": "AWS",
+    "name": "정기 SNS 알림",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_sns_topic",
+      "aws_sns_topic_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-schedule-to-sns/terraform"
+  },
+  {
+    "id": "aws-eventbridge-schedule-to-step-function-terraform",
+    "provider": "AWS",
+    "name": "Step Functions 스케줄",
+    "kinds": [
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_scheduler_schedule",
+      "aws_sfn_state_machine"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-schedule-to-step-function/terraform"
+  },
+  {
+    "id": "aws-eventbridge-sfn-terraform",
+    "provider": "AWS",
+    "name": "이벤트 기반 상태 머신",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_cloudwatch_log_group",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_sfn_state_machine"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-sfn/terraform"
+  },
+  {
+    "id": "aws-eventbridge-sns-terraform",
+    "provider": "AWS",
+    "name": "이벤트 규칙과 SNS",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_sns_topic",
+      "aws_sns_topic_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-sns/terraform"
+  },
+  {
+    "id": "aws-eventbridge-sqs-terraform",
+    "provider": "AWS",
+    "name": "이벤트 규칙과 SQS",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_sqs_queue",
+      "aws_sqs_queue_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "eventbridge-sqs/terraform"
+  },
+  {
+    "id": "aws-iot-sns-sqs-terraform",
+    "provider": "AWS",
+    "name": "IoT 메시지 분기",
+    "kinds": [
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_iot_topic_rule",
+      "aws_sns_topic",
+      "aws_sns_topic_subscription",
+      "aws_sqs_queue",
+      "aws_sqs_queue_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "iot-sns-sqs/terraform"
+  },
+  {
+    "id": "aws-rds-sns-event-notification-terraform",
+    "provider": "AWS",
+    "name": "RDS 이벤트 알림",
+    "kinds": [
+      "aws_db_event_subscription",
+      "aws_sns_topic",
+      "aws_sns_topic_policy",
+      "aws_sns_topic_subscription"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "rds-sns-event-notification/terraform"
+  },
+  {
+    "id": "aws-s3-cloudfront-spa-terraform-terraform",
+    "provider": "AWS",
+    "name": "CloudFront 정적 웹",
+    "kinds": [
+      "aws_cloudfront_distribution",
+      "aws_cloudfront_origin_access_control",
+      "aws_s3_bucket",
+      "aws_s3_bucket_acl",
+      "aws_s3_bucket_ownership_controls",
+      "aws_s3_bucket_policy",
+      "aws_s3_bucket_public_access_block",
+      "aws_s3_bucket_website_configuration"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "s3-cloudfront-spa/terraform/terraform"
+  },
+  {
+    "id": "aws-s3-eventbridge-ecs-python-terraform",
+    "provider": "AWS",
+    "name": "S3 이벤트로 ECS 시작",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_cloudwatch_log_group",
+      "aws_ecs_cluster",
+      "aws_ecs_task_definition",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_s3_bucket",
+      "aws_s3_bucket_notification",
+      "aws_s3_bucket_public_access_block"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "s3-eventbridge-ecs/python/terraform"
+  },
+  {
+    "id": "aws-s3-eventbridge-sfn-terraform",
+    "provider": "AWS",
+    "name": "S3 이벤트 처리 워크플로",
+    "kinds": [
+      "aws_cloudwatch_event_rule",
+      "aws_cloudwatch_event_target",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_s3_bucket",
+      "aws_s3_bucket_notification",
+      "aws_s3_bucket_policy",
+      "aws_sfn_state_machine",
+      "aws_sqs_queue",
+      "aws_sqs_queue_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "s3-eventbridge-sfn/terraform"
+  },
+  {
+    "id": "aws-sfn-sns-terraform",
+    "provider": "AWS",
+    "name": "상태 머신 결과 알림",
+    "kinds": [
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_sfn_state_machine",
+      "aws_sns_topic",
+      "aws_sns_topic_subscription"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "sfn-sns/terraform"
+  },
+  {
+    "id": "aws-sns-firehose-terraform",
+    "provider": "AWS",
+    "name": "SNS와 Firehose 수집",
+    "kinds": [
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_kinesis_firehose_delivery_stream",
+      "aws_s3_bucket",
+      "aws_sns_topic",
+      "aws_sns_topic_subscription",
+      "random_id"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "sns-firehose/terraform"
+  },
+  {
+    "id": "aws-sns-sqs-fanout-terraform",
+    "provider": "AWS",
+    "name": "SNS 다중 큐 팬아웃",
+    "kinds": [
+      "aws_sns_topic",
+      "aws_sns_topic_subscription",
+      "aws_sqs_queue",
+      "aws_sqs_queue_policy"
+    ],
+    "repo": "aws-samples/serverless-patterns",
+    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
+    "directory": "sns-sqs-fanout/terraform"
+  },
+  {
+    "id": "azure-quickstart-101-aks-access-keyvault",
+    "provider": "Azure",
+    "name": "AKS와 Key Vault",
+    "kinds": [
+      "azurerm_key_vault",
+      "azurerm_key_vault_secret",
+      "azurerm_kubernetes_cluster",
+      "azurerm_log_analytics_workspace",
+      "azurerm_resource_group",
+      "azurerm_role_assignment",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-aks-access-keyvault"
+  },
+  {
+    "id": "azure-quickstart-101-aks-acr-auth",
+    "provider": "Azure",
+    "name": "AKS와 Container Registry",
+    "kinds": [
+      "azapi_resource_action",
+      "azurerm_container_registry",
+      "azurerm_kubernetes_cluster",
+      "azurerm_resource_group",
+      "azurerm_role_assignment",
+      "kubernetes_deployment_v1",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-aks-acr-auth"
+  },
+  {
+    "id": "azure-quickstart-101-aks-automatic-private-custom-network",
+    "provider": "Azure",
+    "name": "프라이빗 AKS 사용자 지정 네트워크",
+    "kinds": [
+      "azurerm_kubernetes_automatic_cluster",
+      "azurerm_resource_group",
+      "azurerm_role_assignment",
+      "azurerm_subnet",
+      "azurerm_user_assigned_identity",
+      "azurerm_virtual_network",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-aks-automatic-private-custom-network"
+  },
+  {
+    "id": "azure-quickstart-101-aks-entra-k8s-rbac",
+    "provider": "Azure",
+    "name": "AKS와 Entra RBAC",
+    "kinds": [
+      "azurerm_role_assignment",
+      "kubernetes_namespace",
+      "kubernetes_role",
+      "kubernetes_role_binding"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-aks-entra-k8s-rbac"
+  },
+  {
+    "id": "azure-quickstart-101-aks-fleet-with-hub",
+    "provider": "Azure",
+    "name": "Fleet Manager 허브",
+    "kinds": [
+      "azapi_resource",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-aks-fleet-with-hub"
+  },
+  {
+    "id": "azure-quickstart-101-app-configuration-store-kv",
+    "provider": "Azure",
+    "name": "App Configuration과 Key Vault",
+    "kinds": [
+      "azurerm_app_configuration",
+      "azurerm_app_configuration_key",
+      "azurerm_resource_group",
+      "azurerm_role_assignment",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-app-configuration-store-kv"
+  },
+  {
+    "id": "azure-quickstart-101-app-service-backup",
+    "provider": "Azure",
+    "name": "App Service 백업",
+    "kinds": [
+      "azurerm_resource_group",
+      "azurerm_service_plan",
+      "azurerm_storage_account",
+      "azurerm_storage_container",
+      "azurerm_windows_web_app",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-app-service-backup"
+  },
+  {
+    "id": "azure-quickstart-101-azapi-eventhub-network-rules",
+    "provider": "Azure",
+    "name": "Event Hubs 네트워크 규칙",
+    "kinds": [
+      "azapi_update_resource",
+      "azurerm_eventhub_namespace",
+      "azurerm_resource_group",
+      "azurerm_subnet",
+      "azurerm_virtual_network",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azapi-eventhub-network-rules"
+  },
+  {
+    "id": "azure-quickstart-101-azfw-with-fwpolicy",
+    "provider": "Azure",
+    "name": "Azure Firewall 정책",
+    "kinds": [
+      "azurerm_firewall",
+      "azurerm_firewall_policy",
+      "azurerm_firewall_policy_rule_collection_group",
+      "azurerm_ip_group",
+      "azurerm_public_ip",
+      "azurerm_resource_group",
+      "azurerm_subnet",
+      "azurerm_virtual_network",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azfw-with-fwpolicy"
+  },
+  {
+    "id": "azure-quickstart-101-azure-api-management-create-with-api",
+    "provider": "Azure",
+    "name": "API Management API 게시",
+    "kinds": [
+      "azurerm_api_management",
+      "azurerm_api_management_api",
+      "azurerm_api_management_group",
+      "azurerm_api_management_product",
+      "azurerm_api_management_product_api",
+      "azurerm_api_management_product_group",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-api-management-create-with-api"
+  },
+  {
+    "id": "azure-quickstart-101-azure-bastion-host",
+    "provider": "Azure",
+    "name": "Bastion 관리 접속",
+    "kinds": [
+      "azurerm_bastion_host",
+      "azurerm_public_ip",
+      "azurerm_resource_group",
+      "azurerm_subnet",
+      "azurerm_virtual_network",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-bastion-host"
+  },
+  {
+    "id": "azure-quickstart-101-azure-container-app",
+    "provider": "Azure",
+    "name": "Container Apps 환경",
+    "kinds": [
+      "azurerm_container_app",
+      "azurerm_container_app_environment",
+      "azurerm_log_analytics_workspace",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-container-app"
+  },
+  {
+    "id": "azure-quickstart-101-azure-elastic-san-storage",
+    "provider": "Azure",
+    "name": "Elastic SAN 저장소",
+    "kinds": [
+      "azurerm_elastic_san",
+      "azurerm_elastic_san_volume",
+      "azurerm_elastic_san_volume_group",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-elastic-san-storage"
+  },
+  {
+    "id": "azure-quickstart-101-azure-functions",
+    "provider": "Azure",
+    "name": "Azure Functions 환경",
+    "kinds": [
+      "azurerm_application_insights",
+      "azurerm_function_app_flex_consumption",
+      "azurerm_log_analytics_workspace",
+      "azurerm_resource_group",
+      "azurerm_service_plan",
+      "azurerm_storage_account",
+      "azurerm_storage_container",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-functions"
+  },
+  {
+    "id": "azure-quickstart-101-azure-netapp-files",
+    "provider": "Azure",
+    "name": "Azure NetApp Files",
+    "kinds": [
+      "azurerm_netapp_account",
+      "azurerm_netapp_pool",
+      "azurerm_netapp_volume",
+      "azurerm_resource_group",
+      "azurerm_subnet",
+      "azurerm_virtual_network",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-netapp-files"
+  },
+  {
+    "id": "azure-quickstart-101-azure-recovery-services",
+    "provider": "Azure",
+    "name": "Recovery Services 보관함",
+    "kinds": [
+      "azurerm_backup_policy_file_share",
+      "azurerm_recovery_services_vault",
+      "azurerm_resource_group",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-azure-recovery-services"
+  },
+  {
+    "id": "azure-quickstart-101-batch-account-with-storage",
+    "provider": "Azure",
+    "name": "Batch 계정과 스토리지",
+    "kinds": [
+      "azurerm_batch_account",
+      "azurerm_resource_group",
+      "azurerm_storage_account",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-batch-account-with-storage"
+  },
+  {
+    "id": "azure-quickstart-101-cosmos-db-aad-rbac",
+    "provider": "Azure",
+    "name": "Cosmos DB 데이터 접근 역할",
+    "kinds": [
+      "azurerm_cosmosdb_account",
+      "azurerm_cosmosdb_sql_container",
+      "azurerm_cosmosdb_sql_database",
+      "azurerm_cosmosdb_sql_role_assignment",
+      "azurerm_cosmosdb_sql_role_definition",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-cosmos-db-aad-rbac"
+  },
+  {
+    "id": "azure-quickstart-101-cosmos-db-autoscale",
+    "provider": "Azure",
+    "name": "Cosmos DB 자동 확장",
+    "kinds": [
+      "azurerm_cosmosdb_account",
+      "azurerm_cosmosdb_sql_container",
+      "azurerm_cosmosdb_sql_database",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-cosmos-db-autoscale"
+  },
+  {
+    "id": "azure-quickstart-101-data-factory",
+    "provider": "Azure",
+    "name": "Data Factory 파이프라인 기반",
+    "kinds": [
+      "azurerm_data_factory",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-data-factory"
+  },
+  {
+    "id": "azure-quickstart-101-dns-private-resolver",
+    "provider": "Azure",
+    "name": "프라이빗 DNS Resolver",
+    "kinds": [
+      "azurerm_private_dns_resolver",
+      "azurerm_resource_group",
+      "azurerm_subnet",
+      "azurerm_virtual_network",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-dns-private-resolver"
+  },
+  {
+    "id": "azure-quickstart-101-front-door-premium-storage-blobs-private-link",
+    "provider": "Azure",
+    "name": "Front Door와 Private Link Blob",
+    "kinds": [
+      "azapi_resource",
+      "azurerm_cdn_frontdoor_custom_domain",
+      "azurerm_cdn_frontdoor_endpoint",
+      "azurerm_cdn_frontdoor_firewall_policy",
+      "azurerm_cdn_frontdoor_origin",
+      "azurerm_cdn_frontdoor_origin_group",
+      "azurerm_cdn_frontdoor_profile",
+      "azurerm_cdn_frontdoor_route",
+      "azurerm_cdn_frontdoor_security_policy",
+      "azurerm_resource_group",
+      "azurerm_storage_account",
+      "azurerm_storage_account_network_rules",
+      "random_id",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-front-door-premium-storage-blobs-private-link"
+  },
+  {
+    "id": "azure-quickstart-101-key-vault-key",
+    "provider": "Azure",
+    "name": "Key Vault 암호화 키",
+    "kinds": [
+      "azurerm_key_vault",
+      "azurerm_key_vault_key",
+      "azurerm_resource_group",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-key-vault-key"
+  },
+  {
+    "id": "azure-quickstart-101-network-watcher-vnet-flow-logs",
+    "provider": "Azure",
+    "name": "Network Watcher VNet 흐름 로그",
+    "kinds": [
+      "azurerm_network_watcher_flow_log",
+      "azurerm_storage_account",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-network-watcher-vnet-flow-logs"
+  },
+  {
+    "id": "azure-quickstart-101-stream-analytics-job",
+    "provider": "Azure",
+    "name": "Stream Analytics 작업",
+    "kinds": [
+      "azurerm_resource_group",
+      "azurerm_stream_analytics_job",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-stream-analytics-job"
+  },
+  {
+    "id": "azure-quickstart-101-virtual-network-manager-create-mesh",
+    "provider": "Azure",
+    "name": "Virtual Network Manager 메시",
+    "kinds": [
+      "azurerm_network_manager",
+      "azurerm_network_manager_connectivity_configuration",
+      "azurerm_network_manager_deployment",
+      "azurerm_network_manager_network_group",
+      "azurerm_policy_definition",
+      "azurerm_resource_group",
+      "azurerm_subnet",
+      "azurerm_subscription_policy_assignment",
+      "azurerm_virtual_network",
+      "random_pet",
+      "random_string"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/101-virtual-network-manager-create-mesh"
+  },
+  {
+    "id": "azure-quickstart-301-nat-gateway-hub-spoke-firewall",
+    "provider": "Azure",
+    "name": "허브·스포크 NAT와 방화벽",
+    "kinds": [
+      "azurerm_bastion_host",
+      "azurerm_firewall",
+      "azurerm_firewall_policy",
+      "azurerm_firewall_policy_rule_collection_group",
+      "azurerm_linux_virtual_machine",
+      "azurerm_nat_gateway",
+      "azurerm_nat_gateway_public_ip_association",
+      "azurerm_network_interface",
+      "azurerm_network_interface_security_group_association",
+      "azurerm_network_security_group",
+      "azurerm_public_ip",
+      "azurerm_resource_group",
+      "azurerm_route_table",
+      "azurerm_subnet_nat_gateway_association",
+      "azurerm_subnet_route_table_association",
+      "azurerm_virtual_network",
+      "azurerm_virtual_network_peering",
+      "random_id",
+      "random_pet"
+    ],
+    "repo": "Azure/terraform",
+    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
+    "directory": "quickstart/301-nat-gateway-hub-spoke-firewall"
+  },
+  {
+    "id": "gcp-backupdr-backup-plan",
+    "provider": "GCP",
+    "name": "백업 정책과 백업 볼트",
+    "kinds": [
+      "google_backup_dr_backup_plan",
+      "google_backup_dr_backup_vault"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "backupdr/backup_plan"
+  },
+  {
+    "id": "gcp-bigquery-bigquery-create-dataset-cmek",
+    "provider": "GCP",
+    "name": "고객 관리 키로 BigQuery 암호화",
+    "kinds": [
+      "google_bigquery_dataset",
+      "google_kms_crypto_key",
+      "google_kms_key_ring",
+      "google_project_iam_member",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "bigquery/bigquery_create_dataset_cmek"
+  },
+  {
+    "id": "gcp-bigtable-bigtable-create-instance",
+    "provider": "GCP",
+    "name": "Bigtable 인스턴스",
+    "kinds": [
+      "google_bigtable_instance",
+      "google_tags_tag_key",
+      "google_tags_tag_value"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "bigtable/bigtable_create_instance"
+  },
+  {
+    "id": "gcp-certificate-manager-dns-managed-zone-with-wildcard-certificate",
+    "provider": "GCP",
+    "name": "DNS 와일드카드 인증서",
+    "kinds": [
+      "google_certificate_manager_certificate",
+      "google_certificate_manager_certificate_map",
+      "google_certificate_manager_certificate_map_entry",
+      "google_certificate_manager_dns_authorization",
+      "google_dns_managed_zone",
+      "google_dns_record_set",
+      "google_project_service",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "certificate_manager/dns_managed_zone_with_wildcard_certificate"
+  },
+  {
+    "id": "gcp-cloud-sql-mysql-instance-backup",
+    "provider": "GCP",
+    "name": "Cloud SQL 백업",
+    "kinds": [
+      "google_sql_database_instance"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "cloud_sql/mysql_instance_backup"
+  },
+  {
+    "id": "gcp-compute-add-persistent-disk",
+    "provider": "GCP",
+    "name": "Compute Engine 영구 디스크 연결",
+    "kinds": [
+      "google_compute_disk",
+      "google_compute_instance",
+      "google_project_service"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "compute/add_persistent_disk"
+  },
+  {
+    "id": "gcp-compute-disk-async-replication",
+    "provider": "GCP",
+    "name": "비동기 디스크 복제",
+    "kinds": [
+      "google_compute_disk",
+      "google_compute_disk_async_replication"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "compute/disk_async_replication"
+  },
+  {
+    "id": "gcp-compute-region-autoscaler-basic",
+    "provider": "GCP",
+    "name": "리전 자동 확장 그룹",
+    "kinds": [
+      "google_compute_instance_template",
+      "google_compute_region_autoscaler",
+      "google_compute_region_instance_group_manager",
+      "google_compute_target_pool"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "compute/region_autoscaler_basic"
+  },
+  {
+    "id": "gcp-compute-service-account-for-instances",
+    "provider": "GCP",
+    "name": "VM 전용 서비스 계정",
+    "kinds": [
+      "google_compute_instance",
+      "google_service_account"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "compute/service_account_for_instances"
+  },
+  {
+    "id": "gcp-compute-zonal-mig-health-check",
+    "provider": "GCP",
+    "name": "인스턴스 그룹 상태 검사",
+    "kinds": [
+      "google_compute_firewall",
+      "google_compute_http_health_check",
+      "google_compute_instance_group_manager",
+      "google_compute_instance_template"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "compute/zonal_mig_health_check"
+  },
+  {
+    "id": "gcp-dns-managed-zone-private",
+    "provider": "GCP",
+    "name": "프라이빗 DNS 영역",
+    "kinds": [
+      "google_compute_network",
+      "google_dns_managed_zone"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "dns/managed_zone_private"
+  },
+  {
+    "id": "gcp-dns-managed-zone-private-peering",
+    "provider": "GCP",
+    "name": "DNS 피어링",
+    "kinds": [
+      "google_compute_network",
+      "google_dns_managed_zone",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "dns/managed_zone_private_peering"
+  },
+  {
+    "id": "gcp-eventarc-advanced",
+    "provider": "GCP",
+    "name": "Eventarc Advanced 라우팅",
+    "kinds": [
+      "google_cloud_run_v2_service",
+      "google_eventarc_enrollment",
+      "google_eventarc_google_api_source",
+      "google_eventarc_message_bus",
+      "google_eventarc_pipeline",
+      "google_project_iam_member",
+      "google_project_service",
+      "google_service_account"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "eventarc/advanced"
+  },
+  {
+    "id": "gcp-eventarc-workflows",
+    "provider": "GCP",
+    "name": "이벤트 기반 Workflows",
+    "kinds": [
+      "google_eventarc_trigger",
+      "google_project_iam_member",
+      "google_project_service",
+      "google_service_account",
+      "google_storage_bucket",
+      "google_workflows_workflow",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "eventarc/workflows"
+  },
+  {
+    "id": "gcp-gke-quickstart-autopilot",
+    "provider": "GCP",
+    "name": "GKE Autopilot 클러스터",
+    "kinds": [
+      "google_compute_network",
+      "google_compute_subnetwork",
+      "google_container_cluster",
+      "kubernetes_deployment_v1",
+      "kubernetes_service_v1",
+      "time_sleep"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "gke/quickstart/autopilot"
+  },
+  {
+    "id": "gcp-gke-quickstart-multitenant",
+    "provider": "GCP",
+    "name": "멀티테넌트 GKE",
+    "kinds": [
+      "google_container_cluster",
+      "google_gke_hub_feature",
+      "google_gke_hub_membership_binding",
+      "google_gke_hub_namespace",
+      "google_gke_hub_scope",
+      "google_gke_hub_scope_rbac_role_binding",
+      "google_project_iam_member",
+      "google_service_account",
+      "google_sql_database",
+      "google_sql_database_instance",
+      "google_sql_user",
+      "kubernetes_config_map"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "gke/quickstart/multitenant"
+  },
+  {
+    "id": "gcp-managedkafka-managedkafka-create-cluster",
+    "provider": "GCP",
+    "name": "Managed Kafka 클러스터",
+    "kinds": [
+      "google_compute_network",
+      "google_compute_subnetwork",
+      "google_managed_kafka_cluster"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "managedkafka/managedkafka_create_cluster"
+  },
+  {
+    "id": "gcp-media-cdn-quickstart",
+    "provider": "GCP",
+    "name": "Media CDN 배포",
+    "kinds": [
+      "google_network_services_edge_cache_origin",
+      "google_network_services_edge_cache_service",
+      "google_storage_bucket",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "media_cdn/quickstart"
+  },
+  {
+    "id": "gcp-network-management-ipv6-dual-stack",
+    "provider": "GCP",
+    "name": "듀얼 스택 네트워크",
+    "kinds": [
+      "google_compute_firewall",
+      "google_compute_instance",
+      "google_compute_network",
+      "google_compute_subnetwork",
+      "google_network_management_connectivity_test"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "network_management/ipv6_dual_stack"
+  },
+  {
+    "id": "gcp-run-interservice",
+    "provider": "GCP",
+    "name": "Cloud Run 서비스 간 호출",
+    "kinds": [
+      "google_cloud_run_service_iam_policy",
+      "google_cloud_run_v2_service",
+      "google_service_account"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "run/interservice"
+  },
+  {
+    "id": "gcp-run-scheduled",
+    "provider": "GCP",
+    "name": "Cloud Run 예약 실행",
+    "kinds": [
+      "google_cloud_run_service_iam_member",
+      "google_cloud_run_v2_service",
+      "google_cloud_scheduler_job",
+      "google_project_service",
+      "google_service_account"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "run/scheduled"
+  },
+  {
+    "id": "gcp-run-secret-manager",
+    "provider": "GCP",
+    "name": "Secret Manager와 Cloud Run",
+    "kinds": [
+      "google_cloud_run_v2_service",
+      "google_secret_manager_secret",
+      "google_secret_manager_secret_iam_member",
+      "google_secret_manager_secret_version",
+      "google_service_account"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "run/secret_manager"
+  },
+  {
+    "id": "gcp-run-static-outbound",
+    "provider": "GCP",
+    "name": "Cloud Run 고정 송신 경로",
+    "kinds": [
+      "google_cloud_run_v2_service",
+      "google_compute_address",
+      "google_compute_network",
+      "google_compute_router",
+      "google_compute_router_nat",
+      "google_compute_subnetwork",
+      "google_project_service",
+      "google_vpc_access_connector"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "run/static_outbound"
+  },
+  {
+    "id": "gcp-storage-object-lifecycle-setting",
+    "provider": "GCP",
+    "name": "오브젝트 수명 주기",
+    "kinds": [
+      "google_storage_bucket",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "storage/object_lifecycle_setting"
+  },
+  {
+    "id": "gcp-storage-pubsub-notifications",
+    "provider": "GCP",
+    "name": "버킷 Pub/Sub 알림",
+    "kinds": [
+      "google_pubsub_topic",
+      "google_pubsub_topic_iam_binding",
+      "google_storage_bucket",
+      "google_storage_notification",
+      "random_id"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "storage/pubsub_notifications"
+  },
+  {
+    "id": "gcp-vpc-private-service-connect-private-service-connect-google-apis",
+    "provider": "GCP",
+    "name": "Google API용 Private Service Connect",
+    "kinds": [
+      "google_compute_global_address",
+      "google_compute_global_forwarding_rule",
+      "google_compute_network",
+      "google_compute_subnetwork"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "vpc/private_service_connect/private_service_connect_google_apis"
+  },
+  {
+    "id": "gcp-vpn-ha-vpn-gateway-gcp-to-gcp",
+    "provider": "GCP",
+    "name": "GCP 간 HA VPN",
+    "kinds": [
+      "google_compute_ha_vpn_gateway",
+      "google_compute_network",
+      "google_compute_router",
+      "google_compute_router_interface",
+      "google_compute_router_peer",
+      "google_compute_subnetwork",
+      "google_compute_vpn_tunnel"
+    ],
+    "repo": "terraform-google-modules/terraform-docs-samples",
+    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
+    "directory": "vpn/ha_vpn_gateway_gcp_to_gcp"
+  }
+]

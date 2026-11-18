@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "title": "AWS · S3 이벤트 처리 워크플로",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_event_rule",
+      "label": "aws_cloudwatch_event_rule.MyEventRule",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 64,
+      "address": "aws_cloudwatch_event_rule.MyEventRule",
+      "references": [
+        "aws_s3_bucket.MyS3Bucket"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_cloudwatch_event_target",
+      "label": "aws_cloudwatch_event_target.MyEventRuleTarget",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 81,
+      "address": "aws_cloudwatch_event_target.MyEventRuleTarget",
+      "references": [
+        "aws_sfn_state_machine.MySTFRoleMachine",
+        "aws_sqs_queue.MySQSDLQ-Queue",
+        "aws_iam_role.MyEventRuleTargetRole",
+        "aws_cloudwatch_event_rule.MyEventRule"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.MyEventRuleTargetRole",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 101,
+      "address": "aws_iam_role.MyEventRuleTargetRole",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.MySTFRole",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 205,
+      "address": "aws_iam_role.MySTFRole",
+      "references": [
+        "data.aws_region.current"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.MyEventRuleTargetPolicy",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 115,
+      "address": "aws_iam_role_policy.MyEventRuleTargetPolicy",
+      "references": [
+        "aws_sfn_state_machine.MySTFRoleMachine",
+        "aws_iam_role.MyEventRuleTargetRole"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.MyS3Bucket",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "address": "aws_s3_bucket.MyS3Bucket",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_s3_bucket_notification",
+      "label": "aws_s3_bucket_notification.MyS3BucketNotification",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "aws_s3_bucket_notification.MyS3BucketNotification",
+      "references": [
+        "aws_s3_bucket.MyS3Bucket"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_s3_bucket_policy",
+      "label": "aws_s3_bucket_policy.MyS3BucketPolicy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 32,
+      "address": "aws_s3_bucket_policy.MyS3BucketPolicy",
+      "references": [
+        "aws_s3_bucket.MyS3Bucket",
+        "data.aws_iam_policy_document.MyS3BucketPolicyDocument"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_sfn_state_machine",
+      "label": "aws_sfn_state_machine.MySTFRoleMachine",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 185,
+      "address": "aws_sfn_state_machine.MySTFRoleMachine",
+      "references": [
+        "aws_iam_role.MySTFRole"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_sqs_queue",
+      "label": "aws_sqs_queue.MySQSDLQ-Queue",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 137,
+      "address": "aws_sqs_queue.MySQSDLQ-Queue",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_sqs_queue_policy",
+      "label": "aws_sqs_queue_policy.MySQSDLQ-Policy",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 141,
+      "address": "aws_sqs_queue_policy.MySQSDLQ-Policy",
+      "references": [
+        "data.aws_region.current",
+        "data.aws_caller_identity.current",
+        "aws_sqs_queue.MySQSDLQ-Queue",
+        "aws_cloudwatch_event_rule.MyEventRule"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_iam_policy_document",
+      "label": "data.aws_iam_policy_document.MyS3BucketPolicyDocument",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "data.aws_iam_policy_document.MyS3BucketPolicyDocument",
+      "references": [
+        "aws_s3_bucket.MyS3Bucket"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n\n  required_version = \">= 0.14.9\"\n}\n\n# Storing current Account ID and actual AWS region\ndata \"aws_caller_identity\" \"current\" {}\ndata \"aws_region\" \"current\" {}\n\n\n#################################################################\n# S3 Bucket\n#################################################################\n# Creating a new S3 bucket\nresource \"aws_s3_bucket\" \"MyS3Bucket\" {\n  bucket_prefix = \"s3-eventbridge-sfn-tf-\"\n}\n\n# Sending notifications to EventBridge for all events in the bucket\nresource \"aws_s3_bucket_notification\" \"MyS3BucketNotification\" {\n  bucket      = aws_s3_bucket.MyS3Bucket.id\n  eventbridge = true\n}\n\n# Blocking s3 bucket non secure access\nresource \"aws_s3_bucket_policy\" \"MyS3BucketPolicy\" {\n  bucket = aws_s3_bucket.MyS3Bucket.id\n  policy = data.aws_iam_policy_document.MyS3BucketPolicyDocument.json\n}\n\ndata \"aws_iam_policy_document\" \"MyS3BucketPolicyDocument\" {\n  statement  {\n    effect = \"Deny\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"*\"]\n    }\n    actions = [\n      \"s3:*\"\n    ]\n    resources = [\n      \"arn:aws:s3:::${aws_s3_bucket.MyS3Bucket.id}\",\n      \"arn:aws:s3:::${aws_s3_bucket.MyS3Bucket.id}/*\"\n    ]\n    condition {\n      test     = \"Bool\"\n      variable = \"aws:SecureTransport\"\n      values   = [\"false\"]\n    }\n  }\n}\n\n\n#################################################################\n# EventBridge Rule\n#################################################################\n# Creating an EventBridge rule\nresource \"aws_cloudwatch_event_rule\" \"MyEventRule\" {\n  name          = \"s3-eventbridge-sfn-tf-eventrule\"\n  description   = \"Object create events on bucket s3://${aws_s3_bucket.MyS3Bucket.id}\"\n  event_pattern = <<EOF\n{\n  \"detail-type\": [\"Object Created\"],\n  \"source\": [\"aws.s3\"],\n  \"detail\": {\n    \"bucket\": {\n      \"name\": [\"${aws_s3_bucket.MyS3Bucket.id}\"]\n    }\n  }\n}\nEOF\n}\n\n# Setting Event Target, DLQ and transformer of the EventBridge rule\nresource \"aws_cloudwatch_event_target\" \"MyEventRuleTarget\" {\n  rule      = aws_cloudwatch_event_rule.MyEventRule.name\n  arn       = aws_sfn_state_machine.MySTFRoleMachine.arn\n  role_arn  = aws_iam_role.MyEventRuleTargetRole.arn\n  \n  dead_letter_config {\n    arn = aws_sqs_queue.MySQSDLQ-Queue.arn\n  }\n  \n  input_transformer {\n    input_paths = {\n      \"detail\": \"$.detail\"\n    } \n    input_template = <<EOF\n{\"input\":{\"detail\":<detail>},\"inputType\":0}\nEOF\n}\n}\n\n# Creating Event Target IAM Role\nresource \"aws_iam_role\" \"MyEventRuleTargetRole\" {\n  name               = \"s3-eventbridge-sfn-tf-EventRole\"\n  assume_role_policy = jsonencode({\n    Version   = \"2012-10-17\"\n    Statement = [\n      {\n        Effect    = \"Allow\"\n        Principal = { Service = \"events.amazonaws.com\" }\n        Action    = \"sts:AssumeRole\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy\" \"MyEventRuleTargetPolicy\" {\n  name   = \"s3-eventbridge-sfn-tf-EventRolePolicy\"\n  policy = jsonencode(\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Action\": \"states:StartExecution\",\n            \"Resource\": \"${aws_sfn_state_machine.MySTFRoleMachine.arn}\",\n            \"Effect\": \"Allow\"\n        }\n    ]\n}\n)\n  role = aws_iam_role.MyEventRuleTargetRole.name\n}\n\n\n#################################################################\n# SQS - Dead Letter Queue (DLQ)\n#################################################################\n# Creating SQS - Dead Letter Queue (DLQ)\nresource \"aws_sqs_queue\" \"MySQSDLQ-Queue\" {\n  name            = \"s3-eventbridge-sfn-tf-SQSDLQQueue\"\n}\n\nresource \"aws_sqs_queue_policy\" \"MySQSDLQ-Policy\" {\n  queue_url = aws_sqs_queue.MySQSDLQ-Queue.id\n\n  policy = <<POLICY\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Deny\",\n      \"Principal\": {\n        \"AWS\": \"*\"\n      },\n      \"Action\": \"sqs:*\",\n      \"Resource\": \"arn:aws:sqs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:${aws_sqs_queue.MySQSDLQ-Queue.name}\",\n      \"Condition\": {\n        \"Bool\": {\n          \"aws:SecureTransport\": \"false\"\n        }\n      }\n    },\n    {\n      \"Sid\": \"AllowEventRuleS3EventBridgeSfnStackStackpatternEventsRule\",\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"Service\": \"events.amazonaws.com\"\n      },\n      \"Action\": \"sqs:SendMessage\",\n      \"Resource\": \"arn:aws:sqs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:${aws_sqs_queue.MySQSDLQ-Queue.name}\",\n      \"Condition\": {\n        \"ArnEquals\": {\n          \"aws:SourceArn\": \"${aws_cloudwatch_event_rule.MyEventRule.arn}\"\n        }\n      }\n    }\n  ]\n}\nPOLICY\n}\n\n\n#################################################################\n# Step Funcions \n#################################################################\n# Creating Step Functions Machine\nresource \"aws_sfn_state_machine\" \"MySTFRoleMachine\" {\n  name     = \"s3-eventbridge-sfn-tf-StepFunctions\"\n  role_arn = aws_iam_role.MySTFRole.arn\n  type     = \"STANDARD\"\n\n  definition = <<EOF\n{\n    \"StartAt\": \"state\",\n    \"States\": {\n      \"state\": {\n        \"Type\": \"Pass\",\n        \"End\": true\n      }\n    }\n}\nEOF\n\n}\n\n# Creating Step Functions Machine Role\nresource \"aws_iam_role\" \"MySTFRole\" {\n  name               = \"s3-eventbridge-sfn-tf-StepFunctionsRole\"\n  assume_role_policy = jsonencode({\n    Version   = \"2012-10-17\"\n    Statement = [\n      {\n        Effect    = \"Allow\"\n        Principal = { Service = \"states.${data.aws_region.current.region}.amazonaws.com\" }\n        Action    = \"sts:AssumeRole\"\n      }\n    ]\n  })\n}\n\n\n#################################################################\n# Outputs\n#################################################################\n# Displaying the SQS Dead Letter Queue, EventBridge rule, S3 bucket and StepFunctions\noutput \"SQSDeadLetterQueue\" {\n  value       = aws_sqs_queue.MySQSDLQ-Queue.arn\n  description = \"The SQS Dead Letter Queue ARN\"\n}\noutput \"EventBridgeRuleARN\" {\n  value       = aws_cloudwatch_event_rule.MyEventRule.arn\n  description = \"The EventBridge Rule ARN\"\n}\noutput \"S3BucketName\" {\n  value       = aws_s3_bucket.MyS3Bucket.id\n  description = \"The S3 Bucket Name\"\n}\noutput \"StepFunctions\" {\n  value       = aws_sfn_state_machine.MySTFRoleMachine.arn\n  description = \"The StepFunctions Machine ARN\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/s3-eventbridge-sfn/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

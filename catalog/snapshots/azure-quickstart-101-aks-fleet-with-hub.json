@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "title": "Azure · Fleet Manager 허브",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azapi_resource",
+      "label": "azapi_resource.fleet",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 25,
+      "address": "azapi_resource.fleet",
+      "references": [
+        "azurerm_resource_group.fleet_rg"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.fleet_rg",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "azurerm_resource_group.fleet_rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "random_string",
+      "label": "random_string.fleet_name",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "random_string.fleet_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"fleet_rg\" {\n  name     = random_pet.rg_name.id\n  location = var.resource_group_location\n}\n\nresource \"random_string\" \"fleet_name\" {\n  length  = 54\n  lower   = true\n  numeric = false\n  special = false\n  upper   = false\n}\n\nlocals {\n  fleet_name = coalesce(var.fleet_name != \"\" ? var.fleet_name : null, random_string.fleet_name.result)\n}\n\n# A fleet with a hub cluster is required for features such as managed namespaces,\n# which the plain azurerm_kubernetes_fleet_manager resource cannot provision because\n# its hub_profile attribute is deprecated and is no longer sent to the API.\nresource \"azapi_resource\" \"fleet\" {\n  type      = \"Microsoft.ContainerService/fleets@2025-03-01\"\n  name      = local.fleet_name\n  location  = azurerm_resource_group.fleet_rg.location\n  parent_id = azurerm_resource_group.fleet_rg.id\n\n  body = {\n    properties = {\n      hubProfile = {\n        dnsPrefix = local.fleet_name\n      }\n    }\n  }\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n\n  response_export_values = [\"name\"]\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.fleet_rg.name\n}\n\noutput \"fleet_name\" {\n  value = azapi_resource.fleet.name\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">= 1.5.0\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~> 4.0\"\n    }\n    azapi = {\n      source  = \"Azure/azapi\"\n      version = \"~> 2.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n\nprovider \"azapi\" {}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group\"\n}\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\nvariable \"fleet_name\" {\n  type        = string\n  description = \"Name of the fleet resource. If left blank, this value is randomly generated.\"\n  default     = \"\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-aks-fleet-with-hub\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

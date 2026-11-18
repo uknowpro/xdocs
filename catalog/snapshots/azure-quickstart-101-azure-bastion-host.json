@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "title": "Azure · Bastion 관리 접속",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_bastion_host",
+      "label": "azurerm_bastion_host.bastion",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "azurerm_bastion_host.bastion",
+      "references": [
+        "azurerm_public_ip.bastion_pip",
+        "azurerm_subnet.bastion_subnet",
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.bastion_pip",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 28,
+      "address": "azurerm_public_ip.bastion_pip",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 6,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.bastion_subnet",
+      "x": 780,
+      "y": 60,
+      "props": {
+        "name": "AzureBastionSubnet"
+      },
+      "original": {
+        "name": "AzureBastionSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 20,
+      "address": "azurerm_subnet.bastion_subnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 697,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.vnet",
+      "x": 60,
+      "y": 200,
+      "props": {
+        "name": "example-network"
+      },
+      "original": {
+        "name": "example-network"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "azurerm_virtual_network.vnet",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 457,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.rg_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Create Resource Group\nresource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\n# Create Virtual Network\nresource \"azurerm_virtual_network\" \"vnet\" {\n  name                = \"example-network\"\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\n# Create Subnet for Azure Bastion\nresource \"azurerm_subnet\" \"bastion_subnet\" {\n  name                 = \"AzureBastionSubnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = [\"10.0.1.0/24\"]\n}\n\n# Create Public IP for Azure Bastion\nresource \"azurerm_public_ip\" \"bastion_pip\" {\n  name                = \"example-pip\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\n# Create Azure Bastion Host\nresource \"azurerm_bastion_host\" \"bastion\" {\n  name                = \"example-bastion\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  ip_configuration {\n    name                 = \"configuration\"\n    subnet_id            = azurerm_subnet.bastion_subnet.id\n    public_ip_address_id = azurerm_public_ip.bastion_pip.id\n  }\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"bastion_host_name\" {\n  value = azurerm_bastion_host.bastion.name\n}\n\noutput \"bastion_host_ip\" {\n  value = azurerm_public_ip.bastion_pip.ip_address\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azure-bastion-host\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

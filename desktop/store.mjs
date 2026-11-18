@@ -219,7 +219,7 @@ export class Vault {
         notes: Array.from(
           this.db
             .prepare(
-              "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,240) AS body,(instr(char(10)||n.body,char(10)||'```xdocs-architecture')>0 OR instr(char(10)||n.body,char(10)||'```xdocs-workflow')>0) AS canvas,m.tags FROM notes n LEFT JOIN note_metadata m ON m.id=n.id ORDER BY n.title COLLATE NOCASE",
+              "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,240) AS body,(instr(char(10)||n.body,char(10)||'```xdocs-architecture')>0 OR instr(char(10)||n.body,char(10)||'```xdocs-workflow')>0) AS canvas,(instr(char(10)||n.body,char(10)||'```xdocs-sheets')>0) AS sheet,m.tags FROM notes n LEFT JOIN note_metadata m ON m.id=n.id ORDER BY n.title COLLATE NOCASE",
             )
             .iterate(),
           (n) => ({

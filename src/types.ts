@@ -1,4 +1,5 @@
 export interface Note {
+  sheet?: boolean | 0 | 1;
   canvas?: boolean | 0 | 1;
   unloaded?: boolean;
   links?: string[];
@@ -64,7 +65,44 @@ export interface CollaborationPacket {
   pending?: boolean;
   error?: string;
 }
+export type ModelProfile = {
+  name: string;
+  endpoint: string;
+  model: string;
+  hasKey: boolean;
+};
 export interface NoteAPI {
+  builderProfiles?(): Promise<ModelProfile[]>;
+  saveBuilderProfile?(data: {
+    name: string;
+    endpoint: string;
+    model: string;
+    key: string;
+    remember: boolean;
+  }): Promise<ModelProfile[]>;
+  builderResources?(request: {
+    endpoint: string;
+    uri?: string;
+    key?: string;
+    listTools?: boolean;
+    tool?: string;
+    args?: Record<string, unknown>;
+  }): Promise<{
+    tools?: {
+      name: string;
+      description?: string;
+      schema: Record<string, unknown>;
+    }[];
+    resources?: { uri: string; name: string }[];
+    text?: string;
+  }>;
+  builderModel?(request: {
+    endpoint: string;
+    model: string;
+    key: string;
+    prompt: string;
+    profile?: string;
+  }): Promise<string>;
   exportWorkflow?(kind: string, source: string): Promise<boolean>;
   importArchitecture?(
     project?: boolean,

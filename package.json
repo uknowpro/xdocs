@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@cdktn/hcl2json": "^0.25.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "chokidar": "^6.0.0",
     "electron-updater": "^6.8.11",
     "exceljs": "^4.4.0",

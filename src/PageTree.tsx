@@ -79,7 +79,12 @@ function tree(notes: Note[]) {
   return { root, pages };
 }
 export type PageKind =
-  "folder" | "sheet" | "note" | "architecture" | keyof typeof templates;
+  | "builder"
+  | "folder"
+  | "sheet"
+  | "note"
+  | "architecture"
+  | keyof typeof templates;
 export default function PageTree({
   notes,
   active,
@@ -400,6 +405,7 @@ export default function PageTree({
                   <option value="folder">폴더</option>
                   <option value="note">노트</option>
                   <option value="sheet">시트 테이블</option>
+                  <option value="builder">Builder</option>
                   <option value="architecture">IaCD 아키텍처</option>
                   {Object.entries(templates).map(([k, t]) => (
                     <option key={k} value={k}>

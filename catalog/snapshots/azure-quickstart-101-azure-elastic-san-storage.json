@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "title": "Azure · Elastic SAN 저장소",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_elastic_san",
+      "label": "azurerm_elastic_san.example",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 22,
+      "address": "azurerm_elastic_san.example",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.elastic_san_name"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_elastic_san_volume",
+      "label": "azurerm_elastic_san_volume.volume",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 40,
+      "address": "azurerm_elastic_san_volume.volume",
+      "references": [
+        "random_string.elastic_san_name",
+        "azurerm_elastic_san_volume_group.example"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_elastic_san_volume_group",
+      "label": "azurerm_elastic_san_volume_group.example",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "address": "azurerm_elastic_san_volume_group.example",
+      "references": [
+        "azurerm_elastic_san.example",
+        "random_string.elastic_san_name"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_string",
+      "label": "random_string.elastic_san_name",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "random_string.elastic_san_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Create a random name for the resource group\nresource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\n# Create a resource group\nresource \"azurerm_resource_group\" \"rg\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\n# Create a random name for the Elastic SAN\nresource \"random_string\" \"elastic_san_name\" {\n  length  = 8\n  special = false\n  upper   = false\n  lower   = true\n  numeric = false\n}\n\n# Create Elastic SAN\nresource \"azurerm_elastic_san\" \"example\" {\n  name                = coalesce(var.elastic_san_name, \"san-${random_string.elastic_san_name.result}\")\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  base_size_in_tib    = var.elastic_san_base_size_in_tib\n\n  sku {\n    name = var.elastic_san_sku_name\n  }\n}\n\n# Create Elastic SAN Volume Group\nresource \"azurerm_elastic_san_volume_group\" \"example\" {\n  name           = coalesce(var.elastic_san_volume_group_name, \"vg-${random_string.elastic_san_name.result}\")\n  elastic_san_id = azurerm_elastic_san.example.id\n}\n\n# Create Elastic SAN Volume\nresource \"azurerm_elastic_san_volume\" \"volume\" {\n  name            = coalesce(var.elastic_san_volume_name, \"volume-${random_string.elastic_san_name.result}\")\n  volume_group_id = azurerm_elastic_san_volume_group.example.id\n  size_in_gib     = var.elastic_san_volume_size_in_gib\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"elastic_san_name\" {\n  value = azurerm_elastic_san.example.name\n}\n\noutput \"elastic_san_volume_group_name\" {\n  value = azurerm_elastic_san_volume_group.example.name\n}\n\noutput \"elastic_san_volume_name\" {\n  value = azurerm_elastic_san_volume.volume.name\n}\n\noutput \"elastic_san_volume_id\" {\n  value = azurerm_elastic_san_volume.volume.id\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>4.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"elastic_san_name\" {\n  type        = string\n  default     = \"\"\n  description = \"Name of the Elastic SAN. Name is partially randomized if blank.\"\n}\n\nvariable \"elastic_san_volume_group_name\" {\n  type        = string\n  default     = \"\"\n  description = \"Name of the Elastic SAN volume group. Name is partially randomized if blank.\"\n}\n\nvariable \"elastic_san_volume_name\" {\n  type        = string\n  default     = \"\"\n  description = \"Name of the Elastic SAN volume. Name is partially randomized if blank.\"\n}\n\nvariable \"elastic_san_sku_name\" {\n  type        = string\n  default     = \"Premium_LRS\"\n  description = \"The SKU name of the Elastic SAN.\"\n}\n\nvariable \"elastic_san_base_size_in_tib\" {\n  type        = number\n  default     = 1\n  description = \"The base size of the Elastic SAN in TiB.\"\n}\n\nvariable \"elastic_san_volume_size_in_gib\" {\n  type        = number\n  default     = 1\n  description = \"The size of the Elastic SAN volume in GiB.\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azure-elastic-san-storage\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

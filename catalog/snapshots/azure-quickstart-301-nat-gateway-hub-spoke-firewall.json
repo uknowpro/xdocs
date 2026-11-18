@@ -1,0 +1,475 @@
+{
+  "version": 1,
+  "title": "Azure · 허브·스포크 NAT와 방화벽",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_bastion_host",
+      "label": "azurerm_bastion_host.main",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 109,
+      "address": "azurerm_bastion_host.main",
+      "references": [
+        "azurerm_public_ip.bastion",
+        "azurerm_virtual_network.hub",
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_firewall",
+      "label": "azurerm_firewall.main",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 159,
+      "address": "azurerm_firewall.main",
+      "references": [
+        "azurerm_firewall_policy_rule_collection_group.main",
+        "azurerm_firewall_policy.main",
+        "azurerm_public_ip.firewall",
+        "azurerm_virtual_network.hub",
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_firewall_policy",
+      "label": "azurerm_firewall_policy.main",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 131,
+      "address": "azurerm_firewall_policy.main",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_firewall_policy_rule_collection_group",
+      "label": "azurerm_firewall_policy_rule_collection_group.main",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 138,
+      "address": "azurerm_firewall_policy_rule_collection_group.main",
+      "references": [
+        "azurerm_firewall_policy.main"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_linux_virtual_machine",
+      "label": "azurerm_linux_virtual_machine.main",
+      "x": 60,
+      "y": 200,
+      "props": {
+        "size": "Standard_DS1_v2"
+      },
+      "original": {
+        "size": "Standard_DS1_v2"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 227,
+      "address": "azurerm_linux_virtual_machine.main",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main",
+        "azurerm_network_interface.vm"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_network_interface.vm.id}",
+      "nicAddress": "azurerm_network_interface.vm"
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_nat_gateway",
+      "label": "azurerm_nat_gateway.main",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 79,
+      "address": "azurerm_nat_gateway.main",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_nat_gateway_public_ip_association",
+      "label": "azurerm_nat_gateway_public_ip_association.main",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 88,
+      "address": "azurerm_nat_gateway_public_ip_association.main",
+      "references": [
+        "azurerm_nat_gateway.main",
+        "azurerm_public_ip.nat_gateway"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_network_interface",
+      "label": "azurerm_network_interface.vm",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 208,
+      "address": "azurerm_network_interface.vm",
+      "references": [
+        "azurerm_virtual_network.spoke",
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_virtual_network.spoke.id}/subnets/subnet-private"
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_network_interface_security_group_association",
+      "label": "azurerm_network_interface_security_group_association.vm",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 221,
+      "address": "azurerm_network_interface_security_group_association.vm",
+      "references": [
+        "azurerm_network_interface.vm",
+        "azurerm_network_security_group.vm"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "azurerm_network_security_group",
+      "label": "azurerm_network_security_group.vm",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 201,
+      "address": "azurerm_network_security_group.vm",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ],
+      "scopeAddress": "azurerm_resource_group.main",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 6871,
+        "address": "azurerm_resource_group.main",
+        "otherRefs": [
+          "azurerm_resource_group.main",
+          "random_pet.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.bastion",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 100,
+      "address": "azurerm_public_ip.bastion",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.firewall",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 122,
+      "address": "azurerm_public_ip.firewall",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azurerm_public_ip",
+      "label": "azurerm_public_ip.nat_gateway",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 70,
+      "address": "azurerm_public_ip.nat_gateway",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.main",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.main",
+      "references": [
+        "random_pet.main"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_route_table",
+      "label": "azurerm_route_table.spoke",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 49,
+      "address": "azurerm_route_table.spoke",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main",
+        "azurerm_firewall.main"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "azurerm_subnet_nat_gateway_association",
+      "label": "azurerm_subnet_nat_gateway_association.firewall",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 94,
+      "address": "azurerm_subnet_nat_gateway_association.firewall",
+      "references": [
+        "azurerm_nat_gateway.main",
+        "azurerm_virtual_network.hub"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "azurerm_subnet_route_table_association",
+      "label": "azurerm_subnet_route_table_association.spoke",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 64,
+      "address": "azurerm_subnet_route_table_association.spoke",
+      "references": [
+        "azurerm_route_table.spoke",
+        "azurerm_virtual_network.spoke"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.hub",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "azurerm_virtual_network.hub",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ],
+      "scopeAddress": "azurerm_resource_group.main",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 450,
+        "address": "azurerm_resource_group.main",
+        "otherRefs": [
+          "azurerm_resource_group.main",
+          "random_pet.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_18",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.spoke",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 36,
+      "address": "azurerm_virtual_network.spoke",
+      "references": [
+        "azurerm_resource_group.main",
+        "random_pet.main"
+      ],
+      "scopeAddress": "azurerm_resource_group.main",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1028,
+        "address": "azurerm_resource_group.main",
+        "otherRefs": [
+          "azurerm_resource_group.main",
+          "random_pet.main"
+        ]
+      }
+    },
+    {
+      "id": "n_import_19",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.hub_to_spoke",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 177,
+      "address": "azurerm_virtual_network_peering.hub_to_spoke",
+      "references": [
+        "azurerm_virtual_network.spoke",
+        "azurerm_resource_group.main",
+        "azurerm_virtual_network.hub"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "azurerm_virtual_network_peering",
+      "label": "azurerm_virtual_network_peering.spoke_to_hub",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 189,
+      "address": "azurerm_virtual_network_peering.spoke_to_hub",
+      "references": [
+        "azurerm_virtual_network.hub",
+        "azurerm_resource_group.main",
+        "azurerm_virtual_network.spoke"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "random_pet",
+      "label": "random_pet.main",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.main",
+      "references": []
+    },
+    {
+      "id": "n_import_22",
+      "kind": "random_id",
+      "label": "random_id.ssh_key_generator",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "ssh.tf",
+      "sourceLine": 2,
+      "address": "random_id.ssh_key_generator",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Generate random pet name for unique resource naming\nresource \"random_pet\" \"main\" {\n  length = 2\n}\n\n# Create Resource Group\nresource \"azurerm_resource_group\" \"main\" {\n  name     = \"rg-natfw-${random_pet.main.id}\"\n  location = var.location\n}\n\n# Hub Virtual Network\nresource \"azurerm_virtual_network\" \"hub\" {\n  name                = \"vnet-hub-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  address_space       = [\"10.0.0.0/16\"]\n\n  subnet {\n    name             = \"subnet-1\"\n    address_prefixes = [\"10.0.0.0/24\"]\n  }\n\n  subnet {\n    name             = \"AzureFirewallSubnet\"\n    address_prefixes = [\"10.0.1.64/26\"]\n  }\n\n  subnet {\n    name             = \"AzureBastionSubnet\"\n    address_prefixes = [\"10.0.1.0/26\"]\n  }\n}\n\n# Spoke Virtual Network\nresource \"azurerm_virtual_network\" \"spoke\" {\n  name                = \"vnet-spoke-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  address_space       = [\"10.1.0.0/16\"]\n\n  subnet {\n    name             = \"subnet-private\"\n    address_prefixes = [\"10.1.0.0/24\"]\n  }\n}\n\n# Route Table for Spoke Network\nresource \"azurerm_route_table\" \"spoke\" {\n  name                          = \"rt-spoke-${random_pet.main.id}\"\n  location                      = azurerm_resource_group.main.location\n  resource_group_name           = azurerm_resource_group.main.name\n  bgp_route_propagation_enabled = false\n\n  route {\n    name                   = \"route-to-hub\"\n    address_prefix         = \"0.0.0.0/0\"\n    next_hop_type          = \"VirtualAppliance\"\n    next_hop_in_ip_address = azurerm_firewall.main.ip_configuration[0].private_ip_address\n  }\n}\n\n# Associate Route Table with Spoke Subnet\nresource \"azurerm_subnet_route_table_association\" \"spoke\" {\n  subnet_id      = \"${azurerm_virtual_network.spoke.id}/subnets/subnet-private\"\n  route_table_id = azurerm_route_table.spoke.id\n}\n\n# Public IP for NAT Gateway\nresource \"azurerm_public_ip\" \"nat_gateway\" {\n  name                = \"pip-nat-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\n# NAT Gateway\nresource \"azurerm_nat_gateway\" \"main\" {\n  name                    = \"ng-${random_pet.main.id}\"\n  location                = azurerm_resource_group.main.location\n  resource_group_name     = azurerm_resource_group.main.name\n  sku_name                = \"Standard\"\n  idle_timeout_in_minutes = 4\n}\n\n# Associate NAT Gateway with Public IP\nresource \"azurerm_nat_gateway_public_ip_association\" \"main\" {\n  nat_gateway_id       = azurerm_nat_gateway.main.id\n  public_ip_address_id = azurerm_public_ip.nat_gateway.id\n}\n\n# Associate NAT Gateway with Firewall Subnet\nresource \"azurerm_subnet_nat_gateway_association\" \"firewall\" {\n  subnet_id      = \"${azurerm_virtual_network.hub.id}/subnets/AzureFirewallSubnet\"\n  nat_gateway_id = azurerm_nat_gateway.main.id\n}\n\n# Public IP for Azure Bastion\nresource \"azurerm_public_ip\" \"bastion\" {\n  name                = \"pip-bastion-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\n# Azure Bastion\nresource \"azurerm_bastion_host\" \"main\" {\n  name                = \"bas-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n\n  ip_configuration {\n    name                 = \"configuration\"\n    subnet_id            = \"${azurerm_virtual_network.hub.id}/subnets/AzureBastionSubnet\"\n    public_ip_address_id = azurerm_public_ip.bastion.id\n  }\n}\n\n# Public IP for Azure Firewall\nresource \"azurerm_public_ip\" \"firewall\" {\n  name                = \"pip-firewall-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  allocation_method   = \"Static\"\n  sku                 = \"Standard\"\n}\n\n# Firewall Policy\nresource \"azurerm_firewall_policy\" \"main\" {\n  name                = \"afwp-${random_pet.main.id}\"\n  resource_group_name = azurerm_resource_group.main.name\n  location            = azurerm_resource_group.main.location\n}\n\n# Network Rule Collection Group for Firewall Policy\nresource \"azurerm_firewall_policy_rule_collection_group\" \"main\" {\n  name               = \"DefaultNetworkRuleCollectionGroup\"\n  firewall_policy_id = azurerm_firewall_policy.main.id\n  priority           = 200\n\n  network_rule_collection {\n    name     = \"spoke-to-internet\"\n    priority = 100\n    action   = \"Allow\"\n\n    rule {\n      name                  = \"allow-web\"\n      protocols             = [\"TCP\"]\n      source_addresses      = [\"10.1.0.0/24\"]\n      destination_addresses = [\"*\"]\n      destination_ports     = [\"80\", \"443\"]\n    }\n  }\n}\n\n# Azure Firewall\nresource \"azurerm_firewall\" \"main\" {\n  name                = \"afw-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  sku_name            = \"AZFW_VNet\"\n  sku_tier            = \"Standard\"\n  firewall_policy_id  = azurerm_firewall_policy.main.id\n\n  ip_configuration {\n    name                 = \"configuration\"\n    subnet_id            = \"${azurerm_virtual_network.hub.id}/subnets/AzureFirewallSubnet\"\n    public_ip_address_id = azurerm_public_ip.firewall.id\n  }\n\n  depends_on = [azurerm_firewall_policy_rule_collection_group.main]\n}\n\n# Virtual Network Peering - Hub to Spoke\nresource \"azurerm_virtual_network_peering\" \"hub_to_spoke\" {\n  name                         = \"peer-hub-to-spoke\"\n  resource_group_name          = azurerm_resource_group.main.name\n  virtual_network_name         = azurerm_virtual_network.hub.name\n  remote_virtual_network_id    = azurerm_virtual_network.spoke.id\n  allow_virtual_network_access = true\n  allow_forwarded_traffic      = true\n  allow_gateway_transit        = false\n  use_remote_gateways          = false\n}\n\n# Virtual Network Peering - Spoke to Hub\nresource \"azurerm_virtual_network_peering\" \"spoke_to_hub\" {\n  name                         = \"peer-spoke-to-hub\"\n  resource_group_name          = azurerm_resource_group.main.name\n  virtual_network_name         = azurerm_virtual_network.spoke.name\n  remote_virtual_network_id    = azurerm_virtual_network.hub.id\n  allow_virtual_network_access = true\n  allow_forwarded_traffic      = true\n  allow_gateway_transit        = false\n  use_remote_gateways          = false\n}\n\n# Network Security Group for VM\nresource \"azurerm_network_security_group\" \"vm\" {\n  name                = \"nsg-vm-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n}\n\n# Network Interface for VM\nresource \"azurerm_network_interface\" \"vm\" {\n  name                = \"nic-vm-spoke-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n\n  ip_configuration {\n    name                          = \"internal\"\n    subnet_id                     = \"${azurerm_virtual_network.spoke.id}/subnets/subnet-private\"\n    private_ip_address_allocation = \"Dynamic\"\n  }\n}\n\n# Associate Network Security Group with Network Interface\nresource \"azurerm_network_interface_security_group_association\" \"vm\" {\n  network_interface_id      = azurerm_network_interface.vm.id\n  network_security_group_id = azurerm_network_security_group.vm.id\n}\n\n# Virtual Machine in Spoke Network\nresource \"azurerm_linux_virtual_machine\" \"main\" {\n  name                = \"vm-spoke-${random_pet.main.id}\"\n  location            = azurerm_resource_group.main.location\n  resource_group_name = azurerm_resource_group.main.name\n  size                = \"Standard_DS1_v2\"\n  admin_username      = var.admin_username\n\n  # Disable password authentication and use SSH keys\n  disable_password_authentication = true\n\n  network_interface_ids = [\n    azurerm_network_interface.vm.id,\n  ]\n\n  admin_ssh_key {\n    username   = var.admin_username\n    public_key = local.ssh_public_key\n  }\n\n  os_disk {\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Standard_LRS\"\n  }\n\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"0001-com-ubuntu-server-jammy\"\n    sku       = \"22_04-lts-gen2\"\n    version   = \"latest\"\n  }\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"hub_vnet_id\" {\n  description = \"ID of the hub virtual network\"\n  value       = azurerm_virtual_network.hub.id\n}\n\noutput \"spoke_vnet_id\" {\n  description = \"ID of the spoke virtual network\"\n  value       = azurerm_virtual_network.spoke.id\n}\n\noutput \"firewall_private_ip\" {\n  description = \"Private IP address of the Azure Firewall\"\n  value       = azurerm_firewall.main.ip_configuration[0].private_ip_address\n}\n\noutput \"nat_gateway_public_ip\" {\n  description = \"Public IP address of the NAT Gateway\"\n  value       = azurerm_public_ip.nat_gateway.ip_address\n}\n\noutput \"vm_private_ip\" {\n  description = \"Private IP address of the virtual machine\"\n  value       = azurerm_network_interface.vm.private_ip_address\n}\n\noutput \"bastion_fqdn\" {\n  description = \"FQDN of the Azure Bastion\"\n  value       = azurerm_bastion_host.main.dns_name\n}\n\noutput \"resource_group_name\" {\n  description = \"Name of the resource group\"\n  value       = azurerm_resource_group.main.name\n}\n\noutput \"vm_name\" {\n  description = \"Name of the virtual machine\"\n  value       = azurerm_linux_virtual_machine.main.name\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>4.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "ssh.tf",
+      "content": "# SSH Key configuration for Linux VMs\nresource \"random_id\" \"ssh_key_generator\" {\n  byte_length = 8\n}\n\n# Note: In production, you should provide your own SSH public key\n# This is for demonstration purposes only\nlocals {\n  ssh_public_key = var.admin_ssh_key\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"location\" {\n  description = \"Location for all resources\"\n  type        = string\n  default     = \"East US\"\n}\n\nvariable \"admin_username\" {\n  description = \"Admin username for the virtual machine\"\n  type        = string\n  default     = \"azureuser\"\n}\n\nvariable \"admin_ssh_key\" {\n  description = \"SSH public key for the virtual machine\"\n  type        = string\n  sensitive   = true\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/301-nat-gateway-hub-spoke-firewall\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

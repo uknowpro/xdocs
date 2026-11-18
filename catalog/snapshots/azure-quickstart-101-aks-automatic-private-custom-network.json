@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "title": "Azure · 프라이빗 AKS 사용자 지정 네트워크",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_kubernetes_automatic_cluster",
+      "label": "azurerm_kubernetes_automatic_cluster.aks_automatic",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 80,
+      "address": "azurerm_kubernetes_automatic_cluster.aks_automatic",
+      "references": [
+        "azurerm_subnet.api_server",
+        "azurerm_role_assignment.network_contributor",
+        "azurerm_subnet.user_nodes",
+        "azurerm_subnet.system_nodes",
+        "azurerm_user_assigned_identity.aks",
+        "azurerm_resource_group.rg",
+        "random_pet.cluster_name"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 7,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.network_contributor",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 67,
+      "address": "azurerm_role_assignment.network_contributor",
+      "references": [
+        "azurerm_user_assigned_identity.aks",
+        "azurerm_virtual_network.vnet"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.api_server",
+      "x": 780,
+      "y": 60,
+      "props": {
+        "name": "apiServerSubnet"
+      },
+      "original": {
+        "name": "apiServerSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "address": "azurerm_subnet.api_server",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 881,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.system_nodes",
+      "x": 60,
+      "y": 200,
+      "props": {
+        "name": "managedSystemNodeSubnet"
+      },
+      "original": {
+        "name": "managedSystemNodeSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 46,
+      "address": "azurerm_subnet.system_nodes",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1747,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.user_nodes",
+      "x": 300,
+      "y": 200,
+      "props": {
+        "name": "userNodeSubnet"
+      },
+      "original": {
+        "name": "userNodeSubnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 38,
+      "address": "azurerm_subnet.user_nodes",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "scopeAddress": "azurerm_virtual_network.vnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1412,
+        "address": "azurerm_virtual_network.vnet",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_user_assigned_identity",
+      "label": "azurerm_user_assigned_identity.aks",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 60,
+      "address": "azurerm_user_assigned_identity.aks",
+      "references": [
+        "azurerm_resource_group.rg"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.vnet",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "azurerm_virtual_network.vnet",
+      "references": [
+        "azurerm_resource_group.rg"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 555,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg"
+        ]
+      }
+    },
+    {
+      "id": "n_import_8",
+      "kind": "random_pet",
+      "label": "random_pet.cluster_name",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 75,
+      "address": "random_pet.cluster_name",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 2,
+      "address": "random_pet.rg_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Create a random name for the resource group using random_pet\nresource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\n# Create a resource group using the generated random name\nresource \"azurerm_resource_group\" \"rg\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\n# Create the custom virtual network that hosts the cluster\nresource \"azurerm_virtual_network\" \"vnet\" {\n  name                = var.virtual_network_name\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  address_space       = var.virtual_network_address_space\n}\n\n# Create the subnet delegated to AKS for API Server VNet Integration\nresource \"azurerm_subnet\" \"api_server\" {\n  name                 = \"apiServerSubnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = var.api_server_subnet_address_prefixes\n\n  delegation {\n    name = \"aks-delegation\"\n\n    service_delegation {\n      name    = \"Microsoft.ContainerService/managedClusters\"\n      actions = [\"Microsoft.Network/virtualNetworks/subnets/join/action\"]\n    }\n  }\n}\n\n# Create the subnet that hosts the user node pools\nresource \"azurerm_subnet\" \"user_nodes\" {\n  name                 = \"userNodeSubnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = var.user_node_subnet_address_prefixes\n}\n\n# Create the subnet that hosts the managed system node pool\nresource \"azurerm_subnet\" \"system_nodes\" {\n  name                 = \"managedSystemNodeSubnet\"\n  resource_group_name  = azurerm_resource_group.rg.name\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  address_prefixes     = var.system_node_subnet_address_prefixes\n\n  lifecycle {\n    # AKS adds its own managed cluster delegation to this subnet after the\n    # cluster is created.\n    ignore_changes = [delegation]\n  }\n}\n\n# Create the user-assigned managed identity used by the cluster\nresource \"azurerm_user_assigned_identity\" \"aks\" {\n  name                = var.identity_name\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n}\n\n# Grant the cluster identity Network Contributor on the virtual network\nresource \"azurerm_role_assignment\" \"network_contributor\" {\n  scope                = azurerm_virtual_network.vnet.id\n  role_definition_name = \"Network Contributor\"\n  principal_id         = azurerm_user_assigned_identity.aks.principal_id\n  principal_type       = \"ServicePrincipal\"\n}\n\n# Create a random name for the AKS Automatic cluster\nresource \"random_pet\" \"cluster_name\" {\n  prefix = var.cluster_name_prefix\n}\n\n# Create the private AKS Automatic cluster in the custom virtual network\nresource \"azurerm_kubernetes_automatic_cluster\" \"aks_automatic\" {\n  name                = random_pet.cluster_name.id\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n\n  identity {\n    type         = \"UserAssigned\"\n    identity_ids = [azurerm_user_assigned_identity.aks.id]\n  }\n\n  api_server_access {\n    subnet_id = azurerm_subnet.api_server.id\n  }\n\n  hosted_system {\n    node_subnet_id        = azurerm_subnet.user_nodes.id\n    system_node_subnet_id = azurerm_subnet.system_nodes.id\n  }\n\n  # The private_cluster block gives the API server a private IP address in the\n  # virtual network. Reaching it requires private connectivity and DNS\n  # resolution of the private FQDN, which peering, a VPN, or ExpressRoute can\n  # provide from outside this virtual network.\n  private_cluster {\n    public_fully_qualified_domain_name_enabled = var.public_fully_qualified_domain_name_enabled\n  }\n\n  depends_on = [azurerm_role_assignment.network_contributor]\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"cluster_name\" {\n  value = azurerm_kubernetes_automatic_cluster.aks_automatic.name\n}\n\noutput \"cluster_id\" {\n  value = azurerm_kubernetes_automatic_cluster.aks_automatic.id\n}\n\noutput \"node_resource_group_id\" {\n  value = azurerm_kubernetes_automatic_cluster.aks_automatic.node_resource_group_id\n}\n\noutput \"virtual_network_name\" {\n  value = azurerm_virtual_network.vnet.name\n}\n\noutput \"private_fully_qualified_domain_name\" {\n  value = azurerm_kubernetes_automatic_cluster.aks_automatic.private_fully_qualified_domain_name\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">= 1.0\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>5.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"westus2\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"cluster_name_prefix\" {\n  type        = string\n  default     = \"aks-automatic\"\n  description = \"Prefix of the AKS Automatic cluster name that's combined with a random ID so the name is unique in your Azure subscription.\"\n}\n\nvariable \"public_fully_qualified_domain_name_enabled\" {\n  type        = bool\n  default     = false\n  description = \"Whether to provision a public FQDN for the private cluster.\"\n}\n\nvariable \"virtual_network_name\" {\n  type        = string\n  default     = \"aks-automatic-vnet\"\n  description = \"Name of the custom virtual network that hosts the cluster.\"\n}\n\nvariable \"identity_name\" {\n  type        = string\n  default     = \"aks-automatic-identity\"\n  description = \"Name of the user-assigned managed identity that the cluster uses.\"\n}\n\nvariable \"virtual_network_address_space\" {\n  type        = list(string)\n  default     = [\"172.19.0.0/16\"]\n  description = \"Address space of the custom virtual network.\"\n}\n\nvariable \"api_server_subnet_address_prefixes\" {\n  type        = list(string)\n  default     = [\"172.19.0.0/28\"]\n  description = \"Address prefixes of the subnet delegated to the cluster API server.\"\n}\n\nvariable \"user_node_subnet_address_prefixes\" {\n  type        = list(string)\n  default     = [\"172.19.1.0/24\"]\n  description = \"Address prefixes of the subnet that hosts the user node pools.\"\n}\n\nvariable \"system_node_subnet_address_prefixes\" {\n  type        = list(string)\n  default     = [\"172.19.0.64/26\"]\n  description = \"Address prefixes of the subnet that hosts the managed system node pool.\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-aks-automatic-private-custom-network\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

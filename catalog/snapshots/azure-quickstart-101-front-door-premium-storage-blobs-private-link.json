@@ -1,0 +1,293 @@
+{
+  "version": 1,
+  "title": "Azure · Front Door와 Private Link Blob",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_cdn_frontdoor_custom_domain",
+      "label": "azurerm_cdn_frontdoor_custom_domain.my_custom_domain",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 82,
+      "address": "azurerm_cdn_frontdoor_custom_domain.my_custom_domain",
+      "references": [
+        "azurerm_cdn_frontdoor_profile.my_front_door"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_cdn_frontdoor_endpoint",
+      "label": "azurerm_cdn_frontdoor_endpoint.my_endpoint",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 20,
+      "address": "azurerm_cdn_frontdoor_endpoint.my_endpoint",
+      "references": [
+        "azurerm_cdn_frontdoor_profile.my_front_door"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_cdn_frontdoor_firewall_policy",
+      "label": "azurerm_cdn_frontdoor_firewall_policy.my_waf_policy",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 93,
+      "address": "azurerm_cdn_frontdoor_firewall_policy.my_waf_policy",
+      "references": [
+        "azurerm_resource_group.my_resource_group"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_cdn_frontdoor_origin",
+      "label": "azurerm_cdn_frontdoor_origin.my_blob_container_origin",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 43,
+      "address": "azurerm_cdn_frontdoor_origin.my_blob_container_origin",
+      "references": [
+        "azurerm_cdn_frontdoor_origin_group.my_origin_group",
+        "azurerm_storage_account.my_storage_account"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_cdn_frontdoor_origin_group",
+      "label": "azurerm_cdn_frontdoor_origin_group.my_origin_group",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 25,
+      "address": "azurerm_cdn_frontdoor_origin_group.my_origin_group",
+      "references": [
+        "azurerm_cdn_frontdoor_profile.my_front_door"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_cdn_frontdoor_profile",
+      "label": "azurerm_cdn_frontdoor_profile.my_front_door",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 14,
+      "address": "azurerm_cdn_frontdoor_profile.my_front_door",
+      "references": [
+        "azurerm_resource_group.my_resource_group"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_cdn_frontdoor_route",
+      "label": "azurerm_cdn_frontdoor_route.my_route",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 64,
+      "address": "azurerm_cdn_frontdoor_route.my_route",
+      "references": [
+        "azurerm_cdn_frontdoor_custom_domain.my_custom_domain",
+        "azurerm_cdn_frontdoor_endpoint.my_endpoint",
+        "azurerm_cdn_frontdoor_origin_group.my_origin_group",
+        "azurerm_cdn_frontdoor_origin.my_blob_container_origin"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_cdn_frontdoor_security_policy",
+      "label": "azurerm_cdn_frontdoor_security_policy.my_security_policy",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "front-door.tf",
+      "sourceLine": 113,
+      "address": "azurerm_cdn_frontdoor_security_policy.my_security_policy",
+      "references": [
+        "azurerm_cdn_frontdoor_profile.my_front_door",
+        "azurerm_cdn_frontdoor_custom_domain.my_custom_domain",
+        "azurerm_cdn_frontdoor_firewall_policy.my_waf_policy"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.my_resource_group",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "resource-group.tf",
+      "sourceLine": 3,
+      "address": "azurerm_resource_group.my_resource_group",
+      "references": [
+        "random_pet.rg"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "random_id",
+      "label": "random_id.front_door_endpoint_name",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "resource-group.tf",
+      "sourceLine": 12,
+      "address": "random_id.front_door_endpoint_name",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "random_id",
+      "label": "random_id.storage_account_name",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "resource-group.tf",
+      "sourceLine": 8,
+      "address": "random_id.storage_account_name",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "random_pet",
+      "label": "random_pet.rg",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "resource-group.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg",
+      "references": []
+    },
+    {
+      "id": "n_import_12",
+      "kind": "azapi_resource",
+      "label": "azapi_resource.my_storage_container",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage-account.tf",
+      "sourceLine": 24,
+      "address": "azapi_resource.my_storage_container",
+      "references": [
+        "azurerm_storage_account.my_storage_account"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.my_storage_account",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage-account.tf",
+      "sourceLine": 5,
+      "address": "azurerm_storage_account.my_storage_account",
+      "references": [
+        "azurerm_resource_group.my_resource_group"
+      ],
+      "scopeAddress": "azurerm_resource_group.my_resource_group",
+      "placementSource": {
+        "file": "storage-account.tf",
+        "offset": 241,
+        "address": "azurerm_resource_group.my_resource_group",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_14",
+      "kind": "azurerm_storage_account_network_rules",
+      "label": "azurerm_storage_account_network_rules.my_network_rules",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "storage-account.tf",
+      "sourceLine": 17,
+      "address": "azurerm_storage_account_network_rules.my_network_rules",
+      "references": [
+        "azurerm_storage_account.my_storage_account"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "front-door.tf",
+      "content": "locals {\n  front_door_profile_name         = \"MyFrontDoor\"\n  front_door_sku_name             = \"Premium_AzureFrontDoor\" // Must be premium for Private Link support.\n  front_door_endpoint_name        = \"afd-${lower(random_id.front_door_endpoint_name.hex)}\"\n  front_door_origin_group_name    = \"MyOriginGroup\"\n  front_door_origin_name          = \"MyBlobContainerOrigin\"\n  front_door_route_name           = \"MyRoute\"\n  front_door_origin_path          = \"/${var.storage_account_blob_container_name}\" // The path to the blob container.\n  front_door_custom_domain_name   = \"MyCustomDomain\"\n  front_door_firewall_policy_name = \"MyWAFPolicy\"\n  front_door_security_policy_name = \"MySecurityPolicy\"\n}\n\nresource \"azurerm_cdn_frontdoor_profile\" \"my_front_door\" {\n  name                = local.front_door_profile_name\n  resource_group_name = azurerm_resource_group.my_resource_group.name\n  sku_name            = local.front_door_sku_name\n}\n\nresource \"azurerm_cdn_frontdoor_endpoint\" \"my_endpoint\" {\n  name                     = local.front_door_endpoint_name\n  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id\n}\n\nresource \"azurerm_cdn_frontdoor_origin_group\" \"my_origin_group\" {\n  name                     = local.front_door_origin_group_name\n  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id\n  session_affinity_enabled = true\n\n  load_balancing {\n    sample_size                 = 4\n    successful_samples_required = 3\n  }\n\n  health_probe {\n    path                = \"/\"\n    request_type        = \"HEAD\"\n    protocol            = \"Https\"\n    interval_in_seconds = 100\n  }\n}\n\nresource \"azurerm_cdn_frontdoor_origin\" \"my_blob_container_origin\" {\n  name                          = local.front_door_origin_name\n  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id\n\n  enabled                        = true\n  host_name                      = azurerm_storage_account.my_storage_account.primary_blob_host\n  http_port                      = 80\n  https_port                     = 443\n  origin_host_header             = azurerm_storage_account.my_storage_account.primary_blob_host\n  priority                       = 1\n  weight                         = 1000\n  certificate_name_check_enabled = true\n\n  private_link {\n    private_link_target_id = azurerm_storage_account.my_storage_account.id\n    target_type            = \"blob\"\n    request_message        = \"Request access for Azure Front Door Private Link origin\"\n    location               = var.front_door_private_link_location\n  }\n}\n\nresource \"azurerm_cdn_frontdoor_route\" \"my_route\" {\n  name                          = local.front_door_route_name\n  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id\n  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id\n  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.my_blob_container_origin.id]\n\n  supported_protocols       = [\"Http\", \"Https\"]\n  patterns_to_match         = [\"/*\"]\n  forwarding_protocol       = \"HttpsOnly\"\n  link_to_default_domain    = true\n  https_redirect_enabled    = true\n  cdn_frontdoor_origin_path = local.front_door_origin_path\n\n  cdn_frontdoor_custom_domain_ids = [\n    azurerm_cdn_frontdoor_custom_domain.my_custom_domain.id\n   ]\n}\n\nresource \"azurerm_cdn_frontdoor_custom_domain\" \"my_custom_domain\" {\n  name                     = local.front_door_custom_domain_name\n  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id\n  host_name                = var.custom_domain_name\n\n  tls {\n    certificate_type    = \"ManagedCertificate\"\n    minimum_tls_version = \"TLS12\"\n  }\n}\n\nresource \"azurerm_cdn_frontdoor_firewall_policy\" \"my_waf_policy\" {\n  name                = local.front_door_firewall_policy_name\n  resource_group_name = azurerm_resource_group.my_resource_group.name\n  sku_name            = local.front_door_sku_name\n  enabled             = true\n  mode                = var.waf_mode\n\n  managed_rule {\n    type    = \"Microsoft_DefaultRuleSet\"\n    version = \"2.1\"\n    action  = \"Block\"\n  }\n\n  managed_rule {\n    type    = \"Microsoft_BotManagerRuleSet\"\n    version = \"1.0\"\n    action  = \"Block\"\n  }\n}\n\nresource \"azurerm_cdn_frontdoor_security_policy\" \"my_security_policy\" {\n  name                     = local.front_door_security_policy_name\n  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id\n\n  security_policies {\n    firewall {\n      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.my_waf_policy.id\n\n      association {\n        patterns_to_match = [\"/*\"]\n\n        domain {\n          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.my_custom_domain.id\n        }\n      }\n    }\n  }\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"frontDoorEndpointHostName\" {\n  value = azurerm_cdn_frontdoor_endpoint.my_endpoint.host_name\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "# Configure the Azure provider\nterraform {\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~> 3.0\"\n    }\n\n    azapi = {\n      source  = \"Azure/azapi\"\n      version = \"~> 1.1.0\"\n    }\n\n    random = {\n      source = \"hashicorp/random\"\n      version = \"~> 3.4.3\"\n    }\n  }\n\n  required_version = \">= 1.1.0\"\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n"
+    },
+    {
+      "name": "resource-group.tf",
+      "content": "resource \"random_pet\" \"rg\" {}\n\nresource \"azurerm_resource_group\" \"my_resource_group\" {\n  name     = \"${var.resource_group_name}-${random_pet.rg.id}\"\n  location = var.location\n}\n\nresource \"random_id\" \"storage_account_name\" {\n  byte_length = 8\n}\n\nresource \"random_id\" \"front_door_endpoint_name\" {\n  byte_length = 8\n}\n"
+    },
+    {
+      "name": "storage-account.tf",
+      "content": "locals {\n  storage_account_name = \"stor${lower(random_id.storage_account_name.hex)}\"\n}\n\nresource \"azurerm_storage_account\" \"my_storage_account\" {\n  name                          = local.storage_account_name\n  resource_group_name           = azurerm_resource_group.my_resource_group.name\n  location                      = var.location\n  account_kind                  = \"StorageV2\"\n  account_tier                  = var.storage_account_tier\n  account_replication_type      = var.storage_account_replication_type\n  enable_https_traffic_only     = true\n  public_network_access_enabled = false\n  min_tls_version               = \"TLS1_2\"\n}\n\nresource \"azurerm_storage_account_network_rules\" \"my_network_rules\" {\n  storage_account_id  = azurerm_storage_account.my_storage_account.id\n\n  default_action = \"Deny\"\n}\n\n// This resource uses the AzApi provider because of the issue described here: https://github.com/hashicorp/terraform-provider-azurerm/issues/2977\nresource \"azapi_resource\" \"my_storage_container\" {\n  name      = var.storage_account_blob_container_name\n  parent_id = \"${azurerm_storage_account.my_storage_account.id}/blobServices/default\"\n  type      = \"Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01\"\n  body      = jsonencode({\n    properties = {\n      publicAccess = \"Blob\"\n    }\n  })\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"location\" {\n  type    = string\n  default = \"westus3\"\n}\n\nvariable \"front_door_private_link_location\" {\n  type    = string\n  default = \"westus3\"\n}\n\nvariable \"resource_group_name\" {\n  type    = string\n  default = \"FrontDoor\"\n}\n\nvariable \"storage_account_tier\" {\n  type    = string\n  default = \"Standard\"\n}\n\nvariable \"storage_account_replication_type\" {\n  type    = string\n  default = \"LRS\"\n}\n\nvariable \"storage_account_blob_container_name\" {\n  type    = string\n  default = \"mycontainer\"\n}\n\nvariable \"waf_mode\" {\n  type    = string\n  default = \"Prevention\"\n}\n\nvariable \"custom_domain_name\" {\n  type    = string\n  default = \"contoso.fabrikam.com\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-front-door-premium-storage-blobs-private-link\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "title": "AWS · CloudWatch 지표 스트리밍",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_metric_stream",
+      "label": "aws_cloudwatch_metric_stream.metric-stream",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 130,
+      "address": "aws_cloudwatch_metric_stream.metric-stream",
+      "references": [
+        "aws_kinesis_firehose_delivery_stream.metrics",
+        "aws_iam_role.metric_stream_to_firehose"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.firehose_to_s3",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 18,
+      "address": "aws_iam_role.firehose_to_s3",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.metric_stream_to_firehose",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 66,
+      "address": "aws_iam_role.metric_stream_to_firehose",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.firehose_to_s3",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 38,
+      "address": "aws_iam_role_policy.firehose_to_s3",
+      "references": [
+        "aws_s3_bucket.metric_stream",
+        "aws_iam_role.firehose_to_s3"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_iam_role_policy",
+      "label": "aws_iam_role_policy.metric_stream_to_firehose",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 85,
+      "address": "aws_iam_role_policy.metric_stream_to_firehose",
+      "references": [
+        "aws_kinesis_firehose_delivery_stream.metrics",
+        "aws_iam_role.metric_stream_to_firehose"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_kinesis_firehose_delivery_stream",
+      "label": "aws_kinesis_firehose_delivery_stream.metrics",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 116,
+      "address": "aws_kinesis_firehose_delivery_stream.metrics",
+      "references": [
+        "aws_s3_bucket.metric_stream",
+        "aws_iam_role.firehose_to_s3"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.metric_stream",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 106,
+      "address": "aws_s3_bucket.metric_stream",
+      "references": [
+        "data.aws_caller_identity.current"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_availability_zones",
+      "label": "data.aws_availability_zones.available",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 11,
+      "address": "data.aws_availability_zones.available",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 15,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "provider \"aws\" {\n  region = var.region\n\n  default_tags {\n    tags = {\n      metrics-test = \"aws-metric-streams\"\n    }\n  }\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\n# Define role for firehose to send metrics to S3\nresource \"aws_iam_role\" \"firehose_to_s3\" {\n  name_prefix        = \"test_streams\"\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"firehose.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\n# Define a policy for permissios to write to S3\nresource \"aws_iam_role_policy\" \"firehose_to_s3\" {\n  name_prefix = \"test_streams\"\n  role        = aws_iam_role.firehose_to_s3.id\n  policy      = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:AbortMultipartUpload\",\n                \"s3:GetBucketLocation\",\n                \"s3:GetObject\",\n                \"s3:ListBucket\",\n                \"s3:ListBucketMultipartUploads\",\n                \"s3:PutObject\"\n            ],\n            \"Resource\": [\n                \"${aws_s3_bucket.metric_stream.arn}\",\n                \"${aws_s3_bucket.metric_stream.arn}/*\"\n            ]\n        }\n    ]\n}\nEOF\n}\n\n# Associate the IAM role\nresource \"aws_iam_role\" \"metric_stream_to_firehose\" {\n  name_prefix        = \"test_streams\"\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"streams.metrics.cloudwatch.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_role_policy\" \"metric_stream_to_firehose\" {\n  name_prefix = \"test_streams\"\n  role        = aws_iam_role.metric_stream_to_firehose.id\n  policy      = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"firehose:PutRecord\",\n                \"firehose:PutRecordBatch\"\n            ],\n            \"Resource\": \"${aws_kinesis_firehose_delivery_stream.metrics.arn}\"\n        }\n    ]\n}\nEOF\n}\n\n# Create the S3 bucket to hold the metrics\nresource \"aws_s3_bucket\" \"metric_stream\" {\n  bucket = \"test-streams-${data.aws_caller_identity.current.account_id}-${var.region}\"\n\n  tags = var.tags\n\n  # 'true' allows terraform to delete this bucket even if it is not empty.\n  force_destroy = true\n}\n\n# Create the Amazon Data Firehose instance\nresource \"aws_kinesis_firehose_delivery_stream\" \"metrics\" {\n  name        = \"test_streams\"\n  destination = \"extended_s3\"\n\n  extended_s3_configuration {\n    role_arn   = aws_iam_role.firehose_to_s3.arn\n    bucket_arn = aws_s3_bucket.metric_stream.arn\n\n    compression_format = var.s3_compression_format\n  }\n\n}\n\n# Create the metric streams for the desired services\nresource \"aws_cloudwatch_metric_stream\" \"metric-stream\" {\n  name          = \"test_streams\"\n  role_arn      = aws_iam_role.metric_stream_to_firehose.arn\n  firehose_arn  = aws_kinesis_firehose_delivery_stream.metrics.arn\n  output_format = var.output_format\n\n\n  # There can be an exclude_filter block, but it is\n  # mutually exclusive with the include_filter, which means\n  # you can have one of them at any time.\n  \n  include_filter {\n    namespace = \"AWS/EC2\"\n    metric_names = [\"CPUUtilization\", \"NetworkOut\"]\n  }\n\n  include_filter {\n    namespace = \"AWS/RDS\"\n    metric_names = [\"CPUUtilization\", \"DatabaseConnections\"]\n  } \n\n  tags = var.tags\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"region\" {\n  type        = string\n  default     = \"eu-west-2\"\n  description = \"Region where the stack is deployed\"\n}\n\nvariable \"s3_compression_format\" {\n  type        = string\n  default     = \"GZIP\"\n  description = \"May be GZIP, Snappy, Zip, or Hadoop-Compatiable Snappy. See https://docs.aws.amazon.com/firehose/latest/dev/create-configure.html\"\n\n  validation {\n    condition = contains([\"GZIP\",\n      \"Snappy\",\n      \"Zip\",\n      \"Hadoop-Compatible Snappy\"],\n    var.s3_compression_format)\n    error_message = \"Not an allowed compression format.\"\n  }\n}\n\nvariable \"output_format\" {\n  type        = string\n  default     = \"json\"\n  description = \"Output format of metrics. You should probably not modify this value; the default format is supported, but others may not be.\"\n\n  validation {\n    condition     = contains([\"json\", \"opentelemetry0.7\"], var.output_format)\n    error_message = \"Not an allowed output format.\"\n  }\n}\n\nvariable \"tags\" {\n  type        = map(string)\n  default     = {}\n  description = \"A map of tags to apply to resources created by this module.\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/cloudwatch-metric-streams-firehose/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

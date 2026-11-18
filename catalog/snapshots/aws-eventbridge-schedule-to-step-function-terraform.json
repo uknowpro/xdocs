@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "title": "AWS · Step Functions 스케줄",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.eb_access_policy",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 19,
+      "address": "aws_iam_policy.eb_access_policy",
+      "references": [
+        "aws_sfn_state_machine.sfn_state_machine"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.eventbridge_scheduler_iam_role",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 37,
+      "address": "aws_iam_role.eventbridge_scheduler_iam_role",
+      "references": [
+        "aws_iam_policy.eb_access_policy"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.sfn_iam_role",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 59,
+      "address": "aws_iam_role.sfn_iam_role",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_scheduler_schedule",
+      "label": "aws_scheduler_schedule.my_scheduler",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 103,
+      "address": "aws_scheduler_schedule.my_scheduler",
+      "references": [
+        "aws_sfn_state_machine.sfn_state_machine",
+        "aws_iam_role.eventbridge_scheduler_iam_role"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_sfn_state_machine",
+      "label": "aws_sfn_state_machine.sfn_state_machine",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 84,
+      "address": "aws_sfn_state_machine.sfn_state_machine",
+      "references": [
+        "aws_iam_role.sfn_iam_role"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 16,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n  required_version = \">= 0.14.9\"\n}\n\nprovider \"aws\" {\n  profile = \"default\"\n  region  = \"us-east-1\"\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\n# Create new IAM Policy and Role for EventBridge Scheduler\nresource \"aws_iam_policy\" \"eb_access_policy\" {\n  name        = \"eb-access-policy\"\n  description = \"Policy for EventBridge Scheduler to trigger Step Functions\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"states:StartExecution\"\n        ],\n        Effect   = \"Allow\"\n        Resource = \"${aws_sfn_state_machine.sfn_state_machine.arn}\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role\" \"eventbridge_scheduler_iam_role\" {\n  name_prefix         = \"eb-scheduler-role-\"\n  managed_policy_arns = [aws_iam_policy.eb_access_policy.arn]\n  path = \"/\"\n  assume_role_policy  = <<EOF\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Principal\": {\n                \"Service\": \"scheduler.amazonaws.com\"\n            },\n            \"Action\": \"sts:AssumeRole\"\n        }\n    ]\n}\nEOF\n}\n\n# Create new IAM Policy and Role for Step Function \n\nresource \"aws_iam_role\" \"sfn_iam_role\" {\n  name = \"sfn-iam-role\"\n  managed_policy_arns = [\"arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess\"]\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"Service\": \"states.amazonaws.com\"\n      },\n      \"Action\": \"sts:AssumeRole\"\n    }\n  ]\n}\nEOF\n}\n\n# resource \"aws_iam_role_policy_attachment\" \"step_function_role_attachment\" {\n#   role       = aws_iam_role.sfn_iam_role.name\n#   policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSStepFunctionsFullAccess\"\n# }\n\n# Create new Step Function State Machine\nresource \"aws_sfn_state_machine\" \"sfn_state_machine\" {\n  name     = \"my-state-machine\"\n  role_arn = aws_iam_role.sfn_iam_role.arn\n\n  definition = <<EOF\n{\n  \"Comment\": \"A Hello World example of the Amazon States Language\",\n  \"StartAt\": \"HelloWorld\",\n  \"States\": {\n    \"HelloWorld\": {\n      \"Type\": \"Pass\",\n      \"End\": true\n    }\n  }\n}\nEOF\n}\n\n# Create new Eventbridge Scheduler\nresource \"aws_scheduler_schedule\" \"my_scheduler\" {\n  name = \"my-scheduler\"\n\n  flexible_time_window {\n    mode = \"OFF\"\n  }\n\n  schedule_expression = \"rate(1 minutes)\"\n\n  target {\n    arn      = aws_sfn_state_machine.sfn_state_machine.arn\n    role_arn = aws_iam_role.eventbridge_scheduler_iam_role.arn\n\n    input = jsonencode({\n      Payload = \"Hello, ServerlessLand!\"\n    })\n  }\n}\n\noutput \"EventBridgeSchedulerArn\" {\n  value       = aws_scheduler_schedule.my_scheduler.arn\n  description = \"EventBridge my-scheduler ARN\"\n}\n\noutput \"StateMachineArn\" {\n      value       = aws_sfn_state_machine.sfn_state_machine.arn\n  description = \"Step Function my-state-machine ARN\"\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/eventbridge-schedule-to-step-function/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

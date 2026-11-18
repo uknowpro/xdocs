@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "title": "Azure · Batch 계정과 스토리지",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_batch_account",
+      "label": "azurerm_batch_account.batch",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "address": "azurerm_batch_account.batch",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.azurerm_batch_account_name",
+        "azurerm_storage_account.storage"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.storage",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "azurerm_storage_account.storage",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_string.azurerm_storage_account_name"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 658,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_string.azurerm_storage_account_name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_3",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "random_string",
+      "label": "random_string.azurerm_batch_account_name",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 18,
+      "address": "random_string.azurerm_batch_account_name",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_string",
+      "label": "random_string.azurerm_storage_account_name",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "random_string.azurerm_storage_account_name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  name     = random_pet.rg_name.id\n  location = var.resource_group_location\n}\n\nresource \"random_string\" \"azurerm_storage_account_name\" {\n  length  = 13\n  lower   = true\n  numeric = false\n  special = false\n  upper   = false\n}\n\nresource \"random_string\" \"azurerm_batch_account_name\" {\n  length  = 13\n  lower   = true\n  numeric = false\n  special = false\n  upper   = false\n}\n\nresource \"azurerm_storage_account\" \"storage\" {\n  name                     = \"storage${random_string.azurerm_storage_account_name.result}\"\n  resource_group_name      = azurerm_resource_group.rg.name\n  location                 = azurerm_resource_group.rg.location\n  account_tier             = element(split(\"_\", var.storage_account_type), 0)\n  account_replication_type = element(split(\"_\", var.storage_account_type), 1)\n}\n\nresource \"azurerm_batch_account\" \"batch\" {\n  name                                = \"batch${random_string.azurerm_batch_account_name.result}\"\n  resource_group_name                 = azurerm_resource_group.rg.name\n  location                            = azurerm_resource_group.rg.location\n  storage_account_id                  = azurerm_storage_account.storage.id\n  storage_account_authentication_mode = \"StorageKeys\"\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"batch_name\" {\n  value = azurerm_batch_account.batch.name\n}\n\noutput \"storage_name\" {\n  value = azurerm_storage_account.storage.name\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location for all resources.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"storage_account_type\" {\n  type        = string\n  default     = \"Standard_LRS\"\n  description = \"Azure Storage account type.\"\n  validation {\n    condition     = contains([\"Premium_LRS\", \"Premium_ZRS\", \"Standard_GRS\", \"Standard_GZRS\", \"Standard_LRS\", \"Standard_RAGRS\", \"Standard_RAGZRS\", \"Standard_ZRS\"], var.storage_account_type)\n    error_message = \"Invalid storage account type. The value should be one of the following: 'Premium_LRS','Premium_ZRS','Standard_GRS','Standard_GZRS','Standard_LRS','Standard_RAGRS','Standard_RAGZRS','Standard_ZRS'.\"\n  }\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-batch-account-with-storage\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

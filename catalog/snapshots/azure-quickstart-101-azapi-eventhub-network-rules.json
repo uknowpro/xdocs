@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "title": "Azure · Event Hubs 네트워크 규칙",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azapi_update_resource",
+      "label": "azapi_update_resource.qs101",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main-generic.tf",
+      "sourceLine": 2,
+      "address": "azapi_update_resource.qs101",
+      "references": [
+        "azurerm_subnet.qs101",
+        "azurerm_eventhub_namespace.qs101"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_eventhub_namespace",
+      "label": "azurerm_eventhub_namespace.qs101",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 28,
+      "address": "azurerm_eventhub_namespace.qs101",
+      "references": [
+        "azurerm_resource_group.qs101",
+        "random_pet.qs101_namespace"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.qs101",
+      "x": 540,
+      "y": 60,
+      "props": {
+        "name": "rg-qs101-eh-rules",
+        "location": "westus2"
+      },
+      "original": {
+        "name": "rg-qs101-eh-rules",
+        "location": "westus2"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "azurerm_resource_group.qs101",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.qs101",
+      "x": 780,
+      "y": 60,
+      "props": {
+        "name": "default"
+      },
+      "original": {
+        "name": "default"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "azurerm_subnet.qs101",
+      "references": [
+        "azurerm_resource_group.qs101",
+        "azurerm_virtual_network.qs101"
+      ],
+      "scopeAddress": "azurerm_virtual_network.qs101",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 550,
+        "address": "azurerm_virtual_network.qs101",
+        "otherRefs": [
+          "azurerm_resource_group.qs101"
+        ]
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.qs101",
+      "x": 60,
+      "y": 200,
+      "props": {
+        "name": "myvnet"
+      },
+      "original": {
+        "name": "myvnet"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 6,
+      "address": "azurerm_virtual_network.qs101",
+      "references": [
+        "azurerm_resource_group.qs101"
+      ],
+      "scopeAddress": "azurerm_resource_group.qs101",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 267,
+        "address": "azurerm_resource_group.qs101",
+        "otherRefs": [
+          "azurerm_resource_group.qs101"
+        ]
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_pet",
+      "label": "random_pet.qs101_namespace",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "address": "random_pet.qs101_namespace",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main-generic.tf",
+      "content": "# AzAPI update resource is used to enable Network Rule sets on Event Hub namespace\nresource \"azapi_update_resource\" \"qs101\" {\n  type      = \"Microsoft.EventHub/namespaces/networkRuleSets@2021-11-01\"\n  name      = \"default\"\n  parent_id = azurerm_eventhub_namespace.qs101.id\n\n  body = jsonencode({\n    properties = {\n      defaultAction       = \"Deny\"\n      publicNetworkAccess = \"Enabled\"\n      virtualNetworkRules = [\n        {\n          ignoreMissingVnetServiceEndpoint = false\n          subnet = {\n            # API bug, returned id replaced `resourceGroups` with `resourcegroups`\n            id = replace(azurerm_subnet.qs101.id, \"resourceGroups\", \"resourcegroups\")\n          }\n        }\n      ]\n      ipRules = [\n        {\n          action = \"Allow\"\n          ipMask = \"1.1.1.1\"\n        }\n      ]\n    }\n  })\n}\n"
+    },
+    {
+      "name": "main.tf",
+      "content": "resource \"azurerm_resource_group\" \"qs101\" {\n  name     = \"rg-qs101-eh-rules\"\n  location = \"westus2\"\n}\n\nresource \"azurerm_virtual_network\" \"qs101\" {\n  name                = \"myvnet\"\n  location            = azurerm_resource_group.qs101.location\n  resource_group_name = azurerm_resource_group.qs101.name\n  address_space       = [\"172.17.0.0/16\"]\n  dns_servers         = [\"10.0.0.4\", \"10.0.0.5\"]\n}\n\nresource \"azurerm_subnet\" \"qs101\" {\n  name                 = \"default\"\n  resource_group_name  = azurerm_resource_group.qs101.name\n  virtual_network_name = azurerm_virtual_network.qs101.name\n  address_prefixes     = [\"172.17.0.0/24\"]\n\n  service_endpoints = [\"Microsoft.EventHub\"]\n}\n\nresource \"random_pet\" \"qs101_namespace\" {\n  length    = 3\n  separator = \"\"\n}\n\nresource \"azurerm_eventhub_namespace\" \"qs101\" {\n  name                = random_pet.qs101_namespace.id\n  location            = azurerm_resource_group.qs101.location\n  resource_group_name = azurerm_resource_group.qs101.name\n  sku                 = \"Standard\"\n  capacity            = 2\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_providers {\n    azapi = {\n      source  = \"azure/azapi\"\n      version = \"=0.1.0\"\n    }\n\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"=3.0.2\"\n    }\n\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"=3.1.2\"\n    }\n  }\n}\n\nprovider \"azapi\" {\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n\nprovider \"random\" {\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azapi-eventhub-network-rules\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

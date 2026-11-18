@@ -13,6 +13,7 @@ export const COMPONENTS = {
       cidr: field("CIDR", "10.0.0.0/16", { cidr: true }),
     },
   },
+  aws_route_table: {group:"AWS",label:"Route Table",fields:{name:field("이름","routes"),vpc:ref("VPC","aws_vpc")}},
   aws_subnet: {
     group: "AWS",
     label: "Subnet",
@@ -54,6 +55,7 @@ export const COMPONENTS = {
       cidr: field("CIDR", "10.10.0.0/16", { cidr: true }),
     },
   },
+  azurerm_network_security_group:{group:"Azure",label:"Network Security Group",fields:{name:field("이름","workload-nsg"),group:ref("Resource Group","azurerm_resource_group")}},
   azurerm_subnet: {
     group: "Azure",
     label: "Subnet",
@@ -87,6 +89,7 @@ export const COMPONENTS = {
     label: "VPC Network",
     fields: { name: field("이름", "network") },
   },
+  google_compute_router:{group:"GCP",label:"Cloud Router",fields:{name:field("이름","workload-router"),network:ref("VPC Network","google_compute_network")}},
   google_compute_subnetwork: {
     group: "GCP",
     label: "Subnetwork",
@@ -268,6 +271,10 @@ export function architectureReview(m) {
             "AVM Storage: 공개망·공유키 비활성, Blob Private Endpoint 및 Private DNS 연결을 생성합니다. 다른 서비스 endpoint·RBAC는 검토가 필요합니다.",
           ]
         : []),
+      ...(p.id === "operations" ? [...new Set(m.nodes.filter(n=>!n.imported && Object.hasOwn(AVM_MODULES,n.kind)).map(n=>{
+        const module=AVM_MODULES[n.kind];
+        return module.source+" @ "+module.version+" · 모듈 업데이트 시 입력·출력과 리소스 참조 변경을 검토하세요.";
+      }))] : []),
       ...(p.id === "operations"
         ? ["진단 수집·경보와 실제 배포 검증은 자동 구성되지 않습니다."]
         : []),
@@ -276,6 +283,9 @@ export function architectureReview(m) {
 }
 export const IMPORT_FIELDS = {
   aws_vpc: { name: "", cidr: "cidr_block" },
+  aws_route_table:{},
+  azurerm_network_security_group:{name:"name"},
+  google_compute_router:{name:"name"},
   aws_subnet: { cidr: "cidr_block" },
   aws_instance: { ami: "ami", instance_type: "instance_type" },
   aws_s3_bucket: { name: "bucket" },
@@ -364,6 +374,7 @@ export function validateArchitecture(m) {
           Object.values(view.annotations).some(
             (v) => typeof v !== "string" || v.length > 160,
           ))) ||
+      (view.annotationLinks !== undefined && (!Array.isArray(view.annotationLinks) || view.annotationLinks.length>500 || view.annotationLinks.some(l=>!plain(l) || typeof l.source!=="string" || typeof l.target!=="string" || l.source===l.target || typeof l.label!=="string" || l.label.length>100))) ||
       (view.anchors !== undefined &&
         (!plain(view.anchors) ||
           Object.values(view.anchors).some(
@@ -507,6 +518,7 @@ export function removeComponent(m, id) {
     throw Error("가져온 리소스는 원본 보존을 위해 삭제하지 않습니다.");
   return {
     ...m,
+    ...(m.presentation?.annotationLinks ? {presentation:{...m.presentation,annotationLinks:m.presentation.annotationLinks.filter(l=>l.source!==id && l.target!==id)}}:{}),
     nodes: m.nodes
       .filter((n) => n.id !== id)
       .map((n) => ({
@@ -866,6 +878,12 @@ export function generateArchitecture(m, format = "all", ids = []) {
         continue;
       }
       switch (n.kind) {
+        case "aws_route_table":
+          put(n.kind,n.id,{vpc_id:expr(parent),tags:t});break;
+        case "azurerm_network_security_group":
+          put(n.kind,n.id,{name:lit(p.name),resource_group_name:expr(parent,"name"),location:expr(parent,"location")});break;
+        case "google_compute_router":
+          put(n.kind,n.id,{name:lit(p.name),network:expr(parent),region:lit(m.settings.gcp_region)});break;
         case "aws_vpc":
           put(n.kind, n.id, {
             cidr_block: p.cidr,
@@ -1054,6 +1072,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
       let resource;
       const Tags = [{ Key: "Name", Value: p.name }];
       switch (n.kind) {
+        case "aws_route_table":resource={Type:"AWS::EC2::RouteTable",Properties:{VpcId:ref(get(p.vpc)),Tags}};break;
         case "aws_vpc":
           resource = {
             Type: "AWS::EC2::VPC",

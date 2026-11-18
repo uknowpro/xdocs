@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "title": "Azure · Azure Functions 환경",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_application_insights",
+      "label": "azurerm_application_insights.example",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 50,
+      "address": "azurerm_application_insights.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_string.name",
+        "azurerm_log_analytics_workspace.example"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_function_app_flex_consumption",
+      "label": "azurerm_function_app_flex_consumption.example",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 68,
+      "address": "azurerm_function_app_flex_consumption.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_string.name",
+        "azurerm_service_plan.example",
+        "azurerm_storage_account.example",
+        "azurerm_storage_container.example"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_log_analytics_workspace",
+      "label": "azurerm_log_analytics_workspace.example",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 41,
+      "address": "azurerm_log_analytics_workspace.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_string.name"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.example",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "azurerm_resource_group.example",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_service_plan",
+      "label": "azurerm_service_plan.example",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 59,
+      "address": "azurerm_service_plan.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_string.name"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_storage_account",
+      "label": "azurerm_storage_account.example",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 25,
+      "address": "azurerm_storage_account.example",
+      "references": [
+        "azurerm_resource_group.example",
+        "random_string.name"
+      ],
+      "scopeAddress": "azurerm_resource_group.example",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 806,
+        "address": "azurerm_resource_group.example",
+        "otherRefs": [
+          "azurerm_resource_group.example",
+          "random_string.name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_storage_container",
+      "label": "azurerm_storage_container.example",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "address": "azurerm_storage_container.example",
+      "references": [
+        "azurerm_storage_account.example"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "random_string",
+      "label": "random_string.name",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 16,
+      "address": "random_string.name",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# This Terraform configuration creates a Flex Consumption plan app in Azure Functions \n# with the required Storage account and Blob Storage deployment container.\n\n# Create a random pet to generate a unique resource group name\nresource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\n# Create a resource group\nresource \"azurerm_resource_group\" \"example\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\n# Random String for unique naming of resources\nresource \"random_string\" \"name\" {\n  length  = 8\n  special = false\n  upper   = false\n  lower   = true\n  numeric = false\n}\n\n# Create a storage account\nresource \"azurerm_storage_account\" \"example\" {\n  name                     = coalesce(var.sa_name, random_string.name.result)\n  resource_group_name      = azurerm_resource_group.example.name\n  location                 = azurerm_resource_group.example.location\n  account_tier             = var.sa_account_tier\n  account_replication_type = var.sa_account_replication_type\n}\n\n# Create a storage container\nresource \"azurerm_storage_container\" \"example\" {\n  name                  = \"example-flexcontainer\"\n  storage_account_id    = azurerm_storage_account.example.id\n  container_access_type = \"private\"\n}\n\n# Create a Log Analytics workspace for Application Insights\nresource \"azurerm_log_analytics_workspace\" \"example\" {\n  name                = coalesce(var.ws_name, random_string.name.result)\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n  sku                 = \"PerGB2018\"\n  retention_in_days   = 30\n}\n\n# Create an Application Insights instance for monitoring\nresource \"azurerm_application_insights\" \"example\" {\n  name                = coalesce(var.ai_name, random_string.name.result)\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n  application_type    = \"web\"\n  workspace_id = azurerm_log_analytics_workspace.example.id\n}\n\n# Create a service plan\nresource \"azurerm_service_plan\" \"example\" {\n  name                = coalesce(var.asp_name, random_string.name.result)\n  resource_group_name = azurerm_resource_group.example.name\n  location            = azurerm_resource_group.example.location\n  sku_name            = \"FC1\"\n  os_type             = \"Linux\"\n}\n\n# Create a function app\nresource \"azurerm_function_app_flex_consumption\" \"example\" {\n  name                = coalesce(var.fa_name, random_string.name.result)\n  resource_group_name = azurerm_resource_group.example.name\n  location            = azurerm_resource_group.example.location\n  service_plan_id     = azurerm_service_plan.example.id\n\n  storage_container_type      = \"blobContainer\"\n  storage_container_endpoint  = \"${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}\"\n  storage_authentication_type = \"StorageAccountConnectionString\"\n  storage_access_key          = azurerm_storage_account.example.primary_access_key\n  runtime_name                = var.runtime_name\n  runtime_version             = var.runtime_version\n  maximum_instance_count      = 50\n  instance_memory_in_mb       = 2048\n  \n  site_config {\n  }\n}"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.example.name\n}\n\noutput \"sa_name\" {\n  value = azurerm_storage_account.example.name\n}\n\noutput \"asp_name\" {\n  value = azurerm_service_plan.example.name\n}\n\noutput \"fa_name\" {\n  value = azurerm_function_app_flex_consumption.example.name\n}\n\noutput \"fa_url\" {\n  value = \"https://${azurerm_function_app_flex_consumption.example.name}.azurewebsites.net\"\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>4.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_name\" {\n  type        = string\n  default     = \"\"\n  description = \"The name of the Azure resource group. If blank, a random name will be generated.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  default     = \"rg\"\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n}\n\nvariable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"sa_account_tier\" {\n  description = \"The tier of the storage account. Possible values are Standard and Premium.\"\n  type        = string\n  default     = \"Standard\"\n}\n\nvariable \"sa_account_replication_type\" {\n  description = \"The replication type of the storage account. Possible values are LRS, GRS, RAGRS, and ZRS.\"\n  type        = string\n  default     = \"LRS\"\n}\n\nvariable \"sa_name\" {\n  description = \"The name of the storage account. If blank, a random name will be generated.\"\n  type        = string\n  default     = \"\"\n}\n\nvariable \"ws_name\" {\n  description = \"The name of the Log Analytics workspace. If blank, a random name will be generated.\"\n  type        = string\n  default     = \"\"\n}\n\nvariable \"ai_name\" {\n  description = \"The name of the Application Insights instance. If blank, a random name will be generated.\"\n  type        = string\n  default     = \"\"\n}\n\nvariable \"asp_name\" {\n  description = \"The name of the App Service Plan. If blank, a random name will be generated.\"\n  type        = string\n  default     = \"\"\n}\n\nvariable \"fa_name\" {\n  description = \"The name of the Function App. If blank, a random name will be generated.\"\n  type        = string\n  default     = \"\"\n}\n\nvariable \"runtime_name\" {\n  description = \"The name of the language worker runtime.\"\n  type        = string\n  default     = \"node\" # Allowed: dotnet-isolated, java, node, powershell, python\n}\n\nvariable \"runtime_version\" {\n  description = \"The version of the language worker runtime.\"\n  type        = string\n  default     = \"20\" # Supported versions: see https://aka.ms/flexfxversions\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-azure-functions\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

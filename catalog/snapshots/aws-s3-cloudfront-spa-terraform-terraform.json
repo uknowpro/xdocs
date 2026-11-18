@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "title": "AWS · CloudFront 정적 웹",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudfront_distribution",
+      "label": "aws_cloudfront_distribution.cf_distribution",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 29,
+      "address": "aws_cloudfront_distribution.cf_distribution",
+      "references": [
+        "aws_s3_bucket.host",
+        "aws_cloudfront_origin_access_control.spa_aoc"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_cloudfront_origin_access_control",
+      "label": "aws_cloudfront_origin_access_control.spa_aoc",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 21,
+      "address": "aws_cloudfront_origin_access_control.spa_aoc",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.host",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 75,
+      "address": "aws_s3_bucket.host",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_s3_bucket_acl",
+      "label": "aws_s3_bucket_acl.host_acl",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 94,
+      "address": "aws_s3_bucket_acl.host_acl",
+      "references": [
+        "aws_s3_bucket.host",
+        "aws_s3_bucket_ownership_controls.host_ownership"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_s3_bucket_ownership_controls",
+      "label": "aws_s3_bucket_ownership_controls.host_ownership",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 87,
+      "address": "aws_s3_bucket_ownership_controls.host_ownership",
+      "references": [
+        "aws_s3_bucket.host"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_s3_bucket_policy",
+      "label": "aws_s3_bucket_policy.host_policy",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 114,
+      "address": "aws_s3_bucket_policy.host_policy",
+      "references": [
+        "aws_s3_bucket.host",
+        "data.aws_caller_identity.current",
+        "aws_cloudfront_distribution.cf_distribution"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_s3_bucket_public_access_block",
+      "label": "aws_s3_bucket_public_access_block.bucket_access_block",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 79,
+      "address": "aws_s3_bucket_public_access_block.bucket_access_block",
+      "references": [
+        "aws_s3_bucket.host"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_s3_bucket_website_configuration",
+      "label": "aws_s3_bucket_website_configuration.website_configuration",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 102,
+      "address": "aws_s3_bucket_website_configuration.website_configuration",
+      "references": [
+        "aws_s3_bucket.host"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 18,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_region",
+      "label": "data.aws_region.current",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "template.tf",
+      "sourceLine": 15,
+      "address": "data.aws_region.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "template.tf",
+      "content": "terraform {\n    required_providers {\n      aws = {\n        source  = \"hashicorp/aws\"\n        version = \"~> 6.0\"\n      }\n    }\n}\n\nprovider \"aws\" { \n    region = \"eu-west-2\"\n    profile = \"default\"\n}\n\ndata \"aws_region\" \"current\" {\n}\n\ndata \"aws_caller_identity\" \"current\" {\n}\n\nresource \"aws_cloudfront_origin_access_control\" \"spa_aoc\" {\n  name                              = \"spa_aoc\"\n  description                       = \"spa_aoc\"\n  origin_access_control_origin_type = \"s3\"\n  signing_behavior                  = \"always\"\n  signing_protocol                  = \"sigv4\"\n}\n\nresource \"aws_cloudfront_distribution\" \"cf_distribution\" {\n  enabled             = true\n  default_root_object = \"index.html\"\n  is_ipv6_enabled     = true\n  price_class         = \"PriceClass_All\"\n\n  restrictions {\n    geo_restriction {\n      restriction_type = \"none\"\n    }\n  }\n  origin {\n    domain_name              = aws_s3_bucket.host.bucket_regional_domain_name\n    origin_id                = \"spa_portal\"\n    origin_access_control_id = aws_cloudfront_origin_access_control.spa_aoc.id\n  }\n\n  default_cache_behavior {\n    allowed_methods  = [\"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\"]\n    cached_methods   = [\"GET\", \"HEAD\"]\n    target_origin_id = \"spa_portal\"\n\n    forwarded_values {\n      query_string = false\n\n      cookies {\n        forward = \"none\"\n      }\n    }\n\n    viewer_protocol_policy = \"redirect-to-https\"\n    min_ttl                = 0\n    default_ttl            = 300\n    max_ttl                = 1200\n  }\n\n  viewer_certificate {\n    cloudfront_default_certificate = true\n    minimum_protocol_version       = \"TLSv1.2_2021\"\n  }\n}\n\nlocals {\n  s3_origin_id = \"host-store\"\n}\n\nresource \"aws_s3_bucket\" \"host\" {\n  bucket = local.s3_origin_id\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"bucket_access_block\" {\n  bucket                  = aws_s3_bucket.host.id\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\n\nresource \"aws_s3_bucket_ownership_controls\" \"host_ownership\" {\n  bucket = aws_s3_bucket.host.id\n  rule {\n    object_ownership = \"BucketOwnerPreferred\"\n  }\n}\n\nresource \"aws_s3_bucket_acl\" \"host_acl\" {\n  depends_on = [aws_s3_bucket_ownership_controls.host_ownership]\n\n  bucket = aws_s3_bucket.host.id\n  acl    = \"private\"\n}\n\n\nresource \"aws_s3_bucket_website_configuration\" \"website_configuration\" {\n  bucket = aws_s3_bucket.host.id\n\n  index_document {\n    suffix = \"index.html\"\n  }\n\n  error_document {\n    key = \"error.html\"\n  }\n}\n\nresource \"aws_s3_bucket_policy\" \"host_policy\" {\n  bucket = aws_s3_bucket.host.id\n\n  policy = jsonencode({\n    Statement = [\n      {\n        Action   = \"s3:GetObject\"\n        Effect   = \"Allow\"\n        Resource = \"arn:aws:s3:::${aws_s3_bucket.host.bucket}/*\"\n        Principal = {\n          Service = \"cloudfront.amazonaws.com\"\n        },\n        Condition = {\n          StringEquals = {\n            \"AWS:SourceArn\" = \"arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.cf_distribution.id}\"\n          }\n        }\n      }\n    ]\n  })\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/s3-cloudfront-spa/terraform/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

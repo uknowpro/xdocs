@@ -1,5 +1,8 @@
 // Only membership fields produce nesting. General dependencies stay in the reference graph.
 export const placementFields = {
+  aws_route_table:["vpc","aws_vpc","vpc_id"],
+  azurerm_network_security_group:["group","azurerm_resource_group","resource_group_name"],
+  google_compute_router:["network","google_compute_network","network"],
   aws_subnet: ["vpc", "aws_vpc", "vpc_id"],
   aws_instance: ["subnet", "aws_subnet", "subnet_id"],
   azurerm_virtual_network: [
@@ -417,6 +420,35 @@ export function boundarySVG(
     .join("");
   const byId = new Map(boxes.map((b) => [b.id, b]));
   const segments = [];
+  const notes =
+    model.presentation?.notes === false
+      ? []
+      : model.presentation?.annotationLinks || [];
+  const annotationLines = notes
+    .map((link) => {
+      const a = byId.get(representatives.get(link.source)),
+        b = byId.get(representatives.get(link.target));
+      if (!a || !b || a.id === b.id) return "";
+      const [x1, y1] = anchor(a, "right"),
+        [x2, y2] = anchor(b, "left");
+      const mid = (x1 + x2) / 2;
+      return (
+        '<g data-annotation-link="true" pointer-events="none"><path fill="none" stroke="#805d35" stroke-dasharray="5 4" d="M' +
+        x1 +
+        " " +
+        y1 +
+        " H" +
+        mid +
+        " V" +
+        y2 +
+        " H" +
+        x2 +
+        '"/>' +
+        text(mid + 3, (y1 + y2) / 2 - 3, link.label, 10) +
+        "</g>"
+      );
+    })
+    .join("");
   const arrows = references
     .filter(
       (e) =>
@@ -512,6 +544,7 @@ export function boundarySVG(
     "</title>" +
     frame +
     nodes +
+    annotationLines +
     (arrows
       ? '<defs><marker id="scope-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#246782"/></marker></defs><g pointer-events="none">' +
         arrows +

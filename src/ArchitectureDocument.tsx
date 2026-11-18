@@ -1,3 +1,5 @@
+import { terraformDeclarations } from "../shared/architecture-catalog.mjs";
+import { cloudTemplates, openCloudTemplate } from "./cloudCatalog";
 import CanvasSearch from "./CanvasSearch";
 import {
   boundaryLayout,
@@ -55,6 +57,8 @@ export type ArchitectureNode = {
   y: number;
   props: Record<string, string>;
   imported?: boolean;
+  sourceFile?: string;
+  sourceLine?: number;
   address?: string;
   original?: Record<string, string>;
   references?: string[];
@@ -89,6 +93,7 @@ export type ArchitectureModel = {
     folded?: string[];
     locked?: string[];
     annotations?: Record<string, string>;
+    annotationLinks?: { source: string; target: string; label: string }[];
     crossings?: boolean;
     anchors?: Record<string, string>;
     routes?: Record<string, { x: number; y: number }>;
@@ -120,6 +125,31 @@ export function ArchitectureStart({
     [accepted, setAccepted] = useState(false),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [provider, setProvider] = useState("AWS");
+  const [templateId, setTemplateId] = useState(cloudTemplates[0].id);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const query = catalogSearch.trim().toLowerCase();
+  const matches = cloudTemplates.filter(
+    (t) =>
+      t.provider === provider &&
+      (!query ||
+        [t.name, t.id, ...t.kinds].some((v) =>
+          v.toLowerCase().includes(query),
+        )),
+  );
+  const chosen = matches.find((t) => t.id === templateId) || matches[0];
+  async function openChosen() {
+    if (!chosen) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onCreate(await openCloudTemplate(chosen.id));
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
   async function importTerraform(project = false) {
     setBusy(true);
     setError("");
@@ -205,6 +235,71 @@ export function ArchitectureStart({
             로컬 모듈 포함 폴더 가져오기
           </button>
         </div>
+        <fieldset disabled={busy} className="architecture-catalog">
+          <legend>템플릿 카탈로그 · {matches.length}종</legend>
+          <label>
+            공급자
+            <select
+              aria-label="공급자"
+              value={provider}
+              onChange={(e) => {
+                setProvider(e.target.value);
+                setTemplateId(
+                  cloudTemplates.find((t) => t.provider === e.target.value)!.id,
+                );
+              }}
+            >
+              {["AWS", "Azure", "GCP"].map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            템플릿 검색
+            <input
+              value={catalogSearch}
+              onChange={(e) => setCatalogSearch(e.target.value)}
+              placeholder="이름 또는 Terraform 리소스"
+            />
+          </label>
+          <label>
+            설계 템플릿
+            <select
+              aria-label="설계 템플릿"
+              value={chosen?.id || ""}
+              onChange={(e) => setTemplateId(e.target.value)}
+            >
+              {matches.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {chosen ? (
+            <details>
+              <summary>구성 리소스 {chosen.kinds.length}종</summary>
+              <p>
+                {chosen.kinds.map((k) => COMPONENTS[k]?.label || k).join(" · ")}
+              </p>
+            </details>
+          ) : (
+            <p>일치하는 템플릿이 없습니다.</p>
+          )}
+          {chosen && "repo" in chosen && (
+            <small>
+              Terraform 원본 기반 · {String(chosen.repo)} ·{" "}
+              {"revision" in chosen && String(chosen.revision).slice(0, 7)}
+            </small>
+          )}
+          <button
+            className="button"
+            disabled={!chosen}
+            onClick={() => void openChosen()}
+          >
+            템플릿으로 시작
+          </button>
+        </fieldset>
         <p className="muted small-text">
           AWS · Azure · Azure Verified Modules · GCP · Kubernetes. .tf와
           .tf.json 파일 선택은 데스크톱 앱에서 지원합니다.
@@ -307,6 +402,54 @@ export default function ArchitectureDocument({
   const livePath = terraformFiles.includes(liveFile)
     ? liveFile
     : terraformFiles[0];
+  const scopedNodes = useMemo(
+    () =>
+      model.nodes.filter((n) =>
+        n.sourceFile
+          ? "terraform/" + n.sourceFile === livePath
+          : !livePath?.slice(10).includes("/"),
+      ),
+    [model.nodes, livePath],
+  );
+  const declarations: { id: string; address: string; block: unknown }[] =
+    useMemo(
+      () =>
+        livePath?.endsWith(".tf.json")
+          ? terraformDeclarations(result.files[livePath], scopedNodes)
+          : scopedNodes
+              .filter((n) => n.sourceFile && n.address)
+              .map((n) => ({
+                id: n.id,
+                address: n.address!,
+                block: n.sourceLine
+                  ? n.sourceFile +
+                    ":" +
+                    n.sourceLine +
+                    " · " +
+                    (
+                      result.files[livePath]?.split("\n")[n.sourceLine - 1] ||
+                      ""
+                    ).trim()
+                  : n.sourceFile,
+              })),
+      [result.files, livePath, scopedNodes],
+    );
+  const parameters = useMemo(() => {
+    if (!livePath?.endsWith(".tf.json")) return [];
+    try {
+      const doc = JSON.parse(result.files[livePath]);
+      return ["variable", "locals", "output"].flatMap((kind) =>
+        Object.entries(doc[kind] || {}).map(([name, value]) => ({
+          kind,
+          name,
+          value,
+        })),
+      );
+    } catch {
+      return [];
+    }
+  }, [result.files, livePath]);
+  const declaration = declarations.find((d) => d.id === selected);
   const fileNames = Object.keys(result.files),
     activeFile = fileNames.includes(file) ? file : fileNames[0];
   function change(next: ArchitectureModel) {
@@ -383,6 +526,7 @@ export default function ArchitectureDocument({
       updateNode({ props: { ...node.props, [match[0]]: n.id } });
       setConnecting(false);
     } else {
+      if (n.sourceFile) setLiveFile("terraform/" + n.sourceFile);
       setSelected(n.id);
       setDetail("open");
     }
@@ -476,6 +620,8 @@ export default function ArchitectureDocument({
     });
   }
   function openDetail(id: string, source = model) {
+    const origin = source.nodes.find((n) => n.id === id)?.sourceFile;
+    if (origin) setLiveFile("terraform/" + origin);
     const { parents } = boundaryLayout(source);
     const ancestors = new Set<string>();
     let parent = parents.get(id);
@@ -1397,6 +1543,46 @@ export default function ArchitectureDocument({
                   <option key={name}>{name}</option>
                 ))}
               </select>
+              {declarations.length > 0 && (
+                <details>
+                  <summary>리소스별 코드</summary>
+                  <label>
+                    Terraform 선언
+                    <select
+                      aria-label="Terraform 선언"
+                      value={declaration?.id || ""}
+                      onChange={(e) => openDetail(e.target.value)}
+                    >
+                      <option value="" disabled>
+                        리소스 선택
+                      </option>
+                      {declarations.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.address}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {declaration && (
+                    <pre aria-label="선택한 Terraform 선언">
+                      {typeof declaration.block === "string"
+                        ? declaration.block
+                        : JSON.stringify(declaration.block, null, 2)}
+                    </pre>
+                  )}
+                </details>
+              )}
+              {parameters.length > 0 && (
+                <details>
+                  <summary>변수 · 로컬 값 · 출력 ({parameters.length})</summary>
+                  {parameters.map((p) => (
+                    <details key={p.kind + "." + p.name}>
+                      <summary>{p.kind + "." + p.name}</summary>
+                      <pre>{JSON.stringify(p.value, null, 2)}</pre>
+                    </details>
+                  ))}
+                </details>
+              )}
               <pre aria-label="Terraform 코드">
                 <code>{result.files[livePath]}</code>
               </pre>

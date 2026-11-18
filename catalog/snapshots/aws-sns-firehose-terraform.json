@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "title": "AWS · SNS와 Firehose 수집",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.delivery_stream_policy",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 84,
+      "address": "aws_iam_policy.delivery_stream_policy",
+      "references": [
+        "aws_s3_bucket.destination_bucket"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.sns_firehose_access_policy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 58,
+      "address": "aws_iam_policy.sns_firehose_access_policy",
+      "references": [
+        "aws_kinesis_firehose_delivery_stream.extended_s3_stream"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.delivery_stream_role",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "aws_iam_role.delivery_stream_role",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.sns_subscription_role",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 20,
+      "address": "aws_iam_role.sns_subscription_role",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.delivery_stream_access_attachment",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 117,
+      "address": "aws_iam_role_policy_attachment.delivery_stream_access_attachment",
+      "references": [
+        "aws_iam_policy.delivery_stream_policy",
+        "aws_iam_role.delivery_stream_role"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.sns_firehose_access_attachment",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 112,
+      "address": "aws_iam_role_policy_attachment.sns_firehose_access_attachment",
+      "references": [
+        "aws_iam_policy.sns_firehose_access_policy",
+        "aws_iam_role.sns_subscription_role"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_kinesis_firehose_delivery_stream",
+      "label": "aws_kinesis_firehose_delivery_stream.extended_s3_stream",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 135,
+      "address": "aws_kinesis_firehose_delivery_stream.extended_s3_stream",
+      "references": [
+        "aws_s3_bucket.destination_bucket",
+        "aws_iam_role.delivery_stream_role"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.destination_bucket",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "aws_s3_bucket.destination_bucket",
+      "references": [
+        "random_id.unique_suffix"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_sns_topic",
+      "label": "aws_sns_topic.sns_topic",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 122,
+      "address": "aws_sns_topic.sns_topic",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_sns_topic_subscription",
+      "label": "aws_sns_topic_subscription.sns_subscription",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 127,
+      "address": "aws_sns_topic_subscription.sns_subscription",
+      "references": [
+        "aws_sns_topic.sns_topic",
+        "aws_kinesis_firehose_delivery_stream.extended_s3_stream",
+        "aws_iam_role.sns_subscription_role"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "random_id",
+      "label": "random_id.unique_suffix",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "random_id.unique_suffix",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"destination_bucket_name\" {\n  description = \"Enter a bucket name\"\n  type        = string\n}\n\nresource \"random_id\" \"unique_suffix\" {\n  byte_length = 4\n}\n\nresource \"aws_s3_bucket\" \"destination_bucket\" {\n  bucket = \"${var.destination_bucket_name}-${random_id.unique_suffix.hex}\"\n\n  # Additional S3 bucket configurations go here\n}\n\nresource \"aws_iam_role\" \"sns_subscription_role\" {\n  name = \"SNSSubscriptionRole-TF\"\n\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"Service\": \"sns.amazonaws.com\"\n      },\n      \"Action\": \"sts:AssumeRole\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_role\" \"delivery_stream_role\" {\n  name = \"DeliveryStreamRole-TF\"\n\n  assume_role_policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"Service\": \"firehose.amazonaws.com\"\n      },\n      \"Action\": \"sts:AssumeRole\"\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"sns_firehose_access_policy\" {\n  name        = \"SNS_Firehose_access_policy_tf\"\n  description = \"IAM policy for SNS to access Kinesis Firehose\"\n  \n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"firehose:DescribeDeliveryStream\",\n        \"firehose:ListDeliveryStreams\",\n        \"firehose:ListTagsForDeliveryStream\",\n        \"firehose:PutRecord\",\n        \"firehose:PutRecordBatch\"\n      ],\n      \"Resource\": [\n        \"${aws_kinesis_firehose_delivery_stream.extended_s3_stream.arn}\"\n      ]\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_policy\" \"delivery_stream_policy\" {\n  name        = \"firehose_delivery_policy_tf\"\n  description = \"IAM policy for Kinesis Firehose to access S3 bucket\"\n\n  policy = <<EOF\n{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:AbortMultipartUpload\",\n        \"s3:GetBucketLocation\",\n        \"s3:GetObject\",\n        \"s3:ListBucket\",\n        \"s3:ListBucketMultipartUploads\",\n        \"s3:PutObject\"\n      ],\n      \"Resource\": [\n        \"${aws_s3_bucket.destination_bucket.arn}\",\n        \"${aws_s3_bucket.destination_bucket.arn}/*\"\n      ]\n    }\n  ]\n}\nEOF\n}\n\nresource \"aws_iam_role_policy_attachment\" \"sns_firehose_access_attachment\" {\n  policy_arn = aws_iam_policy.sns_firehose_access_policy.arn\n  role       = aws_iam_role.sns_subscription_role.name\n}\n\nresource \"aws_iam_role_policy_attachment\" \"delivery_stream_access_attachment\" {\n  policy_arn = aws_iam_policy.delivery_stream_policy.arn\n  role       = aws_iam_role.delivery_stream_role.name\n}\n\nresource \"aws_sns_topic\" \"sns_topic\" {\n  name      = \"SourceSNSTopic-TF\"\n  fifo_topic = false\n}\n\nresource \"aws_sns_topic_subscription\" \"sns_subscription\" {\n  protocol  = \"firehose\"\n  topic_arn = aws_sns_topic.sns_topic.arn\n  endpoint  = aws_kinesis_firehose_delivery_stream.extended_s3_stream.arn\n  depends_on = [aws_sns_topic.sns_topic, aws_kinesis_firehose_delivery_stream.extended_s3_stream]\n  subscription_role_arn = aws_iam_role.sns_subscription_role.arn\n}\n\nresource \"aws_kinesis_firehose_delivery_stream\" \"extended_s3_stream\" {\n  name                    = \"Firehost-stream-TF\"\n  destination = \"extended_s3\"\n\n  extended_s3_configuration {\n    bucket_arn         = aws_s3_bucket.destination_bucket.arn\n    role_arn           = aws_iam_role.delivery_stream_role.arn\n    buffering_size     = 1\n    buffering_interval = 60\n    compression_format = \"GZIP\"\n    \n    cloudwatch_logging_options {\n      enabled           = true\n      log_group_name    = \"/aws/kinesisfirehose/ibcd\"\n      log_stream_name   = \"S3Delivery\"\n    }\n\n  }\n}\n\noutput \"sns_subscription_role_arn\" {\n  value = aws_iam_role.sns_subscription_role.arn\n}\n\noutput \"delivery_stream_role_arn\" {\n  value = aws_iam_role.delivery_stream_role.arn\n}\n\noutput \"sns_firehose_access_policy_arn\" {\n  value = aws_iam_policy.sns_firehose_access_policy.arn\n}\n\noutput \"delivery_stream_policy_arn\" {\n  value = aws_iam_policy.delivery_stream_policy.arn\n}\n\noutput \"sns_topic_arn\" {\n  value = aws_sns_topic.sns_topic.arn\n}\n\noutput \"sns_subscription_arn\" {\n  value = aws_sns_topic_subscription.sns_subscription.arn\n}\n\noutput \"kinesis_firehose_stream_arn\" {\n  value = aws_kinesis_firehose_delivery_stream.extended_s3_stream.arn\n}\n\n\noutput \"destination_bucket_arn\" {\n  value = aws_s3_bucket.destination_bucket.arn\n}\n\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/sns-firehose/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

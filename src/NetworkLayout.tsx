@@ -37,6 +37,8 @@ export default function NetworkLayout({
       x: number;
       y: number;
     } | null>(null);
+  const [linkTarget, setLinkTarget] = useState(""),
+    [linkLabel, setLinkLabel] = useState("");
   const start = useRef<{
     id: string;
     x: number;
@@ -270,6 +272,89 @@ export default function NetworkLayout({
               ))
             : "직접 참조가 없습니다."}
         </div>
+      )}
+      {node && view.notes !== false && (
+        <details>
+          <summary>설명선</summary>
+          {(view.annotationLinks || [])
+            .filter((l) => l.source === selected || l.target === selected)
+            .map((l) => (
+              <div key={l.source + ":" + l.target}>
+                {model.nodes.find((n) => n.id === l.source)?.label} →{" "}
+                {model.nodes.find((n) => n.id === l.target)?.label} · {l.label}
+                {!readonly && (
+                  <button
+                    onClick={() =>
+                      updateView({
+                        ...view,
+                        annotationLinks: view.annotationLinks?.filter(
+                          (item) => item !== l,
+                        ),
+                      })
+                    }
+                  >
+                    설명선 삭제
+                  </button>
+                )}
+              </div>
+            ))}
+          {!readonly && (
+            <>
+              <label>
+                설명선 대상
+                <select
+                  value={linkTarget}
+                  onChange={(e) => setLinkTarget(e.target.value)}
+                >
+                  <option value="">대상 선택</option>
+                  {model.nodes
+                    .filter((n) => n.id !== selected)
+                    .map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {n.label}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <label>
+                선 설명
+                <input
+                  value={linkLabel}
+                  maxLength={100}
+                  onChange={(e) => setLinkLabel(e.target.value)}
+                />
+              </label>
+              <button
+                disabled={
+                  !linkTarget ||
+                  selected === linkTarget ||
+                  !model.nodes.some((n) => n.id === linkTarget) ||
+                  !linkLabel.trim() ||
+                  (view.annotationLinks || []).some(
+                    (l) => l.source === selected && l.target === linkTarget,
+                  )
+                }
+                onClick={() => {
+                  updateView({
+                    ...view,
+                    annotationLinks: [
+                      ...(view.annotationLinks || []),
+                      {
+                        source: selected,
+                        target: linkTarget,
+                        label: linkLabel.trim(),
+                      },
+                    ],
+                  });
+                  setLinkLabel("");
+                  setLinkTarget("");
+                }}
+              >
+                설명선 추가
+              </button>
+            </>
+          )}
+        </details>
       )}
       {node && view.notes !== false && (
         <label className="network-note">

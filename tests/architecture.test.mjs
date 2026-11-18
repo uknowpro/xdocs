@@ -169,7 +169,14 @@ test("CloudFormation maps AWS references, retains S3 and excludes other provider
   assert.deepEqual(r.errors, []);
   assert.ok(!r.files["terraform/main.tf.json"]);
   const cf = JSON.parse(r.files["cloudformation/template.json"]);
-  assert.equal(Object.keys(cf.Resources).length, 4);
+  assert.equal(Object.keys(cf.Resources).length, 5);
+  const routeTable = Object.values(cf.Resources).find(
+    (r) => r.Type === "AWS::EC2::RouteTable",
+  );
+  assert.equal(
+    cf.Resources[routeTable.Properties.VpcId.Ref].Type,
+    "AWS::EC2::VPC",
+  );
   for (const id of Object.keys(cf.Resources))
     assert.match(id, /^[A-Za-z][A-Za-z0-9]+$/);
   const resources = Object.values(cf.Resources),

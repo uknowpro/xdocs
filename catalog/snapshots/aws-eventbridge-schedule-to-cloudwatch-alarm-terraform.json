@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "title": "AWS · CloudWatch 알람 스케줄",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudwatch_metric_alarm",
+      "label": "aws_cloudwatch_metric_alarm.example-ec2-cpu-alarm",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 57,
+      "address": "aws_cloudwatch_metric_alarm.example-ec2-cpu-alarm",
+      "references": [
+        "aws_instance.example-ec2"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_iam_policy",
+      "label": "aws_iam_policy.scheduler_alarm_policy",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 124,
+      "address": "aws_iam_policy.scheduler_alarm_policy",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.scheduler-alarm-role",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 147,
+      "address": "aws_iam_role.scheduler-alarm-role",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_iam_role_policy_attachment",
+      "label": "aws_iam_role_policy_attachment.scheduler_alarm_policy_attachment",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 165,
+      "address": "aws_iam_role_policy_attachment.scheduler_alarm_policy_attachment",
+      "references": [
+        "aws_iam_policy.scheduler_alarm_policy",
+        "aws_iam_role.scheduler-alarm-role"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_instance",
+      "label": "aws_instance.example-ec2",
+      "x": 60,
+      "y": 200,
+      "props": {
+        "instance_type": "t2.micro"
+      },
+      "original": {
+        "instance_type": "t2.micro"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 46,
+      "address": "aws_instance.example-ec2",
+      "references": [
+        "data.aws_ami.amazon-linux-2",
+        "aws_subnet.subnet"
+      ],
+      "scopeAddress": "aws_subnet.subnet",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 934,
+        "address": "aws_subnet.subnet",
+        "otherRefs": [
+          "data.aws_ami.amazon-linux-2"
+        ]
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_scheduler_schedule",
+      "label": "aws_scheduler_schedule.disable-ec2-alarm",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 99,
+      "address": "aws_scheduler_schedule.disable-ec2-alarm",
+      "references": [
+        "aws_iam_role.scheduler-alarm-role"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_scheduler_schedule",
+      "label": "aws_scheduler_schedule.enable-ec2-alarm",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 76,
+      "address": "aws_scheduler_schedule.enable-ec2-alarm",
+      "references": [
+        "aws_iam_role.scheduler-alarm-role"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.subnet",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "aws_subnet.subnet",
+      "references": [
+        "aws_vpc.vpc"
+      ],
+      "scopeAddress": "aws_vpc.vpc",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 452,
+        "address": "aws_vpc.vpc",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.vpc",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 22,
+      "address": "aws_vpc.vpc",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_ami",
+      "label": "data.aws_ami.amazon-linux-2",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 36,
+      "address": "data.aws_ami.amazon-linux-2",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.current",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "data.aws_caller_identity.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.region\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nlocals {\n    account_id = data.aws_caller_identity.current.account_id\n}\n\n# This section creates the VPC and subnet for the Amazon EC2 instance\n\nresource \"aws_vpc\" \"vpc\" {\n  cidr_block  = var.vpc_cidr\n}\n\nresource \"aws_subnet\" \"subnet\" {\n  vpc_id      = aws_vpc.vpc.id\n  cidr_block  = var.subnet_cidr\n  tags        = {\n    Name = \"my-private-subnet-1\"\n  }\n}\n\n# This section creates an Amazon EC2 instance using the latest Amazon Linux 2 AMI\n\ndata \"aws_ami\" \"amazon-linux-2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm*\"]\n  }\n}\n\nresource \"aws_instance\" \"example-ec2\" {\n  ami           = \"${data.aws_ami.amazon-linux-2.id}\"\n  instance_type = \"t2.micro\"\n  subnet_id     = aws_subnet.subnet.id\n  tags = {\n    Name = \"example-ec2\"\n  }\n}\n\n# This section creates an Amazon CloudWatch alarm of the CPUUtilization metric\n\nresource \"aws_cloudwatch_metric_alarm\" \"example-ec2-cpu-alarm\" {\n  alarm_name          = \"example-ec2-cpu-alarm\"\n  comparison_operator = \"GreaterThanOrEqualToThreshold\"\n  evaluation_periods  = \"2\"\n  metric_name         = \"CPUUtilization\"\n  namespace           = \"AWS/EC2\"\n  period              = \"60\"\n  statistic           = \"Average\"\n  threshold           = \"80\"\n  alarm_description   = \"This alarm is monitoring the CPUUtilization metric of an EC2 instance\"\n  alarm_actions       = []\n  dimensions = {\n    InstanceId = \"${aws_instance.example-ec2.id}\"\n  }\n}\n\n\n# This section creates the cron schedules using Amazon EventBridge Scheduler\n\nresource \"aws_scheduler_schedule\" \"enable-ec2-alarm\" {\n  name = \"enable-ec2-alarm\"\n  \n  flexible_time_window {\n    mode = \"OFF\"\n  }\n\n  schedule_expression = \"cron(0 8 ? * MON-FRI *)\" # Scheduled EnableAlarmActions at 8am EST Mon-Fri\n  schedule_expression_timezone = \"US/Eastern\" # Default is UTC\n  description = \"Enable the CloudWatch alarm for EC2 CPU monitoring\"\n\n  target {\n    arn = \"arn:aws:scheduler:::aws-sdk:cloudwatch:enableAlarmActions\"\n    role_arn = aws_iam_role.scheduler-alarm-role.arn\n  \n    input = jsonencode({\n      \"AlarmNames\": [\n        \"example-ec2-cpu-alarm\"\n      ]\n    })\n  }\n}\n\nresource \"aws_scheduler_schedule\" \"disable-ec2-alarm\" {\n  name = \"disable-ec2-alarm\"\n  \n  flexible_time_window {\n    mode = \"OFF\"\n  }\n\n  schedule_expression = \"cron(0 17 ? * MON-FRI *)\" # Scheduled DisableAlarmActions at 5pm EST Mon-Fri\n  schedule_expression_timezone = \"US/Eastern\" # Default is UTC\n  description = \"Disable the CloudWatch alarm for EC2 CPU monitoring\"\n\n  target {\n    arn = \"arn:aws:scheduler:::aws-sdk:cloudwatch:disableAlarmActions\"\n    role_arn = aws_iam_role.scheduler-alarm-role.arn\n  \n    input = jsonencode({\n      \"AlarmNames\": [\n        \"example-ec2-cpu-alarm\"\n      ]\n    })\n  }\n}\n\n# This section creates the required IAM policy and role to interact with CloudWatch alarm\n\nresource \"aws_iam_policy\" \"scheduler_alarm_policy\" {\n  name = \"scheduler_alarm_policy\"\n\n  policy = jsonencode(\n    {\n        \"Version\": \"2012-10-17\",\n        \"Statement\": [\n            {\n                \"Sid\": \"VisualEditor0\",\n                \"Effect\": \"Allow\",\n                \"Action\": [\n                    \"cloudwatch:EnableAlarmActions\",\n                    \"cloudwatch:DisableAlarmActions\"\n                ],\n                \"Resource\": [\n                  \"arn:aws:cloudwatch:${var.region}:${local.account_id}:alarm:example-ec2-cpu-alarm\"\n                ],\n            }\n        ]\n    }\n  )\n}\n\nresource \"aws_iam_role\" \"scheduler-alarm-role\" {\n  name = \"scheduler-alarm-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Sid    = \"\"\n        Principal = {\n          Service = \"scheduler.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"scheduler_alarm_policy_attachment\" {\n  role       = aws_iam_role.scheduler-alarm-role.name\n  policy_arn = aws_iam_policy.scheduler_alarm_policy.arn\n}"
+    },
+    {
+      "name": "variable.tf",
+      "content": "variable \"region\" {\n    type=string\n    description = \"AWS Region where deploying resources\"\n    default = \"us-west-1\"\n}\n\nvariable \"aws_profile_name\" {\n    type=string\n    description = \"AWS CLI credentials profile name\"\n    default=\"default\"\n}\n\nvariable \"vpc_cidr\" {\n    type=string\n    description = \"CIDR block for VPC\"\n    default = \"10.0.0.0/16\"\n}\n\nvariable \"subnet_cidr\" {\n    type=string\n    description = \"CIDR block for the subnet\"\n    default = \"10.0.0.0/24\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/eventbridge-schedule-to-cloudwatch-alarm/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

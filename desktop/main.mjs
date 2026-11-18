@@ -1,3 +1,6 @@
+import {modelProfiles} from "./builder-profiles.mjs";
+import {builderResources} from "./builder-mcp.mjs";
+import {runBuilderModel} from "./builder-model.mjs";
 import { templates, workflowNodes } from "../shared/workflows.mjs";
 import { importArchitecture } from "./architecture-import.mjs";
 import {
@@ -379,6 +382,15 @@ app.whenReady().then(async () => {
     });
     if (result.canceled || !result.filePaths[0]) return null;
     return importInfrastructure(result.filePaths[0]);
+  });
+  register("builder:resources",async request=>{mustVault();return builderResources(request)});
+  const profiles=modelProfiles(app.getPath("userData"),safeStorage);
+  register("builder:profiles",()=>profiles.list());
+  register("builder:profile-save",data=>profiles.save(data));
+  register("builder:model",async request=>{
+    mustVault();
+    const key=request.key || await profiles.keyFor(request.profile,request.endpoint,request.model);
+    return runBuilderModel({...request,key});
   });
   register("sheet:import", async () => {
     const store = mustVault();

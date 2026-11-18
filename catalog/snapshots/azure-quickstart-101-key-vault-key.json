@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "title": "Azure · Key Vault 암호화 키",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_key_vault",
+      "label": "azurerm_key_vault.vault",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 24,
+      "address": "azurerm_key_vault.vault",
+      "references": [
+        "data.azurerm_client_config.current",
+        "azurerm_resource_group.rg",
+        "random_string.azurerm_key_vault_name"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_key_vault_key",
+      "label": "azurerm_key_vault_key.key",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 49,
+      "address": "azurerm_key_vault_key.key",
+      "references": [
+        "azurerm_key_vault.vault",
+        "random_string.azurerm_key_vault_key_name"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 5,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 1,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "random_string",
+      "label": "random_string.azurerm_key_vault_key_name",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 41,
+      "address": "random_string.azurerm_key_vault_key_name",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "random_string",
+      "label": "random_string.azurerm_key_vault_name",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "random_string.azurerm_key_vault_name",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_client_config",
+      "label": "data.azurerm_client_config.current",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 10,
+      "address": "data.azurerm_client_config.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "resource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  name     = random_pet.rg_name.id\n  location = var.resource_group_location\n}\n\ndata \"azurerm_client_config\" \"current\" {}\n\nresource \"random_string\" \"azurerm_key_vault_name\" {\n  length  = 13\n  lower   = true\n  numeric = false\n  special = false\n  upper   = false\n}\n\nlocals {\n  current_user_id = coalesce(var.msi_id, data.azurerm_client_config.current.object_id)\n}\n\nresource \"azurerm_key_vault\" \"vault\" {\n  name                       = coalesce(var.vault_name, \"vault-${random_string.azurerm_key_vault_name.result}\")\n  location                   = azurerm_resource_group.rg.location\n  resource_group_name        = azurerm_resource_group.rg.name\n  tenant_id                  = data.azurerm_client_config.current.tenant_id\n  sku_name                   = var.sku_name\n  soft_delete_retention_days = 7\n\n  access_policy {\n    tenant_id = data.azurerm_client_config.current.tenant_id\n    object_id = local.current_user_id\n\n    key_permissions    = var.key_permissions\n    secret_permissions = var.secret_permissions\n  }\n}\n\nresource \"random_string\" \"azurerm_key_vault_key_name\" {\n  length  = 13\n  lower   = true\n  numeric = false\n  special = false\n  upper   = false\n}\n\nresource \"azurerm_key_vault_key\" \"key\" {\n  name = coalesce(var.key_name, \"key-${random_string.azurerm_key_vault_key_name.result}\")\n\n  key_vault_id = azurerm_key_vault.vault.id\n  key_type     = var.key_type\n  key_size     = var.key_size\n  key_opts     = var.key_ops\n\n  rotation_policy {\n    automatic {\n      time_before_expiry = \"P30D\"\n    }\n\n    expire_after         = \"P90D\"\n    notify_before_expiry = \"P29D\"\n  }\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"azurerm_key_vault_name\" {\n  value = azurerm_key_vault.vault.name\n}\n\noutput \"azurerm_key_vault_id\" {\n  value = azurerm_key_vault.vault.id\n}\n"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~>3.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  description = \"Location for all resources.\"\n  default     = \"eastus\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n  default     = \"rg\"\n}\n\nvariable \"vault_name\" {\n  type        = string\n  description = \"The name of the key vault to be created. The value will be randomly generated if blank.\"\n  default     = \"\"\n}\n\nvariable \"key_name\" {\n  type        = string\n  description = \"The name of the key to be created. The value will be randomly generated if blank.\"\n  default     = \"\"\n}\n\nvariable \"sku_name\" {\n  type        = string\n  description = \"The SKU of the vault to be created.\"\n  default     = \"standard\"\n  validation {\n    condition     = contains([\"standard\", \"premium\"], var.sku_name)\n    error_message = \"The sku_name must be one of the following: standard, premium.\"\n  }\n}\n\nvariable \"key_permissions\" {\n  type        = list(string)\n  description = \"List of key permissions.\"\n  default     = [\"List\", \"Create\", \"Delete\", \"Get\", \"Purge\", \"Recover\", \"Update\", \"GetRotationPolicy\", \"SetRotationPolicy\"]\n}\n\nvariable \"secret_permissions\" {\n  type        = list(string)\n  description = \"List of secret permissions.\"\n  default     = [\"Set\"]\n}\n\nvariable \"key_type\" {\n  description = \"The JsonWebKeyType of the key to be created.\"\n  default     = \"RSA\"\n  type        = string\n  validation {\n    condition     = contains([\"EC\", \"EC-HSM\", \"RSA\", \"RSA-HSM\"], var.key_type)\n    error_message = \"The key_type must be one of the following: EC, EC-HSM, RSA, RSA-HSM.\"\n  }\n}\n\nvariable \"key_ops\" {\n  type        = list(string)\n  description = \"The permitted JSON web key operations of the key to be created.\"\n  default     = [\"decrypt\", \"encrypt\", \"sign\", \"unwrapKey\", \"verify\", \"wrapKey\"]\n}\n\nvariable \"key_size\" {\n  type        = number\n  description = \"The size in bits of the key to be created.\"\n  default     = 2048\n}\n\nvariable \"msi_id\" {\n  type        = string\n  description = \"The Managed Service Identity ID. If this value isn't null (the default), 'data.azurerm_client_config.current.object_id' will be set to this value.\"\n  default     = null\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-key-vault-key\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

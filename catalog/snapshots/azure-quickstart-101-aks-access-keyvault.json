@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "title": "Azure · AKS와 Key Vault",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_key_vault",
+      "label": "azurerm_key_vault.this",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 96,
+      "address": "azurerm_key_vault.this",
+      "references": [
+        "azurerm_resource_group.this",
+        "data.azurerm_client_config.current"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_key_vault_secret",
+      "label": "azurerm_key_vault_secret.example",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 114,
+      "address": "azurerm_key_vault_secret.example",
+      "references": [
+        "azurerm_role_assignment.current_user_kv_admin",
+        "azurerm_key_vault.this"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_kubernetes_cluster",
+      "label": "azurerm_kubernetes_cluster.this",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 53,
+      "address": "azurerm_kubernetes_cluster.this",
+      "references": [
+        "azurerm_resource_group.this",
+        "azurerm_log_analytics_workspace.this"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_log_analytics_workspace",
+      "label": "azurerm_log_analytics_workspace.this",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 45,
+      "address": "azurerm_log_analytics_workspace.this",
+      "references": [
+        "azurerm_resource_group.this"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.this",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 40,
+      "address": "azurerm_resource_group.this",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.aks_csi_secrets_user",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 124,
+      "address": "azurerm_role_assignment.aks_csi_secrets_user",
+      "references": [
+        "azurerm_kubernetes_cluster.this",
+        "azurerm_key_vault.this"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_role_assignment",
+      "label": "azurerm_role_assignment.current_user_kv_admin",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 108,
+      "address": "azurerm_role_assignment.current_user_kv_admin",
+      "references": [
+        "data.azurerm_client_config.current",
+        "azurerm_key_vault.this"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "random_string",
+      "label": "random_string.suffix",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "random_string.suffix",
+      "references": []
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_client_config",
+      "label": "data.azurerm_client_config.current",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 24,
+      "address": "data.azurerm_client_config.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \"~> 3.116\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.6\"\n    }\n  }\n}\n\nprovider \"azurerm\" {\n  features {\n    resource_group {\n      prevent_deletion_if_contains_resources = false\n    }\n  }\n}\n\ndata \"azurerm_client_config\" \"current\" {}\n\nresource \"random_string\" \"suffix\" {\n  length  = 6\n  upper   = false\n  special = false\n}\n\nlocals {\n  location            = \"eastus\"\n  resource_group_name = \"rg-aks-kv-csi-demo-${random_string.suffix.result}\"\n  aks_name            = \"aks-kv-csi-demo\"\n  key_vault_name      = \"kvcsidemo${random_string.suffix.result}\"\n  secret_name         = \"ExampleSecret\"\n}\n\nresource \"azurerm_resource_group\" \"this\" {\n  name     = local.resource_group_name\n  location = local.location\n}\n\nresource \"azurerm_log_analytics_workspace\" \"this\" {\n  name                = \"law-aks-kv-csi-demo\"\n  location            = azurerm_resource_group.this.location\n  resource_group_name = azurerm_resource_group.this.name\n  sku                 = \"PerGB2018\"\n  retention_in_days   = 30\n}\n\nresource \"azurerm_kubernetes_cluster\" \"this\" {\n  name                      = local.aks_name\n  location                  = azurerm_resource_group.this.location\n  resource_group_name       = azurerm_resource_group.this.name\n  dns_prefix                = \"akskvcsidemo\"\n  kubernetes_version        = null\n  oidc_issuer_enabled       = true\n  workload_identity_enabled = true\n\n  default_node_pool {\n    name       = \"system\"\n    node_count = 1\n    vm_size    = \"Standard_D2s_v3\"\n\n    upgrade_settings {\n      drain_timeout_in_minutes      = 0\n      max_surge                     = \"10%\"\n      node_soak_duration_in_minutes = 0\n    }\n  }\n\n  identity {\n    type = \"SystemAssigned\"\n  }\n\n  key_vault_secrets_provider {\n    secret_rotation_enabled = false\n  }\n\n  oms_agent {\n    log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id\n  }\n\n  network_profile {\n    network_plugin    = \"azure\"\n    load_balancer_sku = \"standard\"\n  }\n\n  tags = {\n    scenario = \"aks-keyvault-csi\"\n  }\n}\n\nresource \"azurerm_key_vault\" \"this\" {\n  name                          = local.key_vault_name\n  location                      = azurerm_resource_group.this.location\n  resource_group_name           = azurerm_resource_group.this.name\n  tenant_id                     = data.azurerm_client_config.current.tenant_id\n  sku_name                      = \"standard\"\n  purge_protection_enabled      = false\n  soft_delete_retention_days    = 7\n  enable_rbac_authorization     = true\n  public_network_access_enabled = true\n}\n\nresource \"azurerm_role_assignment\" \"current_user_kv_admin\" {\n  scope                = azurerm_key_vault.this.id\n  role_definition_name = \"Key Vault Administrator\"\n  principal_id         = data.azurerm_client_config.current.object_id\n}\n\nresource \"azurerm_key_vault_secret\" \"example\" {\n  name         = local.secret_name\n  value        = \"HelloFromKeyVault\"\n  key_vault_id = azurerm_key_vault.this.id\n\n  depends_on = [\n    azurerm_role_assignment.current_user_kv_admin\n  ]\n}\n\nresource \"azurerm_role_assignment\" \"aks_csi_secrets_user\" {\n  scope                = azurerm_key_vault.this.id\n  role_definition_name = \"Key Vault Secrets User\"\n  # This is the managed identity automatically created by the AKS Key Vault CSI addon.\n  principal_id = azurerm_kubernetes_cluster.this.key_vault_secrets_provider[0].secret_identity[0].object_id\n}\n\noutput \"resource_group_name\" {\n  value = azurerm_resource_group.this.name\n}\n\noutput \"aks_cluster_name\" {\n  value = azurerm_kubernetes_cluster.this.name\n}\n\noutput \"key_vault_name\" {\n  value = azurerm_key_vault.this.name\n}\n\noutput \"key_vault_secret_name\" {\n  value = azurerm_key_vault_secret.example.name\n}\n\noutput \"tenant_id\" {\n  value = data.azurerm_client_config.current.tenant_id\n}\n\noutput \"aks_csi_client_id\" {\n  value = azurerm_kubernetes_cluster.this.key_vault_secrets_provider[0].secret_identity[0].client_id\n}\n\noutput \"aks_csi_object_id\" {\n  value = azurerm_kubernetes_cluster.this.key_vault_secrets_provider[0].secret_identity[0].object_id\n}\n"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-aks-access-keyvault\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

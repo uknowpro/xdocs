@@ -83,3 +83,14 @@ npm run dist          # 현재 OS 패키징
 Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과했습니다. 사용자 기기에서의 설치·업데이트와 서명 검증은 별도로 필요합니다.
 
 [IaCD 사용법](docs/iacd.md) · [인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [MIT License](LICENSE)
+
+main 개발판에는 **AWS·Azure·GCP 각 30종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 참고 자료를 연결할 수 있습니다. [Builder 사용법](docs/brainboard-builder.md)
+
+<details>
+<summary>Builder와 IaCD 템플릿 화면</summary>
+
+![셀 주소를 포함하는 시트 검토 하네스](docs/images/builder.png)
+
+![AWS DynamoDB 템플릿 검색](docs/images/architecture-catalog.png)
+
+</details>

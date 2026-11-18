@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "title": "Azure · Virtual Network Manager 메시",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_network_manager",
+      "label": "azurerm_network_manager.network_manager_instance",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 48,
+      "address": "azurerm_network_manager.network_manager_instance",
+      "references": [
+        "azurerm_resource_group.rg",
+        "data.azurerm_subscription.current"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_network_manager_connectivity_configuration",
+      "label": "azurerm_network_manager_connectivity_configuration.connectivity_config",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 120,
+      "address": "azurerm_network_manager_connectivity_configuration.connectivity_config",
+      "references": [
+        "azurerm_network_manager_network_group.network_group",
+        "azurerm_network_manager.network_manager_instance"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_network_manager_deployment",
+      "label": "azurerm_network_manager_deployment.commit_deployment",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 133,
+      "address": "azurerm_network_manager_deployment.commit_deployment",
+      "references": [
+        "azurerm_network_manager_connectivity_configuration.connectivity_config",
+        "azurerm_resource_group.rg",
+        "azurerm_network_manager.network_manager_instance"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_network_manager_network_group",
+      "label": "azurerm_network_manager_network_group.network_group",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 61,
+      "address": "azurerm_network_manager_network_group.network_group",
+      "references": [
+        "azurerm_network_manager.network_manager_instance"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_policy_definition",
+      "label": "azurerm_policy_definition.network_group_policy",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 72,
+      "address": "azurerm_policy_definition.network_group_policy",
+      "references": [
+        "random_pet.network_group_policy_name",
+        "random_pet.virtual_network_name",
+        "azurerm_network_manager_network_group.network_group"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.rg",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 8,
+      "address": "azurerm_resource_group.rg",
+      "references": [
+        "random_pet.rg_name"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_subnet",
+      "label": "azurerm_subnet.subnet_vnet",
+      "x": 540,
+      "y": 200,
+      "props": {
+        "name": "default"
+      },
+      "original": {
+        "name": "default"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "multipleInstances": true,
+      "address": "azurerm_subnet.subnet_vnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "azurerm_virtual_network.vnet"
+      ],
+      "placementUnknown": true,
+      "placementValue": "${azurerm_virtual_network.vnet[count.index].name}"
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_subscription_policy_assignment",
+      "label": "azurerm_subscription_policy_assignment.azure_policy_assignment",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 112,
+      "address": "azurerm_subscription_policy_assignment.azure_policy_assignment",
+      "references": [
+        "random_pet.network_group_policy_name",
+        "azurerm_policy_definition.network_group_policy",
+        "data.azurerm_subscription.current"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_virtual_network",
+      "label": "azurerm_virtual_network.vnet",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 23,
+      "multipleInstances": true,
+      "address": "azurerm_virtual_network.vnet",
+      "references": [
+        "azurerm_resource_group.rg",
+        "random_pet.virtual_network_name"
+      ],
+      "scopeAddress": "azurerm_resource_group.rg",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 606,
+        "address": "azurerm_resource_group.rg",
+        "otherRefs": [
+          "azurerm_resource_group.rg",
+          "random_pet.virtual_network_name"
+        ]
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "random_pet",
+      "label": "random_pet.network_group_policy_name",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 68,
+      "address": "random_pet.network_group_policy_name",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "random_pet",
+      "label": "random_pet.rg_name",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 4,
+      "address": "random_pet.rg_name",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "random_pet",
+      "label": "random_pet.virtual_network_name",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 20,
+      "address": "random_pet.virtual_network_name",
+      "references": [
+        "random_string.prefix"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "random_string",
+      "label": "random_string.prefix",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 14,
+      "address": "random_string.prefix",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "azurerm_subscription",
+      "label": "data.azurerm_subscription.current",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 45,
+      "address": "data.azurerm_subscription.current",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "\n# Create the Resource Group\n\nresource \"random_pet\" \"rg_name\" {\n  prefix = var.resource_group_name_prefix\n}\n\nresource \"azurerm_resource_group\" \"rg\" {\n  location = var.resource_group_location\n  name     = random_pet.rg_name.id\n}\n\n# Create three virtual networks\nresource \"random_string\" \"prefix\" {\n  length = 4\n  special = false\n  upper = false\n}\n\nresource \"random_pet\" \"virtual_network_name\" {\n  prefix = \"vnet-${random_string.prefix.result}\"\n}\nresource \"azurerm_virtual_network\" \"vnet\" {\n  count = 3\n\n  name                = \"${random_pet.virtual_network_name.id}-0${count.index}\"\n  resource_group_name = azurerm_resource_group.rg.name\n  location            = azurerm_resource_group.rg.location\n  address_space       = [\"10.${count.index}.0.0/16\"]\n}\n\n# Add a subnet to each virtual network\n\nresource \"azurerm_subnet\" \"subnet_vnet\" {\n  count = 3\n\n  name                 = \"default\"\n  virtual_network_name = azurerm_virtual_network.vnet[count.index].name\n  resource_group_name  = azurerm_resource_group.rg.name\n  address_prefixes     = [\"10.${count.index}.0.0/24\"]\n}\n\n# Create a Virtual Network Manager instance\n\ndata \"azurerm_subscription\" \"current\" {\n}\n\nresource \"azurerm_network_manager\" \"network_manager_instance\" {\n  name                = \"network-manager\"\n  location            = azurerm_resource_group.rg.location\n  resource_group_name = azurerm_resource_group.rg.name\n  scope_accesses      = [\"Connectivity\"]\n  description         = \"example network manager\"\n  scope {\n    subscription_ids = [data.azurerm_subscription.current.id]\n  }\n}\n\n# Create a network group\n\nresource \"azurerm_network_manager_network_group\" \"network_group\" {\n  name               = \"network-group\"\n  network_manager_id = azurerm_network_manager.network_manager_instance.id\n}\n\n# Add three virtual networks to a network group as dynamic members with Azure Policy\n\nresource \"random_pet\" \"network_group_policy_name\" {\n  prefix = \"network-group-policy\"\n}\n\nresource \"azurerm_policy_definition\" \"network_group_policy\" {\n  name         = \"${random_pet.network_group_policy_name.id}\"\n  policy_type  = \"Custom\"\n  mode         = \"Microsoft.Network.Data\"\n  display_name = \"Policy Definition for Network Group\"\n\n  metadata = <<METADATA\n    {\n      \"category\": \"Azure Virtual Network Manager\"\n    }\n  METADATA\n\n  policy_rule = <<POLICY_RULE\n    {\n      \"if\": {\n        \"allOf\": [\n          {\n              \"field\": \"type\",\n              \"equals\": \"Microsoft.Network/virtualNetworks\"\n          },\n          {\n            \"allOf\": [\n              {\n              \"field\": \"Name\",\n              \"contains\": \"${random_pet.virtual_network_name.id}\"\n              }\n            ]\n          }\n        ]\n      },\n      \"then\": {\n        \"effect\": \"addToNetworkGroup\",\n        \"details\": {\n          \"networkGroupId\": \"${azurerm_network_manager_network_group.network_group.id}\"\n        }\n      }\n    }\n  POLICY_RULE\n}\n\nresource \"azurerm_subscription_policy_assignment\" \"azure_policy_assignment\" {\n  name                 = \"${random_pet.network_group_policy_name.id}-policy-assignment\"\n  policy_definition_id = azurerm_policy_definition.network_group_policy.id\n  subscription_id      = data.azurerm_subscription.current.id\n}\n\n# Create a connectivity configuration\n\nresource \"azurerm_network_manager_connectivity_configuration\" \"connectivity_config\" {\n  name                  = \"connectivity-config\"\n  network_manager_id    = azurerm_network_manager.network_manager_instance.id\n  connectivity_topology = \"Mesh\"\n  applies_to_group {\n    group_connectivity = \"None\"\n    network_group_id   = azurerm_network_manager_network_group.network_group.id\n  }\n}\n\n\n# Commit deployment\n\nresource \"azurerm_network_manager_deployment\" \"commit_deployment\" {\n  network_manager_id = azurerm_network_manager.network_manager_instance.id\n  location           = azurerm_resource_group.rg.location\n  scope_access       = \"Connectivity\"\n  configuration_ids  = [azurerm_network_manager_connectivity_configuration.connectivity_config.id]\n}\n"
+    },
+    {
+      "name": "outputs.tf",
+      "content": "output \"resource_group_name\" {\n  value = azurerm_resource_group.rg.name\n}\n\noutput \"virtual_network_names\" {\n  value = azurerm_virtual_network.vnet[*].name\n}"
+    },
+    {
+      "name": "providers.tf",
+      "content": "terraform {\n  required_version = \">=1.0\"\n  required_providers {\n    azurerm = {\n      source  = \"hashicorp/azurerm\"\n      version = \">= 3.56.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~>3.0\"\n    }\n  }\n}\nprovider \"azurerm\" {\n  features {}\n}"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"resource_group_location\" {\n  type        = string\n  default     = \"eastus\"\n  description = \"Location of the resource group.\"\n}\n\nvariable \"resource_group_name_prefix\" {\n  type        = string\n  description = \"Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription.\"\n  default     = \"rg\"\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/Azure/terraform/tree/041fd4da7ca6afcff27770acd353913f28b339a0/quickstart/101-virtual-network-manager-create-mesh\n#     MIT License\n# \n#     Copyright (c) Microsoft Corporation. All rights reserved.\n# \n#     Permission is hereby granted, free of charge, to any person obtaining a copy\n#     of this software and associated documentation files (the \"Software\"), to deal\n#     in the Software without restriction, including without limitation the rights\n#     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n#     copies of the Software, and to permit persons to whom the Software is\n#     furnished to do so, subject to the following conditions:\n# \n#     The above copyright notice and this permission notice shall be included in all\n#     copies or substantial portions of the Software.\n# \n#     THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n#     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n#     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n#     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n#     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n#     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n#     SOFTWARE\n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}

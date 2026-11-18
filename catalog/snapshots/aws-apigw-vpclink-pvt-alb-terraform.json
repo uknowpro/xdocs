@@ -1,0 +1,313 @@
+{
+  "version": 1,
+  "title": "AWS · VPC Link와 내부 ALB",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_apigatewayv2_api",
+      "label": "aws_apigatewayv2_api.apigw_http_endpoint",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 198,
+      "address": "aws_apigatewayv2_api.apigw_http_endpoint",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_apigatewayv2_integration",
+      "label": "aws_apigatewayv2_integration.apigw_integration",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 206,
+      "address": "aws_apigatewayv2_integration.apigw_integration",
+      "references": [
+        "aws_apigatewayv2_api.apigw_http_endpoint",
+        "aws_apigatewayv2_vpc_link.vpclink_apigw_to_alb",
+        "aws_lb_listener.ecs_alb_listener"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_apigatewayv2_route",
+      "label": "aws_apigatewayv2_route.apigw_route",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 221,
+      "address": "aws_apigatewayv2_route.apigw_route",
+      "references": [
+        "aws_apigatewayv2_api.apigw_http_endpoint",
+        "aws_apigatewayv2_integration.apigw_integration"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_apigatewayv2_stage",
+      "label": "aws_apigatewayv2_stage.apigw_stage",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 229,
+      "address": "aws_apigatewayv2_stage.apigw_stage",
+      "references": [
+        "aws_apigatewayv2_api.apigw_http_endpoint"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_apigatewayv2_vpc_link",
+      "label": "aws_apigatewayv2_vpc_link.vpclink_apigw_to_alb",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 191,
+      "address": "aws_apigatewayv2_vpc_link.vpclink_apigw_to_alb",
+      "references": []
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_ecs_cluster",
+      "label": "aws_ecs_cluster.ecs_cluster",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 105,
+      "address": "aws_ecs_cluster.ecs_cluster",
+      "references": []
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_ecs_service",
+      "label": "aws_ecs_service.demo-ecs-service",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 109,
+      "address": "aws_ecs_service.demo-ecs-service",
+      "references": [
+        "aws_ecs_cluster.ecs_cluster",
+        "aws_lb_target_group.alb_ecs_tg",
+        "aws_lb_listener.ecs_alb_listener",
+        "aws_security_group.ecs_security_group",
+        "aws_ecs_task_definition.ecs_taskdef"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_ecs_task_definition",
+      "label": "aws_ecs_task_definition.ecs_taskdef",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 137,
+      "address": "aws_ecs_task_definition.ecs_taskdef",
+      "references": [
+        "aws_iam_role.ecs_task_exec_role",
+        "aws_iam_role.ecs_task_role"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.ecs_task_exec_role",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 159,
+      "address": "aws_iam_role.ecs_task_exec_role",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_iam_role",
+      "label": "aws_iam_role.ecs_task_role",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 174,
+      "address": "aws_iam_role.ecs_task_role",
+      "references": []
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_lb",
+      "label": "aws_lb.ecs_alb",
+      "x": 540,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 78,
+      "address": "aws_lb.ecs_alb",
+      "references": [
+        "aws_security_group.lb_security_group"
+      ]
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_lb_listener",
+      "label": "aws_lb_listener.ecs_alb_listener",
+      "x": 780,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 94,
+      "address": "aws_lb_listener.ecs_alb_listener",
+      "references": [
+        "aws_lb_target_group.alb_ecs_tg",
+        "aws_lb.ecs_alb"
+      ]
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_lb_target_group",
+      "label": "aws_lb_target_group.alb_ecs_tg",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 86,
+      "address": "aws_lb_target_group.alb_ecs_tg",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.ecs_security_group",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 54,
+      "address": "aws_security_group.ecs_security_group",
+      "references": []
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.lb_security_group",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 20,
+      "address": "aws_security_group.lb_security_group",
+      "references": []
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.sg_egress_rule_lb_to_ecs_cluster",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 43,
+      "address": "aws_security_group_rule.sg_egress_rule_lb_to_ecs_cluster",
+      "references": [
+        "aws_security_group.lb_security_group",
+        "aws_security_group.ecs_security_group"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.sg_ingress_rule_all_to_lb",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 31,
+      "address": "aws_security_group_rule.sg_ingress_rule_all_to_lb",
+      "references": [
+        "aws_security_group.lb_security_group"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_security_group_rule",
+      "label": "aws_security_group_rule.sg_ingress_rule_ecs_cluster_from_lb",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 67,
+      "address": "aws_security_group_rule.sg_ingress_rule_ecs_cluster_from_lb",
+      "references": [
+        "aws_security_group.ecs_security_group",
+        "aws_security_group.lb_security_group"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "# Required providers configuration\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6.0\"\n    }\n  }\n\n  required_version = \">= 1.0.11\"\n}\n\n# AWS provider configuration\nprovider \"aws\" {\n  profile = \"default\"\n  region  = \"us-east-1\"\n}\n\n# Load balancer security group. CIDR and port ingress can be changed as required.\nresource \"aws_security_group\" \"lb_security_group\" {\n  description = \"LoadBalancer Security Group\"\n  vpc_id = var.vpc_id\n  ingress {\n    description      = \"Allow from anyone on port 80\"\n    from_port        = 80\n    to_port          = 80\n    protocol         = \"tcp\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n  }\n}\nresource \"aws_security_group_rule\" \"sg_ingress_rule_all_to_lb\" {\n  type\t= \"ingress\"\n  description = \"Allow from anyone on port 80\"\n  from_port         = 80\n  to_port           = 80\n  protocol          = \"tcp\"\n  cidr_blocks       = [\"0.0.0.0/0\"]\n  ipv6_cidr_blocks  = [\"::/0\"]\n  security_group_id = aws_security_group.lb_security_group.id\n}\n\n# Load balancer security group egress rule to ECS cluster security group.\nresource \"aws_security_group_rule\" \"sg_egress_rule_lb_to_ecs_cluster\" {\n  type\t= \"egress\"\n  description = \"Target group egress\"\n  from_port         = 80\n  to_port           = 80\n  protocol          = \"tcp\"\n  security_group_id = aws_security_group.lb_security_group.id\n  source_security_group_id = aws_security_group.ecs_security_group.id\n}\n\n# ECS cluster security group.\nresource \"aws_security_group\" \"ecs_security_group\" {\n  description = \"ECS Security Group\"\n  vpc_id = var.vpc_id\n  egress {\n    description      = \"Allow all outbound traffic by default\"\n    from_port        = 0\n    to_port          = 0\n    protocol         = \"-1\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n  }\n}\n\n# ECS cluster security group ingress from the load balancer.\nresource \"aws_security_group_rule\" \"sg_ingress_rule_ecs_cluster_from_lb\" {\n  type\t= \"ingress\"\n  description = \"Ingress from Load Balancer\"\n  from_port         = 80\n  to_port           = 80\n  protocol          = \"tcp\"\n  security_group_id = aws_security_group.ecs_security_group.id\n  source_security_group_id = aws_security_group.lb_security_group.id\n}\n\n# Create the internal application load balancer (ALB) in the private subnets.\nresource \"aws_lb\" \"ecs_alb\" {\n  load_balancer_type = \"application\"\n  internal = true\n  subnets = var.private_subnets\n  security_groups = [aws_security_group.lb_security_group.id]\n}\n\n# Create the ALB target group for ECS.\nresource \"aws_lb_target_group\" \"alb_ecs_tg\" {\n  port        = 80\n  protocol    = \"HTTP\"\n  target_type = \"ip\"\n  vpc_id      = var.vpc_id\n}\n\n# Create the ALB listener with the target group.\nresource \"aws_lb_listener\" \"ecs_alb_listener\" {\n  load_balancer_arn = aws_lb.ecs_alb.arn\n  port              = \"80\"\n  protocol          = \"HTTP\"\n  default_action {\n    type             = \"forward\"\n    target_group_arn = aws_lb_target_group.alb_ecs_tg.arn\n  }\n}\n\n# Create the ECS Cluster and Fargate launch type service in the private subnets\nresource \"aws_ecs_cluster\" \"ecs_cluster\" {\n  name  = \"demo-ecs-cluster\"\n}\n\nresource \"aws_ecs_service\" \"demo-ecs-service\" {\n  name            = \"demo-ecs-svc\"\n  cluster         = aws_ecs_cluster.ecs_cluster.id\n  task_definition = aws_ecs_task_definition.ecs_taskdef.arn\n  desired_count   = 2\n  deployment_maximum_percent = 200\n  deployment_minimum_healthy_percent = 50\n  enable_ecs_managed_tags = false\n  health_check_grace_period_seconds = 60\n  launch_type = \"FARGATE\"\n  depends_on      = [aws_lb_target_group.alb_ecs_tg, aws_lb_listener.ecs_alb_listener]\n\n  load_balancer {\n    target_group_arn = aws_lb_target_group.alb_ecs_tg.arn\n    container_name   = \"web\"\n    container_port   = 80\n  }\n\n  network_configuration {\n    security_groups = [aws_security_group.ecs_security_group.id]\n    subnets = var.private_subnets\n  }\n}\n\n# Create the ECS Service task definition. \n# 'nginx' image is being used in the container definition.\n# This image is pulled from the docker hub which is the default image repository.\n# ECS task execution role and the task role is used which can be attached with additional IAM policies to configure the required permissions.\nresource \"aws_ecs_task_definition\" \"ecs_taskdef\" {\n  family = \"service\"\n  container_definitions = jsonencode([\n    {\n      name      = \"web\"\n      image     = \"nginx\"\n      essential = true\n      portMappings = [\n        {\n          containerPort = 80\n          protocol      = \"tcp\"\n        }\n      ]\n    }\n  ])\n  cpu       = 512\n  memory    = 1024\n  execution_role_arn = aws_iam_role.ecs_task_exec_role.arn\n  task_role_arn = aws_iam_role.ecs_task_role.arn\n  requires_compatibilities = [\"FARGATE\"]\n  network_mode             = \"awsvpc\"\n}\nresource \"aws_iam_role\" \"ecs_task_exec_role\" {\n  name = \"ecs_task_exec_role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ecs-tasks.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\nresource \"aws_iam_role\" \"ecs_task_role\" {\n  name = \"ecs_task_role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ecs-tasks.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\n# Create the VPC Link configured with the private subnets. Security groups are kept empty here, but can be configured as required.\nresource \"aws_apigatewayv2_vpc_link\" \"vpclink_apigw_to_alb\" {\n  name        = \"vpclink_apigw_to_alb\"\n  security_group_ids = []\n  subnet_ids = var.private_subnets\n}\n\n# Create the API Gateway HTTP endpoint\nresource \"aws_apigatewayv2_api\" \"apigw_http_endpoint\" {\n  name          = \"serverlessland-pvt-endpoint\"\n  protocol_type = \"HTTP\"\n}\n\n# Create the API Gateway HTTP_PROXY integration between the created API and the private load balancer via the VPC Link.\n# Ensure that the 'DependsOn' attribute has the VPC Link dependency.\n# This is to ensure that the VPC Link is created successfully before the integration and the API GW routes are created.\nresource \"aws_apigatewayv2_integration\" \"apigw_integration\" {\n  api_id           = aws_apigatewayv2_api.apigw_http_endpoint.id\n  integration_type = \"HTTP_PROXY\"\n  integration_uri  = aws_lb_listener.ecs_alb_listener.arn\n\n  integration_method = \"ANY\"\n  connection_type    = \"VPC_LINK\"\n  connection_id      = aws_apigatewayv2_vpc_link.vpclink_apigw_to_alb.id\n  payload_format_version = \"1.0\"\n  depends_on      = [aws_apigatewayv2_vpc_link.vpclink_apigw_to_alb, \n                    aws_apigatewayv2_api.apigw_http_endpoint, \n                    aws_lb_listener.ecs_alb_listener]\n}\n\n# API GW route with ANY method\nresource \"aws_apigatewayv2_route\" \"apigw_route\" {\n  api_id    = aws_apigatewayv2_api.apigw_http_endpoint.id\n  route_key = \"ANY /{proxy+}\"\n  target = \"integrations/${aws_apigatewayv2_integration.apigw_integration.id}\"\n  depends_on  = [aws_apigatewayv2_integration.apigw_integration]\n}\n\n# Set a default stage\nresource \"aws_apigatewayv2_stage\" \"apigw_stage\" {\n  api_id = aws_apigatewayv2_api.apigw_http_endpoint.id\n  name   = \"$default\"\n  auto_deploy = true\n  depends_on  = [aws_apigatewayv2_api.apigw_http_endpoint]\n}\n\n# Generated API GW endpoint URL that can be used to access the application running on a private ECS Fargate cluster.\noutput \"apigw_endpoint\" {\n  value = aws_apigatewayv2_api.apigw_http_endpoint.api_endpoint\n    description = \"API Gateway Endpoint\"\n}\n"
+    },
+    {
+      "name": "variables.tf",
+      "content": "variable \"vpc_id\" {\n  type = string\n  //fake\n  default = \"vpc-123a45b6\"\n}\nvariable \"private_subnets\" {\n  type = list(any)\n  //fake\n  default = [\n      \"subnet-5432bca1\",\n      \"subnet-1abc2345\"\n  ]\n}"
+    },
+    {
+      "name": "xdocs-source-notice.tf",
+      "content": "# https://github.com/aws-samples/serverless-patterns/tree/28cfe4292fd906b1f36caf150ae6d9d056a9b5af/apigw-vpclink-pvt-alb/terraform\n# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.\n# \n# Permission is hereby granted, free of charge, to any person obtaining a copy of\n# this software and associated documentation files (the \"Software\"), to deal in\n# the Software without restriction, including without limitation the rights to\n# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\n# the Software, and to permit persons to whom the Software is furnished to do so.\n# \n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS\n# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\n# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n# \n# \n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ]
+}
