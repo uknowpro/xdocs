@@ -20,22 +20,21 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run build
-      - run: npm run test:desktop
-        if: runner.os != 'Linux'
-      - run: xvfb-run -a npm run test:desktop
-        if: runner.os == 'Linux'
-      - run: npm run test:infrastructure
-        if: runner.os != 'Linux'
-      - run: xvfb-run -a npm run test:infrastructure
-        if: runner.os == 'Linux'
-      - run: npm run test:architecture
-        if: runner.os != 'Linux'
-      - run: xvfb-run -a npm run test:architecture
-        if: runner.os == 'Linux'
       - run: npm run dist -- --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Verify packaged desktop
+        shell: bash
+        env:
+          XDOCS_EXECUTABLE: ${{ runner.os == 'Windows' && 'release/win-unpacked/xdocs.exe' || runner.os == 'macOS' && 'release/mac-arm64/xdocs.app/Contents/MacOS/xdocs' || 'release/linux-unpacked/xdocs' }}
+        run: |
+          for suite in desktop infrastructure architecture sheets; do
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              xvfb-run -a npm run "test:$suite"
+            else
+              npm run "test:$suite"
+            fi
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: xdocs-${{ matrix.os }}
