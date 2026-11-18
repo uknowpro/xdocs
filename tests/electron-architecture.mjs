@@ -22,6 +22,12 @@ const file = path.join(temp, "main.tf"),
     "\n" +
     '# preserve this comment\nresource "aws_vpc" "main" { cidr_block="10.0.0.0/16" }\nresource "custom_resource" "special" { value="retained-configuration" }\nresource "aws_subnet" "app" {\n vpc_id=aws_vpc.main.id\n cidr_block="10.0.1.0/24"\n}\n';
 await writeFile(file, content);
+const gcpFile = path.join(temp, "gcp.tf");
+const gcpContent = await readFile(
+  new URL("./fixtures/indexed-placement/gcp/main.tf", import.meta.url),
+  "utf8",
+);
+await writeFile(gcpFile, gcpContent);
 const app = await electron.launch({
   args: process.env.XDOCS_EXECUTABLE ? [] : ["."],
   ...(process.env.XDOCS_EXECUTABLE
@@ -30,12 +36,15 @@ const app = await electron.launch({
   env: { ...process.env, XDOCS_TEST_DATA: data },
 });
 try {
-  await app.evaluate(({ dialog }, file) => {
-    dialog.showOpenDialog = async () => ({
-      canceled: false,
-      filePaths: [file],
-    });
-  }, file);
+  await app.evaluate(
+    ({ dialog }, paths) => {
+      dialog.showOpenDialog = async () => ({
+        canceled: false,
+        filePaths: paths,
+      });
+    },
+    [file, gcpFile],
+  );
   const page = await app.firstWindow();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
@@ -52,6 +61,39 @@ try {
     page.getByRole("button", { name: "컴포넌트 custom_resource.special" }),
   ).toBeVisible();
   const placement = page.getByRole("region", { name: "Terraform 배치 근거" });
+  for (const [name, expected] of [
+    [
+      "fixed",
+      [
+        "소속 경계 · google_compute_subnetwork.app",
+        "network_interface.subnetwork",
+      ],
+    ],
+    [
+      "per_key",
+      [
+        "참조 선언 · google_compute_subnetwork.per_key",
+        "each.key별 인스턴스 소속 미확정",
+      ],
+    ],
+    [
+      "multi",
+      [
+        "소속 미확정",
+        "network_interface[0].subnetwork",
+        "network_interface[1].subnetwork",
+      ],
+    ],
+  ]) {
+    await page
+      .getByRole("button", {
+        name: "컴포넌트 google_compute_instance." + name,
+        exact: true,
+      })
+      .click();
+    for (const text of expected) await expect(placement).toContainText(text);
+    await page.getByRole("button", { name: "속성 닫기", exact: true }).click();
+  }
   await page
     .getByRole("button", {
       name: "컴포넌트 azurerm_network_interface.per_key",
@@ -103,6 +145,7 @@ try {
   await expect(page.getByRole("status")).toContainText("내보냈습니다");
   const zip = unzipSync(await readFile(zipFile));
   assert.equal(strFromU8(zip["terraform/main.tf"]), content);
+  assert.equal(strFromU8(zip["terraform/gcp.tf"]), gcpContent);
   assert.equal(
     JSON.parse(strFromU8(zip["terraform/zz_xdocs_override.tf.json"])).resource
       .aws_vpc.main.cidr_block,

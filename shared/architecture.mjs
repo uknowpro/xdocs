@@ -400,6 +400,10 @@ export function validateArchitecture(m) {
     if (
       n.imported &&
       (!/^(?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*$/.test(n.address) ||
+        (n.interfaceEvidence !== undefined &&
+          (n.kind !== "google_compute_instance" ||
+            !Array.isArray(n.interfaceEvidence) ||
+            n.interfaceEvidence.some((line) => typeof line !== "string"))) ||
         (n.nicAddress !== undefined &&
           (![
             "azurerm_linux_virtual_machine",

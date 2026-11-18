@@ -1,3 +1,4 @@
+import { reassignPlacement } from "../shared/placement-edit.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -30,6 +31,11 @@ function exportRoot(model) {
 }
 for (const [cloud, resource, subnet] of [
   ["aws", "aws_instance.app", "aws_subnet.app"],
+  [
+    "gcp",
+    "google_compute_instance.per_key",
+    "google_compute_subnetwork.per_key",
+  ],
   ["azure", "azurerm_network_interface.per_key", "azurerm_subnet.app"],
 ]) {
   test(
@@ -127,4 +133,67 @@ test("Azure Windows VM follows a fixed NIC and dynamic IP blocks keep subnet unr
   const model = await parse(dynamic);
   assert.equal(readParent(model), undefined);
   assert.equal(exportRoot(model), dynamic);
+});
+
+test("GCP VPC, subnet and NIC evidence survive HCL and a saved canvas", async () => {
+  const content = await load("gcp");
+  const model = decodeArchitecture(encodeArchitecture(await parse(content)));
+  const find = (address) => model.nodes.find((n) => n.address === address);
+  const fixed = find("google_compute_instance.fixed"),
+    multi = find("google_compute_instance.multi");
+  assert.equal(parent(model, fixed), "google_compute_subnetwork.app");
+  assert.equal(
+    parent(model, find("google_compute_subnetwork.app")),
+    "google_compute_network.app",
+  );
+  assert.equal(parent(model, multi), undefined);
+  assert.deepEqual(multi.references.toSorted(), [
+    "google_compute_subnetwork.app",
+    "google_compute_subnetwork.ops",
+  ]);
+  assert.deepEqual(multi.interfaceEvidence, [
+    'network_interface[0].subnetwork = "${google_compute_subnetwork.app.self_link}"',
+    'network_interface[1].subnetwork = "${google_compute_subnetwork.ops.self_link}"',
+  ]);
+  const moved = reassignPlacement(
+    model,
+    fixed,
+    find("google_compute_subnetwork.ops"),
+  );
+  const exported = exportRoot(moved);
+  assert.equal(
+    exported,
+    content.replace(
+      "google_compute_subnetwork.app.self_link",
+      "google_compute_subnetwork.ops.self_link",
+    ),
+  );
+  const restored = await parse(exported);
+  assert.equal(
+    parent(
+      restored,
+      restored.nodes.find((n) => n.address === fixed.address),
+    ),
+    "google_compute_subnetwork.ops",
+  );
+  assert.deepEqual(
+    restored.nodes.find((n) => n.address === multi.address).interfaceEvidence,
+    multi.interfaceEvidence,
+  );
+});
+test("GCP dynamic NICs keep subnet membership unresolved", async () => {
+  const content = (await load("gcp")).replace(
+    'resource "google_compute_instance" "fixed" {',
+    'resource "google_compute_instance" "fixed" {\n dynamic "network_interface" {\n for_each = local.ranges\n content { subnetwork = google_compute_subnetwork.per_key[network_interface.key].self_link }\n }',
+  );
+  const model = await parse(content);
+  const vm = model.nodes.find(
+    (n) => n.address === "google_compute_instance.fixed",
+  );
+  assert.equal(parent(model, vm), undefined);
+  assert.equal(vm.placementSource, undefined);
+  assert.ok(
+    vm.interfaceEvidence.some((s) => s.startsWith("dynamic network_interface")),
+  );
+  assert.equal(exportRoot(model), content);
 });

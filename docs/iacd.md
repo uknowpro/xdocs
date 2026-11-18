@@ -110,3 +110,13 @@ Terraform 가져오기는 지원 속성의 직접 참조에서 소속을 판별�
 AzureRM을 가져오면 리소스 그룹 → VNet → 서브넷을 직접 참조로 배치합니다. Linux·Windows VM에서 NIC 하나를 직접 지정하고 그 NIC의 단일 IP 구성이 서브넷 하나를 직접 가리키면 VM의 속성에 NIC 경유 경로가 표시됩니다. NIC 버튼으로 해당 선언을 열 수 있습니다. 여러 NIC·여러 IP 구성·동적 블록에서는 VM의 소속을 미확정으로 둡니다.
 
 AWS EC2의 `subnet_id`, Azure NIC의 `ip_configuration.subnet_id`, Azure VM의 단일 NIC가 반복 선언을 `[each.key]`로 가리키면 속성 및 선택 리소스의 참조선에서 **선언 참조**를 확인할 수 있습니다. 도면은 각 키의 실제 인스턴스를 펼치지 않습니다. 기존 캔버스에 NIC의 배치 정보가 없으면 원본 Terraform을 새 캔버스로 가져옵니다. [Azure 예제](../tests/fixtures/indexed-placement/azure/main.tf) · [AWS 예제](../tests/fixtures/indexed-placement/aws/main.tf)
+
+### GCP VPC·서브넷·Compute Engine VM
+
+GCP Terraform을 가져오면 `google_compute_subnetwork.network`의 직접 참조를 따라 서브넷을 VPC 안에 표시합니다. VM에 NIC가 하나 있고 `network_interface.subnetwork`가 서브넷을 직접 참조하면 VM도 해당 서브넷 안에 표시합니다. 예제에서는 `self_link`를 사용합니다. 속성에서 다른 서브넷으로 옮기면 추출본의 직접 참조 주소가 바뀝니다.
+
+- `google_compute_subnetwork.per_key[each.key].self_link`는 서브넷 선언에 연결하고, 속성에서 키별 인스턴스의 소속을 미확정으로 표시합니다.
+- 여러 NIC가 서로 다른 서브넷에 연결되면 VM을 하나의 서브넷에 넣지 않습니다. **Terraform 배치 근거**에 각 NIC의 순서와 가져온 네트워크·서브넷 식을 표시합니다. 동적 NIC 블록은 Terraform 평가가 필요한 구성으로 표시합니다.
+- 기존 캔버스에 NIC별 근거가 저장되지 않았다면 원본을 새 캔버스로 가져와 확인합니다.
+
+[Google provider 7.46.2 검증 예제](../tests/fixtures/indexed-placement/gcp/main.tf) · [가져오기·이동·재추출 테스트](../tests/indexed-placement.test.mjs)

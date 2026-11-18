@@ -217,6 +217,28 @@ export async function parseTerraformFiles(files) {
       );
       if (single && addresses.has(single[1])) n.nicAddress = single[1];
     }
+    if (n.kind === "google_compute_instance" && value === undefined) {
+      const interfaces = raw.network_interface;
+      const blocks = Array.isArray(interfaces)
+        ? interfaces
+        : interfaces
+          ? [interfaces]
+          : [];
+      const details = [];
+      for (const [index, block] of blocks.entries()) {
+        for (const field of ["network", "subnetwork"]) {
+          if (typeof block?.[field] === "string")
+            details.push(
+              `network_interface[${index}].${field} = ${JSON.stringify(block[field])}`,
+            );
+        }
+      }
+      if (raw.dynamic?.network_interface)
+        details.push(
+          "dynamic network_interface · Terraform 평가 시 NIC 구성 결정",
+        );
+      if (details.length) n.interfaceEvidence = details;
+    }
     const refs = new Set();
     await scan(raw, refs);
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));

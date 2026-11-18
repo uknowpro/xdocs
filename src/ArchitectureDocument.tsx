@@ -66,6 +66,7 @@ export type ArchitectureNode = {
   };
   scopeAddress?: string;
   nicAddress?: string;
+  interfaceEvidence?: string[];
   placementUnknown?: boolean;
   placementValue?: string;
 };
@@ -1204,18 +1205,24 @@ export default function ArchitectureDocument({
                           {placementField} = {evidence}
                         </code>
                       )}
+                      {node.interfaceEvidence?.map((line, index) => (
+                        <code key={index}>{line}</code>
+                      ))}
                       {nic && (
                         <button onClick={() => openDetail(nic.id)}>
                           연결된 NIC · {nic.address}
                         </button>
                       )}
                       {binding && <small>{binding.file}</small>}
-                      {node.placementUnknown && !nic && !evidence && (
-                        <small>
-                          저장된 식을 표시할 수 없습니다. 가져온 Terraform
-                          원문을 확인하세요.
-                        </small>
-                      )}
+                      {node.placementUnknown &&
+                        !nic &&
+                        !evidence &&
+                        !node.interfaceEvidence?.length && (
+                          <small>
+                            저장된 식을 표시할 수 없습니다. 가져온 Terraform
+                            원문을 확인하세요.
+                          </small>
+                        )}
                     </section>
                   )}
                 {node.imported ? (
