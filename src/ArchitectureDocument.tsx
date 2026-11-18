@@ -240,8 +240,8 @@ export function ArchitectureStart({
         </div>
         <fieldset disabled={busy} className="architecture-catalog">
           <legend>템플릿 카탈로그 · {matches.length}종</legend>
-          <label>
-            공급자
+          <label className="catalog-field">
+            <span>공급자</span>
             <select
               aria-label="공급자"
               value={provider}
@@ -257,8 +257,8 @@ export function ArchitectureStart({
               ))}
             </select>
           </label>
-          <label>
-            템플릿 검색
+          <label className="catalog-field">
+            <span>템플릿 검색</span>
             <input
               value={catalogSearch}
               onChange={(e) => setCatalogSearch(e.target.value)}

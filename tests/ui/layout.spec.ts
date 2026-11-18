@@ -103,6 +103,16 @@ for (const width of [390, 780, 1440]) {
       expect(await gapAbove(section + " > " + actions)).toBeGreaterThanOrEqual(12);
       expect(await page.locator(section).evaluate(e => parseFloat(getComputedStyle(e).paddingLeft))).toBeGreaterThanOrEqual(16);
       await fitsWidth(page, section);
+      if (section === ".architecture-start") {
+        const input = page.getByLabel("템플릿 검색");
+        const caption = page.locator(".catalog-field > span").filter({ hasText: "템플릿 검색" });
+        const filter = page.getByRole("button", { name: "전체", exact: true });
+        const [field, label, firstButton] = await Promise.all([
+          input.boundingBox(), caption.boundingBox(), filter.boundingBox(),
+        ]);
+        expect(field!.y - label!.y - label!.height).toBeCloseTo(8, 0);
+        expect(firstButton!.y - field!.y - field!.height).toBeCloseTo(16, 0);
+      }
       await page.locator(section + " header button").click();
     }
     await openFromMenu("새 시트 테이블");

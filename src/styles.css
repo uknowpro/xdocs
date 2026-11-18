@@ -797,7 +797,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 3px;
-  gap: 3px;
+  gap: 5px;
 }
 .segmented button {
   display: flex;
@@ -2375,6 +2375,11 @@ textarea {
   font: 11px/1.5 monospace;
   overflow-wrap: anywhere;
 }
+.arch-code nav button + button,
+.context .backlink + .backlink { margin-block-start: 4px; }
+@media (min-width: 601px) {
+  .arch-palette > button + button { margin-block-start: 4px; }
+}
 .arch-code nav button.active {
   background: var(--active);
   border-radius: 5px;
@@ -2505,7 +2510,7 @@ textarea {
 .network-sheet {flex:1;min-height:0;max-height:none;}
 .network-layout.fit .network-sheet svg {width:100%;height:100%;min-width:0;}
 
-.page-row {display:flex;align-items:center;border-radius:6px;}
+.page-row {display:flex;align-items:center;column-gap:4px;border-radius:6px;}
 .page-row.current {background:var(--active);}
 .page-tree .note-item {padding:7px 3px;flex:1;margin:0;min-width:0;}
 .page-row svg {flex-shrink:0;}
@@ -2683,10 +2688,13 @@ textarea {
 .architecture-catalog select { max-width: 100%; }
 
 .catalog-modes, .catalog-empty { grid-column: 1 / -1; }
-.catalog-modes { display: flex; flex-wrap: wrap; gap: 4px; }
+.architecture-catalog .catalog-field { row-gap: 8px; }
+.architecture-catalog .catalog-field :is(input, select) { min-height: 36px; }
+.catalog-modes { display: flex; flex-wrap: wrap; gap: 8px 4px; margin-block-start: calc(16px - .7rem); }
 .catalog-modes button, .catalog-empty button, .code-jump {
   padding: 5px 9px; color: inherit; border: 1px solid var(--line); border-radius: 5px;
 }
+.catalog-modes button { padding-block: 7px; }
 .catalog-modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .architecture-catalog select[size] { padding: 2px; }
 .architecture-catalog select[size] option { padding: 4px 6px; }
