@@ -2752,3 +2752,17 @@ textarea {
 .analyzer-path { display:flex; flex-wrap:wrap; align-items:center; list-style:none; padding:0; gap:8px; }
 .analyzer-path li { border:1px solid var(--line); padding:6px; border-radius:5px; }
 .analyzer-path li + li::before { content:"→ "; color:var(--muted); }
+
+.license-setting {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.license-setting h3 { margin: 0; }
+.license-page details { border-bottom: 1px solid var(--line); }
+.license-page summary { cursor: pointer; padding: 12px 4px; overflow-wrap: anywhere; }
+.license-page pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; }
+.license-page h3 { margin-top: 24px; }

@@ -384,6 +384,22 @@ app.whenReady().then(async () => {
     if (result.canceled || !result.filePaths[0]) return null;
     return importInfrastructure(result.filePaths[0]);
   });
+  register("analyzer:notices", async () => {
+    const root = app.isPackaged
+      ? path.join(process.resourcesPath, "analyzer-tools", "licenses")
+      : path.join(directory, "../.cache/analyzers", process.platform + "-" + process.arch, "licenses");
+    async function collect(folder) {
+      const result = [];
+      for (const entry of await readdir(folder, { withFileTypes: true })) {
+        const file = path.join(folder, entry.name);
+        if (entry.isDirectory()) result.push(...await collect(file));
+        else if (entry.isFile() && entry.name !== "BUILD-INFO.txt")
+          result.push({ name: path.relative(root, file).split(path.sep).join(" / "), text: await readFile(file, "utf8") });
+      }
+      return result;
+    }
+    return (await collect(root)).sort((a, b) => a.name.localeCompare(b.name));
+  });
   register("analyzer:directory", async request => {
     mustVault();
     const choice = await dialog.showOpenDialog(window,{title:"분석할 프로젝트 폴더 선택",properties:["openDirectory"]});

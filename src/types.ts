@@ -72,6 +72,7 @@ export type ModelProfile = {
   hasKey: boolean;
 };
 export interface NoteAPI {
+  analyzerNotices?(): Promise<{ name: string; text: string }[]>;
   analyzeDirectory?(request: { mode:string;from:string;to:string;namespace:string;release:string;customValues:boolean }):Promise<unknown>;
   builderProfiles?(): Promise<ModelProfile[]>;
   saveBuilderProfile?(data: {

@@ -1,3 +1,4 @@
+import { LicensePage } from "./LicensePage";
 import Analyzer from "./Analyzer";
 import {readAnalyzerSettings,writeAnalyzerSettings,analyzerMarker} from "../shared/analyzer.mjs";
 import Builder from "./Builder";
@@ -124,7 +125,8 @@ export default function App() {
     () => (localStorage.getItem("xdocs.theme") as Theme) || "light",
   );
   const [updateState, setUpdateState] = useState<UpdateState | null>(null);
-  const [settings, setSettings] = useState(false);
+  const [settings, setSettings] = useState<boolean | "license">(false);
+  const returningFromLicense = useRef(false);
   const [organizationPanel, setOrganizationPanel] = useState(false);
   const [collaborating, setCollaborating] = useState(false);
   const collaborationNote = useRef<Note | null>(null);
@@ -489,13 +491,17 @@ export default function App() {
     const previous = document.activeElement as HTMLElement | null;
     const timer = setTimeout(() => {
       const dialog = document.querySelector<HTMLElement>(".dialog");
-      dialog?.querySelector<HTMLElement>("input,button")?.focus();
+      const selector = returningFromLicense.current
+        ? "#license-button"
+        : settings === "license" ? "#license-title" : "input,button";
+      returningFromLicense.current = false;
+      dialog?.querySelector<HTMLElement>(selector)?.focus();
     }, 0);
     const trap = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const elements = [
         ...document.querySelectorAll<HTMLElement>(
-          ".dialog button:not(:disabled), .dialog input",
+          ".dialog button:not(:disabled), .dialog input, .dialog summary",
         ),
       ];
       const first = elements[0],
@@ -1852,7 +1858,16 @@ export default function App() {
           </section>
         </div>
       )}
-      {settings && (
+      {settings === "license" && (
+        <LicensePage
+          close={() => setSettings(false)}
+          back={() => {
+            returningFromLicense.current = true;
+            setSettings(true);
+          }}
+        />
+      )}
+      {settings === true && (
         <div className="overlay" onClick={() => setSettings(false)}>
           <section
             className="dialog settings-dialog"
@@ -1934,6 +1949,16 @@ export default function App() {
               </button>
             </div>
             <hr />
+            <div className="license-setting">
+              <h3>앱 정보</h3>
+              <button
+                id="license-button"
+                className="button"
+                onClick={() => setSettings("license")}
+              >
+                라이선스 정보
+              </button>
+            </div>
             {updateState && (
               <>
                 <h3>앱 업데이트 · {updateState.version}</h3>
