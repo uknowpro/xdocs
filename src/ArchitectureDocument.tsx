@@ -352,7 +352,7 @@ export default function ArchitectureDocument({
       setConnecting(false);
     } else {
       setSelected(n.id);
-      if (detail === "closed") setDetail("auto");
+      setDetail("open");
     }
   }
   async function download() {
