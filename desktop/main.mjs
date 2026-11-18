@@ -317,16 +317,17 @@ app.whenReady().then(async () => {
       ? null
       : mustVault().addAttachment(result.filePaths[0]);
   });
-  register("architecture:import", async () => {
+  register("architecture:import", async (project = false) => {
     mustVault();
     const result = await dialog.showOpenDialog(window, {
-      properties: ["openFile", "multiSelections"],
+      properties:
+        project === true ? ["openDirectory"] : ["openFile", "multiSelections"],
       filters: [
         { name: "Terraform configuration", extensions: ["tf", "json"] },
       ],
     });
     if (result.canceled) return null;
-    return importArchitecture(result.filePaths);
+    return importArchitecture(result.filePaths, project === true);
   });
   register("workflow:export", async ({ kind, source }) => {
     mustVault();

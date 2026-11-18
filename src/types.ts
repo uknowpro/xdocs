@@ -66,9 +66,9 @@ export interface CollaborationPacket {
 }
 export interface NoteAPI {
   exportWorkflow?(kind: string, source: string): Promise<boolean>;
-  importArchitecture?(): Promise<
-    import("./ArchitectureDocument").ArchitectureModel | null
-  >;
+  importArchitecture?(
+    project?: boolean,
+  ): Promise<import("./ArchitectureDocument").ArchitectureModel | null>;
   exportArchitecture?(
     model: import("./ArchitectureDocument").ArchitectureModel,
     format: string,

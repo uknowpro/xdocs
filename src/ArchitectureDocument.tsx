@@ -66,6 +66,13 @@ export type ArchitectureNode = {
   };
   scopeAddress?: string;
   nicAddress?: string;
+  moduleTrace?: {
+    address: string;
+    file: string;
+    expression: string;
+    target?: string;
+    targetFile?: string;
+  };
   interfaceEvidence?: string[];
   placementUnknown?: boolean;
   placementValue?: string;
@@ -113,6 +120,21 @@ export function ArchitectureStart({
     [accepted, setAccepted] = useState(false),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  async function importTerraform(project = false) {
+    setBusy(true);
+    setError("");
+    try {
+      const m = await api.importArchitecture!(project);
+      if (m) {
+        setPreview(m);
+        setAccepted(false);
+      }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
   async function create(m: ArchitectureModel) {
     setBusy(true);
     try {
@@ -170,24 +192,17 @@ export function ArchitectureStart({
           <button
             className="button"
             disabled={busy || !api.importArchitecture}
-            onClick={async () => {
-              setBusy(true);
-              setError("");
-              try {
-                const m = await api.importArchitecture!();
-                if (m) {
-                  setPreview(m);
-                  setAccepted(false);
-                }
-              } catch (e) {
-                setError(String(e));
-              } finally {
-                setBusy(false);
-              }
-            }}
+            onClick={() => void importTerraform()}
           >
             <Upload size={16} />
             Terraform 가져오기
+          </button>
+          <button
+            className="button"
+            disabled={busy || !api.importArchitecture}
+            onClick={() => void importTerraform(true)}
+          >
+            로컬 모듈 포함 폴더 가져오기
           </button>
         </div>
         <p className="muted small-text">
@@ -1208,6 +1223,53 @@ export default function ArchitectureDocument({
                       {node.interfaceEvidence?.map((line, index) => (
                         <code key={index}>{line}</code>
                       ))}
+                      {node.moduleTrace && (
+                        <details key={node.id}>
+                          <summary>
+                            {node.moduleTrace.address} · output 선언
+                          </summary>
+                          <small>{node.moduleTrace.file}</small>
+                          <code>value = {node.moduleTrace.expression}</code>
+                          <details>
+                            <summary>출력 선언 원문 보기</summary>
+                            <pre>
+                              {
+                                model.sources.find(
+                                  (f) => f.name === node.moduleTrace?.file,
+                                )?.content
+                              }
+                            </pre>
+                          </details>
+                          {node.moduleTrace.targetFile ? (
+                            <details>
+                              <summary>{node.moduleTrace.target}</summary>
+                              <small>{node.moduleTrace.targetFile}</small>
+                              <pre>
+                                {
+                                  model.sources.find(
+                                    (f) =>
+                                      f.name === node.moduleTrace?.targetFile,
+                                  )?.content
+                                }
+                              </pre>
+                            </details>
+                          ) : (
+                            node.moduleTrace.target && (
+                              <button
+                                onClick={() => {
+                                  const resource = model.nodes.find(
+                                    (n) =>
+                                      n.address === node.moduleTrace?.target,
+                                  );
+                                  if (resource) openDetail(resource.id);
+                                }}
+                              >
+                                {node.moduleTrace.target}
+                              </button>
+                            )
+                          )}
+                        </details>
+                      )}
                       {nic && (
                         <button onClick={() => openDetail(nic.id)}>
                           연결된 NIC · {nic.address}

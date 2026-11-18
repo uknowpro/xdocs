@@ -1,3 +1,4 @@
+import { attachModuleTraces } from "./local-modules.mjs";
 import { placementFields } from "../shared/network-boundaries.mjs";
 import { parse, getReferencesInExpression } from "@cdktn/hcl2json";
 import {
@@ -53,7 +54,8 @@ export async function parseTerraformFiles(files) {
   validateArchitecture(model);
   const addresses = new Set(),
     pending = [];
-  for (const file of files) {
+  const calls = new Map();
+  for (const file of files.filter((f) => !f.name.includes("/"))) {
     let parsed;
     try {
       parsed = file.name.endsWith(".json")
@@ -91,6 +93,7 @@ export async function parseTerraformFiles(files) {
             "중복 리소스 정의가 있습니다. 같은 모듈의 중복되지 않는 파일을 선택하세요.",
           );
         addresses.add(address);
+        if (block === "module") calls.set(address, raw);
         const props = {};
         if (block === "resource")
           for (const [key, attr] of Object.entries(IMPORT_FIELDS[kind] || {})) {
@@ -243,6 +246,7 @@ export async function parseTerraformFiles(files) {
     await scan(raw, refs);
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));
   }
+  await attachModuleTraces(model, calls);
   model.warnings = [
     ...new Set([
       ...model.warnings,

@@ -1,10 +1,10 @@
 import { Worker } from "node:worker_threads";
-export function importArchitecture(files) {
+export function importArchitecture(files, project = false) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(
       new URL("./architecture-worker.mjs", import.meta.url),
       {
-        workerData: { files },
+        workerData: { files, project },
         resourceLimits: { maxOldGenerationSizeMb: 256 },
       },
     );

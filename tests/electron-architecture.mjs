@@ -1,6 +1,7 @@
 import { _electron as electron, expect } from "@playwright/test";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 import assert from "node:assert/strict";
 import { unzipSync, strFromU8 } from "fflate";
@@ -55,7 +56,7 @@ try {
   await expect(
     page.getByRole("button", { name: "다이어그램으로 가져오기" }),
   ).toBeDisabled();
-  await page.getByRole("checkbox").check();
+  await page.locator(".infra-preview").getByRole("checkbox").check();
   await page.getByRole("button", { name: "다이어그램으로 가져오기" }).click();
   await expect(
     page.getByRole("button", { name: "컴포넌트 custom_resource.special" }),
@@ -159,6 +160,49 @@ try {
   );
   assert.match(saved.body, /xdocs-architecture/);
   assert.match(saved.body, /retained-configuration/);
+  const project = fileURLToPath(
+    new URL("./fixtures/terraform-graph/", import.meta.url),
+  );
+  await app.evaluate(({ dialog }, folder) => {
+    dialog.showOpenDialog = async () => ({
+      canceled: false,
+      filePaths: [folder],
+    });
+  }, project);
+  const button = (name) => page.getByRole("button", { name, exact: true });
+  await button("IaCD 아키텍처").click();
+  await button("로컬 모듈 포함 폴더 가져오기").click();
+  await expect(page.locator(".infra-preview")).toContainText("module/main.tf");
+  await page.locator(".infra-preview").getByRole("checkbox").check();
+  await button("다이어그램으로 가져오기").click();
+  const search = page.getByRole("combobox", { name: "리소스 찾기" });
+  await search.fill("aws_instance.via_module");
+  await search.press("Enter");
+  await placement
+    .getByText("module.network.subnet_id · output 선언", { exact: true })
+    .click();
+  await placement.getByText("출력 선언 원문 보기", { exact: true }).click();
+  await expect(placement.locator("pre")).toContainText('output "subnet_id"');
+  await placement
+    .getByRole("button", { name: "aws_subnet.app", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "컴포넌트 표시 이름" }),
+  ).toHaveValue("aws_subnet.app");
+  await button("속성 닫기").click();
+  await button("코드 추출").click();
+  const projectZip = path.join(temp, "module.zip");
+  await app.evaluate(({ dialog }, filePath) => {
+    dialog.showSaveDialog = async () => ({ canceled: false, filePath });
+  }, projectZip);
+  await button("코드 ZIP 내보내기").click();
+  await expect(page.getByRole("status")).toContainText("내보냈습니다");
+  const archived = unzipSync(await readFile(projectZip));
+  for (const file of ["main.tf", "module/main.tf"])
+    assert.equal(
+      strFromU8(archived["terraform/" + file]),
+      await readFile(path.join(project, file), "utf8"),
+    );
   console.log(
     "PASS IaCD desktop: HCL worker import, explicit source retention, unknown resource, scalar override, native ZIP export, original source unchanged",
   );
