@@ -1,3 +1,4 @@
+import ModuleContractReview from "./ModuleContractReview";
 import { terraformDeclarations } from "../shared/architecture-catalog.mjs";
 import { cloudTemplates, openCloudTemplate } from "./cloudCatalog";
 import CanvasSearch from "./CanvasSearch";
@@ -1775,6 +1776,7 @@ export default function ArchitectureDocument({
       )}
       {tab === "review" && (
         <section className="arch-review">
+          <ModuleContractReview />
           <h2>Well-Architected 설계 검토</h2>
           <p>
             AVM 사용은 전체 워크로드의 WAF 준수나 인증을 의미하지 않습니다. 자동

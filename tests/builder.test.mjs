@@ -370,3 +370,12 @@ test("new cloud components validate placement and preserve it on Terraform reimp
       );
   }
 });
+
+test("structured drafts distinguish missing evidence, unknown addresses and invalid output", async () => {
+  const {evaluateEvidenceJson} = await import("../shared/builder.mjs");
+  const findings = [{cell:"시트!A2"}, {cell:"시트!A20"}, {cell:"시트!A2"}];
+  assert.deepEqual(evaluateEvidenceJson('{"summary":"ok","evidence":["시트!A20","시트!B2"]}', findings),
+    {missing:["시트!A2"],unknown:["시트!B2"]});
+  for (const text of ["null", "[]", "invalid", '{"summary":"","evidence":[1]}'])
+    assert.ok(evaluateEvidenceJson(text, findings).error);
+});

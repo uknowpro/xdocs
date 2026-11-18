@@ -96,6 +96,7 @@ export function decodeBuilder(body) {
     const c = JSON.parse(match[1]);
     if (
       c.version === 1 &&
+      [undefined, "text", "evidence-json"].includes(c.outputFormat) &&
       [undefined, "note", "sheet"].includes(c.input) &&
       (!c.origin ||
         (typeof c.origin.page === "string" &&
@@ -182,4 +183,18 @@ export function reviewSheet(sheet, rules) {
     if (!matchedIndices.length && rule.stopOnEmpty) break;
   }
   return { findings, total, steps };
+}
+
+export function evaluateEvidenceJson(text, findings) {
+  let doc;
+  try { doc = JSON.parse(text); } catch { return { error: "JSON 구문을 읽을 수 없습니다." }; }
+  if (typeof doc?.summary !== "string" || !Array.isArray(doc.evidence) ||
+      !doc.evidence.every(ref => typeof ref === "string"))
+    return { error: "summary 문자열과 evidence 문자열 배열이 필요합니다." };
+  const expected = new Set(findings.map(finding => finding.cell));
+  const cited = new Set(doc.evidence);
+  return {
+    missing: [...expected].filter(ref => !cited.has(ref)),
+    unknown: [...cited].filter(ref => !expected.has(ref)),
+  };
 }

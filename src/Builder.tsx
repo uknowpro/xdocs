@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  evaluateEvidenceJson,
   publishedHarness,
   newBuilder,
   presets,
@@ -26,6 +27,7 @@ type Rule = {
   instruction: string;
 };
 type Config = {
+  outputFormat?: "text" | "evidence-json";
   version: number;
   source: string;
   input?: "note" | "sheet";
@@ -83,8 +85,10 @@ export default function Builder({
     input: string;
     text: string;
   } | null>(null);
+  const [failedInput, setFailedInput] = useState<string | null>(null);
+  const [alternate, setAlternate] = useState("");
   const [context, setContext] = useState("");
-  const [reply, setReply] = useState<{ input: string; text: string } | null>(
+  const [reply, setReply] = useState<{ input: string; text: string; model: string } | null>(
     null,
   );
   const source = notes.find((n) => n.id === config.source);
@@ -144,10 +148,13 @@ export default function Builder({
     config.prompt,
     ...config.rules.map((r) => r.instruction),
     ...(context ? ["MCP 참고 자료", context] : []),
+    ...(config.outputFormat === "evidence-json" ? ['JSON 객체 하나로 응답하세요. summary는 요약 문자열, evidence는 입력에 포함된 모든 고유 cell 주소의 문자열 배열입니다.'] : []),
     "입력 데이터",
     content,
   ].join("\n\n");
   const currentReply = reply?.input === input ? reply.text : "";
+  const assessment = currentReply && config.outputFormat === "evidence-json" && result
+    ? evaluateEvidenceJson(currentReply, result.findings) : null;
   const patch = (next: Partial<Config>) => onChange({ ...config, ...next });
   const updateRule = (i: number, next: Partial<Rule>) =>
     patch({
@@ -164,6 +171,28 @@ export default function Builder({
       setWorking(false);
     }
   }
+  async function sendModel(target?: ModelProfile) {
+    setReply(null);
+    await run(async () => {
+      try {
+        const chosenModel = target?.model ?? model;
+        const text = await api.builderModel!({
+          endpoint: target?.endpoint ?? endpoint,
+          model: chosenModel,
+          key: target ? "" : key,
+          profile: target?.name ?? profile,
+          prompt: input,
+        });
+        setReply({ input, text, model: chosenModel });
+        setFailedInput(null);
+      } catch (e) {
+        setFailedInput(input);
+        throw e;
+      }
+    });
+  }
+  const alternatives = profiles.filter(p => p.endpoint !== endpoint || p.model !== model);
+  const fallback = alternatives.find(p => p.name === alternate);
   return (
     <section className="builder-panel">
       <h2>Builder</h2>
@@ -685,37 +714,56 @@ export default function Builder({
               {api.builderResources && (
                 <BuilderContext onText={setContext} disabled={working} />
               )}
+              <label>응답 형식
+                <select value={config.outputFormat || "text"} onChange={e => patch({outputFormat: e.target.value as Config["outputFormat"]})}>
+                  <option value="text">자유 형식</option>
+                  <option value="evidence-json">근거 목록 JSON 검증</option>
+                </select>
+              </label>
               <details>
                 <summary>전송할 지침과 셀 보기</summary>
                 <pre>{input}</pre>
               </details>
               <button
                 disabled={working || !model.trim()}
-                onClick={() =>
-                  void run(async () =>
-                    setReply({
-                      input,
-                      text: await api.builderModel!({
-                        endpoint,
-                        model,
-                        key,
-                        prompt: input,
-                        profile,
-                      }),
-                    }),
-                  )
-                }
+                onClick={() => void sendModel()}
               >
-                모델로 전송
+                {failedInput === input ? "같은 모델로 재시도" : "모델로 전송"}
               </button>
+              {failedInput === input && alternatives.length > 0 && (
+                <>
+                  <label>대체 모델 프로필
+                    <select value={fallback?.name ?? ""} onChange={e => setAlternate(e.target.value)}>
+                      <option value="">프로필 선택</option>
+                      {alternatives.map(p => <option key={p.name}>{p.name}</option>)}
+                    </select>
+                  </label>
+                  {fallback && <p>{fallback.model} · {fallback.endpoint}</p>}
+                  <button disabled={working || !fallback} onClick={() => fallback && void sendModel(fallback)}>
+                    대체 모델로 전송
+                  </button>
+                </>
+              )}
             </details>
           )}
           {currentReply && (
             <>
+              <p>응답 모델 · {reply?.model}</p>
               <pre>{currentReply}</pre>
+              {assessment && (
+                <div role="status">
+                  {assessment.error || (
+                    <>
+                      <p>근거 검토 · 누락 {assessment.missing?.length}건 · 입력에 없는 주소 {assessment.unknown?.length}건</p>
+                      {!!assessment.missing?.length && <p>누락 · {assessment.missing.join(", ")}</p>}
+                      {!!assessment.unknown?.length && <p>입력에 없는 주소 · {assessment.unknown.join(", ")}</p>}
+                    </>
+                  )}
+                </div>
+              )}
               <button
                 onClick={() =>
-                  setComparison({ label: model, input, text: currentReply })
+                  setComparison({ label: reply!.model, input, text: currentReply })
                 }
               >
                 현재 응답을 비교 기준으로 저장

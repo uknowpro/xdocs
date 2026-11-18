@@ -2716,3 +2716,7 @@ textarea {
   .terraform-live label:has(select) { display: grid; }
   .terraform-live label + .code-jump { margin-inline-start: 0; }
 }
+.module-contract { margin-block: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+.module-contract label { display: grid; gap: 4px; margin-block: 8px; }
+.module-contract input { max-width: 100%; }
+.module-contract p, .module-contract li { margin-block-start: 8px; overflow-wrap: anywhere; }

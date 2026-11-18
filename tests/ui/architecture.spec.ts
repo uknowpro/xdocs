@@ -268,3 +268,21 @@ test("boundary view edits preserve IaC and collapse nested resources", async ({
     .click();
   await expect(page.getByText("생성된 IaC에 변경이 없습니다.")).toBeVisible();
 });
+
+test("WAF compares local module inputs and outputs and clears invalid results", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "IaCD 아키텍처", exact: true }).click();
+  await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
+  await page.getByRole("button", { name: "WAF 검토" }).click();
+  await page.getByText("AVM · Terraform 모듈 버전 비교").click();
+  const upload = (label: string, doc: unknown) => page.getByLabel(label).setInputFiles({
+    name: "module.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(doc)),
+  });
+  await upload("현재 버전 JSON", {inputs:[{name:"zone", type:"string", required:false}], outputs:[{name:"old_id"}]});
+  await upload("후보 버전 JSON", {inputs:[{name:"zone", type:"number", required:true}], outputs:[]});
+  await expect(page.getByText("입출력 선언 변경 3건")).toBeVisible();
+  await expect(page.getByText("출력 삭제 · old_id")).toBeVisible();
+  await upload("후보 버전 JSON", { inputs: [] });
+  await expect(page.locator(".module-contract [role=alert]")).toBeVisible();
+  await expect(page.locator(".module-contract li")).toHaveCount(0);
+});
