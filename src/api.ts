@@ -27,7 +27,11 @@ const seeds = [
 ];
 const read = (): Workspace => {
   const raw = localStorage.getItem(key);
-  if (raw) return JSON.parse(raw);
+  if (raw) {
+    const workspace: Workspace = JSON.parse(raw);
+    if (workspace.name === "나의 보관함") workspace.name = "워크스페이스";
+    return workspace;
+  }
   const notes = seeds.map(([title, body], i) => ({
     id: "demo-" + i,
     title,
@@ -35,7 +39,7 @@ const read = (): Workspace => {
     path: title + ".md",
     revision: "initial",
   }));
-  return { root: "브라우저 미리보기", name: "나의 보관함", notes };
+  return { root: "브라우저 미리보기", name: "워크스페이스", notes };
 };
 const write = (w: Workspace) => localStorage.setItem(key, JSON.stringify(w));
 const preview: NoteAPI = {
@@ -76,9 +80,13 @@ const preview: NoteAPI = {
     write(w);
     return note;
   },
-  async trash({ id }) {
+  async trash({ id, revision }) {
     const w = read();
     const n = w.notes.find((n) => n.id === id);
+    if (!n || n.revision !== revision)
+      throw new Error(
+        "다른 창에서 변경되었습니다. 새로고침 후 다시 확인하세요.",
+      );
     const trash = JSON.parse(localStorage.getItem(key + ".trash") || "[]");
     trash.push(n);
     localStorage.setItem(key + ".trash", JSON.stringify(trash));

@@ -803,7 +803,7 @@ export default function App() {
               <BookOpen size={19} />
             </span>
             <span>
-              <strong>{workspace?.name || "나의 보관함"}</strong>
+              <strong>{workspace?.name || "워크스페이스"}</strong>
               <small>
                 {isDesktop ? "Personal workspace" : "Browser preview"}
               </small>

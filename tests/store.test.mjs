@@ -10,6 +10,7 @@ import {
 } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { VaultClient } from "../desktop/vault-client.mjs";
 import { Vault, linksIn } from "../desktop/store.mjs";
 async function setup(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "xdocs-test-"));
@@ -184,4 +185,71 @@ test("metadata snapshots retain distant tags and links while loading a body sepa
     vault.db.prepare("SELECT count(*) AS n FROM note_metadata").get().n,
     0,
   );
+});
+
+test("notes with dot-prefixed titles remain visible after refresh", async (t) => {
+  const { vault } = await setup(t);
+  const n = await vault.create(".env 구성");
+  assert.equal((await vault.refresh()).notes[0]?.id, n.id);
+});
+
+test("oversized UTF-8 saves preserve the previous file", async (t) => {
+  const { root, vault } = await setup(t);
+  const n = await vault.create("예산");
+  const before = await readFile(path.join(root, n.path));
+  const body = "한".repeat(1750000);
+  await assert.rejects(vault.save({ ...n, body }), /5 MiB/);
+  await assert.rejects(vault.create("예산", body), /5 MiB/);
+  assert.deepEqual(await readFile(path.join(root, n.path)), before);
+});
+
+test("trash restores an external uppercase Markdown file to its original nested path and ID", async (t) => {
+  const { root, vault } = await setup(t);
+  await mkdir(path.join(root, "팀"));
+  await writeFile(path.join(root, "팀", "운영.MD"), "# 운영");
+  const n = (await vault.refresh()).notes[0];
+  await vault.trash(n);
+  const [entry] = await vault.listTrash();
+  assert.ok(entry);
+  assert.equal(entry.id, n.id);
+  await rm(path.join(root, "팀"), { recursive: true });
+  const restored = await vault.restoreTrash(entry.token);
+  assert.equal(restored.path, n.path);
+  assert.equal(restored.id, n.id);
+});
+
+test(
+  "requests after a vault worker exits reject and shutdown is repeatable",
+  { timeout: 5000 },
+  async (t) => {
+    const { root } = await setup(t);
+    const client = await VaultClient.open(root);
+    await client.worker.terminate();
+    await assert.rejects(client.refresh(), /종료/);
+    await Promise.all([client.close(), client.close()]);
+  },
+);
+
+test("older multibyte documents remain readable and can be saved after shortening", async (t) => {
+  const { root, vault } = await setup(t);
+  const id = "550e8400-e29b-41d4-a716-446655440000";
+  const body = "# 예전 노트\n" + "한".repeat(1750000);
+  await writeFile(
+    path.join(root, "이전.md"),
+    "<!-- xdocs:id=" + id + " -->\n" + body,
+  );
+  const n = (await vault.refresh()).notes[0];
+  assert.equal(n.body, body);
+  await vault.save({ ...n, body: "# 줄인 노트" });
+  assert.equal((await vault.refresh()).notes[0].id, id);
+});
+test("older trash entries restore without path metadata", async (t) => {
+  const { root, vault } = await setup(t);
+  const trash = path.join(root, ".xdocs", "trash");
+  await mkdir(trash);
+  const token = "550e8400-e29b-41d4-a716-446655440000-legacy.md";
+  await writeFile(path.join(trash, token), "# 예전 휴지통");
+  const note = await vault.restoreTrash(token);
+  assert.equal(note.body, "# 예전 휴지통");
+  assert.equal(note.path, "legacy.md");
 });

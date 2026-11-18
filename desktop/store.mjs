@@ -16,6 +16,12 @@ import path from "node:path";
 
 const digest = (text) => createHash("sha256").update(text).digest("hex");
 const INDEX_VERSION = 1;
+const MAX_NOTE_BYTES = 5 * 1024 * 1024;
+const LEGACY_NOTE_CHARS = 5e6;
+function checkNoteSize(raw) {
+  if (Buffer.byteLength(raw, "utf8") > MAX_NOTE_BYTES)
+    throw Error("노트 파일은 UTF-8 기준 5 MiB 이하로 저장할 수 있습니다.");
+}
 const UUID = /^[a-f0-9-]{36}$/i;
 export function linksIn(body) {
   return [
@@ -30,7 +36,8 @@ export function decodeNote(raw, relative) {
   const header = raw.match(/^<!-- xdocs:id=([a-f0-9-]{36}) -->\r?\n/i);
   const body = header ? raw.slice(header[0].length) : raw;
   const title =
-    body.match(/^#\s+(.+)$/m)?.[1]?.trim() || path.basename(relative, ".md");
+    body.match(/^#\s+(.+)$/m)?.[1]?.trim() ||
+    path.basename(relative).replace(/\.md$/i, "");
   return {
     id: header?.[1] || digest(relative).slice(0, 32),
     title,
@@ -123,11 +130,15 @@ export class Vault {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) await scan(full, depth + 1);
         else if (entry.isFile() && /\.md$/i.test(entry.name)) {
-          if ((await lstat(full)).size > 5 * 1024 * 1024) continue;
+          const size = (await lstat(full)).size;
+          // Older versions accepted up to five million UTF-16 code units.
+          if (size > LEGACY_NOTE_CHARS * 3 + 64) continue;
           const n = decodeNote(
             await readFile(full, "utf8"),
             path.relative(this.root, full),
           );
+          if (size > MAX_NOTE_BYTES && n.body.length > LEGACY_NOTE_CHARS)
+            continue;
           if (ids.has(n.id))
             throw Error("중복된 노트 ID가 있습니다: " + n.path);
           ids.add(n.id);
@@ -233,19 +244,21 @@ export class Vault {
     if (
       typeof title !== "string" ||
       title.length > 200 ||
-      (body !== undefined && (typeof body !== "string" || body.length > 5e6))
+      (body !== undefined && typeof body !== "string")
     )
       throw new Error("올바르지 않은 노트입니다.");
     const id = randomUUID();
     const filename =
       (title
         .replace(/[<>:"/\\|?*\x00-\x1f]/g, "-")
+        .replace(/^\.+/, "")
         .replace(/[. ]+$/g, "")
         .slice(0, 70) || "note") +
       "-" +
       id.slice(0, 8) +
       ".md";
     const text = `<!-- xdocs:id=${id} -->\n${body ?? "# " + title + "\n\n"}`;
+    checkNoteSize(text);
     await writeFile(path.join(this.root, filename), text, { flag: "wx" });
     const note = decodeNote(text, filename);
     this.index(note);
@@ -255,7 +268,6 @@ export class Vault {
     if (
       typeof id !== "string" ||
       typeof body !== "string" ||
-      body.length > 5e6 ||
       typeof revision !== "string"
     )
       throw new Error("올바르지 않은 저장 요청입니다.");
@@ -267,8 +279,9 @@ export class Vault {
       throw new Error(
         "외부에서 파일이 변경되었습니다. 내용을 복사하거나 충돌 사본으로 저장한 뒤 새로고침해 주세요.",
       );
-    await this.recordHistory(prior, original);
     const raw = UUID.test(id) ? `<!-- xdocs:id=${id} -->\n${body}` : body;
+    checkNoteSize(raw);
+    await this.recordHistory(prior, original);
     const temporary = full + ".xdocs-" + randomUUID() + ".tmp";
     try {
       const file = await open(temporary, "wx");
@@ -296,14 +309,21 @@ export class Vault {
     const file = await this.safe(note.path);
     if (digest(await readFile(file, "utf8")) !== revision)
       throw new Error("외부 변경을 먼저 확인해 주세요.");
-    const trash = path.join(this.root, ".xdocs", "trash");
-    await mkdir(trash, { recursive: true });
-    if ((await lstat(trash)).isSymbolicLink())
-      throw new Error("휴지통 링크를 사용할 수 없습니다.");
-    await rename(
-      file,
-      path.join(trash, randomUUID() + "-" + path.basename(file)),
+    const trash = await this.internalDir("trash");
+    const metadata = await this.internalDir("trash-paths");
+    const token = randomUUID() + "-" + path.basename(file);
+    const record = path.join(metadata, token.slice(0, 36) + ".json");
+    await writeFile(
+      record,
+      JSON.stringify({ path: note.path, deletedAt: new Date().toISOString() }),
+      { flag: "wx" },
     );
+    try {
+      await rename(file, path.join(trash, token));
+    } catch (error) {
+      await unlink(record);
+      throw error;
+    }
     this.db.prepare("DELETE FROM notes WHERE id=?").run(id);
     this.db.prepare("DELETE FROM note_metadata WHERE id=?").run(id);
     this.db.prepare("DELETE FROM links WHERE source=?").run(id);
@@ -363,14 +383,25 @@ export class Vault {
   async listTrash() {
     const folder = await this.internalDir("trash");
     const entries = [];
+    const metadata = await this.internalDir("trash-paths");
     for (const item of await readdir(folder, { withFileTypes: true })) {
-      if (!item.isFile() || !item.name.endsWith(".md")) continue;
+      if (!item.isFile() || !/^[a-f0-9-]{36}-.+\.md$/i.test(item.name))
+        continue;
+      const record = path.join(metadata, item.name.slice(0, 36) + ".json");
+      let originalPath = item.name.slice(37);
+      let deletedAt;
+      try {
+        const info = JSON.parse(await readFile(record, "utf8"));
+        originalPath = info.path;
+        deletedAt = info.deletedAt;
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
       const file = path.join(folder, item.name);
-      const stat = await lstat(file);
       entries.push({
-        ...decodeNote(await readFile(file, "utf8"), item.name),
+        ...decodeNote(await readFile(file, "utf8"), originalPath),
         token: item.name,
-        deletedAt: stat.mtime.toISOString(),
+        deletedAt: deletedAt ?? (await lstat(file)).mtime.toISOString(),
       });
     }
     return entries.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
@@ -380,20 +411,47 @@ export class Vault {
     if (!n) throw new Error("휴지통 항목을 찾을 수 없습니다.");
     if (this.db.prepare("SELECT id FROM notes WHERE id=?").get(n.id))
       throw new Error("같은 ID의 노트가 이미 존재합니다.");
-    const originalName = token.replace(/^[a-f0-9-]{36}-/i, "");
-    const filename =
-      originalName.replace(/\.md$/i, "") +
-      "-restored-" +
-      randomUUID().slice(0, 8) +
-      ".md";
+    const filename = n.path;
+    const full = path.resolve(this.root, filename);
+    if (
+      !full.startsWith(this.root + path.sep) ||
+      path.isAbsolute(filename) ||
+      filename.split(/[\\/]/).some((part) => part.startsWith(".")) ||
+      !/\.md$/i.test(filename)
+    )
+      throw Error("원래 노트 경로를 확인해 주세요.");
+    let parent = this.root;
+    for (const part of path
+      .relative(this.root, path.dirname(full))
+      .split(path.sep)
+      .filter(Boolean)) {
+      parent = path.join(parent, part);
+      await mkdir(parent, { recursive: true });
+      if ((await realpath(parent)) !== parent)
+        throw Error("복원 대상 폴더의 경로를 확인해 주세요.");
+    }
     const raw = await readFile(
       path.join(this.root, ".xdocs", "trash", token),
       "utf8",
     );
-    await writeFile(path.join(this.root, filename), raw, { flag: "wx" });
+    try {
+      await writeFile(full, raw, { flag: "wx" });
+    } catch (error) {
+      if (error.code === "EEXIST")
+        throw Error(
+          "같은 경로에 파일이 있습니다. 이름을 변경한 뒤 복원하세요.",
+        );
+      throw error;
+    }
     const restored = decodeNote(raw, filename);
     this.index(restored);
     await unlink(path.join(this.root, ".xdocs", "trash", token));
+    const metadata = await this.internalDir("trash-paths");
+    await unlink(path.join(metadata, token.slice(0, 36) + ".json")).catch(
+      (error) => {
+        if (error.code !== "ENOENT") throw error;
+      },
+    );
     return restored;
   }
   async addAttachment(source) {

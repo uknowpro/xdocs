@@ -358,3 +358,49 @@ test("creating a note suspends the old editor until the new note is ready", asyn
   );
   expect(await page.evaluate(() => (window as any).__savedNew.id)).toBe("new");
 });
+
+test("existing preview workspaces keep notes and reject stale deletes", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.setItem(
+      "xdocs.preview.v1",
+      JSON.stringify({
+        name: "나의 보관함",
+        root: "브라우저 미리보기",
+        notes: [
+          {
+            id: "old",
+            title: "기존 문서",
+            body: "# 기존 문서",
+            path: "기존.md",
+            revision: "1",
+          },
+        ],
+      }),
+    );
+  });
+  await page.reload();
+  await expect(page.locator(".workspace-switch strong")).toHaveText(
+    "워크스페이스",
+  );
+  await expect(page.locator(".markdown h1")).toHaveText("기존 문서");
+  await page.evaluate(() => {
+    const w = JSON.parse(localStorage.getItem("xdocs.preview.v1")!);
+    w.notes[0].body += "\n다른 창에서 저장";
+    w.notes[0].revision = "2";
+    localStorage.setItem("xdocs.preview.v1", JSON.stringify(w));
+  });
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "노트 삭제" }).click();
+  await expect(
+    page.getByText("다른 창에서 변경되었습니다. 새로고침 후 다시 확인하세요."),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("xdocs.preview.v1")!).notes[0].revision,
+    ),
+  ).toBe("2");
+});
