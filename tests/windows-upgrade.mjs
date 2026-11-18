@@ -1,3 +1,4 @@
+import { unzipSync } from "fflate";
 import { _electron as electron, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -34,6 +35,22 @@ try {
       0.05,
   );
   const button = (name) => page.getByRole("button", { name, exact: true });
+  async function terraformFiles() {
+    const dest = path.join(root, mode + scale + ".zip");
+    await app.evaluate(({ dialog }, filePath) => {
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath });
+    }, dest);
+    await button("코드 ZIP 내보내기").click();
+    await expect(page.getByRole("status")).toContainText("내보냈습니다");
+    const zip = unzipSync(await readFile(dest));
+    const terraform = Object.fromEntries(
+      Object.entries(zip)
+        .filter(([name]) => name.startsWith("terraform/"))
+        .map(([name, bytes]) => [name, Buffer.from(bytes).toString("base64")]),
+    );
+    assert.ok(Object.keys(terraform).length);
+    return terraform;
+  }
   if (mode === "seed") {
     await button("새 시트 테이블").click();
     await page.locator(".sheet-grid textarea").first().fill("분기 예산");
@@ -72,6 +89,8 @@ try {
         ),
       };
     });
+    await button("코드 추출").click();
+    expected.terraform = await terraformFiles();
     await button("왼쪽 메뉴 접기").click();
     await expect(button("왼쪽 메뉴 펼치기")).toBeVisible();
     await writeFile(manifest, JSON.stringify(expected));
@@ -111,6 +130,7 @@ try {
     ).toHaveValue("Application EC2");
     await button("속성 닫기").click();
     await button("코드 추출").click();
+    assert.deepEqual(await terraformFiles(), expected.terraform);
     await button("IaC 변경 비교").click();
     await expect(page.getByText("생성된 IaC에 변경이 없습니다.")).toBeVisible();
     assert.ok(

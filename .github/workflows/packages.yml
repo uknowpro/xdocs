@@ -46,16 +46,16 @@ jobs:
           $install = Join-Path $fixture 'app'
           $exe = Join-Path $install 'xdocs.exe'
           New-Item -ItemType Directory -Path $fixture | Out-Null
-          gh release download v0.5.0-alpha.6 --pattern '*.exe' --dir $fixture --repo $env:GITHUB_REPOSITORY
+          gh release download v0.5.1 --pattern '*.exe' --dir $fixture --repo $env:GITHUB_REPOSITORY
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           $old = (Get-ChildItem "$fixture/*.exe").FullName
-          if ((Get-FileHash $old).Hash -ne 'c2cfcb4072055861dd97382e575b30ad7373761242a72319aaca92b91d906e45') { throw 'Unexpected fixture installer hash' }
+          if ((Get-FileHash $old).Hash -ne '23264526731682b6c4b20338c409b7c48a7e2901621227de54b872977e3896cb') { throw 'Unexpected fixture installer hash' }
           function Install-Xdocs($file) {
             $result = Start-Process -FilePath $file -ArgumentList "/S /D=$install" -PassThru -Wait
             if ($result.ExitCode) { throw "Installer failed: $($result.ExitCode)" }
           }
           Install-Xdocs $old
-          node tests/windows-upgrade.mjs seed $exe $fixture 0.5.0-alpha.6
+          node tests/windows-upgrade.mjs seed $exe $fixture 0.5.1
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           Install-Xdocs (Get-ChildItem 'release/*.exe').FullName
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
