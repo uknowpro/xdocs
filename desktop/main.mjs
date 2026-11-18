@@ -1,3 +1,4 @@
+import { analyzeDirectory } from "./analyzer.mjs";
 import {modelProfiles} from "./builder-profiles.mjs";
 import {builderResources} from "./builder-mcp.mjs";
 import {runBuilderModel} from "./builder-model.mjs";
@@ -382,6 +383,18 @@ app.whenReady().then(async () => {
     });
     if (result.canceled || !result.filePaths[0]) return null;
     return importInfrastructure(result.filePaths[0]);
+  });
+  register("analyzer:directory", async request => {
+    mustVault();
+    const choice = await dialog.showOpenDialog(window,{title:"분석할 프로젝트 폴더 선택",properties:["openDirectory"]});
+    if(choice.canceled || !choice.filePaths.length) return null;
+    let values;
+    if(request.customValues && request.mode.startsWith("helm")) {
+      const file=await dialog.showOpenDialog(window,{title:"Helm values 파일",properties:["openFile"],filters:[{name:"YAML",extensions:["yaml","yml"]}]});
+      if(file.canceled || !file.filePaths[0]) return null;
+      values=file.filePaths[0];
+    }
+    return analyzeDirectory(choice.filePaths[0], request, values);
   });
   register("builder:resources",async request=>{mustVault();return builderResources(request)});
   const profiles=modelProfiles(app.getPath("userData"),safeStorage);

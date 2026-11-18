@@ -51,6 +51,7 @@ export default function Builder({
   onSave: (content: string) => Promise<void>;
   onCopy: (title: string, c: Config, publish?: boolean) => Promise<void>;
 }) {
+  const [stepSource,setStepSource]=useState<Config|null>(null);
   const [copyTitle, setCopyTitle] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   const [loaded, setLoaded] = useState<{ id: string; book: SheetBook } | null>(
@@ -365,7 +366,7 @@ export default function Builder({
                 (n) =>
                   n.id === config.source ||
                   (config.input === "note"
-                    ? !/xdocs-(builder|workflow|architecture|sheets)|<!-- xdocs:folder -->/.test(
+                    ? !/xdocs-(builder|workflow|architecture|sheets)|<!-- xdocs:(?:folder|analyzer) -->/.test(
                         n.body,
                       )
                     : n.body.includes("```xdocs-sheets") || Boolean(n.sheet)),
@@ -506,6 +507,11 @@ export default function Builder({
               >
                 위로
               </button>
+              <button disabled={i === config.rules.length - 1} onClick={() => {
+                const rules = [...config.rules];
+                [rules[i], rules[i + 1]] = [rules[i + 1], rules[i]];
+                patch({ rules });
+              }}>아래로</button>
               <button
                 onClick={() =>
                   patch({
@@ -540,6 +546,28 @@ export default function Builder({
         >
           검토 단계 추가
         </button>
+        <details>
+          <summary>다른 Builder에서 단계 가져오기</summary>
+          <label>원본 Builder
+            <select disabled={working || readonly} defaultValue="" onChange={e=>{
+              const note=notes.find(n=>n.id===e.target.value);
+              setStepSource(null);
+              if(note) void run(async()=>{
+                const source=note.unloaded && api.readNote ? await api.readNote(note.id) : note;
+                const page=decodeBuilder(source.body);
+                if(!page) throw Error("Builder 페이지를 선택하세요.");
+                setStepSource(page);
+              });
+            }}>
+              <option value="">페이지 선택</option>
+              {notes.filter(n=>n.body.includes("```xdocs-builder") || n.unloaded).map(n=><option key={n.id} value={n.id}>{n.title}</option>)}
+            </select>
+          </label>
+          {stepSource && <label>추가할 단계<select disabled={readonly} value="" onChange={e=>{
+            const step=stepSource.rules[Number(e.target.value)];
+            if(step) patch({rules:[...config.rules,{...step}]});
+          }}><option value="" disabled>단계 선택</option>{stepSource.rules.map((r,i)=><option key={i} value={i}>{i+1}. {r.label}</option>)}</select></label>}
+        </details>
         <label>
           프롬프트 방식
           <select

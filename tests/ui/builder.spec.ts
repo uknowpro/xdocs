@@ -140,3 +140,37 @@ test("nested network gallery previews match the AWS subnet canvas", async ({ pag
   await expect(diagram.locator("[data-scope]")).toHaveCount(3);
   await diagram.screenshot({path:"test-results/aws-subnet-template.png"});
 });
+
+test("Analyzer findings become a saved Builder source with both network directions", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button",{name:"Analyzer 만들기"}).click();
+  await page.getByLabel("기존 분석 JSON 열기").setInputFiles({name:"scan.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({
+    project:{},connections:[],findings:["inbound","outbound"].map(direction=>({direction,kind:"route",target:"/orders",file:"Orders.java",line:9,status:"candidate"}))
+  }))});
+  await expect(page.locator(".analyzer-path")).toHaveCount(2);
+  await page.getByRole("button",{name:"보고서를 하위 노트로 저장"}).click();
+  await expect(page.locator(".markdown")).toContainText("Orders.java:9");
+  await page.getByRole("button",{name:"Builder 만들기"}).click();
+  await page.getByLabel("하네스 템플릿").selectOption("network");
+  await page.getByLabel("입력 노트",{exact:true}).selectOption({label:"네트워크 분석"});
+  await expect(page.locator(".builder-panel pre").first()).toContainText("outbound");
+  await expect(page.locator(".builder-panel pre").first()).toContainText("inbound");
+});
+
+test("Builder copies a customized step from another page independently", async ({page})=>{
+  await page.goto("/");
+  const create=page.getByRole("button",{name:"Builder 만들기"});
+  await create.click();
+  await page.getByLabel("단계 이름").fill("운영 예산");
+  await page.getByLabel("초과 기준").fill("2300");
+  await page.getByText("하네스 공유와 복제",{exact:true}).click();
+  await page.getByLabel("사본 이름").fill("원본 하네스");
+  await page.getByRole("button",{name:"워크스페이스에 사본 저장"}).click();
+  await create.click();
+  await page.getByText("다른 Builder에서 단계 가져오기",{exact:true}).click();
+  await page.getByLabel("원본 Builder").selectOption({label:"원본 하네스"});
+  await page.getByLabel("추가할 단계").selectOption("0");
+  await expect(page.getByLabel("초과 기준").nth(1)).toHaveValue("2300");
+  await page.getByRole("button",{name:"아래로",exact:true}).first().click();
+  await expect(page.getByLabel("단계 이름").first()).toHaveValue("운영 예산");
+});

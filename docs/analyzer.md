@@ -20,3 +20,11 @@
 2. netspector의 scan JSON에는 findings·connections가 있고 화면용 nodes·edges는 별도 그래프 함수에서 만들어진다. 엔진의 그래프 JSON 출력 경로를 제공해 xdocs가 호스트 병합·미확정 판정을 중복 구현하지 않도록 한다.
 3. kubewiser의 업그레이드 계획은 목표 버전 검사와 마이너별 조치를 제공한다. 기존 문제와 새 문제의 차이는 같은 입력·검사 옵션으로 두 버전의 scan 결과를 비교한다. Helm은 같은 values·release·namespace로 두 번 렌더링하고, 달라진 리소스나 검사 제외 항목도 보여준다.
 4. 차트 네트워크 도식화에는 렌더된 리소스와 템플릿 출처 연결이 필요하다. kubewiser Helm 결과 JSON의 render·report와 netspector의 프로젝트 소스 근거를 연결하는 작은 공통 예제부터 검증한다. 이름이나 포트만 일치하는 Java 호출은 후보로 남긴다.
+
+## 현재 사용법
+
+사이드바의 **Analyzer 만들기** 또는 폴더의 **+ → Analyzer**에서 페이지를 만든다. 데스크톱의 **폴더 선택 및 분석**으로 Java 등 소스 프로젝트, 매니페스트 폴더 또는 Helm 차트 루트를 선택한다. 네트워크 화면은 netspector의 발견 상태·방향·파일·줄과 선언된 연결 경로를 표시한다. Helm 네트워크 분석의 위치는 렌더된 YAML 기준이다. 매니페스트 업그레이드는 kubewiser의 마이너별 계획을, Helm 업그레이드는 두 버전에 같은 릴리스·네임스페이스·values를 적용해 검사 결과 차이를 표시한다.
+
+직접 분석하려면 사용하는 엔진을 로컬에 설치한다. 소스·매니페스트 네트워크는 `netspector`, 호환성·업그레이드는 `kubewiser`, Helm 렌더링은 `helm`이 필요하다. 앱 프로세스의 PATH 또는 `XDOCS_NETSPECTOR`, `XDOCS_KUBEWISER`, `XDOCS_HELM`에 실행 파일을 지정한다. 브라우저 미리보기와 데스크톱 모두 기존 scan 또는 upgrade JSON을 열 수 있다.
+
+분석 결과를 보존하려면 **보고서를 하위 노트로 저장**한다. Builder의 **Analyzer 업그레이드 조치**, **Analyzer 인바운드·아웃바운드 검토**에서 이 노트를 입력으로 선택하면 해당 근거 줄을 다시 검토할 수 있다. 경로는 정적 분석 결과이며 실제 연결 성공 여부는 별도 측정 대상이다.

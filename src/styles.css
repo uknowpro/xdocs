@@ -2748,3 +2748,7 @@ textarea {
 
 .template-thumbnail { position: relative; }
 .template-layout-label { position: absolute; inset: auto 4px 4px auto; border-radius: 3px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 1px 4px; font-size: 10px; }
+.analyzer { overflow-wrap: anywhere; }
+.analyzer-path { display:flex; flex-wrap:wrap; align-items:center; list-style:none; padding:0; gap:8px; }
+.analyzer-path li { border:1px solid var(--line); padding:6px; border-radius:5px; }
+.analyzer-path li + li::before { content:"→ "; color:var(--muted); }

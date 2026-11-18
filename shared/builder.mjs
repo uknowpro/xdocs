@@ -36,6 +36,8 @@ export const prompts = {
   checklist: "담당자가 확인할 항목을 체크리스트로 작성하세요.",
 };
 export const presets = {
+  upgrade: {label:"Analyzer 업그레이드 조치",rule:"contains",keyword:"업그레이드 조치",prompt:"actions",input:"note"},
+  network: {label:"Analyzer 인바운드·아웃바운드 검토",rule:"contains",keyword:"inbound",prompt:"evidence",input:"note"},
   meeting: {
     label: "회의 액션 아이템",
     rule: "contains",
@@ -77,6 +79,7 @@ export function newBuilder(preset = "cost") {
         label: skills[template.rule].label,
         instruction: skills[template.rule].instruction,
       },
+      ...(preset === "network" ? [{kind:"contains",column:0,threshold:0,keyword:"outbound",label:"아웃바운드",instruction:"외부 호출을 원본 줄과 함께 정리하세요."}] : []),
     ],
     prompt: prompts[template.prompt],
   };
