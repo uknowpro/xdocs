@@ -226,3 +226,45 @@ test("selected references and generated IaC reflect the same subnet move", async
   await page.getByLabel("IaC 변경 내용").scrollIntoViewIfNeeded();
   await page.screenshot({ path: "test-results/iac-changes.png" });
 });
+
+test("boundary view edits preserve IaC and collapse nested resources", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "IaCD 아키텍처", exact: true })
+    .click();
+  await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
+  const resource = (name: string) =>
+    page.getByRole("button", { name: "컴포넌트 " + name, exact: true });
+  await resource("Application EC2").click();
+  await page.getByLabel("선택 리소스 참조선").check();
+  const path = page.locator("[data-reference]").first();
+  const before = await path.getAttribute("d");
+  await page.getByLabel("시작 연결점").first().selectOption("top");
+  await expect(path).not.toHaveAttribute("d", before!);
+  const bend = page.locator("[data-bend]").first();
+  const x = await bend.getAttribute("cx");
+  await bend.hover();
+  const box = await bend.boundingBox();
+  await page.mouse.down();
+  await page.mouse.move(box!.x - 15, box!.y + 10, { steps: 4 });
+  await page.mouse.up();
+  await expect(bend).not.toHaveAttribute("cx", x!);
+  await page.getByRole("button", { name: "배치 잠금", exact: true }).click();
+  await expect(page.locator("[data-reconnect]")).toHaveCount(0);
+  await page.getByRole("textbox", { name: "운영 주석" }).fill("회계 서비스");
+  await resource("Subnet").click();
+  await page.getByRole("button", { name: "경계 접기" }).click();
+  await expect(resource("Application EC2")).toHaveCount(0);
+  await page.getByRole("button", { name: "경계 펼치기" }).click();
+  await resource("Application EC2").click();
+  await expect(page.getByRole("textbox", { name: "운영 주석" })).toHaveValue(
+    "회계 서비스",
+  );
+  await page.getByRole("button", { name: "코드 추출", exact: true }).click();
+  await page
+    .getByRole("button", { name: "IaC 변경 비교", exact: true })
+    .click();
+  await expect(page.getByText("생성된 IaC에 변경이 없습니다.")).toBeVisible();
+});

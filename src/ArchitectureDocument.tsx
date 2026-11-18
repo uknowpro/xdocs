@@ -1,3 +1,4 @@
+import { canPlace, reassignPlacement } from "../shared/placement-edit.mjs";
 import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
@@ -51,6 +52,14 @@ export type ArchitectureNode = {
   address?: string;
   original?: Record<string, string>;
   references?: string[];
+  placementSource?: {
+    file: string;
+    offset: number;
+    address: string;
+    otherRefs: string[];
+  };
+  scopeAddress?: string;
+  placementUnknown?: boolean;
 };
 export type ArchitectureModel = {
   version: number;
@@ -60,6 +69,17 @@ export type ArchitectureModel = {
   sources: { name: string; content: string }[];
   warnings: string[];
   drawing?: Drawing;
+  presentation?: {
+    folded?: string[];
+    locked?: string[];
+    annotations?: Record<string, string>;
+    crossings?: boolean;
+    anchors?: Record<string, string>;
+    routes?: Record<string, { x: number; y: number }>;
+    resources?: boolean;
+    refs?: boolean;
+    notes?: boolean;
+  };
   review?: Record<string, string>;
 };
 const icon = (kind: string) =>
@@ -255,6 +275,24 @@ export default function ArchitectureDocument({
   function change(next: ArchitectureModel) {
     if (readonly) return;
     try {
+      for (const id of model.presentation?.locked || []) {
+        const before = model.nodes.find((n) => n.id === id),
+          after = next.nodes.find((n) => n.id === id);
+        if (!before) continue;
+        if (
+          !after ||
+          before.x !== after.x ||
+          before.y !== after.y ||
+          before.scopeAddress !== after.scopeAddress ||
+          Object.entries(COMPONENTS[before.kind]?.fields || {}).some(
+            ([key, f]: [string, any]) =>
+              f.ref && before.props[key] !== after.props[key],
+          )
+        ) {
+          setError("배치 잠금을 해제한 후 변경하세요.");
+          return;
+        }
+      }
       undo.current.push(model);
       if (undo.current.length > 60) undo.current.shift();
       redo.current = [];
@@ -504,16 +542,14 @@ export default function ArchitectureDocument({
                   selected={selected}
                   readonly={readonly}
                   onSelect={select}
-                  onPlace={(child, field, parent) => {
-                    change({
-                      ...model,
-                      nodes: model.nodes.map((n) =>
-                        n.id === child.id
-                          ? { ...n, props: { ...n.props, [field]: parent.id } }
-                          : n,
-                      ),
-                    });
-                    setSelected(child.id);
+                  onView={(presentation) => change({ ...model, presentation })}
+                  onPlace={(child, parent) => {
+                    try {
+                      change(reassignPlacement(model, child, parent));
+                      setSelected(child.id);
+                    } catch (e) {
+                      setError(String(e));
+                    }
                   }}
                 />
               </>
@@ -870,11 +906,45 @@ export default function ArchitectureDocument({
                       )}
                     </label>
                   ))}
+                {node.imported && node.placementSource && (
+                  <label>
+                    Terraform 소속 참조
+                    <select
+                      aria-label="Terraform 소속 참조"
+                      disabled={
+                        readonly ||
+                        model.presentation?.locked?.includes(node.id)
+                      }
+                      value={node.scopeAddress}
+                      onChange={(e) => {
+                        const parent = model.nodes.find(
+                          (n) => n.address === e.target.value,
+                        );
+                        if (parent)
+                          change(reassignPlacement(model, node, parent));
+                      }}
+                    >
+                      {model.nodes
+                        .filter(
+                          (n) =>
+                            canPlace(model, node, n) ||
+                            n.address === node.scopeAddress,
+                        )
+                        .map((n) => (
+                          <option key={n.id} value={n.address}>
+                            {n.label}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
+                {node.placementUnknown && (
+                  <p>소속 미확정 · 원본 표현식을 유지합니다.</p>
+                )}
                 {node.imported ? (
                   <p className="small-text muted">
-                    원본 리소스·참조를 보존합니다. 표시된 단순 속성만 override
-                    파일로 수정하며, 표현식·중첩 설정은 원본에서 수정 후 다시
-                    가져오세요.
+                    소속을 옮기면 보관된 Terraform 사본의 직접 참조가 바뀝니다.
+                    단순 속성 변경은 override 파일로 추출합니다.
                   </p>
                 ) : (
                   <button

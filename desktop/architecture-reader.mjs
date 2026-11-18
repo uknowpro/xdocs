@@ -5,6 +5,38 @@ import {
   validateArchitecture,
   IMPORT_FIELDS,
 } from "../shared/architecture.mjs";
+// Label individual source occurrences, then let the same Terraform parser identify
+// the occurrence that actually supplies the placement attribute (excluding comments).
+async function locateReferences(file) {
+  const spans = new Map();
+  let prefix = "xdocsplacement";
+  while (file.content.includes(prefix)) prefix += "x";
+  const marked = file.content.replace(
+    /\b((?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*)(?=\.(?:id|name|self_link)\b)/g,
+    (address, _, offset) => {
+      const marker = prefix + spans.size;
+      spans.set(marker, { file: file.name, offset, address });
+      return address.slice(0, address.lastIndexOf(".") + 1) + marker;
+    },
+  );
+  if (!spans.size) return {};
+  try {
+    const parsed = file.name.endsWith(".json")
+      ? JSON.parse(marked)
+      : await parse(file.name, marked);
+    return { parsed, spans };
+  } catch {
+    return {};
+  }
+}
+function placement(n, raw) {
+  const attr = placementFields[n.kind]?.[2];
+  if (attr) return raw?.[attr];
+  if (n.kind === "google_compute_instance") {
+    const nic = raw?.network_interface;
+    return (Array.isArray(nic) ? nic.length === 1 && nic[0] : nic)?.subnetwork;
+  }
+}
 export async function parseTerraformFiles(files) {
   const model = newArchitecture();
   model.title = "가져온 Terraform";
@@ -30,6 +62,7 @@ export async function parseTerraformFiles(files) {
       throw Error(
         "계획·state JSON 대신 .tf 또는 구성 .tf.json 파일을 선택하세요.",
       );
+    const located = await locateReferences(file);
     for (const block of ["resource", "data", "module"]) {
       const entries =
         block === "module"
@@ -70,11 +103,20 @@ export async function parseTerraformFiles(files) {
           props,
           original: { ...props },
           imported: true,
+          ...(raw?.count !== undefined || raw?.for_each !== undefined
+            ? { multipleInstances: true }
+            : {}),
           address,
           references: [],
         };
         model.nodes.push(n);
-        pending.push([n, raw]);
+        const marked = located.parsed?.[block]?.[kind]?.[name];
+        pending.push([
+          n,
+          raw,
+          Array.isArray(marked) ? marked[0] : marked,
+          located.spans,
+        ]);
       }
     }
   }
@@ -119,22 +161,39 @@ export async function parseTerraformFiles(files) {
         await scan(v, out, depth + 1);
       }
   }
-  for (const [n, raw] of pending) {
-    const attr = placementFields[n.kind]?.[2];
-    const nic = Array.isArray(raw?.network_interface)
-      ? raw.network_interface[0]
-      : raw?.network_interface;
-    const value = attr
-      ? raw?.[attr]
-      : n.kind === "google_compute_instance"
-        ? nic?.subnetwork
-        : null;
+  for (const [n, raw, marked, spans] of pending) {
+    const value = placement(n, raw);
     const direct =
       typeof value === "string" &&
       value.match(
         /^\$\{((?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*)\.(?:id|name|self_link)\}$/,
       );
     if (direct && addresses.has(direct[1])) n.scopeAddress = direct[1];
+    const markedValue = placement(n, marked);
+    const marker =
+      typeof markedValue === "string" &&
+      markedValue.match(/\.(\w+)\.(?:id|name|self_link)\}$/)?.[1];
+    const span = marker && spans?.get(marker);
+    if (
+      n.scopeAddress &&
+      span?.address === n.scopeAddress &&
+      !n.address.startsWith("data.")
+    ) {
+      const without = structuredClone(raw);
+      const field = placementFields[n.kind]?.[2];
+      if (field) delete without[field];
+      else {
+        const nic = without.network_interface;
+        delete (Array.isArray(nic) ? nic[0] : nic).subnetwork;
+      }
+      const rest = new Set();
+      await scan(without, rest);
+      n.placementSource = {
+        ...span,
+        otherRefs: [...rest].filter((r) => addresses.has(r) && r !== n.address),
+      };
+    } else if (value !== undefined || n.kind === "google_compute_instance")
+      n.placementUnknown = true;
     const refs = new Set();
     await scan(raw, refs);
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));

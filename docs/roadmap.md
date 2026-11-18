@@ -74,4 +74,4 @@
 - [x] 경계 도면에서 선택한 리소스의 직접 참조 표시
 - [x] 페이지를 연 시점 또는 지정한 기준과 생성 IaC 파일 비교
 
-[draw.io를 참고한 후속 개선 후보](drawio-improvements.md)
+[draw.io를 참고한 캔버스 개선 현황](drawio-improvements.md)

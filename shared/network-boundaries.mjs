@@ -25,7 +25,23 @@ export const placementFields = {
   k8s_configmap: ["namespace", "k8s_namespace"],
   k8s_pvc: ["namespace", "k8s_namespace"],
 };
-const containerKinds = new Set([
+export function canPlace(model, child, parent) {
+  const rule = placementFields[child?.kind];
+  return !!(
+    rule &&
+    parent &&
+    rule[1] === parent.kind &&
+    child.id !== parent.id &&
+    !model.presentation?.locked?.includes(child.id) &&
+    (child.imported
+      ? child.placementSource &&
+        parent.imported &&
+        parent.address &&
+        !parent.multipleInstances
+      : !parent.imported)
+  );
+}
+export const containerKinds = new Set([
   "aws_vpc",
   "aws_subnet",
   "azurerm_resource_group",
@@ -107,7 +123,16 @@ export function boundaryLayout(model) {
   const gap = 9,
     header = 44,
     pad = 10;
+  const folded = new Set(model.presentation?.folded || []);
+  const representatives = new Map();
+  function hide(n, container) {
+    representatives.set(n.id, container);
+    let count = 1;
+    for (const c of children.get(n.id) || []) count += hide(c, container);
+    return count;
+  }
   function measure(n) {
+    if (folded.has(n.id)) return header + 12;
     const kids = children.get(n.id) || [];
     return (
       header +
@@ -122,7 +147,12 @@ export function boundaryLayout(model) {
     boxes = [];
   function place(n, x, y, w, provider, depth) {
     const height = measure(n);
+    representatives.set(n.id, n.id);
+    const hidden = folded.has(n.id)
+      ? (children.get(n.id) || []).reduce((sum, c) => sum + hide(c, n.id), 0)
+      : 0;
     boxes.push({
+      hidden,
       id: n.id,
       label: n.label,
       kind: n.kind,
@@ -136,6 +166,7 @@ export function boundaryLayout(model) {
       cidr: n.props.cidr || "",
       parent: parents.get(n.id),
     });
+    if (folded.has(n.id)) return;
     let top = y + header;
     for (const child of children.get(n.id) || []) {
       place(child, x + pad, top, w - 2 * pad, provider, depth + 1);
@@ -164,14 +195,72 @@ export function boundaryLayout(model) {
   }
   return {
     frames,
+    representatives,
     boxes,
     width: groups.size > 1 ? 614 : 310,
     height: top + rowHeight + 10,
   };
 }
 /** @param {any} model @param {string} selected @param {Array<{source:string,target:string,field:string}>} references */
-export function boundarySVG(model, selected = "", references = []) {
-  const { frames, boxes, width, height } = boundaryLayout(model);
+function anchor(box, side) {
+  switch (side) {
+    case "left":
+      return [box.x + 5, box.y + 20];
+    case "top":
+      return [box.x + box.w / 2, box.y + 2];
+    case "bottom":
+      return [box.x + box.w / 2, box.y + box.h - 2];
+    default:
+      return [box.x + box.w - 5, box.y + 20];
+  }
+}
+// Draw a small bridge where this polyline crosses a previously drawn edge.
+function connectorPath(points, previous, crossings) {
+  let path = "M" + points[0].join(" ");
+  const segments = [];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1],
+      b = points[i];
+    if (a[0] === b[0] && a[1] === b[1]) continue;
+    const axis = a[1] === b[1] ? 0 : 1,
+      fixed = 1 - axis;
+    const dir = Math.sign(b[axis] - a[axis]);
+    const hits = [];
+    if (crossings)
+      for (const [c, d] of previous) {
+        const at = c[axis];
+        if (
+          at === d[axis] &&
+          dir * (at - a[axis]) > 4 &&
+          dir * (b[axis] - at) > 4 &&
+          (a[fixed] - c[fixed]) * (a[fixed] - d[fixed]) < 0
+        )
+          hits.push(at);
+      }
+    const command = axis === 0 ? "H" : "V";
+    let last;
+    for (const at of hits.sort((x, y) => dir * (x - y))) {
+      if (last !== undefined && Math.abs(last - at) < 8) continue;
+      const end = [...a];
+      end[axis] = at + dir * 3;
+      path += command + (at - dir * 3) + " A3 3 0 0 1 " + end.join(" ");
+      last = at;
+    }
+    path += command + b[axis];
+    segments.push([a, b]);
+  }
+  previous.push(...segments);
+  return path;
+}
+export function boundarySVG(
+  model,
+  selected = "",
+  references = [],
+  hover = "",
+  dragging = "",
+) {
+  const { frames, boxes, width, height, representatives } =
+    boundaryLayout(model);
   const text = (x, y, s, size = 12, weight = 400) =>
     '<text x="' +
     x +
@@ -213,12 +302,30 @@ export function boundarySVG(model, selected = "", references = []) {
         c = colors[b.provider],
         active = selected === b.id;
       const label = b.label.length > 27 ? b.label.slice(0, 25) + "…" : b.label;
-      const meta = b.cidr || b.kind;
+      const meta = b.hidden
+        ? "접힘 · " + b.hidden + "개 리소스"
+        : b.cidr || b.kind;
+      const locked = model.presentation?.locked?.includes(b.id);
+      const annotation = model.presentation?.annotations?.[b.id];
+      const eligible =
+        dragging &&
+        canPlace(
+          model,
+          model.nodes.find((n) => n.id === dragging),
+          model.nodes.find((n) => n.id === b.id),
+        );
+      const paper =
+        model.presentation?.resources === false ? ' visibility="hidden"' : "";
+
       const glyph = b.container
         ? "M2 4h7l2 3h8v10H2z"
         : "M4 4h13v13H4zM7 1v3m6-3v3M7 17v3m6-3v3M1 8h3m13 0h3";
       return (
-        '<rect x="' +
+        "<g" +
+        paper +
+        '><rect data-boundary="' +
+        escape(b.id) +
+        '" x="' +
         x +
         '" y="' +
         y +
@@ -229,9 +336,17 @@ export function boundarySVG(model, selected = "", references = []) {
         '" rx="5" fill="' +
         (b.container ? (b.depth % 2 ? "#f8fbfd" : "#eff4f6") : "#fff") +
         '" stroke="' +
-        (active ? "#175787" : b.container ? c : "#c3cbd2") +
+        (hover === b.id
+          ? "#12794c"
+          : eligible
+            ? "#278767"
+            : active
+              ? "#175787"
+              : b.container
+                ? c
+                : "#c3cbd2") +
         '" stroke-width="' +
-        (active ? 2 : 1) +
+        (hover === b.id ? 4 : eligible || active ? 2 : 1) +
         '" ' +
         (b.container && !active ? 'stroke-dasharray="5 3"' : "") +
         "/>" +
@@ -257,39 +372,104 @@ export function boundarySVG(model, selected = "", references = []) {
         ')" fill="none" stroke="' +
         c +
         '" stroke-width="1.5"/>' +
-        text(x + 36, y + 19, label, 12, 650) +
+        text(x + 36, y + 19, (locked ? "▣ " : "") + label, 12, 650) +
         text(
           x + 36,
           y + 34,
           meta.length > 32 ? meta.slice(0, 31) + "…" : meta,
           10,
         ) +
-        "</g>"
+        "</g></g>" +
+        (model.presentation?.notes !== false && annotation
+          ? text(x + 36, y + 43, String(annotation).slice(0, 40), 9)
+          : "")
       );
     })
     .join("");
   const byId = new Map(boxes.map((b) => [b.id, b]));
+  const segments = [];
   const arrows = references
-    .filter((e) => e.source === selected || e.target === selected)
+    .filter(
+      (e) =>
+        representatives.get(e.source) === selected ||
+        representatives.get(e.target) === selected,
+    )
     .map((e, i) => {
-      const a = byId.get(e.source),
-        b = byId.get(e.target);
-      if (!a || !b) return "";
-      const x1 = a.x + a.w - 5,
-        x2 = b.x + b.w - 5,
-        y1 = a.y + 20,
-        y2 = b.y + 20;
+      const a = byId.get(representatives.get(e.source)),
+        b = byId.get(representatives.get(e.target));
+      if (!a || !b || a.id === b.id) return "";
+      const key = [e.source, e.field, e.target].join(":");
+      const [x1, y1] = anchor(
+        a,
+        model.presentation?.anchors?.[key + ":source"],
+      );
+      const [x2, y2] = anchor(
+        b,
+        model.presentation?.anchors?.[key + ":target"],
+      );
       const lane = Math.max(x1, x2) + 5 + (i % 4) * 2;
-      const route =
-        Math.abs(y1 - y2) < 1
-          ? "M" + x1 + " " + y1 + " v-10 H" + x2 + " v10"
-          : "M" + x1 + " " + y1 + " H" + lane + " V" + y2 + " H" + x2;
+      const point = model.presentation?.routes?.[key];
+      const moved = Number.isFinite(point?.x) && Number.isFinite(point?.y);
+      const hx = moved ? point.x : lane,
+        hy = moved ? point.y : (y1 + y2) / 2;
+      const source = model.nodes.find((n) => n.id === e.source),
+        target = model.nodes.find((n) => n.id === e.target);
+      const field = placementFields[source?.kind]?.[0];
+      const reconnect =
+        field &&
+        a.id === e.source &&
+        b.id === e.target &&
+        !model.presentation?.locked?.includes(source.id) &&
+        (source.imported
+          ? source.placementSource && source.scopeAddress === target?.address
+          : source.props[field] === e.target);
+      const points = moved
+        ? [
+            [x1, y1],
+            [hx, y1],
+            [hx, hy],
+            [x2, hy],
+            [x2, y2],
+          ]
+        : y1 === y2
+          ? [
+              [x1, y1],
+              [x1, y1 - 10],
+              [x2, y2 - 10],
+              [x2, y2],
+            ]
+          : [
+              [x1, y1],
+              [lane, y1],
+              [lane, y2],
+              [x2, y2],
+            ];
+      const route = connectorPath(
+        points,
+        segments,
+        model.presentation?.crossings !== false,
+      );
       return (
         '<path data-reference="true" d="' +
         route +
         '" fill="none" stroke="#246782" stroke-width="1.8" marker-end="url(#scope-arrow)"><title>' +
         escape(a.label + " → " + b.label + " · " + e.field) +
-        "</title></path>"
+        '</title></path><circle pointer-events="all" data-bend="' +
+        escape(key) +
+        '" cx="' +
+        hx +
+        '" cy="' +
+        hy +
+        '" r="4" fill="#fff" stroke="#246782"><title>꺾임점 이동</title></circle>' +
+        (reconnect
+          ? '<circle data-reconnect="' +
+            escape(source.id) +
+            '" pointer-events="all" cx="' +
+            x2 +
+            '" cy="' +
+            y2 +
+            '" r="4" fill="#246782"><title>소속 참조 대상 변경</title></circle>'
+          : "")
       );
     })
     .join("");
