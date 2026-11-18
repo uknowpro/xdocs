@@ -1,3 +1,4 @@
+import CanvasSearch from "./CanvasSearch";
 import { api } from "./api";
 import { useRef, useState, useMemo } from "react";
 import { templates, workflowNodes, addBlock } from "../shared/workflows.mjs";
@@ -44,6 +45,12 @@ export function WorkflowCanvas({
       },
     ]),
   );
+  const editor = useRef<HTMLTextAreaElement>(null);
+  function showBlock(id: string) {
+    setSelected(id);
+    setFull(false);
+    requestAnimationFrame(() => editor.current?.focus());
+  }
   function commit(next: string) {
     if (readonly) return;
     try {
@@ -72,8 +79,20 @@ export function WorkflowCanvas({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
-    <section>
+    <section data-search-scope>
       <h1>{templates[model.kind].label} 캔버스</h1>
+      <div className="canvas-findbar">
+        <CanvasSearch
+          label="블록 찾기"
+          disabled={draft !== null}
+          entries={nodes.map((n) => ({
+            id: n.id,
+            label: n.label,
+            detail: n.type + " · " + n.id,
+          }))}
+          onChoose={showBlock}
+        />
+      </div>
       <div className="infra-actions">
         <button
           className="button"
@@ -211,10 +230,7 @@ export function WorkflowCanvas({
               onDragStart={(e) => e.dataTransfer.setData("x-xdocs-node", n.id)}
               className={"arch-node " + (selected === n.id ? "selected" : "")}
               style={{ left: coords[n.id].x, top: coords[n.id].y }}
-              onClick={() => {
-                setSelected(n.id);
-                setFull(false);
-              }}
+              onClick={() => showBlock(n.id)}
             >
               <span>
                 <small>{n.type}</small>
@@ -229,6 +245,7 @@ export function WorkflowCanvas({
           <label>
             {full || !active ? "전체 원문" : active.label + " 블록"}
             <textarea
+              ref={editor}
               aria-label="캔버스 코드"
               style={{
                 width: "100%",

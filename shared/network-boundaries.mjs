@@ -196,6 +196,7 @@ export function boundaryLayout(model) {
   return {
     frames,
     representatives,
+    parents,
     boxes,
     width: groups.size > 1 ? 614 : 310,
     height: top + rowHeight + 10,

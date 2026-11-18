@@ -2610,3 +2610,18 @@ textarea {
 @media (max-height: 800px) {
   .sheet-layout .document-kicker { margin-bottom: 6px; }
 }
+
+.canvas-findbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; grid-column: 1 / -1; }
+.canvas-search { position: relative; width: min(100%, 320px); }
+.canvas-search input, .canvas-findbar select { max-width:100%; min-height:34px; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
+.canvas-search input { width:100%; }
+.canvas-search-results { position:absolute; z-index:8; width:100%; max-height:min(300px,40dvh); overflow:auto; background:var(--bg); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); }
+.canvas-search-results button, .canvas-search-results > span { display:block; padding:8px 10px; text-align:left; width:100%; overflow-wrap:anywhere; }
+.canvas-search-results button:hover,.canvas-search-results [aria-selected="true"] {background:var(--active);}
+.canvas-search-results small {display:block; color:var(--muted);}
+.arch-editor.inspector-closed .arch-properties { display:none; }
+@media(min-width:1051px) { .arch-editor.inspector-closed {grid-template-columns:170px minmax(0,1fr);} }
+@media(max-width:1050px) {
+  .arch-editor .arch-properties {display:none;}
+  .arch-editor.inspector-open .arch-properties {display:block;position:fixed;z-index:22;inset:auto 12px 36px auto;width:min(360px,calc(100vw - 24px));max-height:70dvh;overflow:auto;border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);}
+}

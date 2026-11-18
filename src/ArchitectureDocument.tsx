@@ -1,3 +1,8 @@
+import CanvasSearch from "./CanvasSearch";
+import {
+  boundaryLayout,
+  placementFields,
+} from "../shared/network-boundaries.mjs";
 import { canPlace, reassignPlacement } from "../shared/placement-edit.mjs";
 import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
@@ -312,14 +317,24 @@ export default function ArchitectureDocument({
         ),
       });
   }
-  function add(kind: string, x?: number, y?: number) {
+  function add(
+    kind: string,
+    x?: number,
+    y?: number,
+    parent?: ArchitectureNode,
+  ) {
     if (readonly) return;
     const n = newComponent(
       kind,
       x ?? 60 + (model.nodes.length % 4) * 220,
       y ?? 60 + Math.floor(model.nodes.length / 4) * 130,
     ) as ArchitectureNode;
-    change({ ...model, nodes: [...model.nodes, n] });
+    if (parent && !canPlace(model, n, parent)) return;
+    const next = { ...model, nodes: [...model.nodes, n] };
+    const placed = parent ? reassignPlacement(next, n, parent) : next;
+    change(placed);
+    if (parent || document.activeElement?.closest(".canvas-search"))
+      openDetail(n.id, placed);
     setSelected(n.id);
   }
   function select(n: ArchitectureNode) {
@@ -335,7 +350,10 @@ export default function ArchitectureDocument({
       }
       updateNode({ props: { ...node.props, [match[0]]: n.id } });
       setConnecting(false);
-    } else setSelected(n.id);
+    } else {
+      setSelected(n.id);
+      if (detail === "closed") setDetail("auto");
+    }
   }
   async function download() {
     try {
@@ -367,10 +385,116 @@ export default function ArchitectureDocument({
       setError(String(e));
     }
   }
+  const section = useRef<HTMLElement>(null);
+  const [detail, setDetail] = useState<"auto" | "open" | "closed">("auto");
+  const [navigationView, setNavigationView] =
+    useState<ArchitectureModel["presentation"]>();
+  const displayModel = navigationView
+    ? { ...model, presentation: { ...model.presentation, ...navigationView } }
+    : model;
+  const rules: Record<string, string[]> = placementFields;
+  const contextParent =
+    boundary &&
+    node &&
+    !node.imported &&
+    Object.values(rules).some((rule) => rule[1] === node.kind)
+      ? node
+      : undefined;
+  function focusNode(id: string) {
+    requestAnimationFrame(() => {
+      const el = section.current?.querySelector<HTMLElement>(
+        `[data-scope="${CSS.escape(id)}"],[data-free-id="${CSS.escape(id)}"]`,
+      );
+      el?.focus({ preventScroll: true });
+      el?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  }
+  function openDetail(id: string, source = model) {
+    const { parents } = boundaryLayout(source);
+    const ancestors = new Set<string>();
+    let parent = parents.get(id);
+    while (parent && !ancestors.has(parent)) {
+      ancestors.add(parent);
+      parent = parents.get(parent);
+    }
+    const view = displayModel.presentation;
+    setNavigationView({
+      ...navigationView,
+      resources: true,
+      folded: (view?.folded || []).filter((n) => !ancestors.has(n)),
+    });
+    setConnecting(false);
+    setSelected(id);
+    setDetail("open");
+    requestAnimationFrame(() => {
+      section.current
+        ?.querySelector<HTMLElement>(
+          `[data-scope="${CSS.escape(id)}"],[data-free-id="${CSS.escape(id)}"]`,
+        )
+        ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      section.current
+        ?.querySelector<HTMLInputElement>(".arch-properties input")
+        ?.focus();
+    });
+  }
+  function updatePresentation(
+    next: NonNullable<ArchitectureModel["presentation"]>,
+  ) {
+    if (readonly) {
+      setNavigationView(next);
+      return;
+    }
+    const shown = displayModel.presentation || {};
+    const edits = Object.fromEntries(
+      Object.entries(next).filter(
+        ([key, value]) => shown[key as keyof typeof shown] !== value,
+      ),
+    );
+    if (edits.folded) {
+      const saved = new Set(model.presentation?.folded);
+      for (const id of shown.folded || [])
+        if (!next.folded?.includes(id)) saved.delete(id);
+      for (const id of next.folded || [])
+        if (!shown.folded?.includes(id)) saved.add(id);
+      edits.folded = [...saved];
+    }
+    change({ ...model, presentation: { ...model.presentation, ...edits } });
+    if (navigationView)
+      setNavigationView(
+        Object.fromEntries(
+          Object.entries(navigationView).filter(([key]) => !(key in edits)),
+        ),
+      );
+  }
+  function closeDetail() {
+    setDetail("closed");
+    focusNode(selected);
+  }
+  function place(child: ArchitectureNode, parent: ArchitectureNode) {
+    try {
+      change(reassignPlacement(model, child, parent));
+      setSelected(child.id);
+    } catch (e) {
+      setError(String(e));
+    }
+  }
   const width = Math.max(1000, ...model.nodes.map((n) => n.x + 240)),
     height = Math.max(650, ...model.nodes.map((n) => n.y + 150));
   return (
     <section
+      onKeyDownCapture={(e) => {
+        if (e.key !== "Enter" || connecting) return;
+        const id = (e.target as Element).closest("[data-scope],[data-free-id]");
+        const selectedId =
+          id?.getAttribute("data-scope") || id?.getAttribute("data-free-id");
+        if (selectedId) {
+          e.preventDefault();
+          e.stopPropagation();
+          openDetail(selectedId);
+        }
+      }}
+      ref={section}
+      data-search-scope
       className="architecture-document"
       aria-label="IaCD 아키텍처 편집기"
     >
@@ -462,7 +586,62 @@ export default function ArchitectureDocument({
         />
       )}
       {tab === "canvas" && (
-        <div className="arch-editor">
+        <div className="canvas-findbar">
+          <CanvasSearch
+            label="리소스 찾기"
+            entries={model.nodes.map((n) => ({
+              id: n.id,
+              label: n.label,
+              detail: [
+                n.props.name,
+                n.kind,
+                n.address ||
+                  (n.kind.startsWith("k8s_")
+                    ? ""
+                    : (n.kind.startsWith("avm_") ? "module" : n.kind) +
+                      "." +
+                      n.id),
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            }))}
+            onChoose={openDetail}
+          />
+          {node && (
+            <button
+              className="button small"
+              onClick={() => openDetail(node.id)}
+            >
+              속성 열기
+            </button>
+          )}
+          {!readonly && !model.sources.length && (
+            <CanvasSearch
+              label={
+                contextParent
+                  ? contextParent.label + " 안에 추가"
+                  : "컴포넌트 추가"
+              }
+              shortcutKey="+"
+              entries={Object.entries(COMPONENTS)
+                .filter(
+                  ([kind]) =>
+                    !contextParent || rules[kind]?.[1] === contextParent.kind,
+                )
+                .map(([id, c]) => ({
+                  id,
+                  label: c.label,
+                  detail: c.group + " · " + id,
+                }))}
+              onChoose={(kind) =>
+                add(kind, undefined, undefined, contextParent)
+              }
+            />
+          )}
+        </div>
+      )}
+      {tab === "canvas" && (
+        <div className={"arch-editor inspector-" + detail}>
           <aside className="arch-palette">
             <strong>컴포넌트</strong>
             <select
@@ -538,19 +717,12 @@ export default function ArchitectureDocument({
                 </p>
                 <NetworkLayout
                   fit={fitBoundary}
-                  model={model}
+                  model={displayModel}
                   selected={selected}
                   readonly={readonly}
                   onSelect={select}
-                  onView={(presentation) => change({ ...model, presentation })}
-                  onPlace={(child, parent) => {
-                    try {
-                      change(reassignPlacement(model, child, parent));
-                      setSelected(child.id);
-                    } catch (e) {
-                      setError(String(e));
-                    }
-                  }}
+                  onView={updatePresentation}
+                  onPlace={place}
                 />
               </>
             ) : (
@@ -711,6 +883,7 @@ export default function ArchitectureDocument({
                         return (
                           <button
                             key={n.id}
+                            data-free-id={n.id}
                             aria-label={"컴포넌트 " + n.label}
                             className={
                               "arch-node " +
@@ -805,14 +978,29 @@ export default function ArchitectureDocument({
               </>
             )}
           </div>
-          <aside className="arch-properties">
+          <aside
+            className="arch-properties"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.stopPropagation();
+                closeDetail();
+              }
+            }}
+          >
             {node ? (
               <>
                 <header>
                   <strong>컴포넌트 속성</strong>
+                  <button aria-label="속성 닫기" onClick={closeDetail}>
+                    <X size={16} />
+                  </button>
                   <button
                     aria-label="컴포넌트 삭제"
-                    disabled={readonly || node.imported}
+                    disabled={
+                      readonly ||
+                      node.imported ||
+                      model.presentation?.locked?.includes(node.id)
+                    }
                     onClick={() => {
                       change(removeComponent(model, node.id));
                       setSelected("");
@@ -845,17 +1033,28 @@ export default function ArchitectureDocument({
                   )
                   .map(([k, f]: [string, any]) => (
                     <label key={k}>
-                      {f.label}
+                      {rules[node.kind]?.[0] === k
+                        ? "다른 경계로 이동 · " + f.label
+                        : f.label}
                       {f.ref ? (
                         <select
                           aria-label={f.label}
-                          disabled={readonly}
-                          value={node.props[k] || ""}
-                          onChange={(e) =>
-                            updateNode({
-                              props: { ...node.props, [k]: e.target.value },
-                            })
+                          disabled={
+                            readonly ||
+                            model.presentation?.locked?.includes(node.id)
                           }
+                          value={node.props[k] || ""}
+                          onChange={(e) => {
+                            const target = model.nodes.find(
+                              (n) => n.id === e.target.value,
+                            );
+                            if (target && rules[node.kind]?.[0] === k)
+                              place(node, target);
+                            else
+                              updateNode({
+                                props: { ...node.props, [k]: e.target.value },
+                              });
+                          }}
                         >
                           <option value="">연결할 대상 선택</option>
                           {model.nodes
@@ -869,7 +1068,10 @@ export default function ArchitectureDocument({
                       ) : f.options ? (
                         <select
                           aria-label={f.label}
-                          disabled={readonly}
+                          disabled={
+                            readonly ||
+                            model.presentation?.locked?.includes(node.id)
+                          }
                           value={node.props[k]}
                           onChange={(e) =>
                             updateNode({
@@ -908,7 +1110,7 @@ export default function ArchitectureDocument({
                   ))}
                 {node.imported && node.placementSource && (
                   <label>
-                    Terraform 소속 참조
+                    다른 경계로 이동 · Terraform 소속 참조
                     <select
                       aria-label="Terraform 소속 참조"
                       disabled={
@@ -920,8 +1122,7 @@ export default function ArchitectureDocument({
                         const parent = model.nodes.find(
                           (n) => n.address === e.target.value,
                         );
-                        if (parent)
-                          change(reassignPlacement(model, node, parent));
+                        if (parent) place(node, parent);
                       }}
                     >
                       {model.nodes
@@ -1005,7 +1206,10 @@ export default function ArchitectureDocument({
                     onChange={(e) =>
                       change({
                         ...model,
-                        settings: { ...model.settings, [key]: e.target.value },
+                        settings: {
+                          ...model.settings,
+                          [key]: e.target.value,
+                        },
                       })
                     }
                   />

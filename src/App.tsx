@@ -1,3 +1,4 @@
+import { version as appVersion } from "../package.json";
 import PageTree, { type PageKind } from "./PageTree";
 import { parentHeader, withParent } from "../shared/page-parent.mjs";
 import { isCanvas } from "./canvasPreview";
@@ -753,7 +754,7 @@ export default function App() {
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
-          LOCAL FIRST <span>α 0.5</span>
+          LOCAL FIRST <span>v{appVersion}</span>
         </span>
       </header>
       {!sidebar && (
@@ -1620,7 +1621,10 @@ export default function App() {
                 id="search-input"
                 autoFocus
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setResults([]);
+                  setQuery(e.target.value);
+                }}
                 placeholder="어떤 생각을 찾고 있나요?"
               />
               <button

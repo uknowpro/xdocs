@@ -35,6 +35,34 @@ jobs:
               npm run "test:$suite"
             fi
           done
+      - name: Verify Windows installer upgrade and scaled canvas
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $fixture = Join-Path $env:RUNNER_TEMP 'xdocs-upgrade'
+          $install = Join-Path $fixture 'app'
+          $exe = Join-Path $install 'xdocs.exe'
+          New-Item -ItemType Directory -Path $fixture | Out-Null
+          gh release download v0.5.0-alpha.6 --pattern '*.exe' --dir $fixture --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $old = (Get-ChildItem "$fixture/*.exe").FullName
+          if ((Get-FileHash $old).Hash -ne 'c2cfcb4072055861dd97382e575b30ad7373761242a72319aaca92b91d906e45') { throw 'Unexpected fixture installer hash' }
+          function Install-Xdocs($file) {
+            $result = Start-Process -FilePath $file -ArgumentList "/S /D=$install" -PassThru -Wait
+            if ($result.ExitCode) { throw "Installer failed: $($result.ExitCode)" }
+          }
+          Install-Xdocs $old
+          node tests/windows-upgrade.mjs seed $exe $fixture 0.5.0-alpha.6
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Install-Xdocs (Get-ChildItem 'release/*.exe').FullName
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          foreach ($scale in @('1.25', '1.5')) {
+            node tests/windows-upgrade.mjs verify $exe $fixture $version $scale
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: xdocs-${{ matrix.os }}

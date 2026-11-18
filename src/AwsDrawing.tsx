@@ -1,3 +1,4 @@
+import CanvasSearch from "./CanvasSearch";
 import { useRef, useState } from "react";
 import { drawingSVG, services } from "../shared/aws-drawing.mjs";
 type Account = {
@@ -51,6 +52,8 @@ export function AwsDrawing({
       ...data,
       [key]: data[key].map((n) => (n.id === id ? { ...n, ...props } : n)),
     });
+  const paper = useRef<HTMLDivElement>(null);
+  const inspector = useRef<HTMLElement>(null);
   const all = [...data.accounts, ...data.items, ...data.arrows];
   function point(e: React.PointerEvent<HTMLDivElement>) {
     const svg = e.currentTarget.querySelector("svg")!,
@@ -85,8 +88,47 @@ export function AwsDrawing({
     setSelected("");
   }
   return (
-    <section className="aws-editor">
+    <section className="aws-editor" data-search-scope>
+      <div className="canvas-findbar">
+        <CanvasSearch
+          label="AWS 구성요소 찾기"
+          entries={all.map((n) => {
+            const owner =
+              "region" in n
+                ? n
+                : "account" in n
+                  ? data.accounts.find((a) => a.id === n.account)
+                  : undefined;
+            const type =
+              "region" in n
+                ? "계정"
+                : "kind" in n
+                  ? services[n.kind].label
+                  : "연결선";
+            return {
+              id: n.id,
+              label: n.label || type,
+              detail: [owner?.label, owner?.region, type, n.id]
+                .filter(Boolean)
+                .join(" · "),
+            };
+          })}
+          onChoose={(id) => {
+            setSelected(id);
+            setTarget("");
+            requestAnimationFrame(() => {
+              paper.current
+                ?.querySelector(`[data-id="${CSS.escape(id)}"]`)
+                ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+              inspector.current
+                ?.querySelector<HTMLInputElement>("[data-name]")
+                ?.focus({ preventScroll: true });
+            });
+          }}
+        />
+      </div>
       <div
+        ref={paper}
         className="aws-paper"
         aria-label="AWS 구성도"
         onPointerDown={(e) => {
@@ -131,7 +173,7 @@ export function AwsDrawing({
         }}
         dangerouslySetInnerHTML={{ __html: drawingSVG(data, selected) }}
       />
-      <aside className="aws-inspector">
+      <aside className="aws-inspector" ref={inspector}>
         <strong>AWS 드로잉</strong>
         <label>
           조직 이름
@@ -191,6 +233,7 @@ export function AwsDrawing({
             <input
               maxLength={200}
               readOnly={readonly}
+              data-name
               value={(account || item || arrow)!.label}
               onChange={(e) =>
                 field(account ? "accounts" : item ? "items" : "arrows", {

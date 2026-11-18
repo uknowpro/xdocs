@@ -43,10 +43,9 @@ export default function NetworkLayout({
     y: number;
     bend?: string;
   } | null>(null);
-  const [readerView, setReaderView] = useState<View>({});
-  const view = { ...model.presentation, ...(readonly ? readerView : {}) },
+  const view = model.presentation || {},
     node = model.nodes.find((n) => n.id === selected);
-  const updateView = readonly ? setReaderView : onView;
+  const updateView = onView;
   const refs = view.refs ?? false,
     all = refs ? architectureEdges(model) : [];
   const { representatives } = boundaryLayout({ ...model, presentation: view });
