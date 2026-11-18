@@ -25,7 +25,10 @@ const app = await electron.launch({
 try {
   assert.equal(await app.evaluate(({ app }) => app.getVersion()), version);
   const page = await app.firstWindow();
-  await page.locator(".workspace-switch").waitFor({ state: "attached" });
+  await expect(page.locator(".workspace-switch strong")).toHaveText(
+    path.basename(vault),
+    { timeout: 30000 },
+  );
   assert.ok(
     Math.abs((await page.evaluate(() => devicePixelRatio)) - Number(scale)) <
       0.05,
