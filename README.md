@@ -20,6 +20,10 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 <details>
 <summary>Architecture and automation screenshots</summary>
 
+In the AWS catalog, open **서브넷 내 EC2** to see an EC2 instance inside its subnet and VPC. Cards marked **영역형** show nested resource boundaries.
+
+![EC2 inside a subnet and VPC](docs/images/aws-subnet-template.png)
+
 ![Nested cloud and Kubernetes resources](docs/images/iacd.png)
 ![Azure subnet membership through a network interface](docs/images/azure-nic.png)
 ![Two subnet references on a GCP VM](docs/images/gcp-nics.png)

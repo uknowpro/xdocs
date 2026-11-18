@@ -2745,3 +2745,6 @@ textarea {
 .template-card small { font-size: 11px; color: var(--muted); }
 .template-thumbnail { width: 100%; height: 120px; grid-template: minmax(0, 1fr) / minmax(0, 1fr); background: white; border: 1px solid var(--line); border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
 .template-thumbnail img { width: 100%; height: 100%; object-fit: contain; }
+
+.template-thumbnail { position: relative; }
+.template-layout-label { position: absolute; inset: auto 4px 4px auto; border-radius: 3px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 1px 4px; font-size: 10px; }

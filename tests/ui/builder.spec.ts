@@ -123,3 +123,20 @@ test("workspace harness library applies a versioned snapshot", async ({
     "회계팀 검토 기준 v1",
   );
 });
+
+test("nested network gallery previews match the AWS subnet canvas", async ({ page }) => {
+  await page.setViewportSize({width:1440,height:1000});
+  await page.goto("/");
+  await page.getByRole("button", {name:"IaCD 아키텍처", exact:true}).click();
+  const compute = page.getByRole("button",{name:"서브넷 내 EC2",exact:true});
+  await expect(compute.getByAltText("영역형 구성도")).toBeVisible();
+  await page.getByLabel("템플릿 검색").fill("Fargate 서비스 검색");
+  await expect(page.getByAltText("영역형 구성도")).toBeVisible();
+  await page.getByLabel("템플릿 검색").fill("서브넷 내 EC2");
+  await compute.click();
+  await page.getByRole("button",{name:"템플릿으로 시작"}).click();
+  await expect(page.getByLabel("아키텍처 제목")).toHaveValue("AWS · 서브넷 내 EC2");
+  const diagram = page.locator(".network-sheet");
+  await expect(diagram.locator("[data-scope]")).toHaveCount(3);
+  await diagram.screenshot({path:"test-results/aws-subnet-template.png"});
+});

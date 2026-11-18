@@ -36,6 +36,10 @@ main의 보관함 **페이지 트리**에서 노트와 캔버스를 함께 탐�
 <details>
 <summary>IaCD 아키텍처 캔버스 보기</summary>
 
+AWS 카탈로그에서 **서브넷 내 EC2**를 열면 VPC 안의 서브넷과 그 안의 EC2를 볼 수 있습니다. 중첩된 경계가 있는 카드에는 **영역형**이 표시됩니다.
+
+![VPC 안의 서브넷과 EC2](docs/images/aws-subnet-template.png)
+
 ![AWS·Azure·GCP·Kubernetes 경계와 소속 리소스를 중첩한 IaCD 캔버스](docs/images/iacd.png)
 
 ![Azure VM에서 NIC를 거쳐 확인된 서브넷 소속](docs/images/azure-nic.png)
