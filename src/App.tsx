@@ -64,6 +64,7 @@ import {
   Moon,
   Network,
   PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   RefreshCw,
   Search,
@@ -121,7 +122,30 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sidebar, setSidebar] = useState(true);
+  const [desktopSidebar, setDesktopSidebar] = useState(
+    () => localStorage.getItem("xdocs.sidebar") !== "closed",
+  );
+  const [compactNav, setCompactNav] = useState(
+    () => matchMedia("(max-width: 600px)").matches,
+  );
+  const [drawer, setDrawer] = useState(false);
+  const sidebar = compactNav ? drawer : desktopSidebar;
+  useEffect(() => {
+    const query = matchMedia("(max-width: 600px)");
+    const resize = () => {
+      setCompactNav(query.matches);
+      setDrawer(false);
+    };
+    query.addEventListener("change", resize);
+    return () => query.removeEventListener("change", resize);
+  }, []);
+  function toggleSidebar() {
+    if (compactNav) setDrawer(!drawer);
+    else {
+      localStorage.setItem("xdocs.sidebar", desktopSidebar ? "closed" : "open");
+      setDesktopSidebar(!desktopSidebar);
+    }
+  }
   const architectureParent = useRef<string | undefined>(undefined);
   const current = useRef<Note | null>(null);
   const draft = useRef("");
@@ -379,6 +403,7 @@ export default function App() {
         void flush();
       }
       if (e.key === "Escape") {
+        setDrawer(false);
         setSearchOpen(false);
         setSettings(false);
         setRecovery(null);
@@ -719,15 +744,53 @@ export default function App() {
   return (
     <div className={`app ${sidebar ? "" : "sidebar-hidden"}`}>
       <header className="titlebar">
-        <div className="wordmark">
-          xdocs<span>.</span>
+        <div className="titlebar-start">
+          <button
+            className="sidebar-switch"
+            aria-label={sidebar ? "왼쪽 메뉴 접기" : "왼쪽 메뉴 펼치기"}
+            title={sidebar ? "왼쪽 메뉴 접기" : "왼쪽 메뉴 펼치기"}
+            aria-expanded={sidebar}
+            aria-controls="workspace-navigation"
+            onClick={toggleSidebar}
+          >
+            {sidebar ? (
+              <PanelLeftClose size={17} />
+            ) : (
+              <PanelLeftOpen size={17} />
+            )}
+            <span>메뉴</span>
+          </button>
+          <div className="wordmark">
+            xdocs<span>.</span>
+          </div>
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
           LOCAL FIRST <span>α 0.5</span>
         </span>
       </header>
-      <aside className="sidebar">
+      {compactNav && drawer && (
+        <button
+          className="nav-backdrop"
+          aria-label="왼쪽 메뉴 닫기"
+          tabIndex={-1}
+          onClick={() => setDrawer(false)}
+        />
+      )}
+      <aside
+        className="sidebar"
+        id="workspace-navigation"
+        inert={!sidebar}
+        onClick={(e) => {
+          if (
+            compactNav &&
+            (e.target as Element).closest(
+              "button.nav-item:not(.note-item), .workspace-switch",
+            )
+          )
+            setDrawer(false);
+        }}
+      >
         <button
           className="workspace-switch"
           onClick={openVault}
@@ -764,7 +827,10 @@ export default function App() {
           <button
             aria-label="새 노트"
             title="새 노트"
-            onClick={() => void createNote()}
+            onClick={() => {
+              setDrawer(false);
+              void createNote();
+            }}
             disabled={!workspace || busy}
           >
             <Plus size={15} />
@@ -776,8 +842,14 @@ export default function App() {
           notes={notes}
           active={view === "note" ? active : ""}
           readonly={busy || workspace?.role === "reader"}
-          onOpen={(id) => void navigate(id)}
-          onCreate={(parent, kind) => void createPage(kind, parent)}
+          onOpen={(id) => {
+            setDrawer(false);
+            void navigate(id);
+          }}
+          onCreate={(parent, kind) => {
+            setDrawer(false);
+            void createPage(kind, parent);
+          }}
         />
         <div className="nav-label">
           <span>문서 만들기</span>
@@ -816,7 +888,10 @@ export default function App() {
           disabled={!workspace || readonly || busy}
           onChange={(e) => {
             const k = e.target.value as keyof typeof templates;
-            if (k) void createPage(k);
+            if (k) {
+              setDrawer(false);
+              void createPage(k);
+            }
           }}
         >
           <option value="">새 자동화·스택 캔버스</option>
@@ -887,16 +962,9 @@ export default function App() {
           )}
         </div>
       </aside>
-      <main className="main">
+      <main className="main" inert={compactNav && drawer}>
         <div className="toolbar">
           <div className="breadcrumb">
-            <button
-              className="icon-button"
-              aria-label="사이드바 전환"
-              onClick={() => setSidebar((s) => !s)}
-            >
-              <PanelLeftClose size={17} />
-            </button>
             <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
             <ChevronRight size={12} />
             <strong>

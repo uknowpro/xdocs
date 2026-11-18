@@ -243,9 +243,7 @@ textarea {
   place-items: center;
 }
 .note-list {
-  overflow: auto;
-  min-height: 40px;
-  max-height: 48%;
+  flex: none;
   padding-right: 1px;
 }
 .note-item {
@@ -1830,7 +1828,7 @@ textarea {
 }
 
 .sheet-scroll {
-  max-height: clamp(180px, calc(100dvh - 440px), 540px);
+  max-height: clamp(260px, 60dvh, 760px);
 }
 
 .infrastructure-document {
@@ -2527,3 +2525,59 @@ textarea {
 .network-note {font-size:11px;display:flex;align-items:center;gap:6px;}
 .network-note input {flex:1;min-width:0;color:var(--ink);background:var(--surface);border:1px solid var(--line);}
 .network-sheet [data-bend] {cursor:move;}
+
+/* The navigation and its toggle have independent scroll ownership. */
+.titlebar-start, .sidebar-switch { display: flex; align-items: center; gap: 8px; }
+.titlebar-start { gap: 16px; }
+.sidebar-switch { min-height: 32px; padding: 4px 8px; border-radius: 5px; color: var(--muted); font-size: 12px; }
+.sidebar-switch:hover, .sidebar-switch:focus-visible { color: var(--ink); background: var(--hover); }
+.sidebar > * { flex-shrink: 0; }
+.toolbar, .preview-banner { flex-shrink: 0; }
+.arch-toolbar, .arch-tools, .arch-toolbar .segmented, .arch-canvas-tools { flex-wrap: wrap; }
+.arch-canvas-tools { height: auto; min-height: 40px; padding-block: 5px; }
+.arch-code, .arch-export, .infra-heading > *, .arch-header > * { min-width: 0; }
+.sheet-layout .document { max-width: none; }
+.arch-properties { min-width: 0; }
+.arch-properties select, .note-utilities select { max-width: 100%; }
+.view-tabs, .toolbar-actions { flex-wrap: wrap; }
+.reference-list { max-height: clamp(100px, 18dvh, 180px); }
+
+@media (max-height: 800px) {
+  .sidebar { padding-block: 14px; }
+  .workspace-switch { padding-bottom: 12px; }
+  .nav-label { padding-top: 14px; }
+  .sidebar-bottom { padding-top: 12px; }
+  .graph:not(.compact) { padding-block: 20px; }
+  .graph:not(.compact) .graph-canvas { min-height: clamp(260px, 42dvh, 370px); margin-block: 14px; }
+  .document, .sheet-layout .document { padding-block: 20px; }
+  .sheet-book, .architecture-document { margin-block: 12px; }
+  .infrastructure-document { padding-block: 12px; }
+}
+@media (max-width: 1050px) {
+  .arch-properties { max-height: none; overflow: visible; }
+  .sheet-layout .document { padding-inline: clamp(14px, 2.5vw, 28px); }
+}
+@media (max-width: 600px) {
+  .app, .app.sidebar-hidden { grid-template-columns: minmax(0, 1fr); }
+  .main { grid-column: 1; grid-row: 2; }
+  .sidebar { display: flex; position: fixed; top: 43px; bottom: 30px; left: 0; width: min(280px, 85vw); z-index: 21; }
+  .sidebar-hidden .sidebar { display: none; }
+  .nav-backdrop { position: fixed; inset: 43px 0 30px; background: #0005; z-index: 20; }
+  .arch-editor { grid-template-columns: minmax(0, 1fr); }
+  .arch-palette { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; max-height: 32dvh; border-right: 0; border-bottom: 1px solid var(--line); }
+  .arch-palette > strong, .arch-palette select { margin: 0; }
+  .arch-palette > button { width: auto; }
+  .arch-code { grid-template-columns: minmax(0, 1fr); }
+  .arch-code nav { max-height: 24dvh; }
+  .arch-workspace { height: max(460px, 70dvh); }
+  .aws-inspector { grid-template-columns: minmax(0, 1fr); }
+  .infra-heading, .infra-detail header, .infra-summary > div { flex-wrap: wrap; }
+  .infra-summary { gap: 5px; }
+  .segmented { flex-wrap: wrap; }
+  .theme-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .graph-filters > *, .infra-toolbar > *, .arch-export select { max-width: 100%; }
+}
+.note-utilities:empty { display: none; }
+@media (max-height: 800px) {
+  .sheet-layout .document-kicker { margin-bottom: 6px; }
+}
