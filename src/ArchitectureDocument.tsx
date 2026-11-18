@@ -128,13 +128,15 @@ export function ArchitectureStart({
   const [provider, setProvider] = useState("AWS");
   const [templateId, setTemplateId] = useState(cloudTemplates[0].id);
   const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogMode, setCatalogMode] = useState("전체");
   const query = catalogSearch.trim().toLowerCase();
   const matches = cloudTemplates.filter(
     (t) =>
       t.provider === provider &&
+      (catalogMode === "전체" || catalogMode === ("repo" in t ? "Terraform 원본" : "컴포넌트 편집")) &&
       (!query ||
         [t.name, t.id, ...t.kinds].some((v) =>
-          v.toLowerCase().includes(query),
+          (v + " " + (COMPONENTS[v]?.label || "")).toLowerCase().includes(query),
         )),
   );
   const chosen = matches.find((t) => t.id === templateId) || matches[0];
@@ -262,10 +264,18 @@ export function ArchitectureStart({
               placeholder="이름 또는 Terraform 리소스"
             />
           </label>
+          <div className="catalog-modes" role="group" aria-label="템플릿 편집 방식">
+            {["전체", "컴포넌트 편집", "Terraform 원본"].map((mode) => (
+              <button key={mode} type="button" aria-pressed={catalogMode === mode}
+                onClick={() => setCatalogMode(mode)}>{mode}</button>
+            ))}
+          </div>
           <label>
             설계 템플릿
             <select
               aria-label="설계 템플릿"
+              size={Math.min(5, Math.max(2, matches.length))}
+              disabled={!matches.length}
               value={chosen?.id || ""}
               onChange={(e) => setTemplateId(e.target.value)}
             >
@@ -284,7 +294,12 @@ export function ArchitectureStart({
               </p>
             </details>
           ) : (
-            <p>일치하는 템플릿이 없습니다.</p>
+            <div className="catalog-empty" role="status">
+              <p>일치하는 템플릿이 없습니다.</p>
+              <button type="button" onClick={() => { setCatalogSearch(""); setCatalogMode("전체"); }}>
+                검색 조건 초기화
+              </button>
+            </div>
           )}
           {chosen && "repo" in chosen && (
             <small>
@@ -449,7 +464,31 @@ export default function ArchitectureDocument({
       return [];
     }
   }, [result.files, livePath]);
+  const viewer = useRef<HTMLDetailsElement>(null);
+  const resourceCode = useRef<HTMLDetailsElement>(null);
   const declaration = declarations.find((d) => d.id === selected);
+  const nodeCodePath = useMemo(() => {
+    if (!node || tab !== "canvas") return undefined;
+    if (node.sourceFile && node.address) {
+      const path = "terraform/" + node.sourceFile;
+      return Object.hasOwn(result.files, path) ? path : undefined;
+    }
+    return Object.keys(result.files).find((path) =>
+      path.endsWith(".tf.json") && terraformDeclarations(result.files[path], [node]).length > 0,
+    );
+  }, [node, result.files, tab]);
+
+  function showNodeCode() {
+    if (!nodeCodePath || !viewer.current) return;
+    setLiveFile(nodeCodePath);
+    setDetail("closed");
+    viewer.current.open = true;
+    requestAnimationFrame(() => {
+      if (!resourceCode.current) return;
+      resourceCode.current.open = true;
+      resourceCode.current.querySelector<HTMLElement>("pre")?.focus();
+    });
+  }
   const fileNames = Object.keys(result.files),
     activeFile = fileNames.includes(file) ? file : fileNames[0];
   function change(next: ArchitectureModel) {
@@ -1236,6 +1275,11 @@ export default function ArchitectureDocument({
                   />
                 </label>
                 <p className="small-text muted">{node.address || node.kind}</p>
+                {nodeCodePath && (
+                  <button type="button" className="code-jump" onClick={showNodeCode}>
+                    Terraform 선언 보기 <span aria-hidden="true">↗</span>
+                  </button>
+                )}
                 {AVM_MODULES[node.kind as keyof typeof AVM_MODULES] && (
                   <p className="arch-module">
                     {AVM_MODULES[node.kind as keyof typeof AVM_MODULES].source}
@@ -1530,7 +1574,7 @@ export default function ArchitectureDocument({
         </div>
       )}
       {tab === "canvas" && (
-        <details open className="terraform-live">
+        <details open ref={viewer} className="terraform-live">
           <summary>Terraform 뷰어</summary>
           {livePath && (
             <>
@@ -1544,7 +1588,7 @@ export default function ArchitectureDocument({
                 ))}
               </select>
               {declarations.length > 0 && (
-                <details>
+                <details ref={resourceCode}>
                   <summary>리소스별 코드</summary>
                   <label>
                     Terraform 선언
@@ -1564,7 +1608,12 @@ export default function ArchitectureDocument({
                     </select>
                   </label>
                   {declaration && (
-                    <pre aria-label="선택한 Terraform 선언">
+                    <button type="button" className="code-jump" onClick={() => openDetail(declaration.id)}>
+                      캔버스에서 보기 <span aria-hidden="true">↗</span>
+                    </button>
+                  )}
+                  {declaration && (
+                    <pre tabIndex={-1} aria-label="선택한 Terraform 선언">
                       {typeof declaration.block === "string"
                         ? declaration.block
                         : JSON.stringify(declaration.block, null, 2)}

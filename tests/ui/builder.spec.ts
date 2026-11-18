@@ -34,9 +34,18 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
   await page.getByLabel("공급자", { exact: true }).selectOption("Azure");
+  await page.getByRole("button", { name: "컴포넌트 편집", exact: true }).click();
+  await expect(page.getByLabel("설계 템플릿").locator("option")).toHaveCount(3);
+  await page.getByLabel("템플릿 검색").fill("no-matching-template");
+  await expect(page.getByRole("button", { name: "템플릿으로 시작" })).toBeDisabled();
+  await page.getByRole("button", { name: "검색 조건 초기화" }).click();
+  await expect(page.getByLabel("설계 템플릿").locator("option")).toHaveCount(30);
   await page.getByLabel("설계 템플릿").selectOption("azure-avm");
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
-  await page.getByText("리소스별 코드", { exact: true }).click();
+  await page.getByRole("button", { name: "Terraform 선언 보기" }).click();
+  await expect(page.getByLabel("선택한 Terraform 선언")).toBeFocused();
+  await page.getByRole("button", { name: "캔버스에서 보기" }).click();
+  await expect(page.getByLabel("컴포넌트 표시 이름")).toBeFocused();
   await expect(page.getByLabel("선택한 Terraform 선언")).toContainText(
     "Azure/avm",
   );
@@ -52,10 +61,12 @@ test("packaged AWS template opens without network access", async ({ page }) => {
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
-  await page.getByLabel("템플릿 검색").fill("DynamoDB REST API");
+  await page.getByRole("button", { name: "Terraform 원본", exact: true }).click();
+  await page.getByLabel("템플릿 검색").fill("DynamoDB");
   await page
     .getByRole("dialog")
     .screenshot({ path: "test-results/architecture-catalog.png" });
+  await page.getByLabel("설계 템플릿").selectOption({ label: "DynamoDB REST API" });
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await expect(page.getByLabel("아키텍처 제목")).toHaveValue(
     "AWS · DynamoDB REST API",

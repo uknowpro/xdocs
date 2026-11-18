@@ -2678,3 +2678,14 @@ textarea {
 .architecture-catalog details p {overflow-wrap:anywhere;}
 .architecture-catalog label { display: grid; gap: .25rem; }
 .architecture-catalog select { max-width: 100%; }
+
+.catalog-modes, .catalog-empty { grid-column: 1 / -1; }
+.catalog-modes { display: flex; flex-wrap: wrap; gap: 4px; }
+.catalog-modes button, .catalog-empty button, .code-jump {
+  padding: 5px 9px; color: inherit; border: 1px solid var(--line); border-radius: 5px;
+}
+.catalog-modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.architecture-catalog select[size] { padding: 2px; }
+.architecture-catalog select[size] option { padding: 4px 6px; }
+.code-jump { margin-block: 4px; }
+.terraform-live pre:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
