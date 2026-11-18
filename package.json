@@ -1,10 +1,10 @@
 {
   "name": "xdocs",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "description": "Local-first connected notes for desktop",
   "author": "uknowpro",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "PolyForm-Strict-1.0.0",
   "type": "module",
   "main": "desktop/main.mjs",
   "engines": {
@@ -95,6 +95,10 @@
       {
         "from": "LICENSE",
         "to": "LICENSE.xdocs.txt"
+      },
+      {
+        "from": "LICENSE.previous-MIT",
+        "to": "LICENSE.previous-MIT"
       }
     ],
     "linux": {

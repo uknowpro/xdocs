@@ -70,4 +70,6 @@ npm run test:desktop  # Electron smoke test after building
 npm run dist          # Package for the current OS
 ```
 
-[User and developer guide](docs/guide.md) · [Architecture](docs/architecture.md) · [xdocs Proprietary Software License](LICENSE)
+[User and developer guide](docs/guide.md) · [Architecture](docs/architecture.md) · [PolyForm Strict License 1.0.0](LICENSE)
+
+Earlier MIT grants and third-party licenses continue to apply to their respective code. [Earlier MIT notice](LICENSE.previous-MIT)

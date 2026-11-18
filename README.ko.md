@@ -89,7 +89,7 @@ npm run dist          # 현재 OS 패키징
 
 Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과했습니다. 사용자 기기에서의 설치·업데이트와 서명 검증은 별도로 필요합니다.
 
-[IaCD 사용법](docs/iacd.md) · [인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [xdocs 전용 소프트웨어 사용권 (Proprietary License)](LICENSE)
+[IaCD 사용법](docs/iacd.md) · [인프라 문서](docs/infrastructure.md) · [시트 사용법](docs/sheets.md) · [사용·개발 가이드](docs/guide.md) · [조직 서버 설정](docs/server.md) · [아키텍처](docs/architecture.md) · [PolyForm Strict License 1.0.0](LICENSE)
 
 main 개발판에는 **AWS·Azure·GCP 각 30종과 멀티클라우드 VPN 2종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
 
@@ -101,3 +101,5 @@ main 개발판에는 **AWS·Azure·GCP 각 30종과 멀티클라우드 VPN 2종*
 ![AWS–GCP·Azure–GCP VPN 사례 비교](docs/images/architecture-catalog.png)
 
 </details>
+
+이전에 MIT로 공개한 코드와 제3자 구성요소에는 각각 기존 허가가 유지됩니다. [이전 MIT 고지](LICENSE.previous-MIT)
