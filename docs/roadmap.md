@@ -75,3 +75,33 @@
 - [x] 페이지를 연 시점 또는 지정한 기준과 생성 IaC 파일 비교
 
 [draw.io를 참고한 캔버스 개선 현황](drawio-improvements.md)
+
+## AppFlowy를 참고한 캔버스 편집 계획
+
+목표는 작은 노트북에서도 도면에서 리소스를 찾고, 속성을 고친 뒤, 바뀐 코드까지 같은 페이지에서 확인하는 것이다. 첫 적용 대상은 IaCD 멀티클라우드 경계 도면이다. 아래 단계는 개발 제안이며 버전별 출시 일정은 별도로 결정한다.
+
+### 1. 리소스 찾기와 속성 편집
+
+- 현재 페이지의 리소스를 이름·유형·Terraform 주소로 검색하는 목록을 제공한다. 목록과 도면은 같은 리소스 ID를 선택한다. 접힌 VPC 안의 EC2를 선택하면 해당 경계를 펼쳐 위치를 보여준다.
+- 선택한 항목의 속성을 바로 열고 닫을 수 있게 한다. 넓은 창에서는 도면 옆에 표시하고 좁은 창에서는 도면 위에 연다. 닫으면 방금 선택한 도형으로 키보드 포커스를 돌린다.
+- 완료 기준은 780×600 창과 Windows 150% 배율에서 마우스 없이 EC2를 찾아 속성을 열고 도면으로 돌아오는 것이다. 검색·선택·상세 열기 전후의 Terraform 출력은 같아야 한다.
+
+AppFlowy의 행 상세 화면은 선택한 행의 컨트롤러와 필드 컨트롤러로 속성을 편집한다. xdocs에서는 기존 노드 ID와 속성 편집기를 재사용한다. [AppFlowy 행 상세 구현](https://github.com/AppFlowy-IO/AppFlowy/blob/8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93/frontend/appflowy_flutter/lib/plugins/database/widgets/row/row_detail.dart)
+
+### 2. 선택한 위치에서 추가·이동
+
+- 서브넷을 선택한 상태에서 추가 메뉴를 열면 그 안에 배치할 수 있는 컴포넌트부터 제시한다. 자유 배치에서는 일반 추가 메뉴를 쓴다. 명령 검색은 캔버스에 포커스가 있을 때만 동작하도록 한다.
+- 기존 드래그와 속성 선택에 키보드용 ‘다른 경계로 이동’을 추가한다. 세 경로가 같은 소속 변경 함수를 호출하고 같은 IaC 차이를 만들어야 한다. 직접 참조를 확인할 수 없는 가져온 표현식과 잠긴 리소스는 기존 제약을 따른다.
+- 완료 기준은 EC2를 다른 서브넷으로 옮겨 변경 비교에서 해당 참조를 확인하고, 실행 취소 한 번으로 원래 코드를 복구하는 것이다. 추출한 Terraform을 새 캔버스로 가져왔을 때 소속도 같아야 한다.
+
+AppFlowy 보드는 그룹 사이의 카드 이동을 데이터 변경으로 전달하고, 문서 편집기는 편집 문맥에 맞춰 삽입 메뉴를 구성한다. [보드 이동 처리](https://github.com/AppFlowy-IO/AppFlowy/blob/8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93/frontend/appflowy_flutter/lib/plugins/database/board/application/board_bloc.dart) · [삽입 메뉴 구성](https://github.com/AppFlowy-IO/AppFlowy/blob/8fcee27d9bd93aad4ee0191d5d8d915d6a9a4e93/frontend/appflowy_flutter/lib/plugins/document/presentation/editor_plugins/slash_menu/slash_menu_items_builder.dart)
+
+### 3. AWS 드로잉과 자동화 캔버스로 확장
+
+| 캔버스 | 적용할 편집 동작 | 완료 기준 |
+| --- | --- | --- |
+| AWS 드로잉 | 계정·리전·서비스 검색, 선택한 서비스의 상세 열기 | 같은 이름의 서비스도 소속 계정으로 구별하고 SVG에서 선택한 서비스 위치를 확인한다. |
+| GitHub Actions·Jenkins·Ansible | Job·Stage·Task 검색, 카드에서 원문 편집으로 이동 | 카드 위치만 옮기면 추출한 파일이 바이트 단위로 동일하다. 원문 변경은 기존 파서로 검증한다. |
+| CloudFormation | 논리 ID로 리소스 찾기, 카드에서 해당 선언 열기 | 도면을 재배치해도 원문의 조건·참조가 유지된다. |
+
+각 단계에서 기존 alpha.6 문서를 열어 편집·저장·재열기를 검사한다. 검색어와 현재 선택은 화면 상태로 관리한다. 노트에 삽입한 미리보기는 기존 캔버스 페이지를 계속 참조한다.
