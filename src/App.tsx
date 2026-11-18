@@ -63,8 +63,8 @@ import {
   Loader2,
   Moon,
   Network,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronsLeft,
+  ChevronsRight,
   Plus,
   RefreshCw,
   Search,
@@ -139,7 +139,11 @@ export default function App() {
     query.addEventListener("change", resize);
     return () => query.removeEventListener("change", resize);
   }, []);
+  const sidebarToggle = useRef<HTMLButtonElement>(null);
   function toggleSidebar() {
+    requestAnimationFrame(() =>
+      sidebarToggle.current?.focus({ preventScroll: true }),
+    );
     if (compactNav) setDrawer(!drawer);
     else {
       localStorage.setItem("xdocs.sidebar", desktopSidebar ? "closed" : "open");
@@ -744,31 +748,29 @@ export default function App() {
   return (
     <div className={`app ${sidebar ? "" : "sidebar-hidden"}`}>
       <header className="titlebar">
-        <div className="titlebar-start">
-          <button
-            className="sidebar-switch"
-            aria-label={sidebar ? "왼쪽 메뉴 접기" : "왼쪽 메뉴 펼치기"}
-            title={sidebar ? "왼쪽 메뉴 접기" : "왼쪽 메뉴 펼치기"}
-            aria-expanded={sidebar}
-            aria-controls="workspace-navigation"
-            onClick={toggleSidebar}
-          >
-            {sidebar ? (
-              <PanelLeftClose size={17} />
-            ) : (
-              <PanelLeftOpen size={17} />
-            )}
-            <span>메뉴</span>
-          </button>
-          <div className="wordmark">
-            xdocs<span>.</span>
-          </div>
+        <div className="wordmark">
+          xdocs<span>.</span>
         </div>
         <span className="titlebar-center">생각을 쓰고, 지식을 연결하다</span>
         <span className="version">
           LOCAL FIRST <span>α 0.5</span>
         </span>
       </header>
+      {!sidebar && (
+        <div className="sidebar-rail">
+          <button
+            className="sidebar-switch"
+            aria-label="왼쪽 메뉴 펼치기"
+            title="왼쪽 메뉴 펼치기"
+            aria-controls="workspace-navigation"
+            aria-expanded={false}
+            ref={sidebarToggle}
+            onClick={toggleSidebar}
+          >
+            <ChevronsRight size={19} />
+          </button>
+        </div>
+      )}
       {compactNav && drawer && (
         <button
           className="nav-backdrop"
@@ -791,22 +793,37 @@ export default function App() {
             setDrawer(false);
         }}
       >
-        <button
-          className="workspace-switch"
-          onClick={openVault}
-          disabled={busy}
-        >
-          <span className="workspace-icon">
-            <BookOpen size={19} />
-          </span>
-          <span>
-            <strong>{workspace?.name || "나의 보관함"}</strong>
-            <small>
-              {isDesktop ? "Personal workspace" : "Browser preview"}
-            </small>
-          </span>
-          <ChevronDown size={14} />
-        </button>
+        <div className="sidebar-heading">
+          <button
+            className="workspace-switch"
+            onClick={openVault}
+            disabled={busy}
+          >
+            <span className="workspace-icon">
+              <BookOpen size={19} />
+            </span>
+            <span>
+              <strong>{workspace?.name || "나의 보관함"}</strong>
+              <small>
+                {isDesktop ? "Personal workspace" : "Browser preview"}
+              </small>
+            </span>
+            <ChevronDown size={14} />
+          </button>
+          {sidebar && (
+            <button
+              className="sidebar-switch"
+              aria-label="왼쪽 메뉴 접기"
+              title="왼쪽 메뉴 접기"
+              aria-controls="workspace-navigation"
+              aria-expanded
+              ref={sidebarToggle}
+              onClick={toggleSidebar}
+            >
+              <ChevronsLeft size={19} />
+            </button>
+          )}
+        </div>
         <button
           className="nav-item search-nav"
           onClick={() => setSearchOpen(true)}

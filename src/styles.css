@@ -152,8 +152,9 @@ textarea {
   align-items: center;
   gap: 10px;
   text-align: left;
-  padding: 0 4px 28px;
-  width: 100%;
+  padding: 0 4px;
+  flex: 1;
+  min-width: 0;
 }
 .workspace-icon {
   height: 34px;
@@ -1228,12 +1229,10 @@ textarea {
   border: 0;
 }
 .sidebar-hidden {
-  grid-template-columns: 0 minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
 }
 .sidebar-hidden .sidebar {
-  visibility: hidden;
-  padding: 0;
-  overflow: hidden;
+  display: none;
 }
 .spin {
   animation: spin 1s linear infinite;
@@ -1254,7 +1253,7 @@ textarea {
     grid-template-columns: 250px minmax(0, 1fr);
   }
   .sidebar-hidden {
-    grid-template-columns: 0 minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr);
   }
   .document-layout {
     grid-template-columns: minmax(0, 1fr) 250px;
@@ -1275,7 +1274,7 @@ textarea {
     padding: 40px 45px;
   }
   .sidebar-hidden {
-    grid-template-columns: 0 minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr);
   }
   .breadcrumb strong {
     max-width: 170px;
@@ -1352,7 +1351,7 @@ textarea {
     display: none;
   }
   .sidebar-hidden {
-    grid-template-columns: 0 minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr);
   }
   .preview-banner {
     font-size: 9px;
@@ -1418,6 +1417,7 @@ textarea {
     color: black;
   }
   .titlebar,
+  .sidebar-rail,
   .sidebar,
   .toolbar,
   .view-tabs,
@@ -2527,10 +2527,37 @@ textarea {
 .network-sheet [data-bend] {cursor:move;}
 
 /* The navigation and its toggle have independent scroll ownership. */
-.titlebar-start, .sidebar-switch { display: flex; align-items: center; gap: 8px; }
-.titlebar-start { gap: 16px; }
-.sidebar-switch { min-height: 32px; padding: 4px 8px; border-radius: 5px; color: var(--muted); font-size: 12px; }
-.sidebar-switch:hover, .sidebar-switch:focus-visible { color: var(--ink); background: var(--hover); }
+.sidebar-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 8px;
+  margin-bottom: 12px;
+  background: var(--sidebar);
+}
+.sidebar { padding-top: 0; }
+.sidebar-rail {
+  grid-area: 2 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 8px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+}
+.sidebar-switch {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  color: var(--ink);
+  border-radius: 6px;
+}
+.sidebar-switch:hover, .sidebar-switch:focus-visible { background: var(--active); }
 .sidebar > * { flex-shrink: 0; }
 .toolbar, .preview-banner { flex-shrink: 0; }
 .arch-toolbar, .arch-tools, .arch-toolbar .segmented, .arch-canvas-tools { flex-wrap: wrap; }
@@ -2543,8 +2570,8 @@ textarea {
 .reference-list { max-height: clamp(100px, 18dvh, 180px); }
 
 @media (max-height: 800px) {
-  .sidebar { padding-block: 14px; }
-  .workspace-switch { padding-bottom: 12px; }
+  .sidebar { padding-bottom: 14px; }
+  .sidebar-heading { margin-bottom: 4px; }
   .nav-label { padding-top: 14px; }
   .sidebar-bottom { padding-top: 12px; }
   .graph:not(.compact) { padding-block: 20px; }
@@ -2558,7 +2585,9 @@ textarea {
   .sheet-layout .document { padding-inline: clamp(14px, 2.5vw, 28px); }
 }
 @media (max-width: 600px) {
-  .app, .app.sidebar-hidden { grid-template-columns: minmax(0, 1fr); }
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .app.sidebar-hidden { grid-template-columns: 40px minmax(0, 1fr); }
+  .sidebar-hidden .main { grid-column: 2; }
   .main { grid-column: 1; grid-row: 2; }
   .sidebar { display: flex; position: fixed; top: 43px; bottom: 30px; left: 0; width: min(280px, 85vw); z-index: 21; }
   .sidebar-hidden .sidebar { display: none; }

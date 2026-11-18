@@ -33,10 +33,18 @@ test("laptop sidebar stays reachable, remembers its width state and gives the tr
   await main.evaluate((e) => {
     e.scrollTop = e.scrollHeight;
   });
+  await expect(page.locator(".titlebar button")).toHaveCount(0);
+  await expect(
+    page.locator(".sidebar-heading .sidebar-switch"),
+  ).toBeInViewport();
+  await page.locator(".sidebar").evaluate((e) => {
+    e.scrollTop = e.scrollHeight;
+  });
   await expect(menu).toBeInViewport();
   await menu.click();
   await expect(menu).toHaveAttribute("aria-expanded", "false");
-  expect(await main.evaluate((e) => e.clientWidth)).toBe(780);
+  await expect(page.locator(".sidebar-rail .sidebar-switch")).toBeFocused();
+  expect(await main.evaluate((e) => e.clientWidth)).toBe(740);
   await page.reload();
   await expect(menu).toHaveAccessibleName("왼쪽 메뉴 펼치기");
   await menu.click();
