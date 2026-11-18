@@ -38,18 +38,25 @@ jobs:
       - name: Verify Windows installer upgrade and scaled canvas
         if: runner.os == 'Windows'
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
           $fixture = Join-Path $env:RUNNER_TEMP 'xdocs-upgrade'
           $install = Join-Path $fixture 'app'
           $exe = Join-Path $install 'xdocs.exe'
           New-Item -ItemType Directory -Path $fixture | Out-Null
-          gh release download v0.5.1 --pattern '*.exe' --dir $fixture --repo $env:GITHUB_REPOSITORY
+          $source = Join-Path $fixture 'source'
+          git fetch --depth=1 origin b512ce4aa79f7db5c7db0e4accaf116b74823fab
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          $old = (Get-ChildItem "$fixture/*.exe").FullName
-          if ((Get-FileHash $old).Hash -ne '23264526731682b6c4b20338c409b7c48a7e2901621227de54b872977e3896cb') { throw 'Unexpected fixture installer hash' }
+          git worktree add --detach $source b512ce4aa79f7db5c7db0e4accaf116b74823fab
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Push-Location $source
+          try {
+            npm ci
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            npm run dist -- --publish never
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            $old = (Get-ChildItem 'release/*.exe').FullName
+          } finally { Pop-Location }
           function Install-Xdocs($file) {
             $result = Start-Process -FilePath $file -ArgumentList "/S /D=$install" -PassThru -Wait
             if ($result.ExitCode) { throw "Installer failed: $($result.ExitCode)" }
