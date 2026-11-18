@@ -1,4 +1,4 @@
-import { boundarySVG } from "./network-boundaries.mjs";
+import { boundarySVG, indexedPlacementTarget } from "./network-boundaries.mjs";
 import { validateDrawing, drawingSVG } from "./aws-drawing.mjs";
 import { stringify as yaml } from "yaml";
 const field = (label, value = "", extra = {}) => ({ label, value, ...extra });
@@ -400,7 +400,15 @@ export function validateArchitecture(m) {
     if (
       n.imported &&
       (!/^(?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*$/.test(n.address) ||
-        (n.placementValue !== undefined && typeof n.placementValue !== "string") ||
+        (n.nicAddress !== undefined &&
+          (![
+            "azurerm_linux_virtual_machine",
+            "azurerm_windows_virtual_machine",
+          ].includes(n.kind) ||
+            typeof n.nicAddress !== "string" ||
+            !/^azurerm_network_interface\.[\w-]+$/.test(n.nicAddress))) ||
+        (n.placementValue !== undefined &&
+          typeof n.placementValue !== "string") ||
         (n.placementSource !== undefined &&
           (!plain(n.placementSource) ||
             n.placementSource.address !== n.scopeAddress ||
@@ -453,6 +461,7 @@ export function architectureEdges(m) {
   const edges = [];
   for (const n of m.nodes) {
     if (n.imported) {
+      const indexed = indexedPlacementTarget(n, m.nodes);
       for (const address of n.references) {
         const target = m.nodes.find((t) => t.address === address);
         if (target)
@@ -460,6 +469,7 @@ export function architectureEdges(m) {
             source: n.id,
             target: target.id,
             field: "원본 참조",
+            ...(target === indexed ? { label: "선언 참조 · each.key" } : {}),
             locked: true,
           });
       }

@@ -15,6 +15,11 @@ await writeFile(
 );
 const file = path.join(temp, "main.tf"),
   content =
+    (await readFile(
+      new URL("./fixtures/indexed-placement/azure/main.tf", import.meta.url),
+      "utf8",
+    )) +
+    "\n" +
     '# preserve this comment\nresource "aws_vpc" "main" { cidr_block="10.0.0.0/16" }\nresource "custom_resource" "special" { value="retained-configuration" }\nresource "aws_subnet" "app" {\n vpc_id=aws_vpc.main.id\n cidr_block="10.0.1.0/24"\n}\n';
 await writeFile(file, content);
 const app = await electron.launch({
@@ -46,6 +51,34 @@ try {
   await expect(
     page.getByRole("button", { name: "컴포넌트 custom_resource.special" }),
   ).toBeVisible();
+  const placement = page.getByRole("region", { name: "Terraform 배치 근거" });
+  await page
+    .getByRole("button", {
+      name: "컴포넌트 azurerm_network_interface.per_key",
+      exact: true,
+    })
+    .click();
+  await expect(placement).toContainText("참조 선언 · azurerm_subnet.app");
+  await expect(placement).toContainText("each.key별 인스턴스 소속 미확정");
+  await page.getByRole("button", { name: "속성 닫기", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "컴포넌트 azurerm_linux_virtual_machine.app",
+      exact: true,
+    })
+    .click();
+  await expect(placement).toContainText(
+    "NIC를 통한 소속 경계 · azurerm_subnet.fixed",
+  );
+  await placement
+    .getByRole("button", {
+      name: "연결된 NIC · azurerm_network_interface.fixed",
+    })
+    .click();
+  await expect(placement).toContainText(
+    "ip_configuration.subnet_id = azurerm_subnet.fixed.id",
+  );
+  await page.getByRole("button", { name: "속성 닫기", exact: true }).click();
   await page
     .getByRole("button", { name: "컴포넌트 aws_subnet.app", exact: true })
     .click();

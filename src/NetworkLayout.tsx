@@ -236,7 +236,7 @@ export default function NetworkLayout({
                 <span key={i}>
                   {model.nodes.find((n) => n.id === e.source)?.label} →{" "}
                   {model.nodes.find((n) => n.id === e.target)?.label} ·{" "}
-                  {e.field}
+                  {e.label || e.field}
                   {(["source", "target"] as const).map((end) => {
                     const key = [e.source, e.field, e.target, end].join(":");
                     const label =

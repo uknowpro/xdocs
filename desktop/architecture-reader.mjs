@@ -29,13 +29,22 @@ async function locateReferences(file) {
     return {};
   }
 }
-function placement(n, raw) {
+const nestedPlacement = {
+  google_compute_instance: ["network_interface", "subnetwork"],
+  azurerm_network_interface: ["ip_configuration", "subnet_id"],
+};
+function placementSlot(n, raw) {
   const attr = placementFields[n.kind]?.[2];
-  if (attr) return raw?.[attr];
-  if (n.kind === "google_compute_instance") {
-    const nic = raw?.network_interface;
-    return (Array.isArray(nic) ? nic.length === 1 && nic[0] : nic)?.subnetwork;
-  }
+  if (attr) return [raw, attr];
+  if (!Object.hasOwn(nestedPlacement, n.kind)) return [];
+  const [block, key] = nestedPlacement[n.kind];
+  if (raw?.dynamic?.[block]) return [];
+  const list = raw?.[block];
+  return [Array.isArray(list) ? list.length === 1 && list[0] : list, key];
+}
+function placement(n, raw) {
+  const [owner, key] = placementSlot(n, raw);
+  return owner?.[key];
 }
 export async function parseTerraformFiles(files) {
   const model = newArchitecture();
@@ -180,22 +189,34 @@ export async function parseTerraformFiles(files) {
       !n.address.startsWith("data.")
     ) {
       const without = structuredClone(raw);
-      const field = placementFields[n.kind]?.[2];
-      if (field) delete without[field];
-      else {
-        const nic = without.network_interface;
-        delete (Array.isArray(nic) ? nic[0] : nic).subnetwork;
-      }
+      const [owner, key] = placementSlot(n, without);
+      delete owner[key];
       const rest = new Set();
       await scan(without, rest);
       n.placementSource = {
         ...span,
         otherRefs: [...rest].filter((r) => addresses.has(r) && r !== n.address),
       };
-    } else if (value !== undefined || n.kind === "google_compute_instance")
+    } else if (value !== undefined || Object.hasOwn(nestedPlacement, n.kind))
       n.placementUnknown = true;
     if (!n.placementSource && typeof value === "string")
       n.placementValue = value;
+    if (
+      [
+        "azurerm_linux_virtual_machine",
+        "azurerm_windows_virtual_machine",
+      ].includes(n.kind) &&
+      raw.network_interface_ids !== undefined
+    ) {
+      n.placementUnknown = true;
+      const ids = raw.network_interface_ids;
+      if (Array.isArray(ids) && ids.length === 1 && typeof ids[0] === "string")
+        n.placementValue = ids[0];
+      const single = n.placementValue?.match(
+        /^\$\{(azurerm_network_interface\.[\w-]+)\.id\}$/,
+      );
+      if (single && addresses.has(single[1])) n.nicAddress = single[1];
+    }
     const refs = new Set();
     await scan(raw, refs);
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));

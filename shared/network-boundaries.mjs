@@ -12,6 +12,8 @@ export const placementFields = {
     "azurerm_virtual_network",
     "virtual_network_name",
   ],
+  azurerm_network_interface: ["subnet", "azurerm_subnet"],
+  azurerm_windows_virtual_machine: ["subnet", "azurerm_subnet"],
   azurerm_linux_virtual_machine: ["subnet", "azurerm_subnet"],
   azurerm_storage_account: [
     "group",
@@ -25,6 +27,27 @@ export const placementFields = {
   k8s_configmap: ["namespace", "k8s_namespace"],
   k8s_pvc: ["namespace", "k8s_namespace"],
 };
+// An indexed traversal identifies the declaration, but selecting an instance needs evaluation.
+export function indexedPlacementTarget(node, nodes) {
+  if (!node?.imported || typeof node.placementValue !== "string") return;
+  const match = node.placementValue.match(
+    /^\$\{\s*((?:data\.)?[\w-]+\.[\w-]+)\s*\[\s*each\.key\s*\]\.(?:id|name|self_link)\s*\}$/,
+  );
+  if (!match) return;
+  const targetKind = [
+    "azurerm_linux_virtual_machine",
+    "azurerm_windows_virtual_machine",
+  ].includes(node.kind)
+    ? "azurerm_network_interface"
+    : placementFields[node.kind]?.[1];
+  return nodes.find(
+    (target) =>
+      target.address === match[1] &&
+      target.kind === targetKind &&
+      target.multipleInstances,
+  );
+}
+
 export function canPlace(model, child, parent) {
   const rule = placementFields[child?.kind];
   return !!(
@@ -97,6 +120,11 @@ export function boundaryLayout(model) {
   }
   for (const n of model.nodes) {
     let p = direct(n);
+    if (n.imported && n.nicAddress) {
+      const nic = byAddress.get(n.nicAddress);
+      if (nic?.kind === "azurerm_network_interface" && !nic.multipleInstances)
+        p = direct(nic);
+    }
     if (!n.imported) {
       const dep =
         n.kind === "k8s_service"
@@ -454,7 +482,7 @@ export function boundarySVG(
         '<path data-reference="true" d="' +
         route +
         '" fill="none" stroke="#246782" stroke-width="1.8" marker-end="url(#scope-arrow)"><title>' +
-        escape(a.label + " → " + b.label + " · " + e.field) +
+        escape(a.label + " → " + b.label + " · " + (e.label || e.field)) +
         '</title></path><circle pointer-events="all" data-bend="' +
         escape(key) +
         '" cx="' +

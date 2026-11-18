@@ -2,6 +2,7 @@ import CanvasSearch from "./CanvasSearch";
 import {
   boundaryLayout,
   placementFields,
+  indexedPlacementTarget,
 } from "../shared/network-boundaries.mjs";
 import { canPlace, reassignPlacement } from "../shared/placement-edit.mjs";
 import IacDiff from "./IacDiff";
@@ -64,6 +65,7 @@ export type ArchitectureNode = {
     otherRefs: string[];
   };
   scopeAddress?: string;
+  nicAddress?: string;
   placementUnknown?: boolean;
   placementValue?: string;
 };
@@ -400,7 +402,12 @@ export default function ArchitectureDocument({
     (rules[node.kind]?.[2] ||
       (node.kind === "google_compute_instance"
         ? "network_interface.subnetwork"
-        : undefined));
+        : node.kind === "azurerm_network_interface"
+          ? "ip_configuration.subnet_id"
+          : node.kind === "azurerm_linux_virtual_machine" ||
+              node.kind === "azurerm_windows_virtual_machine"
+            ? "network_interface_ids[0]"
+            : undefined));
   const source = binding && model.sources.find((f) => f.name === binding.file);
   const directExpression =
     source &&
@@ -417,6 +424,12 @@ export default function ArchitectureDocument({
       (n) =>
         n.address === node.scopeAddress && n.kind === rules[node.kind]?.[1],
     );
+  const indexed = indexedPlacementTarget(node, model.nodes);
+  const nic =
+    node?.nicAddress && model.nodes.find((n) => n.address === node.nicAddress);
+  const viaParentId = nic && node && boundaryLayout(model).parents.get(node.id);
+  const viaSubnet =
+    viaParentId && model.nodes.find((n) => n.id === viaParentId);
   const contextParent =
     boundary &&
     node &&
@@ -896,7 +909,12 @@ export default function ArchitectureDocument({
                               )}
                               markerEnd="url(#arch-arrow)"
                             >
-                              <title>{a.label + " → " + b.label}</title>
+                              <title>
+                                {a.label +
+                                  " → " +
+                                  b.label +
+                                  (e.label ? " · " + e.label : "")}
+                              </title>
                             </path>
                           );
                         })}
@@ -1173,15 +1191,26 @@ export default function ArchitectureDocument({
                       <p>
                         {scope
                           ? "소속 경계 · " + scope.address
-                          : "소속 미확정 · 원본 표현식을 유지합니다."}
+                          : indexed
+                            ? "참조 선언 · " +
+                              indexed.address +
+                              " (each.key별 인스턴스 소속 미확정)"
+                            : viaSubnet
+                              ? "NIC를 통한 소속 경계 · " + viaSubnet.address
+                              : "소속 미확정 · 원본 표현식을 유지합니다."}
                       </p>
                       {placementField && evidence && (
                         <code>
                           {placementField} = {evidence}
                         </code>
                       )}
+                      {nic && (
+                        <button onClick={() => openDetail(nic.id)}>
+                          연결된 NIC · {nic.address}
+                        </button>
+                      )}
                       {binding && <small>{binding.file}</small>}
-                      {node.placementUnknown && !evidence && (
+                      {node.placementUnknown && !nic && !evidence && (
                         <small>
                           저장된 식을 표시할 수 없습니다. 가져온 Terraform
                           원문을 확인하세요.

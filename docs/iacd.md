@@ -104,3 +104,9 @@ Terraform 가져오기는 지원 속성의 직접 참조에서 소속을 판별�
 가져온 리소스를 선택하면 **Terraform 배치 근거**에서 확인된 경계와 직접 참조의 파일명·필드를 볼 수 있습니다. 변수나 모듈 출력으로 소속을 확정할 수 없으면 새로 가져온 구성에서는 파서가 읽은 식을 Terraform JSON 표현으로 표시합니다. **참조하는 대상**을 열고 주소를 누르면 그 리소스나 모듈의 속성으로 이동합니다. 이전 캔버스에서 저장하지 않은 간접 표현식은 원문에서 확인하거나 원본을 새 캔버스로 가져와 확인하세요.
 
 [동일 Terraform 예제로 비교한 경계 배치·의존선·왕복 변환](terraform-graph-comparison.md)
+
+### Azure 및 AWS의 반복 네트워크 구성
+
+AzureRM을 가져오면 리소스 그룹 → VNet → 서브넷을 직접 참조로 배치합니다. Linux·Windows VM에서 NIC 하나를 직접 지정하고 그 NIC의 단일 IP 구성이 서브넷 하나를 직접 가리키면 VM의 속성에 NIC 경유 경로가 표시됩니다. NIC 버튼으로 해당 선언을 열 수 있습니다. 여러 NIC·여러 IP 구성·동적 블록에서는 VM의 소속을 미확정으로 둡니다.
+
+AWS EC2의 `subnet_id`, Azure NIC의 `ip_configuration.subnet_id`, Azure VM의 단일 NIC가 반복 선언을 `[each.key]`로 가리키면 속성 및 선택 리소스의 참조선에서 **선언 참조**를 확인할 수 있습니다. 도면은 각 키의 실제 인스턴스를 펼치지 않습니다. 기존 캔버스에 NIC의 배치 정보가 없으면 원본 Terraform을 새 캔버스로 가져옵니다. [Azure 예제](../tests/fixtures/indexed-placement/azure/main.tf) · [AWS 예제](../tests/fixtures/indexed-placement/aws/main.tf)
