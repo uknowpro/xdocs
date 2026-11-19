@@ -1249,10 +1249,23 @@ export default function App() {
         </div>
       </aside>
       <main ref={mainPane} className="main" inert={compactNav && drawer}>
-        {sessionTabs.length>1 && <nav className="session-tabs" aria-label="xcode 세션 전환">
-          {sessionTabs.map((n,i)=><button key={n.id} aria-current={active===n.id?"page":undefined} title={n.path} onClick={()=>void navigate(n.id)}>
-            {n.title}{sessionTabs.some(t=>t!==n && t.title===n.title)?" · "+(i+1):""}</button>)}
-        </nav>}
+        {sessionTabs.length > 1 && (
+          <nav className="session-tabs" aria-label="xcode 세션 전환">
+            {sessionTabs.map((n, i) => (
+              <button
+                key={n.id}
+                aria-current={active === n.id ? "page" : undefined}
+                title={n.path}
+                onClick={() => void navigate(n.id)}
+              >
+                {n.title}
+                {sessionTabs.some((t) => t !== n && t.title === n.title)
+                  ? " · " + (i + 1)
+                  : ""}
+              </button>
+            ))}
+          </nav>
+        )}
         <div className="toolbar">
           <div className="breadcrumb">
             <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
@@ -1341,7 +1354,9 @@ export default function App() {
                 !sheetData &&
                 !infraData &&
                 !architectureData &&
-                !xcode && !analyzer && !builder &&
+                !xcode &&
+                !analyzer &&
+                !builder &&
                 !flow && (
                   <button
                     className="mode-switch"
@@ -1413,7 +1428,12 @@ export default function App() {
             className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || xcode || analyzer || builder || flow ? "sheet-layout" : ""}`}
           >
             <article className="document">
-              {readingKey && reading.titles.length>0 && <details className="compact-outline"><summary>이 노트의 목차</summary>{outline}</details>}
+              {readingKey && reading.titles.length > 0 && (
+                <details className="compact-outline">
+                  <summary>이 노트의 목차</summary>
+                  {outline}
+                </details>
+              )}
               {activeNote && (
                 <div className="note-utilities">
                   {!edit &&
@@ -1421,7 +1441,9 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
-                    !xcode && !analyzer && !builder &&
+                    !xcode &&
+                    !analyzer &&
+                    !builder &&
                     !flow &&
                     canvases.length > 0 && (
                       <select
@@ -1454,7 +1476,9 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
-                    !xcode && !analyzer && !builder &&
+                    !xcode &&
+                    !analyzer &&
+                    !builder &&
                     !flow && (
                       <button
                         className="button small"
@@ -1472,7 +1496,9 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
-                    !xcode && !analyzer && !builder &&
+                    !xcode &&
+                    !analyzer &&
+                    !builder &&
                     !flow && (
                       <div className="segmented">
                         <button
@@ -1523,19 +1549,53 @@ export default function App() {
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
               ) : xcode ? (
-                <Xcode local={!shared} key={active} page={active} scope={workspace!.root} prepare={flush} finish={async turn=>{
-                  if(current.current?.id===active && !(await flush()))throw Error("세션 변경을 저장하지 못했습니다.");
-                  const saved=await api.xcodeAppend!({scope:workspace!.root,page:active,turn});
-                  update(saved);
-                  if(current.current?.id===active && draft.current===current.current.body)select(saved);
-                  else setNotice(saved.title+" · xcode 응답 저장 완료");
-                }} session={xcode} readonly={readonly} change={next => changeBody(replaceSession(draft.current,next))} />
+                <Xcode
+                  local={!shared}
+                  key={active}
+                  page={active}
+                  scope={workspace!.root}
+                  prepare={flush}
+                  finish={async (turn) => {
+                    if (current.current?.id === active && !(await flush()))
+                      throw Error("세션 변경을 저장하지 못했습니다.");
+                    const saved = await api.xcodeAppend!({
+                      scope: workspace!.root,
+                      page: active,
+                      turn,
+                    });
+                    update(saved);
+                    if (
+                      current.current?.id === active &&
+                      draft.current === current.current.body
+                    )
+                      select(saved);
+                    else setNotice(saved.title + " · xcode 응답 저장 완료");
+                  }}
+                  session={xcode}
+                  readonly={readonly}
+                  change={(next) =>
+                    changeBody(replaceSession(draft.current, next))
+                  }
+                />
               ) : analyzer ? (
-                <Analyzer key={active} readonly={readonly} settings={readAnalyzerSettings(body)} onSettings={settings=>changeBody(writeAnalyzerSettings(draft.current,settings))} onSave={async(title, content)=>{
-                  if(readonly || !(await flush())) return;
-                  const n=await api.create(title,withParent(active,content));
-                  update(n);select(n);setEdit(false);
-                }}/>
+                <Analyzer
+                  key={active}
+                  readonly={readonly}
+                  settings={readAnalyzerSettings(body)}
+                  onSettings={(settings) =>
+                    changeBody(writeAnalyzerSettings(draft.current, settings))
+                  }
+                  onSave={async (title, content) => {
+                    if (readonly || !(await flush())) return;
+                    const n = await api.create(
+                      title,
+                      withParent(active, content),
+                    );
+                    update(n);
+                    select(n);
+                    setEdit(false);
+                  }}
+                />
               ) : builder ? (
                 <Builder
                   key={active}
@@ -1591,9 +1651,31 @@ export default function App() {
                 <ArchitectureDocument
                   key={JSON.stringify([workspace?.root, active])}
                   notes={notes}
-                  saveFragment={async(name,text)=>{
-                    if(readonly || !(await flush()))throw Error("워크스페이스에 저장할 수 없습니다.");
-                    update(await api.create(name,text));
+                  saveReview={async (text) => {
+                    if (readonly || !(await flush()))
+                      throw Error("검토 노트를 저장할 수 없습니다.");
+                    const title = "Terraform 변경 검토";
+                    const note = await api.create(
+                      title,
+                      withParent(
+                        active,
+                        "# " +
+                          title +
+                          "\n\n원본 캔버스 · [[" +
+                          active +
+                          "]]\n\n" +
+                          text,
+                      ),
+                    );
+                    update(note);
+                    select(note);
+                    setEditorMode("blocks");
+                    setEdit(true);
+                  }}
+                  saveFragment={async (name, text) => {
+                    if (readonly || !(await flush()))
+                      throw Error("워크스페이스에 저장할 수 없습니다.");
+                    update(await api.create(name, text));
                   }}
                   model={architectureData}
                   readonly={readonly}
@@ -2056,12 +2138,45 @@ export default function App() {
                 <FolderOpen size={15} />
                 폴더 변경
               </button>
-              {workspace && !shared && api.backupWorkspace && <button className="button" onClick={async()=>{
-                try {if(!await flush()) return;const backup=await api.backupWorkspace!();if(backup)setNotice(backup.count+"개 파일 검증 완료 · "+backup.folder);}catch(e){setError(String(e))}
-              }}>워크스페이스 백업</button>}
-              {workspace && !shared && api.restoreBackupCopy && <button className="button" onClick={async()=>{
-                try {const copy=await api.restoreBackupCopy!();if(copy)setNotice(copy.count+"개 파일 검증 · 복원 폴더: "+copy.folder);}catch(e){setError(String(e))}
-              }}>새 폴더에 시험 복원</button>}
+              {workspace && !shared && api.backupWorkspace && (
+                <button
+                  className="button"
+                  onClick={async () => {
+                    try {
+                      if (!(await flush())) return;
+                      const backup = await api.backupWorkspace!();
+                      if (backup)
+                        setNotice(
+                          backup.count + "개 파일 검증 완료 · " + backup.folder,
+                        );
+                    } catch (e) {
+                      setError(String(e));
+                    }
+                  }}
+                >
+                  워크스페이스 백업
+                </button>
+              )}
+              {workspace && !shared && api.restoreBackupCopy && (
+                <button
+                  className="button"
+                  onClick={async () => {
+                    try {
+                      const copy = await api.restoreBackupCopy!();
+                      if (copy)
+                        setNotice(
+                          copy.count +
+                            "개 파일 검증 · 복원 폴더: " +
+                            copy.folder,
+                        );
+                    } catch (e) {
+                      setError(String(e));
+                    }
+                  }}
+                >
+                  새 폴더에 시험 복원
+                </button>
+              )}
               <button
                 className="button"
                 disabled={!workspace || !isDesktop || shared}

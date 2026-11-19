@@ -390,10 +390,11 @@ export function ArchitectureStart({
 }
 export default function ArchitectureDocument({
   model,
-  notes,saveFragment,
+  notes,saveFragment,saveReview,
   onChange,
   readonly = false,
 }: {
+  saveReview:(text:string)=>Promise<void>;
   notes:Note[]; saveFragment:(name:string,body:string)=>Promise<void>;
   model: ArchitectureModel;
   onChange: (m: ArchitectureModel) => void;
@@ -1661,7 +1662,7 @@ export default function ArchitectureDocument({
               </p>
             </details>
           </aside>
-          <PlanReview selected={selected} model={model} rows={planRows} setRows={setPlanRows} onNode={openDetail}/>
+          <PlanReview readonly={readonly} saveReview={saveReview} selected={selected} model={model} rows={planRows} setRows={setPlanRows} onNode={openDetail}/>
           <DesignFragments model={model} notes={notes} save={saveFragment} insert={change} selected={selected} readonly={readonly}/>
           {model.sources.length>0 && <details className="arch-review-issues"><summary>Terraform 편집 범위</summary>
             {model.sources.map(source=><details key={source.name}><summary>{source.name}</summary>

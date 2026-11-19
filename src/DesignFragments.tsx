@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   COMPONENTS,
+  fragmentIssues,
   newComponent,
   validateArchitecture,
   newArchitecture,
@@ -62,7 +63,9 @@ export default function DesignFragments({
   const external = (fragment?.nodes || []).flatMap((n) =>
     Object.entries(COMPONENTS[n.kind]?.fields || {}).flatMap(
       ([field, spec]: [string, any]) =>
-        spec.ref && n.props[field] && !ids.has(n.props[field])
+        spec.ref &&
+        (spec.required || n.props[field]) &&
+        !ids.has(n.props[field])
           ? [
               {
                 key: n.id + "." + field,
@@ -73,13 +76,31 @@ export default function DesignFragments({
           : [],
     ),
   );
-  const collisions = fragment?.nodes.filter((n) =>
-    model.nodes.some(
-      (m) =>
-        m.label === n.label ||
-        (n.props.name && m.kind === n.kind && m.props.name === n.props.name),
-    ),
-  );
+  const preview = (fragment?.nodes || []).map((n) => {
+    const props = { ...n.props };
+    for (const ref of external)
+      if (ref.key.startsWith(n.id + "."))
+        props[ref.key.slice(n.id.length + 1)] = bindings[ref.key] || "";
+    return { ...n, props };
+  });
+  const issues = fragmentIssues(model.nodes, preview);
+  const duplicateLabels = preview
+    .filter((n) => model.nodes.some((existing) => existing.label === n.label))
+    .map((n) => n.label);
+  function edit(id: string, field: string, value: string) {
+    setFragment(
+      (current) =>
+        current && {
+          nodes: current.nodes.map((n) =>
+            n.id !== id
+              ? n
+              : field === "label"
+                ? { ...n, label: value }
+                : { ...n, props: { ...n.props, [field]: value } },
+          ),
+        },
+    );
+  }
   async function store() {
     if (!name.trim() || busy) return;
     setBusy(true);
@@ -110,11 +131,29 @@ export default function DesignFragments({
     setBusy(true);
     try {
       const note = saved.find((n) => n.id === id)!;
-      setFragment(
-        readFragment(
-          (note.unloaded && api.readNote ? await api.readNote(id) : note).body,
-        ),
+      const source = readFragment(
+        (note.unloaded && api.readNote ? await api.readNote(id) : note).body,
       );
+      const mapped = new Map(
+        source.nodes.map((n) => [n.id, newComponent(n.kind).id]),
+      );
+      setFragment({
+        nodes: source.nodes.map((n) => {
+          const props = { ...n.props };
+          for (const [key, spec] of Object.entries(
+            COMPONENTS[n.kind].fields,
+          ) as [string, { ref?: string }][])
+            if (spec.ref && props[key])
+              props[key] = mapped.get(props[key]) || props[key];
+          return {
+            ...n,
+            id: mapped.get(n.id)!,
+            props,
+            x: Math.min(n.x + 40, 10000),
+            y: Math.min(n.y + 40, 10000),
+          };
+        }),
+      });
     } catch (e) {
       setMessage(String(e));
     } finally {
@@ -122,31 +161,19 @@ export default function DesignFragments({
     }
   }
   function apply() {
-    if (!fragment) return;
+    if (
+      !fragment ||
+      issues.length ||
+      external.some(
+        (ref) =>
+          !model.nodes.some(
+            (n) => n.id === bindings[ref.key] && n.kind === ref.kind,
+          ),
+      )
+    )
+      return;
     try {
-      const copies = fragment.nodes.map(
-        (n) =>
-          newComponent(
-            n.kind,
-            Math.min(n.x + 40, 10000),
-            Math.min(n.y + 40, 10000),
-          ) as ArchitectureNode,
-      );
-      const mapped = new Map(
-        fragment.nodes.map((n, i) => [n.id, copies[i].id]),
-      );
-      fragment.nodes.forEach((n, i) => {
-        const copy = copies[i];
-        copy.label = n.label;
-        copy.props = { ...n.props };
-        for (const [field, spec] of Object.entries(
-          COMPONENTS[n.kind].fields,
-        ) as [string, { ref?: string }][])
-          if (spec.ref && n.props[field])
-            copy.props[field] =
-              mapped.get(n.props[field]) || bindings[n.id + "." + field] || "";
-      });
-      const next = { ...model, nodes: [...model.nodes, ...copies] };
+      const next = { ...model, nodes: [...model.nodes, ...preview] };
       validateArchitecture(next);
       insert(next);
       setChoice("");
@@ -201,12 +228,45 @@ export default function DesignFragments({
             <p>
               {fragment.nodes.length}개 리소스 · 외부 참조 {external.length}개
             </p>
-            {!!collisions?.length && (
+            {fragment.nodes.map((n) => (
+              <details key={n.id}>
+                <summary>{n.label || n.kind} · 삽입 속성</summary>
+                <label>
+                  표시 이름
+                  <input
+                    maxLength={200}
+                    value={n.label}
+                    onChange={(e) => edit(n.id, "label", e.target.value)}
+                  />
+                </label>
+                {Object.keys(n.props)
+                  .filter(
+                    (k) => k === "name" || COMPONENTS[n.kind].fields[k]?.cidr,
+                  )
+                  .map((k) => (
+                    <label key={k}>
+                      {k === "name"
+                        ? "배포 이름"
+                        : k === "cidr"
+                          ? "CIDR"
+                          : "서브넷 CIDR"}
+                      <input
+                        value={n.props[k]}
+                        onChange={(e) => edit(n.id, k, e.target.value)}
+                      />
+                    </label>
+                  ))}
+              </details>
+            ))}
+            {!!duplicateLabels.length && (
               <p>
-                동일 이름 확인: {collisions.map((n) => n.label).join(", ")}.
-                삽입 후 배포 이름을 검토하세요.
+                기존 리소스와 같은 표시 이름 ·{" "}
+                {[...new Set(duplicateLabels)].join(", ")}
               </p>
             )}
+            {issues.map((message) => (
+              <p key={message}>{message}</p>
+            ))}
             {external.map((ref) => (
               <label key={ref.key}>
                 {ref.label}
@@ -228,7 +288,25 @@ export default function DesignFragments({
               </label>
             ))}
             <button
-              disabled={external.some((r) => !bindings[r.key])}
+              onClick={() => {
+                setChoice("");
+                setFragment(undefined);
+                setBindings({});
+                setMessage("");
+              }}
+            >
+              삽입 취소
+            </button>
+            <button
+              disabled={
+                !!issues.length ||
+                external.some(
+                  (r) =>
+                    !model.nodes.some(
+                      (n) => n.id === bindings[r.key] && n.kind === r.kind,
+                    ),
+                )
+              }
               onClick={apply}
             >
               설계에 삽입

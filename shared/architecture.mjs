@@ -649,7 +649,17 @@ export function architectureIssues(m) {
         id: n.id,
         message: "Storage Account 이름은 소문자·숫자 3–24자입니다.",
       });
-    const key = n.kind + ":" + name + ":" + (n.props.namespace || "");
+    const key =
+      n.kind +
+      ":" +
+      name +
+      ":" +
+      (n.props.namespace ||
+        (n.kind === "aws_subnet"
+          ? n.props.vpc
+          : ["azurerm_subnet", "google_compute_subnetwork"].includes(n.kind)
+            ? n.props.network
+            : ""));
     if (seen.has(key))
       issues.push({ id: n.id, message: "같은 종류의 이름이 중복되었습니다." });
     seen.add(key);
@@ -670,11 +680,88 @@ function cidrContains(parent, child) {
   return childPrefix >= prefix && (p & mask) >>> 0 === (c & mask) >>> 0;
 }
 function validCIDR(v) {
-  const m = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)$/);
+  const m =
+    typeof v === "string" && v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)$/);
   return (
     !!m && m.slice(1, 5).every((x) => Number(x) <= 255) && Number(m[5]) <= 32
   );
 }
+// Explicit subnet components in the editable architecture model use IPv4.
+export function fragmentIssues(existing, incoming) {
+  const issues = new Set();
+  const networks = new Map([
+    ["aws_subnet", "vpc"],
+    ["azurerm_subnet", "network"],
+    ["google_compute_subnetwork", "network"],
+  ]);
+  const previous = existing.slice();
+  const all = [...existing, ...incoming];
+  for (const node of incoming) {
+    const owner = networks.get(node.kind);
+    const parent = owner && all.find((n) => n.id === node.props[owner]);
+    for (const [field, value] of Object.entries(node.props)) {
+      if (COMPONENTS[node.kind]?.fields[field]?.cidr && !validCIDR(value))
+        issues.add(node.label + " · " + field + " IPv4 CIDR을 확인하세요.");
+    }
+    if (
+      parent?.props.cidr &&
+      validCIDR(parent.props.cidr) &&
+      validCIDR(node.props.cidr) &&
+      !cidrContains(parent.props.cidr, node.props.cidr)
+    )
+      issues.add(
+        node.label +
+          " · " +
+          node.props.cidr +
+          "은 " +
+          parent.label +
+          " 대역 밖입니다.",
+      );
+    if (
+      node.kind === "avm_virtual_network" &&
+      validCIDR(node.props.cidr) &&
+      validCIDR(node.props.subnet_cidr) &&
+      !cidrContains(node.props.cidr, node.props.subnet_cidr)
+    )
+      issues.add(node.label + " · 서브넷이 VNet 대역 밖입니다.");
+    for (const other of previous) {
+      if (other.kind !== node.kind) continue;
+      if (owner && (!parent || other.props[owner] !== parent.id)) continue;
+      if (
+        owner &&
+        validCIDR(node.props.cidr) &&
+        validCIDR(other.props.cidr) &&
+        (cidrContains(node.props.cidr, other.props.cidr) ||
+          cidrContains(other.props.cidr, node.props.cidr))
+      )
+        issues.add(
+          parent.label +
+            " · CIDR 충돌: " +
+            other.label +
+            " (" +
+            other.props.cidr +
+            ") / " +
+            node.label +
+            " (" +
+            node.props.cidr +
+            ")",
+        );
+      if (
+        node.props.name &&
+        other.props.name === node.props.name &&
+        (other.props.namespace || "") === (node.props.namespace || "")
+      )
+        issues.add(
+          node.label + " · 같은 종류의 배포 이름 중복: " + node.props.name,
+        );
+    }
+    if (!node.label.trim() || ("name" in node.props && !node.props.name.trim()))
+      issues.add("표시 이름과 배포 이름을 입력하세요.");
+    previous.push(node);
+  }
+  return [...issues];
+}
+
 /** @returns {{files: Record<string,string>, errors: string[], warnings: string[]}} */
 export function generateArchitecture(m, format = "all", ids = []) {
   validateArchitecture(m);

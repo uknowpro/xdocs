@@ -54,3 +54,40 @@ test("file coverage keeps variables and unresolved dependency addresses alongsid
   assert.deepEqual(m.nodes[0].unresolvedReferences, ["aws_subnet.missing"]);
   assert.equal(m.nodes[0].props.cidr, "10.0.0.0/16");
 });
+
+test("nested module and quoted instance keys stay intact and replacement paths identify exact fields", () => {
+  const address = 'module.team["a.b"].module.app[0].aws_instance.web["blue]x"]';
+  const [r] = reviewPlan({
+    format_version: "1.2",
+    resource_changes: [
+      {
+        address,
+        action_reason: "replace_because_cannot_update",
+        change: {
+          actions: ["create", "delete"],
+          before: {
+            disk: [{ size: 12 }],
+            config: { secretName: "secretBefore" },
+          },
+          after: {
+            disk: [{ size: 16 }],
+            config: { secretName: "secretAfter" },
+          },
+          before_sensitive: { config: true },
+          replace_paths: [
+            ["disk", 0, "size"],
+            ["config", "secretName"],
+          ],
+        },
+      },
+    ],
+  });
+  assert.equal(r.module, 'module.team["a.b"].module.app[0]');
+  assert.equal(r.declaration, "aws_instance.web");
+  assert.equal(r.index, '["blue]x"]');
+  assert.deepEqual(
+    r.fields.map((f) => f.replacementPaths),
+    [["disk[0].size"], ["config"]],
+  );
+  assert.ok(!JSON.stringify(r).includes("secret"));
+});

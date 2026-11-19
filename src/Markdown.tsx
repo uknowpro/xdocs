@@ -8,10 +8,12 @@ import {
   escapeHTML,
 } from "./canvasPreview";
 import { useMemo, useState, useEffect } from "react";
-import { marked } from "marked";
+import { Marked, Renderer } from "marked";
 import DOMPurify from "dompurify";
 import type { Note } from "./types";
 import { resolveLink } from "./model";
+// Keep the read view independent of the block editor’s custom Markdown tokens.
+const reader = new Marked();
 const escape = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -33,7 +35,7 @@ export default function Markdown({
   useEffect(() => {
     let alive = true;
     const targets = new Set<Note>();
-    for (const token of marked.lexer(body)) {
+    for (const token of reader.lexer(body)) {
       if (token.type !== "paragraph") continue;
       const match = embedLine.exec(token.raw.trim());
       const n = match && resolveLink(match[1].split("|")[0].trim(), notes);
@@ -50,7 +52,7 @@ export default function Markdown({
     };
   }, [body, notes]);
   const html = useMemo(() => {
-    const renderer = new marked.Renderer();
+    const renderer = new Renderer();
     const paragraph = renderer.paragraph.bind(renderer);
     renderer.paragraph = (token) => {
       const match = embedLine.exec(token.raw.trim());
@@ -84,7 +86,7 @@ export default function Markdown({
           : `<span class="wiki unresolved" title="연결할 노트를 찾을 수 없습니다">${escape(label || target)}</span>`;
       });
     return DOMPurify.sanitize(
-      marked.parse(body, { renderer, breaks: true }) as string,
+      reader.parse(body, { renderer, breaks: true }) as string,
       {
         FORBID_TAGS: [
           "img",
