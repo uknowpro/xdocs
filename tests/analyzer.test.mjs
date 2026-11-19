@@ -54,3 +54,35 @@ test("Analyzer rejects invalid versions before invoking CLI", async () => {
   );
   assert.throws(() => analyzerReport({ other: "report" }), /JSON/);
 });
+
+test("Helm origins use the rendered document index and keep ambiguous findings unresolved", async () => {
+  const { helmOrigins, traceSources, readAnalyzerSource } =
+    await import("../desktop/analyzer-source.mjs");
+  const yaml = ["first", "second"]
+    .map(
+      (n) =>
+        "---\n# Source: app/templates/" +
+        n +
+        ".yaml\nkind: Service\nmetadata: {name: same}\n",
+    )
+    .join("");
+  const origins = helmOrigins(yaml);
+  const raw = {
+    findings: [{ file: "rendered.yaml", kind: "service", target: "same" }],
+    connections: [
+      {
+        evidence: [
+          { file: "rendered.yaml", reference: "documents[1].spec.ports[0]" },
+        ],
+      },
+    ],
+  };
+  traceSources(raw, ".", origins);
+  assert.equal(raw.findings[0].source, undefined);
+  const source = raw.connections[0].evidence[0].source;
+  assert.equal(source.file, "templates/second.yaml");
+  assert.equal(source.line, null);
+  await assert.rejects(
+    readAnalyzerSource({ ...source, file: "../package.json" }),
+  );
+});

@@ -94,6 +94,28 @@ try {
     // Clear the previous notification so each export waits for its own completion.
     await page.waitForFunction(() => !document.querySelector(".toast"));
   }
+  await page
+    .getByRole("button", { name: "환경 설정", exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole("button", { name: "라이선스 정보", exact: true })
+    .click();
+  const license = page.getByRole("dialog", { name: "라이선스 정보" });
+  for (const [label, text] of [
+    ["현재 사용권 전문", "Internal Business Use"],
+    ["helm / LICENSE", "Apache License"],
+    ["kubewiser / LICENSE", "Copyright"],
+    ["netspector / LICENSE", "Copyright"],
+  ]) {
+    await license.getByText(label, { exact: true }).click();
+    await license
+      .locator("details[open] pre")
+      .filter({ hasText: text })
+      .waitFor();
+    await license.getByText(label, { exact: true }).click();
+  }
+  await page.getByRole("button", { name: "라이선스 정보 닫기" }).click();
   await page.screenshot({ path: "test-results/electron-desktop.png" });
   console.log(
     "PASS Electron: real file save, SQLite header, new note, Markdown/HTML/PDF export",

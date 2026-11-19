@@ -2751,7 +2751,8 @@ textarea {
 .analyzer { overflow-wrap: anywhere; }
 .analyzer-path { display:flex; flex-wrap:wrap; align-items:center; list-style:none; padding:0; gap:8px; }
 .analyzer-path li { border:1px solid var(--line); padding:6px; border-radius:5px; }
-.analyzer-path li + li::before { content:"→ "; color:var(--muted); }
+.analyzer-path .path-link { margin-inline-end: 6px; padding: 3px 8px; }
+.analyzer-path .path-link[aria-pressed="true"] { outline: 2px solid currentColor; }
 
 .license-setting {
   display: flex;
@@ -2766,3 +2767,8 @@ textarea {
 .license-page summary { cursor: pointer; padding: 12px 4px; overflow-wrap: anywhere; }
 .license-page pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; }
 .license-page h3 { margin-top: 24px; }
+
+.analyzer-evidence { margin-block: 6px; min-width: 0; }
+.analyzer-evidence small { display: block; margin-block: 6px; }
+.analyzer-evidence button { overflow-wrap: anywhere; text-align: start; }
+.analyzer-evidence pre { position: relative; max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }

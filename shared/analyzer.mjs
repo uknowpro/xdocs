@@ -67,6 +67,7 @@ export function analyzerReport(raw) {
   for (const a of list(raw.actions))
     rows.push(["업그레이드 조치", str(a.id), str(a.message), str(a.resource)]);
   const paths = list(raw.connections).map((c) => ({
+    sources: list(c.evidence).map(e => e.source),
     status: str(c.status),
     nodes: list(c.nodes).map((n) =>
       [n.namespace, n.kind, n.name, n.port]
@@ -91,6 +92,7 @@ export function analyzerReport(raw) {
       paths.push({
         status: [str(f.direction), str(f.status)].filter(Boolean).join(" · "),
         nodes: f.direction === "inbound" ? [target, origin] : [origin, target],
+        sources: [f.source],
         evidence: [[origin, f.line || f.reference].filter(Boolean).join(":")],
       });
     }
@@ -137,6 +139,7 @@ export function analyzerReport(raw) {
     rules: str(report.rules_version),
     steps: list(raw.steps).map(str),
     rows,
+    rowSources: list(report.findings).map(f => f.source),
     paths,
     notes,
   };

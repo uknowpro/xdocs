@@ -1,3 +1,4 @@
+import { helmOrigins, traceSources } from "./analyzer-source.mjs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
@@ -82,17 +83,13 @@ export async function analyzeDirectory(
         ...values,
       ]);
       await writeFile(path.join(dir, "rendered.yaml"), yaml, { mode: 0o600 });
-      return JSON.parse(
-        await run("netspector", ["scan", dir, "--format", "json"]),
-      );
+      return traceSources(JSON.parse(await run("netspector", ["scan", dir, "--format", "json"])), directory, helmOrigins(yaml));
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
   }
   if (mode === "network")
-    return JSON.parse(
-      await run("netspector", ["scan", directory, "--format", "json"]),
-    );
+    return traceSources(JSON.parse(await run("netspector", ["scan", directory, "--format", "json"])), directory);
   if (mode === "helm-upgrade") {
     const scan = async (version) =>
       JSON.parse(
@@ -145,5 +142,6 @@ export async function analyzeDirectory(
             : []),
           directory,
         ];
-  return JSON.parse(await run("kubewiser", args));
+  const result = JSON.parse(await run("kubewiser", args));
+  return mode === "manifest" ? traceSources(result, directory) : result;
 }

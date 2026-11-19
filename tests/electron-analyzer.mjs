@@ -70,6 +70,22 @@ try {
       await expect(page.locator(".analyzer")).toContainText("/orders");
     if (mode === "manifest" || mode === "upgrade")
       await expect(page.locator(".analyzer")).toContainText("KW-API-REMOVED");
+    if (mode === "network" || mode === "helm-network") {
+      const link = page
+        .getByRole("button", {
+          name:
+            mode === "network"
+              ? /원본 · .*Orders.java/
+              : /Helm 템플릿 · templates\/service.yaml/,
+        })
+        .first();
+      await link.click();
+      await expect(
+        page.locator(".analyzer-evidence pre").first(),
+      ).toContainText(
+        mode === "network" ? '@GetMapping("/orders")' : "{{ .Release.Name }}",
+      );
+    }
     console.log("PASS bundled engine:", mode);
   }
 } finally {

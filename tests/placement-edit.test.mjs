@@ -89,3 +89,89 @@ test("presentation round trips, projects collapsed edges and never changes IaC",
   ))
     assert.equal(b.files[f], a.files[f]);
 });
+
+for (const [cloud, network, subnet, field, attribute] of [
+  ["AWS", "aws_vpc", "aws_subnet", "vpc_id", "id"],
+  [
+    "Azure",
+    "azurerm_virtual_network",
+    "azurerm_subnet",
+    "virtual_network_name",
+    "name",
+  ],
+  [
+    "GCP",
+    "google_compute_network",
+    "google_compute_subnetwork",
+    "network",
+    "self_link",
+  ],
+]) {
+  test(
+    cloud +
+      " edited subnet, module input and canvas annotation survive their exports",
+    async () => {
+      const source = [
+        'resource "' + network + '" "old" {}',
+        'resource "' + network + '" "new" {}',
+        'resource "' +
+          subnet +
+          '" "app" { ' +
+          field +
+          " = " +
+          network +
+          ".old." +
+          attribute +
+          " }",
+        'module "consumer" {\n source = "./consumer"\n subnet = ' +
+          subnet +
+          ".app.id\n}",
+      ].join("\n");
+      const files = [
+        { name: "main.tf", content: source },
+        {
+          name: "consumer/main.tf",
+          content:
+            'variable "subnet" {}\noutput "selected" { value = var.subnet }',
+        },
+      ];
+      const model = await parseTerraformFiles(files);
+      const child = model.nodes.find((n) => n.address === subnet + ".app");
+      const target = model.nodes.find((n) => n.address === network + ".new");
+      const moved = reassignPlacement(model, child, target);
+      moved.presentation = {
+        annotationLinks: [
+          { source: child.id, target: target.id, label: "운영 경계" },
+        ],
+      };
+      const generated = generateArchitecture(moved, "terraform");
+      assert.deepEqual(generated.errors, []);
+      assert.deepEqual(
+        JSON.parse(generated.files["architecture.json"]).presentation,
+        moved.presentation,
+      );
+      const exported = files.map((f) => ({
+        name: f.name,
+        content: generated.files["terraform/" + f.name],
+      }));
+      assert.equal(
+        exported[0].content,
+        source.replace(
+          network + ".old." + attribute,
+          network + ".new." + attribute,
+        ),
+      );
+      assert.equal(exported[1].content, files[1].content);
+      const restored = await parseTerraformFiles(exported);
+      assert.equal(
+        restored.nodes.find((n) => n.address === child.address).scopeAddress,
+        target.address,
+      );
+      assert.ok(
+        restored.nodes
+          .find((n) => n.address === "module.consumer")
+          .references.includes(child.address),
+      );
+    },
+  );
+}

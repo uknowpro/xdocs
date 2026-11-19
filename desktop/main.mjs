@@ -1,3 +1,4 @@
+import { readAnalyzerSource } from "./analyzer-source.mjs";
 import { analyzeDirectory } from "./analyzer.mjs";
 import {modelProfiles} from "./builder-profiles.mjs";
 import {builderResources} from "./builder-mcp.mjs";
@@ -384,6 +385,7 @@ app.whenReady().then(async () => {
     if (result.canceled || !result.filePaths[0]) return null;
     return importInfrastructure(result.filePaths[0]);
   });
+  register("analyzer:source", readAnalyzerSource);
   register("analyzer:notices", async () => {
     const root = app.isPackaged
       ? path.join(process.resourcesPath, "analyzer-tools", "licenses")

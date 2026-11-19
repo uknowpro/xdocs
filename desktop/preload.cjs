@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld("xdocs", {
     ipcRenderer.invoke("workflow:export", { kind, source }),
   exportArchitecture: (model, format, ids) =>
     ipcRenderer.invoke("architecture:export", { model, format, ids }),
+  analyzerSource: (source) => ipcRenderer.invoke("analyzer:source", source),
   analyzerNotices: () => ipcRenderer.invoke("analyzer:notices"),
   analyzeDirectory: request => ipcRenderer.invoke("analyzer:directory",request),
   importInfrastructure: () => ipcRenderer.invoke("infra:import"),

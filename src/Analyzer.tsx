@@ -1,7 +1,53 @@
+import { AnalyzerEvidence } from "./AnalyzerEvidence";
 import { useState } from "react";
 import { api } from "./api";
 import { analyzerReport, analyzerMarkdown } from "../shared/analyzer.mjs";
 type Report = ReturnType<typeof analyzerReport>;
+function NetworkPath({
+  path,
+  local,
+}: {
+  path: Report["paths"][number];
+  local: boolean;
+}) {
+  const [edge, setEdge] = useState<number | null>(null);
+  return (
+    <>
+      <ol className="analyzer-path">
+        {path.nodes.map((node, index) => (
+          <li key={index}>
+            {index > 0 &&
+              (path.evidence.length ? (
+                <button
+                  type="button"
+                  className="path-link"
+                  aria-pressed={edge === index}
+                  aria-label={
+                    path.nodes[index - 1] + " → " + node + " 경로 근거"
+                  }
+                  onClick={() => setEdge(edge === index ? null : index)}
+                >
+                  →
+                </button>
+              ) : (
+                <span aria-hidden="true">→ </span>
+              ))}
+            {node}
+          </li>
+        ))}
+      </ol>
+      {edge !== null && <small>선택한 연결이 포함된 경로의 근거</small>}
+      {path.evidence.map((e, j) => (
+        <AnalyzerEvidence
+          key={String(edge) + ":" + j}
+          initiallyOpen={edge !== null && j === 0}
+          evidence={e}
+          source={local ? path.sources[j] : undefined}
+        />
+      ))}
+    </>
+  );
+}
 export default function Analyzer({
   readonly,
   settings,
@@ -21,13 +67,15 @@ export default function Analyzer({
     [busy, setBusy] = useState(false);
   const [pathLimit, setPathLimit] = useState(25),
     [findingLimit, setFindingLimit] = useState(100);
-  async function load(fn: () => Promise<unknown>) {
+  const [localScan, setLocalScan] = useState(false);
+  async function load(fn: () => Promise<unknown>, local = false) {
     setBusy(true);
     setError("");
     try {
       const raw = await fn();
       if (raw !== null) {
         setResult(analyzerReport(raw));
+        setLocalScan(local);
         setPathLimit(25);
         setFindingLimit(100);
       }
@@ -105,15 +153,17 @@ export default function Analyzer({
         {api.analyzeDirectory ? (
           <button
             onClick={() =>
-              void load(() =>
-                api.analyzeDirectory!({
-                  mode,
-                  from,
-                  to,
-                  release,
-                  namespace,
-                  customValues,
-                }),
+              void load(
+                () =>
+                  api.analyzeDirectory!({
+                    mode,
+                    from,
+                    to,
+                    release,
+                    namespace,
+                    customValues,
+                  }),
+                true,
               )
             }
           >
@@ -153,12 +203,11 @@ export default function Analyzer({
               <summary>
                 {p.status} · 경로 {i + 1}
               </summary>
-              <ol className="analyzer-path">
-                {p.nodes.map((n, j) => (
-                  <li key={j}>{n}</li>
-                ))}
-              </ol>
-              <small>{p.evidence.join(" · ")}</small>
+              <NetworkPath
+                key={p.sources[0]?.session || p.evidence.join("|")}
+                path={p}
+                local={localScan}
+              />
             </details>
           ))}
           {pathLimit < result.paths.length && (
@@ -169,7 +218,16 @@ export default function Analyzer({
           <h3>발견 및 조치 · {result.rows.length}건</h3>
           <ul>
             {result.rows.slice(0, findingLimit).map((row, i) => (
-              <li key={i}>{row.filter(Boolean).join(" · ")}</li>
+              <li key={i}>
+                {row.filter(Boolean).join(" · ")}
+                {localScan && result.rowSources[i] && (
+                  <AnalyzerEvidence
+                    key={result.rowSources[i].session}
+                    evidence={row[3]}
+                    source={result.rowSources[i]}
+                  />
+                )}
+              </li>
             ))}
           </ul>
           {findingLimit < result.rows.length && (

@@ -1,5 +1,6 @@
 # Changelog
 
-## 0.5.5
+## 0.5.6
 
-- xdocs의 사용권을 PolyForm Internal Use License 1.0.0으로 변경했습니다. 회사 내부 업무를 위한 사용·수정·파생 앱 제작을 허용합니다. 외부 재배포에는 별도 허가가 필요합니다. [사용 조건](LICENSE)
+- 환경 설정에서 PolyForm Internal Use 사용권과 내장 분석 도구 고지를 오프라인으로 읽을 수 있습니다.
+- Analyzer의 네트워크 경로 및 발견 항목에서 프로젝트 원본 또는 Helm 원본 템플릿을 읽을 수 있습니다.
