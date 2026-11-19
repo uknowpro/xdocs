@@ -14,6 +14,7 @@ import {
   replaceBuilder,
 } from "../shared/builder.mjs";
 import { version as appVersion } from "../package.json";
+import {useReadingPosition} from "./useReadingPosition";
 import PageTree, { type PageKind } from "./PageTree";
 import {
   folderBody,
@@ -297,7 +298,14 @@ export default function App() {
       ),
     [notes, active],
   );
-  const headings = [...body.matchAll(/^#{2,3}\s+(.+)$/gm)].map((m) => m[1]);
+  const readingKey = workspace && active && !loadingNote && !edit && view === "note" && !sheetData && !infraData && !architectureData && !flow && !builder && !analyzer && !xcode
+    ? JSON.stringify([workspace.root,active]) : "";
+  const reading=useReadingPosition(mainPane,readingKey,body);
+  const outline=<nav className="toc" aria-label="노트 목차">{reading.titles.length ? reading.titles.map((h,i)=>
+    <button key={i} aria-current={reading.current===i?"location":undefined} onClick={e=>{
+      const menu=e.currentTarget.closest("details"); if(menu)menu.open=false;
+      reading.jump(i);
+    }}>{h}</button>) : <span>소제목을 추가하면 표시됩니다.</span>}</nav>;
   const tags = [
     ...new Set([...body.matchAll(/(?:^|\s)#([^\s#]+)/g)].map((m) => m[1])),
   ].slice(0, 4);
@@ -1405,6 +1413,7 @@ export default function App() {
             className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || xcode || analyzer || builder || flow ? "sheet-layout" : ""}`}
           >
             <article className="document">
+              {readingKey && reading.titles.length>0 && <details className="compact-outline"><summary>이 노트의 목차</summary>{outline}</details>}
               {activeNote && (
                 <div className="note-utilities">
                   {!edit &&
@@ -1580,7 +1589,12 @@ export default function App() {
                 />
               ) : architectureData ? (
                 <ArchitectureDocument
-                  key={active}
+                  key={JSON.stringify([workspace?.root, active])}
+                  notes={notes}
+                  saveFragment={async(name,text)=>{
+                    if(readonly || !(await flush()))throw Error("워크스페이스에 저장할 수 없습니다.");
+                    update(await api.create(name,text));
+                  }}
                   model={architectureData}
                   readonly={readonly}
                   onChange={(m) =>
@@ -1729,13 +1743,7 @@ export default function App() {
                 이 노트의 목차
                 <List size={14} />
               </div>
-              <div className="toc">
-                {headings.length ? (
-                  headings.map((h, i) => <span key={i}>{h}</span>)
-                ) : (
-                  <span>소제목을 추가하면 표시됩니다.</span>
-                )}
-              </div>
+              {outline}
               <div className="context-heading">
                 주변 연결<span>{outgoing.length + backlinks.length}</span>
               </div>

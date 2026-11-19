@@ -1,4 +1,8 @@
 import {caseDiagram} from "../shared/case-diagrams.mjs";
+import type {Note} from "./types";
+import DesignFragments from "./DesignFragments";
+import PlanReview, {type PlanRows} from "./PlanReview";
+import {planNode} from "../shared/plan-review.mjs";
 import ArchitectureImpact from "./ArchitectureImpact";
 import TemplatePreview from "./TemplatePreview";
 import TemplateThumbnail from "./TemplateThumbnail";
@@ -63,6 +67,7 @@ export type ArchitectureNode = {
   y: number;
   props: Record<string, string>;
   imported?: boolean;
+  unresolvedReferences?:string[];
   sourceFile?: string;
   sourceLine?: number;
   address?: string;
@@ -92,7 +97,7 @@ export type ArchitectureModel = {
   title: string;
   settings: Record<string, string>;
   nodes: ArchitectureNode[];
-  sources: { name: string; content: string }[];
+  sources: { name: string; content: string; preservedDeclarations?:string[] }[];
   warnings: string[];
   caseStudyId?: string;
   drawing?: Drawing;
@@ -385,9 +390,11 @@ export function ArchitectureStart({
 }
 export default function ArchitectureDocument({
   model,
+  notes,saveFragment,
   onChange,
   readonly = false,
 }: {
+  notes:Note[]; saveFragment:(name:string,body:string)=>Promise<void>;
   model: ArchitectureModel;
   onChange: (m: ArchitectureModel) => void;
   readonly?: boolean;
@@ -443,6 +450,15 @@ export default function ArchitectureDocument({
   const terraformFiles = Object.keys(result.files).filter((name) =>
     /\.tf(?:\.json)?$/.test(name),
   );
+  const [planRows,setPlanRows]=useState<PlanRows>([]);
+  const planLabels=useMemo(()=>{
+    const labels:Record<string,string>={};
+    for(const row of planRows){
+      const id=planNode(row.address,model.nodes);
+      if(id && !labels[id]?.split(" · ").includes(row.action)) labels[id]=labels[id] ? labels[id]+" · "+row.action : row.action;
+    }
+    return labels;
+  },[planRows,model.nodes]);
   const [liveFile, setLiveFile] = useState("");
   const livePath = terraformFiles.includes(liveFile)
     ? liveFile
@@ -1021,7 +1037,7 @@ export default function ArchitectureDocument({
             }} onKeyDown={event => {
               if (event.key==="Enter" || event.key===" ") { event.preventDefault(); (event.target as Element).dispatchEvent(new MouseEvent("click",{bubbles:true})); }
             }}>
-              <div dangerouslySetInnerHTML={{__html:caseDiagram(model,selected)}}/>
+              <div dangerouslySetInnerHTML={{__html:caseDiagram(model,selected,planLabels)}}/>
               <p>실선은 구성 참조, 점선 화살표는 운영 시 연결할 경로입니다. 리소스를 선택하면 속성과 원본 코드를 볼 수 있습니다.</p>
             </div> : boundary && model.nodes.length > 0 ? (
               <>
@@ -1030,7 +1046,7 @@ export default function ArchitectureDocument({
                     ? "연결할 대상 컴포넌트를 선택하세요."
                     : "항목을 선택해 속성을 편집하거나 상위 경계의 제목으로 끌어 소속을 변경하세요."}
                 </p>
-                <NetworkLayout focusRelated={focusRelated}
+                <NetworkLayout planLabels={planLabels} focusRelated={focusRelated}
                   fit={fitBoundary}
                   model={displayModel}
                   selected={selected}
@@ -1277,9 +1293,9 @@ export default function ArchitectureDocument({
                             <span>
                               <strong>{n.label}</strong>
                               <small>
-                                {n.imported
+                                {planLabels[n.id] || (n.imported
                                   ? "Terraform 원본"
-                                  : COMPONENTS[n.kind]?.group}
+                                  : COMPONENTS[n.kind]?.group)}
                               </small>
                             </span>
                             {bad && <b title="설정 필요">!</b>}
@@ -1645,6 +1661,20 @@ export default function ArchitectureDocument({
               </p>
             </details>
           </aside>
+          <PlanReview selected={selected} model={model} rows={planRows} setRows={setPlanRows} onNode={openDetail}/>
+          <DesignFragments model={model} notes={notes} save={saveFragment} insert={change} selected={selected} readonly={readonly}/>
+          {model.sources.length>0 && <details className="arch-review-issues"><summary>Terraform 편집 범위</summary>
+            {model.sources.map(source=><details key={source.name}><summary>{source.name}</summary>
+              {model.nodes.filter(n=>n.sourceFile===source.name).map(n=><div key={n.id}>
+                <button onClick={()=>openDetail(n.id)}>{n.address}</button>
+                <p>{Object.keys(n.props).length ? "편집 가능 속성 · "+Object.keys(n.props).join(", ") : "원문 보존"}
+                {n.placementSource && " · 배치 참조 편집 가능"}</p>
+                {(n.placementUnknown || n.unresolvedReferences?.length) ? <p>미해석 참조 · {n.unresolvedReferences?.join(", ") || n.placementValue}</p> : null}
+              </div>)}
+              {source.preservedDeclarations?.map(decl=><p key={decl}>원문 보존 · {decl}</p>)}
+              {!source.name.includes("/") && !source.preservedDeclarations && <p>기타 선언은 원문 보존 · 다시 가져오면 선언별 목록이 표시됩니다.</p>}
+              {source.name.includes("/") && <p>로컬 모듈 파일 · 원문 보존</p>}
+            </details>)}</details>}
           <details className="arch-review-issues" open={impactOpen} onToggle={event => setImpactOpen(event.currentTarget.open)}>
             <summary>변경 영향</summary>
             {impactOpen && <ArchitectureImpact before={openingModel.current} after={model} original={initialFiles}

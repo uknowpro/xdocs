@@ -12,6 +12,7 @@ import type {
 } from "./ArchitectureDocument";
 type View = NonNullable<ArchitectureModel["presentation"]>;
 type Props = {
+  planLabels:Record<string,string>;
   focusRelated: boolean;
   fit: boolean;
   model: ArchitectureModel;
@@ -23,6 +24,7 @@ type Props = {
 };
 export default function NetworkLayout({
   model,
+  planLabels,
   focusRelated,
   fit,
   selected,
@@ -226,7 +228,7 @@ export default function NetworkLayout({
           setNotice(child.label + " → " + p.label);
         }}
         dangerouslySetInnerHTML={{
-          __html: boundarySVG(renderModel, selected, edges, hover, dragging),
+          __html: boundarySVG(renderModel, selected, edges, hover, dragging, planLabels),
         }}
       />
       {hover && (

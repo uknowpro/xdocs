@@ -290,6 +290,7 @@ export function boundarySVG(
   references = [],
   hover = "",
   dragging = "",
+  planLabels = {},
 ) {
   const { frames, boxes, width, height, representatives } =
     boundaryLayout(model);
@@ -408,7 +409,7 @@ export function boundarySVG(
         text(
           x + 36,
           y + 34,
-          meta.length > 32 ? meta.slice(0, 31) + "…" : meta,
+          planLabels[b.id] || (meta.length > 32 ? meta.slice(0, 31) + "…" : meta),
           10,
         ) +
         "</g></g>" +

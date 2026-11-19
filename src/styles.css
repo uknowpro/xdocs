@@ -2911,3 +2911,19 @@ textarea {
 @media screen {
   .document-layout:not(.sheet-layout) :is(.markdown,.rich-editor) table { display:block; max-width:100%; overflow-x:auto; }
 }
+
+.arch-review-issues :is(input,select,fieldset,pre) { max-width:100%;min-width:0; }
+.arch-review-issues pre { overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere; }
+.arch-review-issues details { margin-block:6px;overflow-wrap:anywhere; }
+.toc button { text-align:start;color:var(--muted); }
+.toc button[aria-current] { color:var(--ink);font-weight:650; }
+.compact-outline { display:none; }
+@media(max-width:1100px) {
+  .compact-outline { display:block;position:sticky;top:0;z-index:2;background:var(--bg); }
+  .compact-outline summary { padding:6px 0; }
+  .compact-outline .toc { max-height:35vh;overflow:auto;margin:0; }
+  .document .markdown :is(h2,h3) { scroll-margin-top:32px; }
+}
+@media(min-width:1101px) {
+  .document-layout:not(.sheet-layout) .context { position:sticky;top:0;align-self:start;max-height:85dvh;overflow:auto; }
+}

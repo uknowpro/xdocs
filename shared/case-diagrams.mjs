@@ -244,7 +244,7 @@ const esc = (value) =>
         "'": "&apos;",
       })[c],
   );
-export function caseDiagram(model, selected = "") {
+export function caseDiagram(model, selected = "", planLabels = {}) {
   const spec =
     Object.hasOwn(layouts, model.caseStudyId) && layouts[model.caseStudyId];
   if (!spec) return "";
@@ -267,7 +267,7 @@ export function caseDiagram(model, selected = "") {
     const glyph = symbol
       ? `<g transform="translate(${x + 8} ${y + (frame ? 6 : 11)}) scale(.74)"><rect width="24" height="24" rx="4" fill="${symbol[2]}"/><path d="${symbol[1]}" fill="none" stroke="white" stroke-width="1.6"/></g>`
       : "";
-    return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), label, frame ? 14 : 12)}</g>`;
+    return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), (node && planLabels[node.id] ? planLabels[node.id]+" · " : "")+label, frame ? 14 : 12)}</g>`;
   });
   const lines = spec.links.map(([source, target, label, planned]) => {
     const a = byKey.get(source),

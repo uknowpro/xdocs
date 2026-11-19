@@ -123,6 +123,10 @@ export async function parseTerraformFiles(files) {
       throw Error(
         "계획·state JSON 대신 .tf 또는 구성 .tf.json 파일을 선택하세요.",
       );
+    const storedFile = { ...file, preservedDeclarations: Object.entries(parsed)
+      .filter(([key]) => !["resource","data","module"].includes(key))
+      .flatMap(([key,value]) => key === "terraform" ? [key] : Object.keys(value || {}).map(name => key+"."+name)) };
+    model.sources = model.sources.map(source => source.name === file.name ? storedFile : source);
     const located = await locateReferences(file);
     const lines = await declarationLines(file);
     for (const block of ["resource", "data", "module"]) {
@@ -296,7 +300,11 @@ export async function parseTerraformFiles(files) {
       if (details.length) n.interfaceEvidence = details;
     }
     const refs = new Set();
+    const warningsBeforeScan = model.warnings.length;
     await scan(raw, refs);
+    const unresolved = [...refs].filter(r => !addresses.has(r) && !/^(var|local|each|count|path|terraform|self)\./.test(r));
+    if (model.warnings.length > warningsBeforeScan) unresolved.push("표현식 확인 필요");
+    if (unresolved.length) n.unresolvedReferences = unresolved;
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));
   }
   await attachModuleTraces(model, calls);

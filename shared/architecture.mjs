@@ -408,6 +408,9 @@ export function validateArchitecture(m) {
       )
     )
       throw Error("컴포넌트 형식을 확인해 주세요.");
+    if (n.unresolvedReferences !== undefined &&
+        (!Array.isArray(n.unresolvedReferences) || n.unresolvedReferences.some(v=>typeof v!=="string")))
+      throw Error("미해석 참조 형식을 확인하세요.");
     if (!n.imported && !Object.hasOwn(COMPONENTS, n.kind))
       throw Error("알 수 없는 컴포넌트입니다.");
     if (
@@ -465,6 +468,8 @@ export function validateArchitecture(m) {
       ) ||
       f.name.startsWith(".") ||
       paths.has(f.name.toLowerCase()) ||
+      (f.preservedDeclarations !== undefined &&
+        (!Array.isArray(f.preservedDeclarations) || f.preservedDeclarations.some(v=>typeof v!=="string"))) ||
       typeof f.content !== "string"
     )
       throw Error("Terraform 원본 파일 이름을 확인해 주세요.");
