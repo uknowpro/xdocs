@@ -77,16 +77,27 @@ try {
       : {}),
     env: { ...process.env, XDOCS_TEST_DATA: data },
   });
-  await app.evaluate(({dialog}) => {
+  await app.evaluate(({ dialog }) => {
     dialog.showMessageBox = async (_window, options) => {
-      if (options.message !== "이 서버로 세션 내용을 전송할까요?") throw Error("Unexpected dialog");
-      return {response: 1};
+      if (options.message !== "이 서버로 세션 내용을 전송할까요?")
+        throw Error("Unexpected dialog");
+      return { response: 1 };
     };
   });
   const page = await app.firstWindow();
-  await assert.rejects(page.evaluate(endpoint => window.xdocs.xcodeChat({
-    id: "unapproved", endpoint, model: "test", messages: [{role: "user", content: "test"}],
-  }), endpoint), /주소를 먼저 확인/);
+  await assert.rejects(
+    page.evaluate(
+      (endpoint) =>
+        window.xdocs.xcodeChat({
+          id: "unapproved",
+          endpoint,
+          model: "test",
+          messages: [{ role: "user", content: "test" }],
+        }),
+      endpoint,
+    ),
+    /주소를 먼저 확인/,
+  );
   assert.equal(calls.length, 0);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("Chat Completions 주소").fill(endpoint);
@@ -100,6 +111,11 @@ try {
     .getByRole("button", { name: "워크스페이스 · evidence 추가" })
     .click();
   await page.locator(".xcode input[type=file][multiple]").setInputFiles([
+    {
+      name: "omit.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("omitted-marker"),
+    },
     {
       name: "hello.py",
       mimeType: "text/plain",
@@ -141,12 +157,15 @@ try {
     },
   ]);
   await page.getByRole("button", { name: "diagram.png 제거" }).waitFor();
+  await page.getByText("전송 미리보기", { exact: true }).click();
+  await page.getByLabel("새 첨부 · omit.txt").uncheck();
   await page.getByLabel("xcode 메시지").fill("Review this.");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect(page.locator(".xcode article").first()).toContainText(
     "검토 결과 complete",
   );
   assert.equal(calls.length, 2);
+  assert.ok(calls.every((c) => !JSON.stringify(c).includes("omitted-marker")));
   assert.equal(calls[0].reasoning_effort, "low");
   assert.equal(calls[1].reasoning_effort, "high");
   assert.deepEqual(
@@ -172,6 +191,12 @@ try {
     );
   });
   assert.match(note.body, /diagram.png/);
+  const stored = JSON.parse(note.body.match(/```xdocs-xcode\s+(.+)\s+```/)[1])
+    .turns[0];
+  assert.deepEqual(stored.execution.skills, ["evidence"]);
+  assert.equal(stored.answers[0].effort, "low");
+  assert.equal(stored.answers[0].retries, 0);
+  assert.ok(stored.execution.model);
   assert.doesNotMatch(note.body, /iVBORw0/);
   await page.getByLabel("xcode 메시지").fill("wait-for-cancel");
   await page.getByRole("button", { name: "전송", exact: true }).click();
@@ -245,6 +270,77 @@ try {
   await send.click();
   await expect(page.locator(".xcode [role=alert]")).toContainText("1회에 도달");
   assert.equal(calls.length, stopped + 2);
+  await page.getByLabel("이어지는 응답 자동 요청").uncheck();
+  await page.getByLabel("서버 동시 요청 수").selectOption("1");
+  slowResponse = null;
+  caseMode = "hold";
+  await input.fill("held-session");
+  await send.click();
+  await expect.poll(() => Boolean(slowResponse)).toBe(true);
+  const firstCount = calls.length;
+  await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await expect(page.getByLabel("서버 동시 요청 수")).toHaveValue("1");
+  await input.fill("queued-session");
+  await send.click();
+  await expect(page.locator(".xcode [role=status]")).toContainText(
+    "서버 대기열",
+  );
+  await page
+    .locator(".xcode")
+    .getByRole("button", { name: "중지", exact: true })
+    .click();
+  await expect(page.locator(".xcode [role=alert]")).toContainText("중지");
+  await send.click();
+  await expect(page.locator(".xcode [role=status]")).toContainText(
+    "서버 대기열",
+  );
+  await page.locator(".xcode-running summary").click();
+  await page.getByRole("button", { name: "실행 중인 세션 모두 중지" }).click();
+  await expect(page.locator(".xcode-running")).toHaveCount(0);
+  assert.equal(calls.length, firstCount);
+  caseMode = "normal";
+  await send.click();
+  await expect(page.locator(".xcode article").last()).toContainText(
+    "queued-session",
+  );
+  slowResponse = null;
+  caseMode = "hold";
+  await input.fill("queue-owner");
+  await send.click();
+  await expect.poll(() => Boolean(slowResponse)).toBe(true);
+  await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await input.fill("queue-successor");
+  await send.click();
+  await expect(page.locator(".xcode [role=status]")).toContainText(
+    "서버 대기열",
+  );
+  caseMode = "normal";
+  slowResponse.writeHead(200, { "content-type": "text/event-stream" });
+  slowResponse.end(
+    'data: {"choices":[{"delta":{"content":"released"}}]}\n\ndata: [DONE]\n\n',
+  );
+  await expect(page.locator(".xcode article").last()).toContainText(
+    "queue-successor",
+  );
+
+  await page.clock.install();
+  await page.getByLabel("이어지는 응답 자동 요청").check();
+  await page.getByLabel("재요청 방식").selectOption("repeat");
+  await page.getByLabel("재요청 간격(초)").fill("3600");
+  await page.getByLabel("자동 실행 한도(분)").fill("1");
+  await input.fill("deadline");
+  const beforeDeadline = calls.length;
+  await send.click();
+  await expect(page.locator(".xcode [role=status]")).toContainText(
+    "다음 대화 대기",
+  );
+  await page.clock.fastForward(61000);
+  await expect(page.locator(".xcode [role=alert]")).toContainText(
+    "자동 실행 시간 한도",
+  );
+  assert.equal(calls.length, beforeDeadline + 1);
   console.log(
     "PASS xcode: streaming, harnesses, concurrent page isolation, retries, quota stops and repeat cancellation",
   );

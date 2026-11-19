@@ -2784,3 +2784,7 @@ textarea {
 .xcode summary { cursor: pointer; padding-block: 8px; }
 
 .xcode-running summary { cursor: pointer; padding: 8px; overflow-wrap: anywhere; }
+
+.xcode-running-row {display: flex; align-items: center; gap: 4px;}
+.xcode-running-row .nav-item {flex: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere;}
+.xcode details p {overflow-wrap: anywhere;}

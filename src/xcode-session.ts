@@ -48,7 +48,14 @@ export type InputFile = { name: string; text: string } | Attachment;
 export type Turn = {
   prompt: string;
   files: InputFile[];
-  answers: { stage: string; text: string; elapsedMs?: number }[];
+  execution?: { model: string; harness: string; skills: string[] };
+  answers: {
+    stage: string;
+    text: string;
+    elapsedMs?: number;
+    effort?: string;
+    retries?: number;
+  }[];
 };
 export type Session = {
   endpoint: string;
@@ -59,6 +66,7 @@ export type Session = {
   repeatCompleted?: boolean;
   autoRetry?: boolean;
   retrySeconds?: number;
+  autoMinutes?: number;
   maxAutoRequests?: number;
 };
 export function preset(name: string): Harness {
@@ -103,6 +111,13 @@ export function decode(body: string): Session | null {
         (t: Turn) =>
           t &&
           typeof t.prompt === "string" &&
+          (t.execution === undefined ||
+            (typeof t.execution?.model === "string" &&
+              typeof t.execution.harness === "string" &&
+              Array.isArray(t.execution.skills) &&
+              t.execution.skills.every(
+                (skill) => typeof skill === "string",
+              ))) &&
           Array.isArray(t.answers) &&
           t.answers.every(
             (a) => typeof a?.text === "string" && typeof a.stage === "string",

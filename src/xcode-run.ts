@@ -11,6 +11,7 @@ function createRun(scope: string, page: string) {
     phase: "",
     error: "",
     prompt: "",
+    omitted: [] as string[],
     files: [] as InputFile[],
   };
   const record = {
@@ -18,6 +19,8 @@ function createRun(scope: string, page: string) {
     page,
     id: "",
     enabled: false,
+    automatic: false,
+    request: null as AbortController | null,
     wait: null as AbortController | null,
     snapshot: () => state,
     subscribe(listener: () => void) {
@@ -27,7 +30,9 @@ function createRun(scope: string, page: string) {
       };
     },
     patch(next: Partial<typeof state>) {
-      const changed = next.busy !== undefined && next.busy !== state.busy;
+      const changed =
+        (next.busy !== undefined && next.busy !== state.busy) ||
+        (next.phase !== undefined && next.phase !== state.phase);
       state = { ...state, ...next };
       if (changed) for (const notify of activity) notify();
       for (const notify of listeners) notify();
@@ -35,6 +40,7 @@ function createRun(scope: string, page: string) {
     cancel() {
       const id = record.id;
       record.id = "";
+      record.request?.abort();
       record.wait?.abort();
       if (id) void api.xcodeCancel?.(id);
     },
@@ -49,13 +55,15 @@ function subscribeActivity(cb: () => void) {
     activity.delete(cb);
   };
 }
-export function useRunningPages(scope?: string): string[] {
+export function useRunningPages(
+  scope?: string,
+): { page: string; phase: string }[] {
   return JSON.parse(
     useSyncExternalStore(subscribeActivity, () =>
       JSON.stringify(
         [...runs.values()]
           .filter((r) => r.scope === scope && r.snapshot().busy)
-          .map((r) => r.page),
+          .map((r) => ({ page: r.page, phase: r.snapshot().phase })),
       ),
     ),
   );

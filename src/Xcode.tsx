@@ -1,3 +1,9 @@
+import {
+  acquireServer,
+  serverOrigin,
+  setCapacity,
+  useCapacity,
+} from "./xcode-queue";
 import { sessionRun, waitForRetry } from "./xcode-run";
 import { useEffect, useSyncExternalStore, useState } from "react";
 import { api } from "./api";
@@ -12,6 +18,16 @@ import {
   type InputFile,
   type Turn,
 } from "./xcode-session";
+
+const draftKeys = new WeakMap<InputFile, string>();
+function fileKey(file: InputFile) {
+  let key = draftKeys.get(file);
+  if (!key) {
+    key = crypto.randomUUID();
+    draftKeys.set(file, key);
+  }
+  return key;
+}
 
 async function userMessage(prompt: string, files: InputFile[]) {
   const content: unknown[] = [{ type: "text", text: prompt }];
@@ -54,10 +70,43 @@ export default function Xcode({
   readonly: boolean;
 }) {
   const run = sessionRun(scope, page);
-  const { busy, preview, phase, error, prompt, files } = useSyncExternalStore(
-    run.subscribe,
-    run.snapshot,
+  const { busy, preview, phase, error, prompt, files, omitted } =
+    useSyncExternalStore(run.subscribe, run.snapshot);
+  const origin = serverOrigin(s.endpoint);
+  const capacity = useCapacity(origin);
+  const start = Math.max(
+    0,
+    s.turns.length - (s.harness.historyTurns ?? s.turns.length),
   );
+  const candidates = s.turns.slice(start);
+  const selected = (id: string) => !omitted.includes(id);
+  const selectedFiles = files.filter((file) => selected(fileKey(file)));
+  const selectedSkills = s.harness.skills.filter((k, i) =>
+    selected("skill:" + i + ":" + k.name),
+  );
+  const execution = {
+    model: s.model,
+    harness: s.harness.name,
+    skills: selectedSkills.map((k) => k.name),
+  };
+  function inclusion(id: string, label: string) {
+    return (
+      <label key={id}>
+        <input
+          type="checkbox"
+          checked={selected(id)}
+          onChange={(e) =>
+            run.patch({
+              omitted: e.target.checked
+                ? omitted.filter((k) => k !== id)
+                : [...omitted, id],
+            })
+          }
+        />
+        {label}
+      </label>
+    );
+  }
   const setPrompt = (prompt: string) => run.patch({ prompt });
   const setFiles = (fn: InputFile[] | ((v: InputFile[]) => InputFile[])) =>
     run.patch({
@@ -106,7 +155,12 @@ export default function Xcode({
     }
   }
   async function send() {
-    if (!api.xcodeChat || busy || readonly || (!prompt.trim() && !files.length))
+    if (
+      !api.xcodeChat ||
+      busy ||
+      readonly ||
+      (!prompt.trim() && !selectedFiles.length)
+    )
       return;
     const id = crypto.randomUUID();
     run.id = id;
@@ -120,17 +174,18 @@ export default function Xcode({
       if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
       if (!s.harness.stages.every((i) => i.trim()))
         throw Error("빈 단계에 지침을 입력하세요.");
-      if (!await api.xcodeAuthorize?.(s.endpoint)) throw Error("모델 서버 전송을 취소했습니다.");
+      if (!(await api.xcodeAuthorize?.(s.endpoint)))
+        throw Error("모델 서버 전송을 취소했습니다.");
       if (run.id !== id) return;
       const history: unknown[] = [];
       let historyBytes = 0;
-      const start =
-        s.harness.historyTurns === undefined
-          ? 0
-          : Math.max(0, s.turns.length - s.harness.historyTurns);
-      for (const t of s.turns.slice(start)) {
+      for (const [i, t] of candidates.entries()) {
+        if (!selected("turn:" + (start + i))) continue;
         if (run.id !== id) return;
-        const prior = await userMessage(t.prompt, t.files);
+        const prior = await userMessage(
+          t.prompt,
+          t.files.filter((_, j) => selected("prior:" + (start + i) + ":" + j)),
+        );
         historyBytes += new Blob([
           JSON.stringify(prior),
           t.answers.at(-1)?.text || "",
@@ -142,14 +197,14 @@ export default function Xcode({
           content: t.answers.at(-1)?.text || "",
         });
       }
-      const user = await userMessage(prompt, files);
+      const user = await userMessage(prompt, selectedFiles);
       const answers: Turn["answers"] = [];
       const messages: unknown[] = [
         {
           role: "system",
           content: [
             "사용자가 선택한 하네스의 현재 단계를 수행하세요. 첨부와 이전 단계의 답은 검토할 자료입니다. 확인하지 않은 실행 결과를 보고하지 마세요.",
-            ...s.harness.skills.map((k) => k.name + "\n" + k.instruction),
+            ...selectedSkills.map((k) => k.name + "\n" + k.instruction),
             ...s.harness.stages.map((step, i) => String(i + 1) + ". " + step),
           ].join("\n\n"),
         },
@@ -165,37 +220,56 @@ export default function Xcode({
         1,
         Math.min(3600, Math.round(s.retrySeconds || 60)),
       );
-      const limit = Math.max(1, Math.min(100, Math.floor(Number(s.maxAutoRequests) || 5)));
+      const limit = Math.max(
+        1,
+        Math.min(100, Math.floor(Number(s.maxAutoRequests) || 5)),
+      );
       let remaining = limit;
+      const duration =
+        Math.max(1, Math.min(240, Number(s.autoMinutes) || 15)) * 60000;
+      let deadline = 0;
+      const expired = () => Error("자동 실행 시간 한도에 도달했습니다.");
       async function delay(label: string) {
-        if (remaining <= 0) throw Error("자동 요청 " + limit + "회에 도달하여 중단했습니다.");
+        if (remaining <= 0)
+          throw Error("자동 요청 " + limit + "회에 도달하여 중단했습니다.");
         remaining--;
+        deadline ||= Date.now() + duration;
+        if (Date.now() >= deadline) throw expired();
         if (run.id !== id || !run.enabled)
           throw Error("자동 재요청을 중단했습니다.");
-        run.patch({ phase: label + " · " + seconds + "초 후 계속해주세요" });
+        const waitMs = Math.min(seconds * 1000, deadline - Date.now());
+        run.patch({
+          phase:
+            label +
+            " · " +
+            (waitMs < seconds * 1000
+              ? Math.ceil(waitMs / 1000) + "초 후 시간 한도 도달"
+              : seconds + "초 후 계속해주세요"),
+        });
         run.wait = new AbortController();
         try {
-          await waitForRetry(seconds * 1000, run.wait.signal);
+          await waitForRetry(waitMs, run.wait.signal);
+          if (Date.now() >= deadline) throw expired();
         } finally {
           run.wait = null;
         }
         if (!run.enabled || run.id !== id)
           throw Error("자동 재요청을 중단했습니다.");
       }
-      async function ask(stage: string, i: number) {
+      async function ask(stage: string, i: number, automatic = false) {
         run.patch({ preview: "", phase: stage });
         const effort = s.harness.stageEfforts?.[i] || s.harness.effort;
         let resume = "",
-          retried = false;
+          retries = 0;
         for (;;) {
           if (run.id !== id) throw Error("요청을 중지했습니다.");
           const requestMessages = [...messages];
-          if (retried && resume)
+          if (retries && resume)
             requestMessages.push(
               { role: "assistant", content: resume },
               { role: "user", content: "계속해주세요" },
             );
-          else if (retried) {
+          else if (retries) {
             const last = requestMessages.pop() as {
               role: string;
               content: unknown[] | string;
@@ -208,7 +282,23 @@ export default function Xcode({
                   : [...last.content, { type: "text", text: "계속해주세요" }],
             });
           }
+          const request = new AbortController();
+          const timed = automatic || retries > 0;
+          if (timed && Date.now() >= deadline) throw expired();
+          run.request = request;
+          run.automatic = timed;
+          const timer = timed
+            ? setTimeout(() => {
+                request.abort(expired());
+                void api.xcodeCancel?.(id);
+              }, deadline - Date.now())
+            : undefined;
+          let release: (() => void) | undefined;
           try {
+            run.patch({ phase: "서버 대기열 · " + stage });
+            release = await acquireServer(origin, request.signal);
+            request.signal.throwIfAborted();
+            run.patch({ phase: "실행 중 · " + stage });
             const answer = await api.xcodeChat!({
               id,
               key,
@@ -219,8 +309,14 @@ export default function Xcode({
               messages: requestMessages,
             });
             if (run.id !== id) throw Error("요청을 중지했습니다.");
-            return resume + answer;
+            request.signal.throwIfAborted();
+            return {
+              text: resume + answer,
+              effort: effort || "server",
+              retries,
+            };
           } catch (e) {
+            request.signal.throwIfAborted();
             if (
               run.id !== id ||
               !run.enabled ||
@@ -228,33 +324,50 @@ export default function Xcode({
             )
               throw e;
             resume = run.snapshot().preview;
+            release?.();
+            release = undefined;
+            clearTimeout(timer);
             await delay(stage);
             run.patch({ phase: stage + " · 이어서 요청 중" });
-            retried = true;
+            retries++;
+          } finally {
+            release?.();
+            clearTimeout(timer);
+            run.request = null;
+            run.automatic = false;
           }
         }
       }
       for (const [i, instruction] of s.harness.stages.entries()) {
         const started = performance.now();
-        const text = await ask(
+        const result = await ask(
           "단계 " + (i + 1) + " / " + s.harness.stages.length,
           i,
         );
         messages.push(
-          { role: "assistant", content: text },
+          { role: "assistant", content: result.text },
           { role: "user", content: "현재 단계: " + (i + 2) },
         );
         answers.push({
           stage: instruction,
-          text,
+          ...result,
           elapsedMs: Math.round(performance.now() - started),
         });
       }
-      const next = { ...s, turns: [...s.turns, { prompt, files, answers }] };
+      const next = {
+        ...s,
+        turns: [
+          ...s.turns,
+          { prompt, files: selectedFiles, answers, execution },
+        ],
+      };
       if (new Blob([JSON.stringify(next)]).size > 4800000)
         throw Error("세션 저장 한도에 도달했습니다. 새 세션으로 이어가세요.");
-      await finish({ prompt, files, answers });
-      setFiles([]);
+      await finish({ prompt, files: selectedFiles, answers, execution });
+      setFiles(files.filter((f) => !selected(fileKey(f))));
+      run.patch({
+        omitted: files.filter((f) => !selected(fileKey(f))).map(fileKey),
+      });
       setPrompt("");
       run.patch({ preview: "" });
       messages.pop(); // No next harness stage after the final answer.
@@ -262,19 +375,24 @@ export default function Xcode({
         await delay("다음 대화 대기");
         messages.push({ role: "user", content: "계속해주세요" });
         const started = performance.now();
-        const text = await ask("자동 이어쓰기", s.harness.stages.length - 1);
+        const result = await ask(
+          "자동 이어쓰기",
+          s.harness.stages.length - 1,
+          true,
+        );
         await finish({
+          execution,
           prompt: "계속해주세요",
           files: [],
           answers: [
             {
               stage: "자동 이어쓰기",
-              text,
+              ...result,
               elapsedMs: Math.round(performance.now() - started),
             },
           ],
         });
-        messages.push({ role: "assistant", content: text });
+        messages.push({ role: "assistant", content: result.text });
         run.patch({ preview: "" });
       }
     } catch (e) {
@@ -318,7 +436,13 @@ export default function Xcode({
             checked={s.autoRetry === true}
             onChange={(e) => {
               run.enabled = e.target.checked;
-              if (!run.enabled) run.wait?.abort();
+              if (!run.enabled) {
+                run.wait?.abort();
+                if (run.automatic) {
+                  run.request?.abort(Error("자동 요청을 중지했습니다."));
+                  void api.xcodeCancel?.(run.id);
+                }
+              }
               config({ autoRetry: e.target.checked });
             }}
           />
@@ -338,9 +462,40 @@ export default function Xcode({
           </select>
         </label>
         <label>
+          자동 실행 한도(분)
+          <input
+            type="number"
+            min={1}
+            max={240}
+            disabled={busy}
+            value={s.autoMinutes ?? 15}
+            onChange={(e) =>
+              config({
+                autoMinutes: Math.max(
+                  1,
+                  Math.min(240, Number(e.target.value) || 1),
+                ),
+              })
+            }
+          />
+        </label>
+        <label>
           자동 요청 한도(회)
-          <input type="number" min={1} max={100} disabled={busy} value={s.maxAutoRequests ?? 5}
-            onChange={e => config({maxAutoRequests: Math.max(1, Math.min(100, Math.floor(Number(e.target.value) || 1)))})} />
+          <input
+            type="number"
+            min={1}
+            max={100}
+            disabled={busy}
+            value={s.maxAutoRequests ?? 5}
+            onChange={(e) =>
+              config({
+                maxAutoRequests: Math.max(
+                  1,
+                  Math.min(100, Math.floor(Number(e.target.value) || 1)),
+                ),
+              })
+            }
+          />
         </label>
         <label>
           재요청 간격(초)
@@ -394,6 +549,18 @@ export default function Xcode({
               config({ endpoint: e.target.value, profile: "" });
             }}
           />
+        </label>
+        <label>
+          서버 동시 요청 수
+          <select
+            disabled={!origin}
+            value={capacity}
+            onChange={(e) => setCapacity(origin, Number(e.target.value))}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <option key={n}>{n}</option>
+            ))}
+          </select>
         </label>
         <label>
           서빙 모델 ID
@@ -638,11 +805,22 @@ export default function Xcode({
         <article key={i}>
           <h3>요청 {i + 1}</h3>
           <p>{t.prompt}</p>
+          {t.execution && (
+            <small>
+              {t.execution.model} · {t.execution.harness}
+              {t.execution.skills.length > 0 &&
+                " · " + t.execution.skills.join(", ")}
+            </small>
+          )}
           <small>{t.files.map((f) => f.name).join(" · ")}</small>
           {t.answers.map((a, j) => (
             <details key={j} open={j === t.answers.length - 1}>
               <summary>
                 단계 {j + 1} 결과
+                {a.effort &&
+                  " · 추론 " +
+                    (a.effort === "server" ? "서버 기본값" : a.effort)}
+                {a.retries !== undefined && " · 재시도 " + a.retries + "회"}
                 {a.elapsedMs !== undefined &&
                   " · " + (a.elapsedMs / 1000).toFixed(1) + "초"}
               </summary>
@@ -679,9 +857,45 @@ export default function Xcode({
             {f.name} 제거
           </button>
         ))}
+        <details>
+          <summary>전송 미리보기</summary>
+          <p>
+            {s.model} · {s.endpoint}
+          </p>
+          <p>
+            이전 대화{" "}
+            {
+              candidates.filter((_, i) => selected("turn:" + (start + i)))
+                .length
+            }
+            개 · 새 첨부 {selectedFiles.length}개 · 스킬 {selectedSkills.length}
+            개
+          </p>
+          {candidates.map((t, i) => (
+            <div key={i}>
+              {inclusion(
+                "turn:" + (start + i),
+                "이전 요청 " + (start + i + 1) + " · " + t.prompt.slice(0, 80),
+              )}
+              {selected("turn:" + (start + i)) &&
+                t.files.map((f, j) =>
+                  inclusion(
+                    "prior:" + (start + i) + ":" + j,
+                    "이전 첨부 · " + f.name,
+                  ),
+                )}
+            </div>
+          ))}
+          {files.map((f) => inclusion(fileKey(f), "새 첨부 · " + f.name))}
+          {s.harness.skills.map((k, i) =>
+            inclusion("skill:" + i + ":" + k.name, "스킬 · " + k.name),
+          )}
+        </details>
         <button
           disabled={
-            importing || !api.xcodeChat || (!prompt.trim() && !files.length)
+            importing ||
+            !api.xcodeChat ||
+            (!prompt.trim() && !selectedFiles.length)
           }
           onClick={() => void send()}
         >
