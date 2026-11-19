@@ -1,3 +1,5 @@
+import Xcode from "./Xcode";
+import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
 import Analyzer from "./Analyzer";
 import {readAnalyzerSettings,writeAnalyzerSettings,analyzerMarker} from "../shared/analyzer.mjs";
@@ -234,6 +236,7 @@ export default function App() {
       return null;
     }
   }, [body]);
+  const xcode = useMemo(() => decodeXcode(body), [body]);
   const analyzer = /^<!-- xdocs:analyzer -->$/m.test(body);
   const builder = useMemo(() => decodeBuilder(body), [body]);
   const flow = useMemo(() => {
@@ -651,7 +654,7 @@ export default function App() {
     await action(async () => {
       const title =
         name ||
-        (kind === "analyzer" ? "새 Analyzer" : kind === "builder" ? "새 Builder" : templates[kind].label + " 캔버스");
+        (kind === "xcode" ? "새 xcode 세션" : kind === "analyzer" ? "새 Analyzer" : kind === "builder" ? "새 Builder" : templates[kind].label + " 캔버스");
       const n = await api.create(
         title,
         withParent(
@@ -659,7 +662,7 @@ export default function App() {
           "# " +
             title +
             "\n\n" +
-            (kind === "analyzer" ? analyzerMarker : kind === "builder"
+            (kind === "xcode" ? packXcode(freshXcode()) : kind === "analyzer" ? analyzerMarker : kind === "builder"
               ? encodeBuilder(newBuilder())
               : encodeWorkflow(blankFlow(kind))) +
             "\n",
@@ -1025,6 +1028,9 @@ export default function App() {
           <Workflow size={16} />
           IaCD 아키텍처
         </button>
+        <button className="nav-item" disabled={!workspace || readonly || busy} onClick={() => void createPage("xcode")}>
+          <Code2 size={16} />xcode 세션 만들기
+        </button>
         <button className="nav-item" disabled={!workspace || readonly || busy} onClick={() => void createPage("analyzer")}>
           <Network size={16} />Analyzer 만들기
         </button>
@@ -1216,7 +1222,7 @@ export default function App() {
                 !sheetData &&
                 !infraData &&
                 !architectureData &&
-                !analyzer && !builder &&
+                !xcode && !analyzer && !builder &&
                 !flow && (
                   <button
                     className="mode-switch"
@@ -1285,7 +1291,7 @@ export default function App() {
           </section>
         ) : (
           <div
-            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || analyzer || builder || flow ? "sheet-layout" : ""}`}
+            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || xcode || analyzer || builder || flow ? "sheet-layout" : ""}`}
           >
             <article className="document">
               <div className="document-kicker">
@@ -1308,7 +1314,7 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
-                    !analyzer && !builder &&
+                    !xcode && !analyzer && !builder &&
                     !flow &&
                     canvases.length > 0 && (
                       <select
@@ -1341,7 +1347,7 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
-                    !analyzer && !builder &&
+                    !xcode && !analyzer && !builder &&
                     !flow && (
                       <button
                         className="button small"
@@ -1359,7 +1365,7 @@ export default function App() {
                     !sheetData &&
                     !infraData &&
                     !architectureData &&
-                    !analyzer && !builder &&
+                    !xcode && !analyzer && !builder &&
                     !flow && (
                       <div className="segmented">
                         <button
@@ -1409,6 +1415,8 @@ export default function App() {
               )}
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
+              ) : xcode ? (
+                <Xcode key={active} session={xcode} readonly={readonly} change={next => changeBody(replaceSession(draft.current,next))} />
               ) : analyzer ? (
                 <Analyzer key={active} readonly={readonly} settings={readAnalyzerSettings(body)} onSettings={settings=>changeBody(writeAnalyzerSettings(draft.current,settings))} onSave={async(title, content)=>{
                   if(readonly || !(await flush())) return;

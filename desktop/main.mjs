@@ -1,3 +1,5 @@
+import { streamChat, readSkills } from "./xcode.mjs";
+import { homedir, tmpdir } from "node:os";
 import { readAnalyzerSource } from "./analyzer-source.mjs";
 import { analyzeDirectory } from "./analyzer.mjs";
 import {modelProfiles} from "./builder-profiles.mjs";
@@ -36,7 +38,7 @@ import {
 import { folderBody, withParent } from "../shared/page-parent.mjs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir, mkdtemp, rm } from "node:fs/promises";
 import { VaultClient } from "./vault-client.mjs";
 import { watch } from "chokidar";
 import TurndownService from "turndown";
@@ -416,6 +418,30 @@ app.whenReady().then(async () => {
   });
   register("builder:resources",async request=>{mustVault();return builderResources(request)});
   const profiles=modelProfiles(app.getPath("userData"),safeStorage);
+  const chats = new Map();
+  register("xcode:attachment",async ({name,bytes})=>{
+    const store = mustVault();
+    const ext=path.extname(path.basename(name)).toLowerCase();
+    if (![".png",".jpg",".jpeg",".webp",".gif",".pdf"].includes(ext) || !(bytes instanceof Uint8Array) || bytes.byteLength>12*1024*1024)
+      throw Error("12MB 이하의 이미지 또는 PDF를 선택하세요.");
+    const folder=await mkdtemp(path.join(tmpdir(),"xdocs-input-"));
+    try {
+      const file=path.join(folder,"input"+ext);
+      await writeFile(file,bytes,{mode:0o600});
+      return {...await store.addAttachment(file),name:path.basename(name)};
+    } finally {await rm(folder,{recursive:true,force:true});}
+  });
+  register("xcode:skills",()=>readSkills([["사용자",homedir()],...(vault?.root ? [["워크스페이스",vault.root]] : [])]));
+  register("xcode:cancel",id=>chats.get(id)?.abort());
+  register("xcode:chat",async ({id,profile,...request})=>{
+    if(typeof id !== "string" || chats.has(id)) throw Error("중복된 세션 요청입니다.");
+    const controller=new AbortController(); chats.set(id,controller);
+    try {
+      const key=request.key || await profiles.keyFor(profile,request.endpoint,request.model);
+      return await streamChat({...request,key},AbortSignal.any([controller.signal,AbortSignal.timeout(600000)]),
+        token=>{if(window && !window.isDestroyed()) window.webContents.send("xcode:delta",{id,token});});
+    } finally {chats.delete(id);}
+  });
   register("builder:profiles",()=>profiles.list());
   register("builder:profile-save",data=>profiles.save(data));
   register("builder:model",async request=>{

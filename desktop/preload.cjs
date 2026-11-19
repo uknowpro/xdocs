@@ -41,6 +41,15 @@ contextBridge.exposeInMainWorld("xdocs", {
   importInfrastructure: () => ipcRenderer.invoke("infra:import"),
   importSheetDirectory: () => ipcRenderer.invoke("sheet:directory"),
   builderResources:request=>ipcRenderer.invoke("builder:resources",request),
+  xcodeAttachment:data=>ipcRenderer.invoke("xcode:attachment",data),
+  xcodeSkills:()=>ipcRenderer.invoke("xcode:skills"),
+  xcodeChat:request=>ipcRenderer.invoke("xcode:chat",request),
+  xcodeCancel:id=>ipcRenderer.invoke("xcode:cancel",id),
+  onXcodeDelta:callback=>{
+    const listener=(_event,chunk)=>callback(chunk);
+    ipcRenderer.on("xcode:delta",listener);
+    return ()=>ipcRenderer.removeListener("xcode:delta",listener);
+  },
   builderProfiles:()=>ipcRenderer.invoke("builder:profiles"),
   saveBuilderProfile:data=>ipcRenderer.invoke("builder:profile-save",data),
   builderModel: request => ipcRenderer.invoke("builder:model",request),

@@ -16,6 +16,7 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - 이미지·PDF 첨부, Markdown·HTML 가져오기, Markdown·HTML·PDF 내보내기
 - 시트 탭형 테이블·Excel/CSV/TSV 가져오기·탭 구분 클립보드
 - Terraform/OpenTofu·Kubernetes·Compose 인프라 목록·관계·운영 메모·변경 비교
+- **xcode** — 셀프서빙 모델과 스트리밍으로 대화하고, 문서·이미지·코드를 첨부해 업무별 하네스를 실행합니다. [세션 사용법](docs/xcode.md)
 - **Analyzer** — netspector·kubewiser·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 

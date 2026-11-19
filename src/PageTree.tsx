@@ -79,6 +79,7 @@ function tree(notes: Note[]) {
   return { root, pages };
 }
 export type PageKind =
+  | "xcode"
   | "analyzer"
   | "builder"
   | "folder"
@@ -406,6 +407,7 @@ export default function PageTree({
                   <option value="folder">폴더</option>
                   <option value="note">노트</option>
                   <option value="sheet">시트 테이블</option>
+                  <option value="xcode">xcode 세션</option>
                   <option value="analyzer">Analyzer</option>
                   <option value="builder">Builder</option>
                   <option value="architecture">IaCD 아키텍처</option>

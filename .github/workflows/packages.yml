@@ -28,7 +28,7 @@ jobs:
         env:
           XDOCS_EXECUTABLE: ${{ runner.os == 'Windows' && 'release/win-unpacked/xdocs.exe' || runner.os == 'macOS' && 'release/mac-arm64/xdocs.app/Contents/MacOS/xdocs' || 'release/linux-unpacked/xdocs' }}
         run: |
-          for suite in desktop infrastructure architecture sheets analyzer; do
+          for suite in desktop infrastructure architecture sheets analyzer xcode; do
             if [[ "$RUNNER_OS" == "Linux" ]]; then
               xvfb-run -a npm run "test:$suite"
             else

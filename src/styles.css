@@ -2772,3 +2772,13 @@ textarea {
 .analyzer-evidence small { display: block; margin-block: 6px; }
 .analyzer-evidence button { overflow-wrap: anywhere; text-align: start; }
 .analyzer-evidence pre { position: relative; max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+
+.xcode { display: grid; gap: 16px; min-width: 0; }
+.xcode fieldset { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; min-width: 0; }
+.xcode fieldset label { display: grid; gap: 6px; flex: 1 1 200px; min-width: 0; }
+.xcode input, .xcode select, .xcode textarea { max-width: 100%; color: var(--ink); background: var(--bg); }
+.xcode textarea { min-height: 5rem; width: 100%; }
+.xcode fieldset > textarea, .xcode fieldset > div { flex-basis: 100%; }
+.xcode pre, .xcode article p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.xcode article { border-top: 1px solid var(--line); padding-top: 12px; min-width: 0; }
+.xcode summary { cursor: pointer; padding-block: 8px; }
