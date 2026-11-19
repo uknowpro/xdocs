@@ -1,3 +1,4 @@
+import {caseDiagram} from "../shared/case-diagrams.mjs";
 import { useEffect, useRef, useState } from "react";
 import { architectureSVG } from "../shared/architecture.mjs";
 import { boundaryLayout, boundarySVG } from "../shared/network-boundaries.mjs";
@@ -15,7 +16,7 @@ export default function TemplateThumbnail({ id }: { id: string }) {
       openCloudTemplate(id).then(model => {
         if (!active) return;
         const nested = boundaryLayout(model).parents.size > 0;
-        const svg = nested || !model.nodes.some(n => n.imported) ? boundarySVG(model) : architectureSVG(model);
+        const svg = caseDiagram(model) || (nested || !model.nodes.some(n => n.imported) ? boundarySVG(model) : architectureSVG(model));
         setPreview({ image: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg), nested });
       }).catch(() => { if (active) setFailed(true); });
     }, { root: frame.current?.closest(".template-gallery") });

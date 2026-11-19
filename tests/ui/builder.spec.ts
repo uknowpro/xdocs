@@ -174,3 +174,19 @@ test("Builder copies a customized step from another page independently", async (
   await page.getByRole("button",{name:"아래로",exact:true}).first().click();
   await expect(page.getByLabel("단계 이름").first()).toHaveValue("운영 예산");
 });
+
+test("Seoul case opens both AZs and selects the NAT declaration", async ({page}) => {
+  await page.goto("/");
+  await page.getByRole("button", {name:"IaCD 아키텍처",exact:true}).click();
+  await page.getByRole("button", {name:"사례 설계",exact:true}).click();
+  await page.getByRole("button", {name:"서울 리전 · 이중 AZ 프라이빗 이그레스",exact:true}).click();
+  await page.getByRole("button", {name:"템플릿으로 시작"}).click();
+  const diagram=page.locator(".case-blueprint");
+  await expect(diagram).toContainText("ap-northeast-2a");
+  await expect(diagram).toContainText("ap-northeast-2c");
+  await diagram.getByRole("button",{name:"NAT Gateway",exact:true}).last().click();
+  await expect(page.getByLabel("컴포넌트 표시 이름")).toHaveValue(/egress_c/);
+  await page.setViewportSize({width:1480,height:1000});
+  await page.getByRole("button",{name:"확대 보기",exact:true}).click();
+  await diagram.locator("svg").screenshot({path:"test-results/seoul-case.png"});
+});

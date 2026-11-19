@@ -2788,3 +2788,10 @@ textarea {
 .xcode-running-row {display: flex; align-items: center; gap: 4px;}
 .xcode-running-row .nav-item {flex: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere;}
 .xcode details p {overflow-wrap: anywhere;}
+
+.case-blueprint {overflow:auto; min-width:0; padding:8px;}
+.case-blueprint svg {display:block; width:100%; background:#fff; border-radius:8px;}
+.case-blueprint [data-resource] {cursor:pointer;}
+.case-blueprint [data-resource]:focus > rect {stroke:#0567bf;stroke-width:3;}
+
+.case-blueprint.case-enlarged svg {min-width:1168px;}

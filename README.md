@@ -22,6 +22,10 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 <details>
 <summary>Architecture and automation screenshots</summary>
 
+Under **IaCD → 사례 설계**, open the two-zone Seoul egress network, private EKS operations platform or three-cloud retail analytics design. Select a resource in the overview to inspect its Terraform source. Dashed arrows indicate integration work to configure.
+
+![Seoul VPC design with two availability zones and zonal NAT gateways](docs/images/seoul-case.png)
+
 In the AWS catalog, open **결제 서비스 · 격리 복구 리허설** to see an EC2 instance inside its subnet and VPC. Cards marked **영역형** show nested resource boundaries.
 
 ![EC2 inside a subnet and VPC](docs/images/aws-subnet-template.png)

@@ -1,3 +1,4 @@
+import {caseDiagram} from "./case-diagrams.mjs";
 import { boundarySVG, indexedPlacementTarget } from "./network-boundaries.mjs";
 import { validateDrawing, drawingSVG } from "./aws-drawing.mjs";
 import { stringify as yaml } from "yaml";
@@ -337,6 +338,7 @@ export function validateArchitecture(m) {
   if (
     !plain(m) ||
     m.version !== 1 ||
+    (m.caseStudyId !== undefined && typeof m.caseStudyId !== "string") ||
     typeof m.title !== "string" ||
     m.title.length > 200 ||
     !plain(m.settings) ||
@@ -1287,6 +1289,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
     };
   files["architecture.json"] = json(m);
   files["architecture.svg"] = boundarySVG(m);
+  if (m.caseStudyId && caseDiagram(m)) files["case-study.svg"] = caseDiagram(m);
   files["references.svg"] = architectureSVG(m);
   files["WELL_ARCHITECTED.md"] =
     "# 설계 검토\n\nAVM 사용은 WAF 인증이나 전체 워크로드 준수를 의미하지 않습니다. 자동 점수·합격 판정을 하지 않습니다.\n\n" +

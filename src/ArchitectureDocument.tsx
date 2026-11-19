@@ -1,3 +1,4 @@
+import {caseDiagram} from "../shared/case-diagrams.mjs";
 import TemplateThumbnail from "./TemplateThumbnail";
 import ModuleContractReview from "./ModuleContractReview";
 import { terraformDeclarations } from "../shared/architecture-catalog.mjs";
@@ -90,6 +91,7 @@ export type ArchitectureModel = {
   nodes: ArchitectureNode[];
   sources: { name: string; content: string }[];
   warnings: string[];
+  caseStudyId?: string;
   drawing?: Drawing;
   presentation?: {
     folded?: string[];
@@ -135,7 +137,7 @@ export function ArchitectureStart({
   const matches = cloudTemplates.filter(
     (t) =>
       t.provider === provider &&
-      (catalogMode === "전체" || catalogMode === ("repo" in t ? "Terraform 원본" : "컴포넌트 편집")) &&
+      (catalogMode === "전체" || catalogMode === ("caseStudy" in t ? "사례 설계" : "repo" in t ? "Terraform 원본" : "컴포넌트 편집")) &&
       (!query ||
         [t.name, t.study, t.id, ...t.kinds].some((v) =>
           (v + " " + (COMPONENTS[v]?.label || "")).toLowerCase().includes(query),
@@ -267,7 +269,7 @@ export function ArchitectureStart({
             />
           </label>
           <div className="catalog-modes" role="group" aria-label="템플릿 편집 방식">
-            {["전체", "컴포넌트 편집", "Terraform 원본"].map((mode) => (
+            {["전체", "사례 설계", "컴포넌트 편집", "Terraform 원본"].map((mode) => (
               <button key={mode} type="button" aria-pressed={catalogMode === mode}
                 onClick={() => setCatalogMode(mode)}>{mode}</button>
             ))}
@@ -280,12 +282,14 @@ export function ArchitectureStart({
                   onClick={() => setTemplateId(t.id)}>
                   <TemplateThumbnail id={t.id} />
                   <strong>{t.name}</strong>
-                  <small>{t.provider} · {"repo" in t ? "Terraform 원본" : "컴포넌트 편집"}</small>
+                  <small>{t.provider} · {"caseStudy" in t ? "사례 설계" : "repo" in t ? "Terraform 원본" : "컴포넌트 편집"}</small>
                 </button>
               ))}
             </div>
           )}
           {chosen && <p className="catalog-study">{chosen.study}</p>}
+          {chosen?.review && <details><summary>운영 전제와 검증 방법</summary>
+            <p>{chosen.review.operations}</p><p>{chosen.review.reliability}</p><p>{chosen.review.security}</p><p>{chosen.review.cost}</p><p>{chosen.review.performance}</p></details>}
           {chosen ? (
             <details>
               <summary>구성 리소스 {chosen.kinds.length}종</summary>
@@ -367,6 +371,7 @@ export default function ArchitectureDocument({
     [group, setGroup] = useState("전체"),
     [zoom, setZoom] = useState(1),
     [boundary, setBoundary] = useState(true),
+    [caseView, setCaseView] = useState(Boolean(model.caseStudyId)),
     [fitBoundary, setFitBoundary] = useState(true),
     [tab, setTab] = useState(model.drawing ? "drawing" : "canvas"),
     [format, setFormat] = useState("all"),
@@ -938,28 +943,37 @@ export default function ArchitectureDocument({
           <div className="arch-workspace">
             <div className="arch-canvas-tools">
               <div className="segmented">
+                {model.caseStudyId && <button aria-pressed={caseView} className={caseView ? "selected" : ""} onClick={() => setCaseView(true)}>사례 구성도</button>}
                 <button
-                  aria-pressed={boundary}
-                  className={boundary ? "selected" : ""}
-                  onClick={() => setBoundary(true)}
+                  aria-pressed={!caseView && boundary}
+                  className={!caseView && boundary ? "selected" : ""}
+                  onClick={() => {setCaseView(false); setBoundary(true)}}
                 >
                   경계 도면
                 </button>
                 <button
-                  aria-pressed={!boundary}
-                  className={!boundary ? "selected" : ""}
-                  onClick={() => setBoundary(false)}
+                  aria-pressed={!caseView && !boundary}
+                  className={!caseView && !boundary ? "selected" : ""}
+                  onClick={() => {setCaseView(false); setBoundary(false)}}
                 >
                   자유 배치·참조선
                 </button>
               </div>
-              {boundary && (
+              {(boundary || caseView) && (
                 <button onClick={() => setFitBoundary(!fitBoundary)}>
                   {fitBoundary ? "확대 보기" : "전체 맞춤"}
                 </button>
               )}
             </div>
-            {boundary && model.nodes.length > 0 ? (
+            {caseView && model.caseStudyId ? <div className={fitBoundary ? "case-blueprint" : "case-blueprint case-enlarged"} onClick={event => {
+              const id=(event.target as Element).closest("[data-resource]")?.getAttribute("data-resource");
+              const n=model.nodes.find(n=>n.id===id); if(n) select(n);
+            }} onKeyDown={event => {
+              if (event.key==="Enter" || event.key===" ") { event.preventDefault(); (event.target as Element).dispatchEvent(new MouseEvent("click",{bubbles:true})); }
+            }}>
+              <div dangerouslySetInnerHTML={{__html:caseDiagram(model,selected)}}/>
+              <p>실선은 구성 참조, 점선 화살표는 운영 시 연결할 경로입니다. 리소스를 선택하면 속성과 원본 코드를 볼 수 있습니다.</p>
+            </div> : boundary && model.nodes.length > 0 ? (
               <>
                 <p className="boundary-hint">
                   {connecting

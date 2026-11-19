@@ -1,0 +1,404 @@
+{
+  "version": 1,
+  "title": "AWS · 서울 리전 · 이중 AZ 프라이빗 이그레스",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.seoul",
+      "x": 60,
+      "y": 60,
+      "props": {
+        "cidr": "10.42.0.0/16"
+      },
+      "original": {
+        "cidr": "10.42.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_vpc.seoul",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.internet",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_internet_gateway.internet",
+      "references": [
+        "aws_vpc.seoul"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table.public",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 587,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_a",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table.private_a",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 657,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_c",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table.private_c",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 727,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_route",
+      "label": "aws_route.internet",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route.internet",
+      "references": [
+        "aws_route_table.public",
+        "aws_internet_gateway.internet"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_route",
+      "label": "aws_route.egress_a",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route.egress_a",
+      "references": [
+        "aws_route_table.private_a",
+        "aws_nat_gateway.egress_a"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_route",
+      "label": "aws_route.egress_c",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route.egress_c",
+      "references": [
+        "aws_route_table.private_c",
+        "aws_nat_gateway.egress_c"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_a",
+      "x": 60,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.0.0/24"
+      },
+      "original": {
+        "cidr": "10.42.0.0/24"
+      },
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_subnet.public_a",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 1433,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_a",
+      "x": 300,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.10.0/24"
+      },
+      "original": {
+        "cidr": "10.42.10.0/24"
+      },
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_subnet.private_a",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 1658,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_c",
+      "x": 540,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.1.0/24"
+      },
+      "original": {
+        "cidr": "10.42.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_subnet.public_c",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 1892,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_c",
+      "x": 780,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.11.0/24"
+      },
+      "original": {
+        "cidr": "10.42.11.0/24"
+      },
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_subnet.private_c",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "seoul-zonal-egress.tf.json",
+        "offset": 2117,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_eip",
+      "label": "aws_eip.egress_a",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_eip.egress_a",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_eip",
+      "label": "aws_eip.egress_c",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_eip.egress_c",
+      "references": []
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.egress_a",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_nat_gateway.egress_a",
+      "references": [
+        "aws_eip.egress_a",
+        "aws_subnet.public_a",
+        "aws_internet_gateway.internet"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.egress_c",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_nat_gateway.egress_c",
+      "references": [
+        "aws_eip.egress_c",
+        "aws_subnet.public_c",
+        "aws_internet_gateway.internet"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_a",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table_association.public_a",
+      "references": [
+        "aws_route_table.public",
+        "aws_subnet.public_a"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_a",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table_association.private_a",
+      "references": [
+        "aws_route_table.private_a",
+        "aws_subnet.private_a"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_c",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table_association.public_c",
+      "references": [
+        "aws_route_table.public",
+        "aws_subnet.public_c"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_c",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "seoul-zonal-egress.tf.json",
+      "address": "aws_route_table_association.private_c",
+      "references": [
+        "aws_route_table.private_c",
+        "aws_subnet.private_c"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "seoul-zonal-egress.tf.json",
+      "content": "{\n  \"terraform\": {\n    \"required_version\": \">= 1.5.0\",\n    \"required_providers\": {\n      \"aws\": {\n        \"source\": \"hashicorp/aws\"\n      }\n    }\n  },\n  \"variable\": {},\n  \"provider\": {\n    \"aws\": {\n      \"region\": \"ap-northeast-2\"\n    }\n  },\n  \"resource\": {\n    \"aws_vpc\": {\n      \"seoul\": {\n        \"cidr_block\": \"10.42.0.0/16\",\n        \"enable_dns_hostnames\": true,\n        \"enable_dns_support\": true\n      }\n    },\n    \"aws_internet_gateway\": {\n      \"internet\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      }\n    },\n    \"aws_route_table\": {\n      \"public\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      },\n      \"private_a\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      },\n      \"private_c\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      }\n    },\n    \"aws_route\": {\n      \"internet\": {\n        \"route_table_id\": \"${aws_route_table.public.id}\",\n        \"destination_cidr_block\": \"0.0.0.0/0\",\n        \"gateway_id\": \"${aws_internet_gateway.internet.id}\"\n      },\n      \"egress_a\": {\n        \"route_table_id\": \"${aws_route_table.private_a.id}\",\n        \"destination_cidr_block\": \"0.0.0.0/0\",\n        \"nat_gateway_id\": \"${aws_nat_gateway.egress_a.id}\"\n      },\n      \"egress_c\": {\n        \"route_table_id\": \"${aws_route_table.private_c.id}\",\n        \"destination_cidr_block\": \"0.0.0.0/0\",\n        \"nat_gateway_id\": \"${aws_nat_gateway.egress_c.id}\"\n      }\n    },\n    \"aws_subnet\": {\n      \"public_a\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2a\",\n        \"cidr_block\": \"10.42.0.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/elb\": \"1\"\n        }\n      },\n      \"private_a\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2a\",\n        \"cidr_block\": \"10.42.10.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/internal-elb\": \"1\"\n        }\n      },\n      \"public_c\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2c\",\n        \"cidr_block\": \"10.42.1.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/elb\": \"1\"\n        }\n      },\n      \"private_c\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2c\",\n        \"cidr_block\": \"10.42.11.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/internal-elb\": \"1\"\n        }\n      }\n    },\n    \"aws_eip\": {\n      \"egress_a\": {\n        \"domain\": \"vpc\"\n      },\n      \"egress_c\": {\n        \"domain\": \"vpc\"\n      }\n    },\n    \"aws_nat_gateway\": {\n      \"egress_a\": {\n        \"allocation_id\": \"${aws_eip.egress_a.id}\",\n        \"subnet_id\": \"${aws_subnet.public_a.id}\",\n        \"depends_on\": [\n          \"aws_internet_gateway.internet\"\n        ]\n      },\n      \"egress_c\": {\n        \"allocation_id\": \"${aws_eip.egress_c.id}\",\n        \"subnet_id\": \"${aws_subnet.public_c.id}\",\n        \"depends_on\": [\n          \"aws_internet_gateway.internet\"\n        ]\n      }\n    },\n    \"aws_route_table_association\": {\n      \"public_a\": {\n        \"route_table_id\": \"${aws_route_table.public.id}\",\n        \"subnet_id\": \"${aws_subnet.public_a.id}\"\n      },\n      \"private_a\": {\n        \"route_table_id\": \"${aws_route_table.private_a.id}\",\n        \"subnet_id\": \"${aws_subnet.private_a.id}\"\n      },\n      \"public_c\": {\n        \"route_table_id\": \"${aws_route_table.public.id}\",\n        \"subnet_id\": \"${aws_subnet.public_c.id}\"\n      },\n      \"private_c\": {\n        \"route_table_id\": \"${aws_route_table.private_c.id}\",\n        \"subnet_id\": \"${aws_subnet.private_c.id}\"\n      }\n    }\n  }\n}\n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "seoul-zonal-egress",
+  "review": {
+    "reliability": "2a와 2c 각각에 NAT와 EIP를 둔다. 한 AZ의 장애가 다른 AZ의 기본 경로에 전파되지 않는지 확인한다.",
+    "security": "Public에는 IGW 경로, Private에는 NAT 경로만 둔다. 각 테이블 연결을 점검한다.",
+    "cost": "AZ별 NAT 고정 비용과 처리량을 단일 NAT 구성의 AZ 간 전송 비용 및 장애 범위와 비교한다.",
+    "operations": "egress_a 경로를 검토할 때 private_a association → private_a route table → NAT → EIP 순으로 추적한다.",
+    "performance": "각 AZ에서 외부 관측 IP가 그 AZ의 EIP인지 확인하고 지연과 NAT 포트 할당 오류를 따로 측정한다."
+  }
+}

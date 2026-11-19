@@ -1,0 +1,86 @@
+[
+  {
+    "id": "seoul-zonal-egress",
+    "provider": "AWS",
+    "name": "서울 리전 · 이중 AZ 프라이빗 이그레스",
+    "study": "서울 리전의 주문 처리 계층을 두 가용 영역에 나누고 각 프라이빗 서브넷에서 같은 AZ의 NAT로 나간다.",
+    "review": {
+      "reliability": "2a와 2c 각각에 NAT와 EIP를 둔다. 한 AZ의 장애가 다른 AZ의 기본 경로에 전파되지 않는지 확인한다.",
+      "security": "Public에는 IGW 경로, Private에는 NAT 경로만 둔다. 각 테이블 연결을 점검한다.",
+      "cost": "AZ별 NAT 고정 비용과 처리량을 단일 NAT 구성의 AZ 간 전송 비용 및 장애 범위와 비교한다.",
+      "operations": "egress_a 경로를 검토할 때 private_a association → private_a route table → NAT → EIP 순으로 추적한다.",
+      "performance": "각 AZ에서 외부 관측 IP가 그 AZ의 EIP인지 확인하고 지연과 NAT 포트 할당 오류를 따로 측정한다."
+    },
+    "caseStudy": true,
+    "kinds": [
+      "aws_vpc",
+      "aws_internet_gateway",
+      "aws_route_table",
+      "aws_route",
+      "aws_subnet",
+      "aws_eip",
+      "aws_nat_gateway",
+      "aws_route_table_association"
+    ]
+  },
+  {
+    "id": "eks-platform-operations",
+    "provider": "AWS",
+    "name": "EKS · 사설 클러스터와 관측 플랫폼",
+    "study": "서울의 두 프라이빗 서브넷에 워커를 배치하고 인입·업무·로그·메트릭의 운영 책임을 네임스페이스로 나눈다.",
+    "review": {
+      "reliability": "EFS mount target과 NAT를 각 AZ에 배치한다. 워커 한 대를 드레인한 뒤 인입과 스토리지 재연결을 확인한다.",
+      "security": "클러스터·노드 역할은 외부 입력이다. 사설 API에 접근 가능한 실행 위치, EKS 접근 권한, 각 수집기의 AWS 권한을 먼저 준비한다.",
+      "cost": "NAT 처리량, 로그 보존 일수, 메트릭 고유 시계열 수를 함께 검토한다.",
+      "operations": "차트 버전과 values를 공급한다. 점선은 구성해야 할 HTTP·로그·메트릭 경로다. 서비스 계정, EFS CSI 드라이버와 업무 배포는 환경에 맞춰 연결한다.",
+      "performance": "시험 트래픽 한 건을 보내 Ingress 응답, CloudWatch 로그 도착, Prometheus 시계열 지연을 대조한다."
+    },
+    "caseStudy": true,
+    "kinds": [
+      "aws_vpc",
+      "aws_internet_gateway",
+      "aws_route_table",
+      "aws_route",
+      "aws_subnet",
+      "aws_eip",
+      "aws_nat_gateway",
+      "aws_route_table_association",
+      "aws_eks_cluster",
+      "aws_eks_node_group",
+      "kubernetes_namespace_v1",
+      "aws_cloudwatch_log_group",
+      "aws_prometheus_workspace",
+      "aws_efs_file_system",
+      "aws_security_group",
+      "aws_efs_mount_target",
+      "helm_release"
+    ]
+  },
+  {
+    "id": "retail-data-estate",
+    "provider": "멀티클라우드",
+    "name": "리테일 · 3개 클라우드 주문 분석과 수요 예측",
+    "study": "AWS 주문 원본을 보존하고 GCP에서 정제 Parquet을 분석하며 Azure에는 지역별 집계 결과를 제공하는 설계다.",
+    "review": {
+      "reliability": "배치 ID·주문 일자·행 수를 기록한다. 누락된 날짜만 재처리한 후 집계 중복을 검사한다.",
+      "security": "원시 주문의 개인 식별자를 정제 단계에서 제거한다. 보고서 배포 계정에는 집계 영역 읽기만 부여한다.",
+      "cost": "원본 전체 재전송과 일 단위 증분 복제의 전송량, BigQuery 스캔 바이트, 데이터 보관 기간을 비교한다.",
+      "operations": "실선은 GCS의 Parquet을 읽는 BigQuery 외부 테이블이다. 점선의 전송 작업, 인증 연결, 모델 학습과 보고 파이프라인은 별도 구성 대상이다.",
+      "performance": "일자별 주문 집계의 완전성 및 도착 지연을 확인한 뒤 검증된 분할만 수요 예측 입력으로 승격한다."
+    },
+    "caseStudy": true,
+    "kinds": [
+      "aws_s3_bucket",
+      "aws_s3_bucket_versioning",
+      "aws_s3_bucket_public_access_block",
+      "azurerm_resource_group",
+      "azurerm_storage_account",
+      "azurerm_storage_data_lake_gen2_filesystem",
+      "azurerm_data_factory",
+      "google_storage_bucket",
+      "google_bigquery_dataset",
+      "google_bigquery_table",
+      "google_vertex_ai_dataset"
+    ]
+  }
+]

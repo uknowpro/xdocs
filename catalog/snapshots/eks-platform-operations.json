@@ -1,0 +1,642 @@
+{
+  "version": 1,
+  "title": "AWS · EKS · 사설 클러스터와 관측 플랫폼",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.seoul",
+      "x": 60,
+      "y": 60,
+      "props": {
+        "cidr": "10.42.0.0/16"
+      },
+      "original": {
+        "cidr": "10.42.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_vpc.seoul",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_internet_gateway",
+      "label": "aws_internet_gateway.internet",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_internet_gateway.internet",
+      "references": [
+        "aws_vpc.seoul"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.public",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table.public",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 2614,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_a",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table.private_a",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 2684,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_route_table",
+      "label": "aws_route_table.private_c",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table.private_c",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 2754,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_route",
+      "label": "aws_route.internet",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route.internet",
+      "references": [
+        "aws_route_table.public",
+        "aws_internet_gateway.internet"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_route",
+      "label": "aws_route.egress_a",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route.egress_a",
+      "references": [
+        "aws_route_table.private_a",
+        "aws_nat_gateway.egress_a"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_route",
+      "label": "aws_route.egress_c",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route.egress_c",
+      "references": [
+        "aws_route_table.private_c",
+        "aws_nat_gateway.egress_c"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_a",
+      "x": 60,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.0.0/24"
+      },
+      "original": {
+        "cidr": "10.42.0.0/24"
+      },
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_subnet.public_a",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 3460,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_a",
+      "x": 300,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.10.0/24"
+      },
+      "original": {
+        "cidr": "10.42.10.0/24"
+      },
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_subnet.private_a",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 3685,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_10",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.public_c",
+      "x": 540,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.1.0/24"
+      },
+      "original": {
+        "cidr": "10.42.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_subnet.public_c",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 3919,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_11",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.private_c",
+      "x": 780,
+      "y": 340,
+      "props": {
+        "cidr": "10.42.11.0/24"
+      },
+      "original": {
+        "cidr": "10.42.11.0/24"
+      },
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_subnet.private_c",
+      "references": [
+        "aws_vpc.seoul"
+      ],
+      "scopeAddress": "aws_vpc.seoul",
+      "placementSource": {
+        "file": "eks-platform-operations.tf.json",
+        "offset": 4144,
+        "address": "aws_vpc.seoul",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "aws_eip",
+      "label": "aws_eip.egress_a",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_eip.egress_a",
+      "references": []
+    },
+    {
+      "id": "n_import_13",
+      "kind": "aws_eip",
+      "label": "aws_eip.egress_c",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_eip.egress_c",
+      "references": []
+    },
+    {
+      "id": "n_import_14",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.egress_a",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_nat_gateway.egress_a",
+      "references": [
+        "aws_eip.egress_a",
+        "aws_subnet.public_a",
+        "aws_internet_gateway.internet"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "aws_nat_gateway",
+      "label": "aws_nat_gateway.egress_c",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_nat_gateway.egress_c",
+      "references": [
+        "aws_eip.egress_c",
+        "aws_subnet.public_c",
+        "aws_internet_gateway.internet"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_a",
+      "x": 60,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table_association.public_a",
+      "references": [
+        "aws_route_table.public",
+        "aws_subnet.public_a"
+      ]
+    },
+    {
+      "id": "n_import_17",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_a",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table_association.private_a",
+      "references": [
+        "aws_route_table.private_a",
+        "aws_subnet.private_a"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.public_c",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table_association.public_c",
+      "references": [
+        "aws_route_table.public",
+        "aws_subnet.public_c"
+      ]
+    },
+    {
+      "id": "n_import_19",
+      "kind": "aws_route_table_association",
+      "label": "aws_route_table_association.private_c",
+      "x": 780,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_route_table_association.private_c",
+      "references": [
+        "aws_route_table.private_c",
+        "aws_subnet.private_c"
+      ]
+    },
+    {
+      "id": "n_import_20",
+      "kind": "aws_eks_cluster",
+      "label": "aws_eks_cluster.platform",
+      "x": 60,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_eks_cluster.platform",
+      "references": [
+        "aws_subnet.private_a",
+        "aws_subnet.private_c"
+      ]
+    },
+    {
+      "id": "n_import_21",
+      "kind": "aws_eks_node_group",
+      "label": "aws_eks_node_group.workers",
+      "x": 300,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_eks_node_group.workers",
+      "references": [
+        "aws_eks_cluster.platform",
+        "aws_subnet.private_a",
+        "aws_subnet.private_c"
+      ]
+    },
+    {
+      "id": "n_import_22",
+      "kind": "kubernetes_namespace_v1",
+      "label": "kubernetes_namespace_v1.ingress",
+      "x": 540,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "kubernetes_namespace_v1.ingress",
+      "references": []
+    },
+    {
+      "id": "n_import_23",
+      "kind": "kubernetes_namespace_v1",
+      "label": "kubernetes_namespace_v1.application",
+      "x": 780,
+      "y": 760,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "kubernetes_namespace_v1.application",
+      "references": []
+    },
+    {
+      "id": "n_import_24",
+      "kind": "kubernetes_namespace_v1",
+      "label": "kubernetes_namespace_v1.logging",
+      "x": 60,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "kubernetes_namespace_v1.logging",
+      "references": []
+    },
+    {
+      "id": "n_import_25",
+      "kind": "kubernetes_namespace_v1",
+      "label": "kubernetes_namespace_v1.monitoring",
+      "x": 300,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "kubernetes_namespace_v1.monitoring",
+      "references": []
+    },
+    {
+      "id": "n_import_26",
+      "kind": "aws_cloudwatch_log_group",
+      "label": "aws_cloudwatch_log_group.application",
+      "x": 540,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_cloudwatch_log_group.application",
+      "references": []
+    },
+    {
+      "id": "n_import_27",
+      "kind": "aws_prometheus_workspace",
+      "label": "aws_prometheus_workspace.metrics",
+      "x": 780,
+      "y": 900,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_prometheus_workspace.metrics",
+      "references": []
+    },
+    {
+      "id": "n_import_28",
+      "kind": "aws_efs_file_system",
+      "label": "aws_efs_file_system.shared",
+      "x": 60,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_efs_file_system.shared",
+      "references": []
+    },
+    {
+      "id": "n_import_29",
+      "kind": "aws_security_group",
+      "label": "aws_security_group.efs",
+      "x": 300,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_security_group.efs",
+      "references": [
+        "aws_vpc.seoul",
+        "aws_eks_cluster.platform"
+      ]
+    },
+    {
+      "id": "n_import_30",
+      "kind": "aws_efs_mount_target",
+      "label": "aws_efs_mount_target.zone_a",
+      "x": 540,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_efs_mount_target.zone_a",
+      "references": [
+        "aws_efs_file_system.shared",
+        "aws_subnet.private_a",
+        "aws_security_group.efs"
+      ]
+    },
+    {
+      "id": "n_import_31",
+      "kind": "aws_efs_mount_target",
+      "label": "aws_efs_mount_target.zone_c",
+      "x": 780,
+      "y": 1040,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "aws_efs_mount_target.zone_c",
+      "references": [
+        "aws_efs_file_system.shared",
+        "aws_subnet.private_c",
+        "aws_security_group.efs"
+      ]
+    },
+    {
+      "id": "n_import_32",
+      "kind": "helm_release",
+      "label": "helm_release.gateway",
+      "x": 60,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "helm_release.gateway",
+      "references": [
+        "kubernetes_namespace_v1.ingress",
+        "aws_eks_node_group.workers"
+      ]
+    },
+    {
+      "id": "n_import_33",
+      "kind": "helm_release",
+      "label": "helm_release.logs",
+      "x": 300,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "helm_release.logs",
+      "references": [
+        "kubernetes_namespace_v1.logging",
+        "aws_eks_node_group.workers"
+      ]
+    },
+    {
+      "id": "n_import_34",
+      "kind": "helm_release",
+      "label": "helm_release.metrics",
+      "x": 540,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "helm_release.metrics",
+      "references": [
+        "kubernetes_namespace_v1.monitoring",
+        "aws_eks_node_group.workers"
+      ]
+    },
+    {
+      "id": "n_import_35",
+      "kind": "helm_release",
+      "label": "helm_release.dashboards",
+      "x": 780,
+      "y": 1180,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "eks-platform-operations.tf.json",
+      "address": "helm_release.dashboards",
+      "references": [
+        "kubernetes_namespace_v1.monitoring",
+        "aws_eks_node_group.workers"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "eks-platform-operations.tf.json",
+      "content": "{\n  \"terraform\": {\n    \"required_version\": \">= 1.5.0\",\n    \"required_providers\": {\n      \"aws\": {\n        \"source\": \"hashicorp/aws\"\n      },\n      \"kubernetes\": {\n        \"source\": \"hashicorp/kubernetes\"\n      },\n      \"helm\": {\n        \"source\": \"hashicorp/helm\",\n        \"version\": \"~> 2.17\"\n      }\n    }\n  },\n  \"variable\": {\n    \"cluster_role_arn\": {\n      \"type\": \"string\"\n    },\n    \"worker_role_arn\": {\n      \"type\": \"string\"\n    },\n    \"gateway_chart_version\": {\n      \"type\": \"string\"\n    },\n    \"gateway_values_yaml\": {\n      \"type\": \"string\",\n      \"sensitive\": true\n    },\n    \"logs_chart_version\": {\n      \"type\": \"string\"\n    },\n    \"logs_values_yaml\": {\n      \"type\": \"string\",\n      \"sensitive\": true\n    },\n    \"metrics_chart_version\": {\n      \"type\": \"string\"\n    },\n    \"metrics_values_yaml\": {\n      \"type\": \"string\",\n      \"sensitive\": true\n    },\n    \"dashboards_chart_version\": {\n      \"type\": \"string\"\n    },\n    \"dashboards_values_yaml\": {\n      \"type\": \"string\",\n      \"sensitive\": true\n    }\n  },\n  \"provider\": {\n    \"aws\": {\n      \"region\": \"ap-northeast-2\"\n    },\n    \"kubernetes\": {\n      \"host\": \"${aws_eks_cluster.platform.endpoint}\",\n      \"cluster_ca_certificate\": \"${base64decode(aws_eks_cluster.platform.certificate_authority[0].data)}\",\n      \"exec\": [\n        {\n          \"api_version\": \"client.authentication.k8s.io/v1beta1\",\n          \"command\": \"aws\",\n          \"args\": [\n            \"eks\",\n            \"get-token\",\n            \"--region\",\n            \"ap-northeast-2\",\n            \"--cluster-name\",\n            \"${aws_eks_cluster.platform.name}\"\n          ]\n        }\n      ]\n    },\n    \"helm\": {\n      \"kubernetes\": [\n        {\n          \"host\": \"${aws_eks_cluster.platform.endpoint}\",\n          \"cluster_ca_certificate\": \"${base64decode(aws_eks_cluster.platform.certificate_authority[0].data)}\",\n          \"exec\": [\n            {\n              \"api_version\": \"client.authentication.k8s.io/v1beta1\",\n              \"command\": \"aws\",\n              \"args\": [\n                \"eks\",\n                \"get-token\",\n                \"--region\",\n                \"ap-northeast-2\",\n                \"--cluster-name\",\n                \"${aws_eks_cluster.platform.name}\"\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  },\n  \"resource\": {\n    \"aws_vpc\": {\n      \"seoul\": {\n        \"cidr_block\": \"10.42.0.0/16\",\n        \"enable_dns_hostnames\": true,\n        \"enable_dns_support\": true\n      }\n    },\n    \"aws_internet_gateway\": {\n      \"internet\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      }\n    },\n    \"aws_route_table\": {\n      \"public\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      },\n      \"private_a\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      },\n      \"private_c\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\"\n      }\n    },\n    \"aws_route\": {\n      \"internet\": {\n        \"route_table_id\": \"${aws_route_table.public.id}\",\n        \"destination_cidr_block\": \"0.0.0.0/0\",\n        \"gateway_id\": \"${aws_internet_gateway.internet.id}\"\n      },\n      \"egress_a\": {\n        \"route_table_id\": \"${aws_route_table.private_a.id}\",\n        \"destination_cidr_block\": \"0.0.0.0/0\",\n        \"nat_gateway_id\": \"${aws_nat_gateway.egress_a.id}\"\n      },\n      \"egress_c\": {\n        \"route_table_id\": \"${aws_route_table.private_c.id}\",\n        \"destination_cidr_block\": \"0.0.0.0/0\",\n        \"nat_gateway_id\": \"${aws_nat_gateway.egress_c.id}\"\n      }\n    },\n    \"aws_subnet\": {\n      \"public_a\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2a\",\n        \"cidr_block\": \"10.42.0.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/elb\": \"1\"\n        }\n      },\n      \"private_a\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2a\",\n        \"cidr_block\": \"10.42.10.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/internal-elb\": \"1\"\n        }\n      },\n      \"public_c\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2c\",\n        \"cidr_block\": \"10.42.1.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/elb\": \"1\"\n        }\n      },\n      \"private_c\": {\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"availability_zone\": \"ap-northeast-2c\",\n        \"cidr_block\": \"10.42.11.0/24\",\n        \"tags\": {\n          \"kubernetes.io/role/internal-elb\": \"1\"\n        }\n      }\n    },\n    \"aws_eip\": {\n      \"egress_a\": {\n        \"domain\": \"vpc\"\n      },\n      \"egress_c\": {\n        \"domain\": \"vpc\"\n      }\n    },\n    \"aws_nat_gateway\": {\n      \"egress_a\": {\n        \"allocation_id\": \"${aws_eip.egress_a.id}\",\n        \"subnet_id\": \"${aws_subnet.public_a.id}\",\n        \"depends_on\": [\n          \"aws_internet_gateway.internet\"\n        ]\n      },\n      \"egress_c\": {\n        \"allocation_id\": \"${aws_eip.egress_c.id}\",\n        \"subnet_id\": \"${aws_subnet.public_c.id}\",\n        \"depends_on\": [\n          \"aws_internet_gateway.internet\"\n        ]\n      }\n    },\n    \"aws_route_table_association\": {\n      \"public_a\": {\n        \"route_table_id\": \"${aws_route_table.public.id}\",\n        \"subnet_id\": \"${aws_subnet.public_a.id}\"\n      },\n      \"private_a\": {\n        \"route_table_id\": \"${aws_route_table.private_a.id}\",\n        \"subnet_id\": \"${aws_subnet.private_a.id}\"\n      },\n      \"public_c\": {\n        \"route_table_id\": \"${aws_route_table.public.id}\",\n        \"subnet_id\": \"${aws_subnet.public_c.id}\"\n      },\n      \"private_c\": {\n        \"route_table_id\": \"${aws_route_table.private_c.id}\",\n        \"subnet_id\": \"${aws_subnet.private_c.id}\"\n      }\n    },\n    \"aws_eks_cluster\": {\n      \"platform\": {\n        \"name\": \"platform\",\n        \"role_arn\": \"${var.cluster_role_arn}\",\n        \"vpc_config\": [\n          {\n            \"subnet_ids\": [\n              \"${aws_subnet.private_a.id}\",\n              \"${aws_subnet.private_c.id}\"\n            ],\n            \"endpoint_private_access\": true,\n            \"endpoint_public_access\": false\n          }\n        ],\n        \"enabled_cluster_log_types\": [\n          \"api\",\n          \"audit\",\n          \"authenticator\"\n        ]\n      }\n    },\n    \"aws_eks_node_group\": {\n      \"workers\": {\n        \"cluster_name\": \"${aws_eks_cluster.platform.name}\",\n        \"node_group_name\": \"platform-workers\",\n        \"node_role_arn\": \"${var.worker_role_arn}\",\n        \"subnet_ids\": [\n          \"${aws_subnet.private_a.id}\",\n          \"${aws_subnet.private_c.id}\"\n        ],\n        \"scaling_config\": [\n          {\n            \"desired_size\": 2,\n            \"min_size\": 2,\n            \"max_size\": 6\n          }\n        ]\n      }\n    },\n    \"kubernetes_namespace_v1\": {\n      \"ingress\": {\n        \"metadata\": [\n          {\n            \"name\": \"ingress\"\n          }\n        ]\n      },\n      \"application\": {\n        \"metadata\": [\n          {\n            \"name\": \"application\"\n          }\n        ]\n      },\n      \"logging\": {\n        \"metadata\": [\n          {\n            \"name\": \"logging\"\n          }\n        ]\n      },\n      \"monitoring\": {\n        \"metadata\": [\n          {\n            \"name\": \"monitoring\"\n          }\n        ]\n      }\n    },\n    \"aws_cloudwatch_log_group\": {\n      \"application\": {\n        \"name\": \"/platform/application\",\n        \"retention_in_days\": 30\n      }\n    },\n    \"aws_prometheus_workspace\": {\n      \"metrics\": {\n        \"alias\": \"platform-metrics\"\n      }\n    },\n    \"aws_efs_file_system\": {\n      \"shared\": {\n        \"encrypted\": true,\n        \"creation_token\": \"platform-shared\"\n      }\n    },\n    \"aws_security_group\": {\n      \"efs\": {\n        \"name\": \"platform-efs\",\n        \"vpc_id\": \"${aws_vpc.seoul.id}\",\n        \"ingress\": [\n          {\n            \"description\": \"NFS from EKS nodes\",\n            \"from_port\": 2049,\n            \"to_port\": 2049,\n            \"protocol\": \"tcp\",\n            \"security_groups\": [\n              \"${aws_eks_cluster.platform.vpc_config[0].cluster_security_group_id}\"\n            ],\n            \"cidr_blocks\": [],\n            \"ipv6_cidr_blocks\": [],\n            \"prefix_list_ids\": [],\n            \"self\": false\n          }\n        ]\n      }\n    },\n    \"aws_efs_mount_target\": {\n      \"zone_a\": {\n        \"file_system_id\": \"${aws_efs_file_system.shared.id}\",\n        \"subnet_id\": \"${aws_subnet.private_a.id}\",\n        \"security_groups\": [\n          \"${aws_security_group.efs.id}\"\n        ]\n      },\n      \"zone_c\": {\n        \"file_system_id\": \"${aws_efs_file_system.shared.id}\",\n        \"subnet_id\": \"${aws_subnet.private_c.id}\",\n        \"security_groups\": [\n          \"${aws_security_group.efs.id}\"\n        ]\n      }\n    },\n    \"helm_release\": {\n      \"gateway\": {\n        \"name\": \"gateway\",\n        \"namespace\": \"${kubernetes_namespace_v1.ingress.metadata[0].name}\",\n        \"repository\": \"https://traefik.github.io/charts\",\n        \"chart\": \"traefik\",\n        \"version\": \"${var.gateway_chart_version}\",\n        \"values\": [\n          \"${var.gateway_values_yaml}\"\n        ],\n        \"depends_on\": [\n          \"aws_eks_node_group.workers\"\n        ]\n      },\n      \"logs\": {\n        \"name\": \"logs\",\n        \"namespace\": \"${kubernetes_namespace_v1.logging.metadata[0].name}\",\n        \"repository\": \"https://fluent.github.io/helm-charts\",\n        \"chart\": \"fluent-bit\",\n        \"version\": \"${var.logs_chart_version}\",\n        \"values\": [\n          \"${var.logs_values_yaml}\"\n        ],\n        \"depends_on\": [\n          \"aws_eks_node_group.workers\"\n        ]\n      },\n      \"metrics\": {\n        \"name\": \"metrics\",\n        \"namespace\": \"${kubernetes_namespace_v1.monitoring.metadata[0].name}\",\n        \"repository\": \"https://open-telemetry.github.io/opentelemetry-helm-charts\",\n        \"chart\": \"opentelemetry-collector\",\n        \"version\": \"${var.metrics_chart_version}\",\n        \"values\": [\n          \"${var.metrics_values_yaml}\"\n        ],\n        \"depends_on\": [\n          \"aws_eks_node_group.workers\"\n        ]\n      },\n      \"dashboards\": {\n        \"name\": \"dashboards\",\n        \"namespace\": \"${kubernetes_namespace_v1.monitoring.metadata[0].name}\",\n        \"repository\": \"https://grafana.github.io/helm-charts\",\n        \"chart\": \"grafana\",\n        \"version\": \"${var.dashboards_chart_version}\",\n        \"values\": [\n          \"${var.dashboards_values_yaml}\"\n        ],\n        \"depends_on\": [\n          \"aws_eks_node_group.workers\"\n        ]\n      }\n    }\n  }\n}\n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "eks-platform-operations",
+  "review": {
+    "reliability": "EFS mount target과 NAT를 각 AZ에 배치한다. 워커 한 대를 드레인한 뒤 인입과 스토리지 재연결을 확인한다.",
+    "security": "클러스터·노드 역할은 외부 입력이다. 사설 API에 접근 가능한 실행 위치, EKS 접근 권한, 각 수집기의 AWS 권한을 먼저 준비한다.",
+    "cost": "NAT 처리량, 로그 보존 일수, 메트릭 고유 시계열 수를 함께 검토한다.",
+    "operations": "차트 버전과 values를 공급한다. 점선은 구성해야 할 HTTP·로그·메트릭 경로다. 서비스 계정, EFS CSI 드라이버와 업무 배포는 환경에 맞춰 연결한다.",
+    "performance": "시험 트래픽 한 건을 보내 Ingress 응답, CloudWatch 로그 도착, Prometheus 시계열 지연을 대조한다."
+  }
+}
