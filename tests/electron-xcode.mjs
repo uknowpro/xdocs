@@ -101,7 +101,16 @@ try {
   assert.equal(calls.length, 0);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
-  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await page.getByLabel("API 주소").fill(endpoint);
+  await expect(page.getByLabel("API 토큰 (선택)")).toBeVisible();
+  await expect(page.getByLabel("모델명", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("재요청 간격(초)")).toBeHidden();
+  const openAdvanced = async () => {
+    const panel = page.locator(".chat-advanced");
+    if (!(await panel.evaluate((el) => el.open)))
+      await panel.locator(":scope > summary").click();
+  };
+  await openAdvanced();
   for (const kind of ["text", "image", "pdf"]) {
     await page.getByLabel("연결 진단 입력").selectOption(kind);
     await page.getByRole("button", { name: "연결 진단 실행" }).click();
@@ -240,7 +249,7 @@ try {
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
-  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await page.getByLabel("API 주소").fill(endpoint);
   await page.getByLabel("xcode 메시지").fill("parallel-second");
   caseMode = "normal";
   await page.getByRole("button", { name: "전송", exact: true }).click();
@@ -262,6 +271,7 @@ try {
   );
   const send = page.getByRole("button", { name: "전송", exact: true }),
     input = page.getByLabel("xcode 메시지");
+  await openAdvanced();
   await page.getByLabel("이어지는 응답 자동 요청").check();
   await page.getByLabel("재요청 간격(초)").fill("1");
   caseMode = "temporary";
@@ -294,6 +304,7 @@ try {
   await new Promise((r) => setTimeout(r, 1200));
   assert.equal(calls.length, stopped);
   await page.getByLabel("자동 요청 한도(회)").fill("1");
+  await openAdvanced();
   await page.getByLabel("이어지는 응답 자동 요청").check();
   await input.fill("budget-case");
   await send.click();
@@ -308,7 +319,7 @@ try {
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
   const firstCount = calls.length;
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
-  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await page.getByLabel("API 주소").fill(endpoint);
   await expect(page.getByLabel("서버 동시 요청 수")).toHaveValue("1");
   await input.fill("queued-session");
   await send.click();
@@ -339,7 +350,7 @@ try {
   await send.click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
-  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await page.getByLabel("API 주소").fill(endpoint);
   await input.fill("queue-successor");
   await send.click();
   await expect(page.locator(".xcode [role=status]")).toContainText(
@@ -355,6 +366,7 @@ try {
   );
 
   await page.clock.install();
+  await openAdvanced();
   await page.getByLabel("이어지는 응답 자동 요청").check();
   await page.getByLabel("재요청 방식").selectOption("repeat");
   await page.getByLabel("재요청 간격(초)").fill("3600");

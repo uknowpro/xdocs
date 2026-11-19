@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.9
+
+- Start an xcode session with the API URL, optional token and model ID. Connection diagnostics, retries and harness controls are grouped under advanced settings.
+
 ## 0.5.8
 
 - **Chat in xcode sessions.** Follow the model’s streamed reply beneath your message. Press Enter to send or Shift+Enter for a new line. Copy a finished answer or expand its stage history. Session settings are available in the upper-right corner.

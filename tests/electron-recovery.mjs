@@ -58,8 +58,9 @@ try {
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button",{name:"세션 설정 펼치기"}).click();
   await page
-    .getByLabel("Chat Completions 주소")
+    .getByLabel("API 주소")
     .fill("http://127.0.0.1:" + server.address().port + "/v1/chat/completions");
+  await page.getByText("고급 설정", {exact:true}).click();
   await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
   await page.getByLabel("템플릿 적용").selectOption("코드 검토");
   await page.getByLabel("xcode 메시지").fill("recover this run");

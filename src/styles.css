@@ -2835,3 +2835,7 @@ textarea {
 .chat-submit:disabled {opacity:.45;}
 .chat-files {gap:.3rem;}
 .chat-keys {display:block; margin-top:.3rem;}
+
+.xcode .chat-basic-settings {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+.chat-basic-settings label:first-of-type {grid-column:1/-1;}
+@media (max-width:650px) {.xcode .chat-basic-settings {grid-template-columns:minmax(0,1fr);}}
