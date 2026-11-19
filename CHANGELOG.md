@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.11
+
+- Updated the bundled Kubernetes Analyzer engine, kubewiser, from v0.2.0-alpha.8 to v0.2.0-alpha.10 on Windows, Ubuntu and macOS.
+
 ## 0.5.10
 
 - Import, edit and export xcode connection and retry settings as JSON. Validation identifies invalid fields before applying changes. Exports omit API tokens.

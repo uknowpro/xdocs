@@ -4,7 +4,7 @@
 
 A local-first desktop workspace for linked notes, spreadsheets and infrastructure diagrams. Keep Markdown files in your own folder and search them through a SQLite index. You can work offline without an account.
 
-[Download the v0.5.10 development prerelease](https://github.com/uknowpro/xdocs/releases/tag/v0.5.10) for Ubuntu, macOS or Windows. Installers are unsigned and the macOS build is unnotarized.
+[Download the v0.5.11 development prerelease](https://github.com/uknowpro/xdocs/releases/tag/v0.5.11) for Ubuntu, macOS or Windows. Installers are unsigned and the macOS build is unnotarized.
 
 ![A note and its graph in dark mode](docs/images/dark.png)
 
@@ -15,7 +15,7 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 - **Infrastructure** — Inventory Terraform/OpenTofu, Kubernetes and Compose resources, inspect relationships and record operational notes. Design nested cloud networks and move between a component and its Terraform declaration. Compare module input and output declarations across two versions using local terraform-docs JSON files. Preview each design in the template gallery before opening it. Browse 30 architecture case studies each for AWS, Azure and GCP plus two cross-cloud HA VPN designs. Each case includes a design question. Export supported components to Terraform, CloudFormation, Helm or Kubernetes manifests. [IaCD guide](docs/iacd.md) · [Infrastructure guide](docs/infrastructure.md)
 - **Automation canvases** — Import GitHub Actions, Jenkins Declarative, Ansible and CloudFormation files, edit individual blocks, and embed a linked canvas preview in a note. [Canvas guide](docs/automation-canvas-review.md)
 - **xcode** — Chat with a self-hosted model, attach project files and follow streamed replies. Enter the full Chat Completions URL, an optional API token and the model ID to start chatting. Import or edit `settings.json` to reuse a connection and retry settings. Resume interrupted stages in a local workspace. [Session guide](docs/xcode.md)
-- **Analyzer** — Project scans run offline using the bundled netspector, kubewiser and Helm executables. Inspect project network paths, Kubernetes manifests and Helm charts. Compare Kubernetes versions and save findings as a linked report for Builder. [Analyzer guide](docs/analyzer.md)
+- **Analyzer** — Project scans run offline using the bundled netspector, kubewiser v0.2.0-alpha.10 and Helm executables. Inspect project network paths, Kubernetes manifests and Helm charts. Compare Kubernetes versions and save findings as a linked report for Builder. [Analyzer guide](docs/analyzer.md)
 - **Builder** — Assemble review steps around a sheet or note, trace findings to cells or lines, and save results to a child note. Desktop users can connect compatible model endpoints and MCP resources, retry with a saved model profile, and check structured responses for missing evidence. [Builder guide](docs/brainboard-builder.md)
 - **Team workspaces** — Connect an organization server for SSO, offline sync, collaborative block editing and per-document editing permissions. [Server setup](docs/server.md)
 

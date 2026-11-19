@@ -4,7 +4,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.10 개발용 프리릴리스**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.11 개발용 프리릴리스**입니다.
 
 ![다크 테마 노트 화면과 연결 그래프](docs/images/dark.png)
 
@@ -17,10 +17,10 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - 시트 탭형 테이블·Excel/CSV/TSV 가져오기·탭 구분 클립보드
 - Terraform/OpenTofu·Kubernetes·Compose 인프라 목록·관계·운영 메모·변경 비교
 - **xcode** — 프로젝트 파일을 첨부하고 셀프서빙 모델의 답변을 실시간으로 읽습니다. 오른쪽 위 **세션 설정 펼치기**에서 API 주소·토큰(선택)·모델명만 입력하면 됩니다. 연결·재요청 옵션은 `settings.json`으로도 불러오거나 편집할 수 있습니다. 로컬 세션은 중단된 단계부터 다시 실행할 수 있습니다. [세션 사용법](docs/xcode.md)
-- **Analyzer** — netspector·kubewiser·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
+- **Analyzer** — netspector·kubewiser v0.2.0-alpha.10·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.10) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.11) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
 IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 이름·Terraform 주소로 리소스를 찾고 선택한 경계 안에 컴포넌트를 추가할 수 있습니다. 경계를 접거나 잠그고, 참조선과 운영 주석을 선택해 볼 수 있습니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
