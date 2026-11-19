@@ -4,6 +4,12 @@ import { architectureSVG } from "../shared/architecture.mjs";
 import { boundaryLayout, boundarySVG } from "../shared/network-boundaries.mjs";
 import { openCloudTemplate } from "./cloudCatalog";
 
+export function templateDiagram(model: Awaited<ReturnType<typeof openCloudTemplate>>) {
+  const nested = boundaryLayout(model).parents.size > 0;
+  const svg = caseDiagram(model) || (nested || !model.nodes.some(n => n.imported) ? boundarySVG(model) : architectureSVG(model));
+  return {image: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg), nested};
+}
+
 export default function TemplateThumbnail({ id }: { id: string }) {
   const frame = useRef<HTMLSpanElement>(null);
   const [preview, setPreview] = useState<{ image: string; nested: boolean }>();
@@ -15,9 +21,7 @@ export default function TemplateThumbnail({ id }: { id: string }) {
       observer.disconnect();
       openCloudTemplate(id).then(model => {
         if (!active) return;
-        const nested = boundaryLayout(model).parents.size > 0;
-        const svg = caseDiagram(model) || (nested || !model.nodes.some(n => n.imported) ? boundarySVG(model) : architectureSVG(model));
-        setPreview({ image: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg), nested });
+        setPreview(templateDiagram(model));
       }).catch(() => { if (active) setFailed(true); });
     }, { root: frame.current?.closest(".template-gallery") });
     observer.observe(frame.current!);

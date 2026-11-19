@@ -343,6 +343,31 @@ export default function PageTree({
                   <span className="page-toggle" />
                 )}
                 <button
+                  data-entry-key={e.key}
+                  onKeyDown={event => {
+                    const key = event.key;
+                    const tree = event.currentTarget.closest("nav")!;
+                    const index = rows.findIndex(row => row.entry === e);
+                    let next = index;
+                    if (key === "ArrowDown") next++;
+                    else if (key === "ArrowUp") next--;
+                    else if (key === "ArrowRight") {
+                      if (e.children.length && !open) toggle(e.key);
+                      else if (e.children.length) next++;
+                    } else if (key === "ArrowLeft") {
+                      if (open && e.children.length) toggle(e.key);
+                      else next = rows.findIndex(row => row.entry === e.parent);
+                    } else if (key === "F2" && n && !readonly && n.role !== "reader") onRename(n);
+                    else if (key === "F10" && event.shiftKey) {
+                      event.currentTarget.parentElement?.querySelector<HTMLButtonElement>('[title="페이지 메뉴"]')?.click();
+                    } else return;
+                    event.preventDefault();
+                    if (next !== index && rows[next]) {
+                      setPage(Math.floor(next / limit));
+                      const dest = rows[next].entry.key;
+                      requestAnimationFrame(() => tree.querySelector<HTMLButtonElement>(`[data-entry-key="${CSS.escape(dest)}"]`)?.focus());
+                    }
+                  }}
                   draggable={!!n && !readonly && n.role !== "reader"}
                   className="nav-item note-item"
                   title={

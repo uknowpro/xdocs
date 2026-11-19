@@ -172,6 +172,14 @@ for (const [cloud, network, subnet, field, attribute] of [
           .find((n) => n.address === "module.consumer")
           .references.includes(child.address),
       );
+      const reverted = reassignPlacement(
+        restored,
+        restored.nodes.find(n => n.address === child.address),
+        restored.nodes.find(n => n.address === network + ".old"),
+      );
+      const roundTrip = generateArchitecture(reverted, "terraform");
+      assert.deepEqual(roundTrip.errors, []);
+      for (const {name, content} of files) assert.equal(roundTrip.files["terraform/" + name], content);
     },
   );
 }

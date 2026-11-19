@@ -215,6 +215,15 @@ test("selected references and generated IaC reflect the same subnet move", async
       exact: true,
     });
   await ec2.dragTo(sub);
+  await page.getByText("변경 영향",{exact:true}).click();
+  const impact = page.locator(".impact-body");
+  await expect(impact).toContainText("참조 변경");
+  await expect(impact).toContainText("연결 · Application EC2 → Destination subnet");
+  await impact.getByRole("button",{name:"terraform/main.tf.json",exact:true}).click();
+  await expect(page.locator(".live-added").filter({hasText:"subnet_id"})).toHaveCount(1);
+  await page.getByRole("button",{name:"아키텍처 실행 취소"}).click();
+  await expect(impact).not.toContainText("연결 · Application EC2 → Destination subnet");
+  await ec2.dragTo(sub);
   await page.getByLabel("선택 리소스 참조선").check();
   await expect(page.locator("[data-reference]")).toHaveCount(1);
   await expect(
@@ -302,6 +311,11 @@ test("review a live Terraform edit beside the canvas and follow incoming referen
   await button("IaCD 아키텍처").click();
   const gallery = page.getByRole("group", { name: "설계 템플릿" });
   const total = await gallery.getByRole("button").count();
+  await button("구성도 확대 미리보기").click();
+  await expect(page.locator(".catalog-large-preview img")).toBeVisible();
+  await expect(page.locator(".catalog-large-preview")).toContainText("ap-northeast-2");
+  await page.getByRole("slider",{name:/배율/}).press("End");
+  expect(await page.locator(".catalog-preview-scroll").evaluate(el=>el.scrollWidth > el.clientWidth)).toBe(true);
   await page.getByLabel("업무 시나리오").selectOption("복구 · 백업");
   const filtered = await gallery.getByRole("button").count();
   expect(filtered).toBeGreaterThan(0);

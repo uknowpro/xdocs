@@ -2898,3 +2898,16 @@ textarea {
   .page-row.current:not(:hover):not(:focus-within) .page-add[title="페이지 메뉴"] {opacity:0;}
 }
 @media (max-height:450px) { .sidebar {overflow-y:auto;} .sidebar .page-tree { min-height:6rem; } }
+
+.impact-body ul { padding-inline-start:1rem; margin:4px 0 10px; }
+.impact-body button,.impact-body pre { max-width:100%; overflow-wrap:anywhere; }
+.impact-body pre { overflow:auto; }
+.catalog-large-preview { grid-column:1/-1; min-width:0; }
+.catalog-preview-scroll { height:clamp(260px,55dvh,650px); overflow:auto; }
+.catalog-preview-scroll .enlarged-diagram { display:block; width:100%; height:100%; object-fit:contain; background:white; }
+.catalog-large-preview p { overflow-wrap:anywhere; }
+.document-layout:not(.sheet-layout) .editor { field-sizing:content; resize:none; min-height:clamp(140px,30dvh,310px); }
+.document-layout:not(.sheet-layout) .rich-editor .tiptap { min-height:clamp(140px,30dvh,310px); overflow-wrap:anywhere; }
+@media screen {
+  .document-layout:not(.sheet-layout) :is(.markdown,.rich-editor) table { display:block; max-width:100%; overflow-x:auto; }
+}

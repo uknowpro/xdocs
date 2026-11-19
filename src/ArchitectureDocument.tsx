@@ -1,4 +1,6 @@
 import {caseDiagram} from "../shared/case-diagrams.mjs";
+import ArchitectureImpact from "./ArchitectureImpact";
+import TemplatePreview from "./TemplatePreview";
 import TemplateThumbnail from "./TemplateThumbnail";
 import ModuleContractReview from "./ModuleContractReview";
 import { terraformDeclarations } from "../shared/architecture-catalog.mjs";
@@ -139,6 +141,7 @@ export function ArchitectureStart({
     [busy, setBusy] = useState(false);
   const [provider, setProvider] = useState("AWS");
   const [templateId, setTemplateId] = useState(cloudTemplates[0].id);
+  const [previewId,setPreviewId] = useState("");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogMode, setCatalogMode] = useState("전체");
   const [scenario, setScenario] = useState("");
@@ -304,7 +307,12 @@ export function ArchitectureStart({
               ))}
             </div>
           )}
-          {chosen && <p className="catalog-study">{chosen.study}</p>}
+          {chosen && <>
+            <p className="catalog-study">{chosen.study}</p>
+            <button type="button" className="button" aria-expanded={previewId === chosen.id}
+              onClick={() => setPreviewId(previewId === chosen.id ? "" : chosen.id)}>구성도 확대 미리보기</button>
+            {previewId === chosen.id && <TemplatePreview key={chosen.id} template={chosen}/>}
+          </>}
           {chosen?.review && <details><summary>운영 전제와 검증 방법</summary>
             <p>{chosen.review.operations}</p><p>{chosen.review.reliability}</p><p>{chosen.review.security}</p><p>{chosen.review.cost}</p><p>{chosen.review.performance}</p></details>}
           {chosen ? (
@@ -456,7 +464,8 @@ export default function ArchitectureDocument({
     : "";
   const openingModel = useRef(model);
   const [compareFile, setCompareFile] = useState(false);
-  const initialFiles = useMemo(() => compareFile ? generateArchitecture(openingModel.current, "terraform").files : {}, [compareFile]);
+  const [impactOpen,setImpactOpen] = useState(false);
+  const initialFiles = useMemo(() => compareFile || impactOpen ? generateArchitecture(openingModel.current, "terraform").files : {}, [compareFile,impactOpen]);
   const fileChanges = useMemo(() => {
     if (!compareFile || !livePath) return [];
     return diffLines(initialFiles[livePath] || "", result.files[livePath], { timeout: 150 });
@@ -1636,6 +1645,14 @@ export default function ArchitectureDocument({
               </p>
             </details>
           </aside>
+          <details className="arch-review-issues" open={impactOpen} onToggle={event => setImpactOpen(event.currentTarget.open)}>
+            <summary>변경 영향</summary>
+            {impactOpen && <ArchitectureImpact before={openingModel.current} after={model} original={initialFiles}
+              files={result.files} errors={result.errors} onNode={openDetail} onFile={path => {
+                setLiveFile(path); setCompareFile(true);
+                if (viewer.current) { viewer.current.open = true; viewer.current.scrollIntoView({block:"nearest"}); }
+              }}/>}
+          </details>
           <details className="arch-review-issues">
             <summary>설계 이슈 ({issues.length})</summary>
             {issues.length === 0 && <p>발견된 이슈가 없습니다.</p>}

@@ -63,6 +63,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -117,6 +118,8 @@ type Theme = "light" | "gray" | "dark" | "system";
 export default function App() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [active, setActive] = useState("");
+  const mainPane = useRef<HTMLElement>(null);
+  useLayoutEffect(() => { mainPane.current?.scrollTo(0, 0); }, [active]);
   const [body, setBody] = useState("");
   const [view, setView] = useState<"note" | "graph">("note");
   const [edit, setEdit] = useState(false);
@@ -1237,7 +1240,7 @@ export default function App() {
           </button>
         </div>
       </aside>
-      <main className="main" inert={compactNav && drawer}>
+      <main ref={mainPane} className="main" inert={compactNav && drawer}>
         {sessionTabs.length>1 && <nav className="session-tabs" aria-label="xcode 세션 전환">
           {sessionTabs.map((n,i)=><button key={n.id} aria-current={active===n.id?"page":undefined} title={n.path} onClick={()=>void navigate(n.id)}>
             {n.title}{sessionTabs.some(t=>t!==n && t.title===n.title)?" · "+(i+1):""}</button>)}

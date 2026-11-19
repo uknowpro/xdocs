@@ -166,3 +166,22 @@ test("compact navigation leaves ten complete rows visible on a 1366px laptop", a
   await page.getByRole("button", {name:"워크스페이스 전환"}).click();
   await expect(page.getByRole("button", {name:"조직 보관함 SSO"})).toBeInViewport();
 });
+
+test("tree keyboard navigation focuses rows, opens actions and renames pages",async ({page})=>{
+  await page.goto("/");
+  const tree=page.getByRole("navigation",{name:"보관함 페이지"});
+  const entries=tree.locator("[data-entry-key]");
+  await entries.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(entries.nth(1)).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(entries.first()).toBeFocused();
+  const target=entries.filter({hasText:"주간 아이디어"});
+  await target.focus();
+  await page.keyboard.press("Shift+F10");
+  await expect(tree.getByRole("group",{name:"주간 아이디어 작업"})).toBeVisible();
+  await page.keyboard.press("Escape");
+  await target.focus();
+  await page.keyboard.press("F2");
+  await expect(page.getByRole("textbox",{name:"페이지 이름 변경"})).toHaveValue("주간 아이디어");
+});
