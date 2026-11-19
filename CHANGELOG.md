@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.10
+
+- Import, edit and export xcode connection and retry settings as JSON. Validation identifies invalid fields before applying changes. Exports omit API tokens.
+- Chat errors include troubleshooting steps for authentication failures, missing endpoints or models, and unsupported inputs.
+
 ## 0.5.9
 
 - Start an xcode session with the API URL, optional token and model ID. Connection diagnostics, retries and harness controls are grouped under advanced settings.

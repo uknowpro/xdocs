@@ -110,7 +110,43 @@ try {
     if (!(await panel.evaluate((el) => el.open)))
       await panel.locator(":scope > summary").click();
   };
+  await page.getByText("JSON 설정", { exact: true }).click();
+  const editor = page.getByLabel("설정 JSON", { exact: true });
+  const applyJson = page.getByRole("button", { name: "JSON 적용" });
+  await editor.fill(
+    JSON.stringify({ endpoint, model: "invalid-change", retrySeconds: 0 }),
+  );
+  await applyJson.click();
+  await expect(page.locator(".chat-json [role=alert]")).toContainText(
+    "retrySeconds",
+  );
+  await expect(page.getByLabel("모델명", { exact: true })).not.toHaveValue(
+    "invalid-change",
+  );
+  await page.getByLabel("설정 파일 불러오기").setInputFiles({
+    name: "settings.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      JSON.stringify({
+        endpoint,
+        model: "test-chat",
+        token: "fixture-local-key",
+        retrySeconds: 45,
+      }),
+    ),
+  });
+  await expect(editor).toHaveValue(/test-chat/);
+  await applyJson.click();
+  await expect(page.getByLabel("모델명", { exact: true })).toHaveValue(
+    "test-chat",
+  );
+  await expect(page.getByLabel("API 토큰 (선택)")).toHaveValue(
+    "fixture-local-key",
+  );
+  await expect(editor).not.toHaveValue(/fixture-local-key/);
+  await page.getByText("JSON 설정", { exact: true }).click();
   await openAdvanced();
+  await expect(page.getByLabel("재요청 간격(초)")).toHaveValue("45");
   for (const kind of ["text", "image", "pdf"]) {
     await page.getByLabel("연결 진단 입력").selectOption(kind);
     await page.getByRole("button", { name: "연결 진단 실행" }).click();
@@ -229,6 +265,7 @@ try {
     );
   });
   assert.match(note.body, /diagram.png/);
+  assert.ok(!note.body.includes("fixture-local-key"));
   const stored = JSON.parse(note.body.match(/```xdocs-xcode\s+(.+)\s+```/)[1])
     .turns[0];
   assert.deepEqual(stored.execution.skills, ["evidence"]);

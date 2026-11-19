@@ -1,3 +1,4 @@
+import SessionSettingsJson from "./SessionSettingsJson";
 import ChatTimeline from "./ChatTimeline";
 import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
 import ProjectInputs from "./ProjectInputs";
@@ -717,6 +718,23 @@ export default function Xcode({
             />
           </label>
         </fieldset>
+        <SessionSettingsJson
+          session={s}
+          disabled={busy || readonly}
+          apply={(settings, token) => {
+            const sameEndpoint = settings.endpoint === s.endpoint;
+            if (token !== undefined || !sameEndpoint) setKey(token ?? "");
+            config({
+              ...settings,
+              profile:
+                sameEndpoint &&
+                settings.model === s.model &&
+                token === undefined
+                  ? s.profile
+                  : "",
+            });
+          }}
+        />
         <details className="chat-advanced">
           <summary>고급 설정</summary>
           <fieldset disabled={readonly}>

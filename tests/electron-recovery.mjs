@@ -2,6 +2,8 @@ import { _electron, expect } from "@playwright/test";
 import { createServer } from "node:http";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { once } from "node:events";
 import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
 const root = await mkdtemp(path.join(tmpdir(), "xdocs-recovery-")),
@@ -67,9 +69,14 @@ try {
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(2);
   await expect(page.locator(".xcode .chat-live pre")).toContainText("partial");
-  const closed = app.waitForEvent("close");
-  app.process().kill("SIGKILL");
-  await closed;
+  const child = app.process();
+  const exited = once(child, "exit");
+  if (process.platform === "win32") {
+    execFileSync("taskkill", ["/F", "/T", "/PID", String(child.pid)]);
+  } else {
+    child.kill("SIGKILL");
+  }
+  await exited;
   page = await launch();
   if (!(await page.locator(".xcode").count()))
     await page

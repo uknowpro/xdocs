@@ -172,5 +172,8 @@ export function modelFailure(status, detail) {
       /server_error|overloaded_error|temporarily_unavailable/.test(detail))
   )
     return Error("[XCODE_RETRY] 모델 서버 일시 오류 (HTTP " + status + ")");
+  if (status === 401 || status === 403) return Error("HTTP " + status + " · 세션 설정에서 API 토큰과 모델 접근 권한을 확인하세요.");
+  if (status === 404) return Error("HTTP 404 · API 전체 주소와 서버가 제공하는 모델명을 확인하세요.");
+  if (status === 400 || status === 422) return Error("HTTP " + status + " · 고급 설정에서 텍스트 연결 진단을 실행하고 첨부 형식과 단계별 추론 옵션을 확인하세요.");
   return Error("모델 요청 실패" + (status ? " (HTTP " + status + ")" : ""));
 }

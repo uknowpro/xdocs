@@ -2839,3 +2839,6 @@ textarea {
 .xcode .chat-basic-settings {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
 .chat-basic-settings label:first-of-type {grid-column:1/-1;}
 @media (max-width:650px) {.xcode .chat-basic-settings {grid-template-columns:minmax(0,1fr);}}
+
+.xcode .chat-json fieldset {display:grid;align-items:start;}
+.chat-json textarea {font-family:monospace;}
