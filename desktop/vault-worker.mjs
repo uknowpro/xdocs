@@ -4,6 +4,7 @@ const vault = await Vault.open(workerData.root, true);
 let queue = Promise.resolve();
 const allowed = new Set([
   "snapshot",
+  "backup",
   "readNote",
   "refresh",
   "create",

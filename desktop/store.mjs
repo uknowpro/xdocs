@@ -46,6 +46,7 @@ export function decodeNote(raw, relative) {
     revision: digest(raw),
   };
 }
+import {portableBackup} from "./portable-backup.mjs";
 export class Vault {
   constructor(root, db) {
     this.root = root;
@@ -90,6 +91,7 @@ export class Vault {
     }
     return vault;
   }
+  backup(parent) {return portableBackup(this.root,parent);}
   close() {
     this.db.close();
   }

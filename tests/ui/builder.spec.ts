@@ -39,7 +39,7 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
   await page.getByLabel("템플릿 검색").fill("no-matching-template");
   await expect(page.getByRole("button", { name: "템플릿으로 시작" })).toBeDisabled();
   await page.getByRole("button", { name: "검색 조건 초기화" }).click();
-  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(30);
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(31);
   await page.getByRole("button",{name:"AVM · 사업부별 사설 데이터 구역",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await page.getByRole("button", { name: "Terraform 선언 보기" }).click();

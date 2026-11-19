@@ -256,6 +256,13 @@ export default function Builder({
         >
           하네스 파일 내보내기
         </button>
+        <button disabled={!config.rules.length || config.rules.length>12} onClick={()=>{
+          const harness={name:copyTitle.trim() || "Builder 작업",stages:config.rules.map(rule=>
+            [rule.label,rule.instruction,"검토 열: "+(rule.column+1),"기준값: "+rule.threshold,rule.keyword && "검색어: "+rule.keyword].filter(Boolean).join("\n")),
+            skills:config.prompt.trim()?[{name:"결과 작성 지침",instruction:config.prompt}]:[]};
+          const url=URL.createObjectURL(new Blob([JSON.stringify(harness,null,2)],{type:"application/json"}));
+          const a=document.createElement("a");a.href=url;a.download="builder-xcode-harness.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+        }}>xcode 단계 지침 내보내기</button>
         <button
           disabled={working || readonly}
           onClick={() => fileInput.current?.click()}

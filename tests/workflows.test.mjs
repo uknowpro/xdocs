@@ -34,3 +34,10 @@ test("stack references and original conditions survive import", () => {
   assert.deepEqual(b.refs, ["A"]);
   assert.match(source.slice(b.start, b.end), /TemplateURL/);
 });
+
+test("Actions diagnoses missing and cyclic job dependencies without changing source", async()=>{
+  const {jobDependencyIssues}=await import("../shared/workflows.mjs");
+  const nodes=workflowNodes("actions","jobs:\n  build:\n    needs: test\n  test:\n    needs: [build, absent]\n");
+  const issues=jobDependencyIssues(nodes).join("\n");
+  assert.match(issues,/build → test → build/);assert.match(issues,/absent/);
+});

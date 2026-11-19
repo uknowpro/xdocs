@@ -33,7 +33,7 @@
     "test:architecture:fixtures": "node tests/architecture-fixtures.mjs",
     "prestart": "node scripts/prepare-analyzers.mjs",
     "test:analyzer": "node tests/electron-analyzer.mjs",
-    "test:xcode": "node tests/electron-xcode.mjs"
+    "test:xcode": "node tests/electron-xcode.mjs && node tests/electron-recovery.mjs"
   },
   "dependencies": {
     "@cdktn/hcl2json": "^0.25.0",

@@ -127,7 +127,7 @@ try {
   await page
     .getByRole("button", { name: "워크스페이스 · evidence 추가" })
     .click();
-  await page.locator(".xcode input[type=file][multiple]").setInputFiles([
+  await page.locator(".xcode input[type=file][multiple]:not([webkitdirectory])").setInputFiles([
     {
       name: "omit.txt",
       mimeType: "text/plain",

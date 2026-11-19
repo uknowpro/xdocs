@@ -1,7 +1,8 @@
+import {createTwoFilesPatch} from "diff";
 import CanvasSearch from "./CanvasSearch";
 import { api } from "./api";
 import { useRef, useState, useMemo } from "react";
-import { templates, workflowNodes, addBlock } from "../shared/workflows.mjs";
+import { templates, workflowNodes, addBlock, jobDependencyIssues } from "../shared/workflows.mjs";
 type Kind = keyof typeof templates;
 export type Flow = {
   version: number;
@@ -36,6 +37,7 @@ export function WorkflowCanvas({
   const nodes = parsed.nodes,
     active = nodes.find((n) => n.id === selected),
     source = model.source;
+  const dependencyIssues=useMemo(()=>model.kind==="actions" ? jobDependencyIssues(nodes) : [],[model.kind,nodes]);
   const coords: Flow["positions"] = Object.fromEntries(
     nodes.map((n, i) => [
       n.id,
@@ -45,6 +47,8 @@ export function WorkflowCanvas({
       },
     ]),
   );
+  const baseline=useRef(model.source);
+  const [showDiff,setShowDiff]=useState(false);
   const editor = useRef<HTMLTextAreaElement>(null);
   function showBlock(id: string) {
     setSelected(id);
@@ -157,6 +161,11 @@ export function WorkflowCanvas({
           파일 내보내기
         </button>
       </div>
+      <details open={showDiff} onToggle={e=>setShowDiff(e.currentTarget.open)}><summary>열 때의 원본과 비교</summary>
+        {showDiff && (baseline.current===source ? <p>저장된 변경이 없습니다.</p> :
+          <pre className="review-diff">{createTwoFilesPatch(templates[model.kind].name,templates[model.kind].name,baseline.current,source)}</pre>)}
+      </details>
+      {dependencyIssues.length>0 && <section aria-label="작업 의존성 검사"><strong>작업 의존성 확인</strong><ul>{dependencyIssues.map(issue=><li key={issue}>{issue}</li>)}</ul></section>}
       {(error || parsed.error) && <p role="alert">{error || parsed.error}</p>}
       <div
         style={{

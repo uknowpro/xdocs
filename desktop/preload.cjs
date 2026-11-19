@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld("xdocs", {
   collaborationSync: (id, presence) =>
     ipcRenderer.invoke("collab:sync", id, presence),
   collaborationCopy: (id) => ipcRenderer.invoke("collab:copy", id),
+  restoreBackupCopy:()=>ipcRenderer.invoke("vault:restore-copy"),
+  backupWorkspace:()=>ipcRenderer.invoke("vault:backup"),
   organizationLogin: (server) => ipcRenderer.invoke("org:login", server),
   organizationOpen: (id) => ipcRenderer.invoke("org:open", id),
   organizationConflicts: () => ipcRenderer.invoke("org:conflicts"),

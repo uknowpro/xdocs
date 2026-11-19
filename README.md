@@ -22,7 +22,7 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 <details>
 <summary>Architecture and automation screenshots</summary>
 
-Under **IaCD → 사례 설계**, open the two-zone Seoul egress network, private EKS operations platform or three-cloud retail analytics design. Select a resource in the overview to inspect its Terraform source. Dashed arrows indicate integration work to configure.
+Under **IaCD → 사례 설계**, open the two-zone Seoul egress network, private EKS operations platform or three-cloud retail analytics design. The Azure hub-and-spoke and GCP regional Shared VPC cases include resource-level diagrams and operational review notes. Select a resource in the overview to inspect its Terraform source. Dashed arrows indicate integration work to configure.
 
 ![Seoul VPC design with two availability zones and zonal NAT gateways](docs/images/seoul-case.png)
 

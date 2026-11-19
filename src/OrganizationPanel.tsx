@@ -1,3 +1,4 @@
+import {createTwoFilesPatch} from "diff";
 import { useEffect, useState } from "react";
 import { Building2, LogIn, RefreshCw, X } from "lucide-react";
 import { api, isDesktop } from "./api";
@@ -141,6 +142,7 @@ export default function OrganizationPanel({
                   <h4>서버</h4>
                   <pre>{c.server.body || "삭제된 문서"}</pre>
                 </details>
+                <details><summary>줄 단위 변경 보기</summary><pre className="review-diff">{createTwoFilesPatch("서버 버전","내 변경",c.server.body || "",c.body)}</pre></details>
                 <div className="row">
                   <button
                     className="button"

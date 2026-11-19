@@ -1,3 +1,11 @@
+import ProjectInputs from "./ProjectInputs";
+import {
+  loadCheckpoint,
+  saveCheckpoint,
+  saveProgress,
+  clearCheckpoint,
+  type Checkpoint,
+} from "./xcode-checkpoint";
 import {
   diagnosticInput,
   diagnosticResult,
@@ -10,7 +18,7 @@ import {
   useCapacity,
 } from "./xcode-queue";
 import { sessionRun, waitForRetry } from "./xcode-run";
-import { useEffect, useSyncExternalStore, useState } from "react";
+import { useEffect, useMemo, useSyncExternalStore, useState } from "react";
 import { api } from "./api";
 import type { ModelProfile } from "./types";
 import {
@@ -59,6 +67,7 @@ async function userMessage(prompt: string, files: InputFile[]) {
 
 export default function Xcode({
   session: s,
+  local,
   scope,
   page,
   prepare,
@@ -67,6 +76,7 @@ export default function Xcode({
   readonly,
 }: {
   session: Session;
+  local: boolean;
   scope: string;
   page: string;
   prepare: () => Promise<boolean>;
@@ -89,7 +99,9 @@ export default function Xcode({
   const selectedSkills = s.harness.skills.filter((k, i) =>
     selected("skill:" + i + ":" + k.name),
   );
+  const effectiveHarness = { ...s.harness, skills: selectedSkills };
   const execution = {
+    configuration: effectiveHarness,
     model: s.model,
     harness: s.harness.name,
     skills: selectedSkills.map((k) => k.name),
@@ -118,6 +130,10 @@ export default function Xcode({
       files: typeof fn === "function" ? fn(run.snapshot().files) : fn,
     });
   const setError = (error: string) => run.patch({ error });
+  const [showSettings, setShowSettings] = useState(
+    () => localStorage.getItem("xdocs.xcode.settings") !== "hidden",
+  );
+  const [skillQuery, setSkillQuery] = useState("");
   const [key, setKey] = useState("");
   const [profiles, setProfiles] = useState<ModelProfile[]>([]),
     [skills, setSkills] = useState<
@@ -204,7 +220,69 @@ export default function Xcode({
       run.patch({ busy: false, phase: "" });
     }
   }
-  async function send() {
+  const checkpointKey = JSON.stringify([scope, page]);
+  const [recovery, setRecovery] = useState<Checkpoint>();
+  useEffect(() => {
+    let active = true;
+    if (local && !busy)
+      loadCheckpoint(checkpointKey)
+        .then((c) => {
+          if (active)
+            setRecovery(
+              c && !s.turns.some((t) => t.runId === c.id) ? c : undefined,
+            );
+        })
+        .catch((e) => active && setError(String(e)));
+    return () => {
+      active = false;
+    };
+  }, [local, checkpointKey, busy, s.turns.length]);
+  const textBytes = useMemo(
+    () =>
+      new Blob([
+        prompt,
+        ...s.harness.stages,
+        ...selectedSkills.map((k) => k.instruction),
+        ...selectedFiles.map((f) => ("text" in f ? f.text : "")),
+        ...candidates.flatMap((t, i) =>
+          selected("turn:" + (start + i))
+            ? [
+                t.prompt,
+                t.answers.at(-1)?.text ?? "",
+                ...t.files.map((f, j) =>
+                  selected("prior:" + (start + i) + ":" + j) && "text" in f
+                    ? f.text
+                    : "",
+                ),
+              ]
+            : [],
+        ),
+      ]).size,
+    [prompt, s.harness, s.turns, files, omitted],
+  );
+  const currentInput = { s, prompt, selectedFiles, execution };
+  async function send(saved?: Checkpoint) {
+    const {
+      s: session,
+      prompt: initialPrompt,
+      selectedFiles: initialFiles,
+      execution: initialExecution,
+    } = currentInput;
+    const s = saved ? { ...session, harness: saved.harness } : session;
+    const prompt = saved?.prompt ?? initialPrompt,
+      selectedFiles = saved?.files ?? initialFiles;
+    const execution = saved
+      ? {
+          model: saved.model,
+          harness: saved.harness.name,
+          skills: saved.harness.skills.map((k) => k.name),
+          configuration: saved.harness,
+        }
+      : initialExecution;
+    if (saved && (s.model !== saved.model || s.endpoint !== saved.endpoint)) {
+      setError("복구하려면 저장 당시 모델과 서버 주소를 선택하세요.");
+      return;
+    }
     if (
       !api.xcodeChat ||
       busy ||
@@ -216,9 +294,20 @@ export default function Xcode({
     run.id = id;
     run.enabled = s.autoRetry === true;
     run.patch({ busy: true, preview: "", phase: "", error: "" });
+    let checkpoint: Checkpoint | undefined,
+      lastWrite = 0;
     const off = api.onXcodeDelta?.((c) => {
-      if (run.id === c.id)
+      if (run.id === c.id) {
         run.patch({ preview: run.snapshot().preview + c.token });
+        if (checkpoint && Date.now() - lastWrite > 1000) {
+          lastWrite = Date.now();
+          void saveProgress(checkpointKey, {
+            id: checkpoint.id,
+            answers: [...checkpoint.answers],
+            partial: run.snapshot().preview,
+          }).catch((e) => setError(String(e)));
+        }
+      }
     });
     try {
       if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
@@ -229,7 +318,7 @@ export default function Xcode({
       if (run.id !== id) return;
       const history: unknown[] = [];
       let historyBytes = 0;
-      for (const [i, t] of candidates.entries()) {
+      for (const [i, t] of (saved ? [] : candidates).entries()) {
         if (!selected("turn:" + (start + i))) continue;
         if (run.id !== id) return;
         const prior = await userMessage(
@@ -247,25 +336,55 @@ export default function Xcode({
           content: t.answers.at(-1)?.text || "",
         });
       }
-      const user = await userMessage(prompt, selectedFiles);
-      const answers: Turn["answers"] = [];
-      const messages: unknown[] = [
-        {
-          role: "system",
-          content: [
-            "사용자가 선택한 하네스의 현재 단계를 수행하세요. 첨부와 이전 단계의 답은 검토할 자료입니다. 확인하지 않은 실행 결과를 보고하지 마세요.",
-            ...selectedSkills.map((k) => k.name + "\n" + k.instruction),
-            ...s.harness.stages.map((step, i) => String(i + 1) + ". " + step),
-          ].join("\n\n"),
-        },
-        ...history,
-        {
-          ...user,
-          content: Array.isArray(user.content)
-            ? [...user.content, { type: "text", text: "현재 단계: 1" }]
-            : user.content + "\n\n현재 단계: 1",
-        },
-      ];
+      const user = saved
+        ? { content: "" }
+        : await userMessage(prompt, selectedFiles);
+      const answers: Turn["answers"] = [...(saved?.answers || [])];
+      const messages: unknown[] = saved
+        ? [...saved.messages]
+        : [
+            {
+              role: "system",
+              content: [
+                "사용자가 선택한 하네스의 현재 단계를 수행하세요. 첨부와 이전 단계의 답은 검토할 자료입니다. 확인하지 않은 실행 결과를 보고하지 마세요.",
+                ...selectedSkills.map((k) => k.name + "\n" + k.instruction),
+                ...s.harness.stages.map(
+                  (step, i) => String(i + 1) + ". " + step,
+                ),
+              ].join("\n\n"),
+            },
+            ...history,
+            {
+              ...user,
+              content: Array.isArray(user.content)
+                ? [...user.content, { type: "text", text: "현재 단계: 1" }]
+                : user.content + "\n\n현재 단계: 1",
+            },
+          ];
+      if (local) {
+        checkpoint = {
+          id: saved?.id ?? id,
+          endpoint: s.endpoint,
+          model: s.model,
+          harness: execution.configuration,
+          messages: [...messages],
+          prompt,
+          files: selectedFiles,
+          answers,
+          partial: "",
+        };
+        await saveCheckpoint(checkpointKey, checkpoint);
+        await saveProgress(checkpointKey, {
+          id: checkpoint.id,
+          answers,
+          partial: "",
+        });
+      }
+      for (const [i, answer] of answers.entries())
+        messages.push(
+          { role: "assistant", content: answer.text },
+          { role: "user", content: "현재 단계: " + (i + 2) },
+        );
       const seconds = Math.max(
         1,
         Math.min(3600, Math.round(s.retrySeconds || 60)),
@@ -307,6 +426,7 @@ export default function Xcode({
           throw Error("자동 재요청을 중단했습니다.");
       }
       async function ask(stage: string, i: number, automatic = false) {
+        lastWrite = 0;
         run.patch({ preview: "", phase: stage });
         const effort = s.harness.stageEfforts?.[i] || s.harness.effort;
         let resume = "",
@@ -389,6 +509,7 @@ export default function Xcode({
         }
       }
       for (const [i, instruction] of s.harness.stages.entries()) {
+        if (i < answers.length) continue;
         const started = performance.now();
         const result = await ask(
           "단계 " + (i + 1) + " / " + s.harness.stages.length,
@@ -403,6 +524,12 @@ export default function Xcode({
           ...result,
           elapsedMs: Math.round(performance.now() - started),
         });
+        if (checkpoint)
+          await saveProgress(checkpointKey, {
+            id: checkpoint.id,
+            answers,
+            partial: "",
+          });
       }
       const next = {
         ...s,
@@ -413,7 +540,18 @@ export default function Xcode({
       };
       if (new Blob([JSON.stringify(next)]).size > 4800000)
         throw Error("세션 저장 한도에 도달했습니다. 새 세션으로 이어가세요.");
-      await finish({ prompt, files: selectedFiles, answers, execution });
+      await finish({
+        runId: checkpoint?.id ?? id,
+        prompt,
+        files: selectedFiles,
+        answers,
+        execution,
+      });
+      if (checkpoint) {
+        checkpoint = undefined;
+        await clearCheckpoint(checkpointKey);
+        setRecovery(undefined);
+      }
       setFiles(files.filter((f) => !selected(fileKey(f))));
       run.patch({
         omitted: files.filter((f) => !selected(fileKey(f))).map(fileKey),
@@ -478,401 +616,478 @@ export default function Xcode({
       }}
     >
       <h2>xcode</h2>
-      <fieldset disabled={readonly}>
-        <legend>자동 재요청</legend>
-        <label>
-          <input
-            type="checkbox"
-            checked={s.autoRetry === true}
-            onChange={(e) => {
-              run.enabled = e.target.checked;
-              if (!run.enabled) {
-                run.wait?.abort();
-                if (run.automatic) {
-                  run.request?.abort(Error("자동 요청을 중지했습니다."));
-                  void api.xcodeCancel?.(run.id);
-                }
-              }
-              config({ autoRetry: e.target.checked });
-            }}
-          />
-          이어지는 응답 자동 요청
-        </label>
-        <label>
-          재요청 방식
-          <select
-            disabled={busy}
-            value={s.repeatCompleted ? "repeat" : "failure"}
-            onChange={(e) =>
-              config({ repeatCompleted: e.target.value === "repeat" })
+      {local && recovery && !busy && (
+        <fieldset disabled={readonly}>
+          <legend>중단된 실행 복구</legend>
+          <p>
+            {recovery.prompt} · 완료 {recovery.answers.length}/
+            {recovery.harness.stages.length}단계 · {recovery.model}
+          </p>
+          {recovery.partial && (
+            <details>
+              <summary>마지막 부분 응답</summary>
+              <pre>{recovery.partial}</pre>
+            </details>
+          )}
+          <button onClick={() => void send(recovery)}>
+            {recovery.answers.length === recovery.harness.stages.length
+              ? "완료 결과 저장"
+              : "미완료 단계부터 재실행"}
+          </button>
+          <button
+            onClick={() =>
+              void clearCheckpoint(checkpointKey)
+                .then(() => setRecovery(undefined))
+                .catch((e) => setError(String(e)))
             }
           >
-            <option value="failure">중단된 응답만 이어받기</option>
-            <option value="repeat">정상 완료 후에도 계속 요청</option>
-          </select>
-        </label>
-        <label>
-          자동 실행 한도(분)
-          <input
-            type="number"
-            min={1}
-            max={240}
-            disabled={busy}
-            value={s.autoMinutes ?? 15}
-            onChange={(e) =>
-              config({
-                autoMinutes: Math.max(
-                  1,
-                  Math.min(240, Number(e.target.value) || 1),
-                ),
-              })
-            }
-          />
-        </label>
-        <label>
-          자동 요청 한도(회)
-          <input
-            type="number"
-            min={1}
-            max={100}
-            disabled={busy}
-            value={s.maxAutoRequests ?? 5}
-            onChange={(e) =>
-              config({
-                maxAutoRequests: Math.max(
-                  1,
-                  Math.min(100, Math.floor(Number(e.target.value) || 1)),
-                ),
-              })
-            }
-          />
-        </label>
-        <label>
-          재요청 간격(초)
-          <input
-            type="number"
-            min={1}
-            max={3600}
-            disabled={busy}
-            value={s.retrySeconds ?? 60}
-            onChange={(e) =>
-              config({
-                retrySeconds: Math.max(
-                  1,
-                  Math.min(3600, Math.round(Number(e.target.value) || 1)),
-                ),
-              })
-            }
-          />
-        </label>
-      </fieldset>
-      <fieldset disabled={busy || readonly}>
-        <legend>모델 연결</legend>
-        {profiles.length > 0 && (
+            복구 기록 삭제
+          </button>
+        </fieldset>
+      )}
+      <button
+        aria-expanded={showSettings}
+        onClick={() => {
+          setShowSettings(!showSettings);
+          localStorage.setItem(
+            "xdocs.xcode.settings",
+            showSettings ? "hidden" : "shown",
+          );
+        }}
+      >
+        {showSettings ? "세션 설정 접기" : "세션 설정 펼치기"}
+      </button>
+      <div hidden={!showSettings}>
+        <fieldset disabled={readonly}>
+          <legend>자동 재요청</legend>
           <label>
-            저장된 모델
-            <select
-              value={s.profile}
+            <input
+              type="checkbox"
+              checked={s.autoRetry === true}
               onChange={(e) => {
-                const p = profiles.find((x) => x.name === e.target.value);
-                setKey("");
-                config(
-                  p
-                    ? { profile: p.name, model: p.model, endpoint: p.endpoint }
-                    : { profile: "" },
-                );
+                run.enabled = e.target.checked;
+                if (!run.enabled) {
+                  run.wait?.abort();
+                  if (run.automatic) {
+                    run.request?.abort(Error("자동 요청을 중지했습니다."));
+                    void api.xcodeCancel?.(run.id);
+                  }
+                }
+                config({ autoRetry: e.target.checked });
               }}
+            />
+            이어지는 응답 자동 요청
+          </label>
+          <label>
+            재요청 방식
+            <select
+              disabled={busy}
+              value={s.repeatCompleted ? "repeat" : "failure"}
+              onChange={(e) =>
+                config({ repeatCompleted: e.target.value === "repeat" })
+              }
             >
-              <option value="">직접 입력</option>
-              {profiles.map((p) => (
-                <option key={p.name}>{p.name}</option>
-              ))}
+              <option value="failure">중단된 응답만 이어받기</option>
+              <option value="repeat">정상 완료 후에도 계속 요청</option>
             </select>
           </label>
-        )}
-        <label>
-          Chat Completions 주소
-          <input
-            value={s.endpoint}
-            onChange={(e) => {
-              setKey("");
-              config({ endpoint: e.target.value, profile: "" });
-            }}
-          />
-        </label>
-        <label>
-          서버 동시 요청 수
-          <select
-            disabled={!origin}
-            value={capacity}
-            onChange={(e) => setCapacity(origin, Number(e.target.value))}
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          서빙 모델 ID
-          <input
-            value={s.model}
-            onChange={(e) => config({ model: e.target.value, profile: "" })}
-          />
-        </label>
-        <label>
-          API 키 (선택)
-          <input
-            type="password"
-            autoComplete="off"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-          />
-        </label>
-        <label>
-          연결 진단 입력
-          <select
-            value={probe}
-            onChange={(e) => setProbe(e.target.value as Probe)}
-          >
-            <option value="text">짧은 텍스트</option>
-            <option value="image">샘플 이미지</option>
-            <option value="pdf">샘플 PDF</option>
-          </select>
-        </label>
-        <button
-          disabled={!api.xcodeChat || !s.model.trim() || !origin}
-          onClick={() => void diagnose()}
-        >
-          연결 진단 실행
-        </button>
-        {report && <p role="status">{report}</p>}
-      </fieldset>
-      <details>
-        <summary>하네스 구성 · {s.harness.name}</summary>
-        <fieldset disabled={busy || readonly}>
-          <legend>단계 및 스킬</legend>
           <label>
-            템플릿 적용
+            자동 실행 한도(분)
+            <input
+              type="number"
+              min={1}
+              max={240}
+              disabled={busy}
+              value={s.autoMinutes ?? 15}
+              onChange={(e) =>
+                config({
+                  autoMinutes: Math.max(
+                    1,
+                    Math.min(240, Number(e.target.value) || 1),
+                  ),
+                })
+              }
+            />
+          </label>
+          <label>
+            자동 요청 한도(회)
+            <input
+              type="number"
+              min={1}
+              max={100}
+              disabled={busy}
+              value={s.maxAutoRequests ?? 5}
+              onChange={(e) =>
+                config({
+                  maxAutoRequests: Math.max(
+                    1,
+                    Math.min(100, Math.floor(Number(e.target.value) || 1)),
+                  ),
+                })
+              }
+            />
+          </label>
+          <label>
+            재요청 간격(초)
+            <input
+              type="number"
+              min={1}
+              max={3600}
+              disabled={busy}
+              value={s.retrySeconds ?? 60}
+              onChange={(e) =>
+                config({
+                  retrySeconds: Math.max(
+                    1,
+                    Math.min(3600, Math.round(Number(e.target.value) || 1)),
+                  ),
+                })
+              }
+            />
+          </label>
+        </fieldset>
+        <fieldset disabled={busy || readonly}>
+          <legend>모델 연결</legend>
+          {profiles.length > 0 && (
+            <label>
+              저장된 모델
+              <select
+                value={s.profile}
+                onChange={(e) => {
+                  const p = profiles.find((x) => x.name === e.target.value);
+                  setKey("");
+                  config(
+                    p
+                      ? {
+                          profile: p.name,
+                          model: p.model,
+                          endpoint: p.endpoint,
+                        }
+                      : { profile: "" },
+                  );
+                }}
+              >
+                <option value="">직접 입력</option>
+                {profiles.map((p) => (
+                  <option key={p.name}>{p.name}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label>
+            Chat Completions 주소
+            <input
+              value={s.endpoint}
+              onChange={(e) => {
+                setKey("");
+                config({ endpoint: e.target.value, profile: "" });
+              }}
+            />
+          </label>
+          <label>
+            서버 동시 요청 수
             <select
-              value=""
-              onChange={(e) => config({ harness: preset(e.target.value) })}
+              disabled={!origin}
+              value={capacity}
+              onChange={(e) => setCapacity(origin, Number(e.target.value))}
             >
-              <option value="" disabled>
-                템플릿 선택
-              </option>
-              {Object.keys(templates).map((n) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                 <option key={n}>{n}</option>
               ))}
             </select>
           </label>
           <label>
-            하네스 이름
+            서빙 모델 ID
             <input
-              value={s.harness.name}
-              onChange={(e) => harness({ name: e.target.value })}
+              value={s.model}
+              onChange={(e) => config({ model: e.target.value, profile: "" })}
             />
           </label>
           <label>
-            추론 강도
-            <select
-              value={s.harness.effort || ""}
-              onChange={(e) => harness({ effort: e.target.value })}
-            >
-              <option value="">서버 기본값</option>
-              {["low", "medium", "high", "xhigh", "max"].map((x) => (
-                <option key={x}>{x}</option>
-              ))}
-            </select>
+            API 키 (선택)
+            <input
+              type="password"
+              autoComplete="off"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+            />
           </label>
           <label>
-            포함할 이전 대화 수
+            연결 진단 입력
             <select
-              value={s.harness.historyTurns ?? "all"}
-              onChange={(e) =>
-                harness({
-                  historyTurns:
-                    e.target.value === "all"
-                      ? undefined
-                      : Number(e.target.value),
-                })
-              }
+              value={probe}
+              onChange={(e) => setProbe(e.target.value as Probe)}
             >
-              <option value="all">전체 대화</option>
-              {[0, 2, 5, 10, 20, 50].map((n) => (
-                <option key={n} value={n}>
-                  {n}개
-                </option>
-              ))}
+              <option value="text">짧은 텍스트</option>
+              <option value="image">샘플 이미지</option>
+              <option value="pdf">샘플 PDF</option>
             </select>
           </label>
-          {s.harness.stages.map((stage, i) => (
-            <div key={i}>
-              <label>
-                단계 {i + 1}
-                <textarea
-                  value={stage}
-                  onChange={(e) =>
+          <button
+            disabled={!api.xcodeChat || !s.model.trim() || !origin}
+            onClick={() => void diagnose()}
+          >
+            연결 진단 실행
+          </button>
+          {report && <p role="status">{report}</p>}
+        </fieldset>
+        <details>
+          <summary>하네스 구성 · {s.harness.name}</summary>
+          <fieldset disabled={busy || readonly}>
+            <legend>단계 및 스킬</legend>
+            <label>
+              템플릿 적용
+              <select
+                value=""
+                onChange={(e) => config({ harness: preset(e.target.value) })}
+              >
+                <option value="" disabled>
+                  템플릿 선택
+                </option>
+                {Object.keys(templates).map((n) => (
+                  <option key={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              하네스 이름
+              <input
+                value={s.harness.name}
+                onChange={(e) => harness({ name: e.target.value })}
+              />
+            </label>
+            <label>
+              추론 강도
+              <select
+                value={s.harness.effort || ""}
+                onChange={(e) => harness({ effort: e.target.value })}
+              >
+                <option value="">서버 기본값</option>
+                {["low", "medium", "high", "xhigh", "max"].map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              포함할 이전 대화 수
+              <select
+                value={s.harness.historyTurns ?? "all"}
+                onChange={(e) =>
+                  harness({
+                    historyTurns:
+                      e.target.value === "all"
+                        ? undefined
+                        : Number(e.target.value),
+                  })
+                }
+              >
+                <option value="all">전체 대화</option>
+                {[0, 2, 5, 10, 20, 50].map((n) => (
+                  <option key={n} value={n}>
+                    {n}개
+                  </option>
+                ))}
+              </select>
+            </label>
+            {s.harness.stages.map((stage, i) => (
+              <div key={i}>
+                <label>
+                  단계 {i + 1}
+                  <textarea
+                    value={stage}
+                    onChange={(e) =>
+                      harness({
+                        stages: s.harness.stages.map((v, j) =>
+                          j === i ? e.target.value : v,
+                        ),
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  단계 {i + 1} 추론 설정
+                  <select
+                    value={s.harness.stageEfforts?.[i] || ""}
+                    onChange={(e) =>
+                      harness({
+                        stageEfforts: s.harness.stages.map((_, j) =>
+                          i === j
+                            ? e.target.value
+                            : s.harness.stageEfforts?.[j] || "",
+                        ),
+                      })
+                    }
+                  >
+                    <option value="">하네스 설정 사용</option>
+                    <option value="server">서버 기본값</option>
+                    {["low", "medium", "high", "xhigh", "max"].map((x) => (
+                      <option key={x}>{x}</option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  disabled={!i}
+                  onClick={() => {
+                    const stages = [...s.harness.stages];
+                    [stages[i - 1], stages[i]] = [stages[i], stages[i - 1]];
+                    const efforts = [
+                      ...(s.harness.stageEfforts || stages.map(() => "")),
+                    ];
+                    [efforts[i - 1], efforts[i]] = [efforts[i], efforts[i - 1]];
+                    harness({ stages, stageEfforts: efforts });
+                  }}
+                >
+                  위로
+                </button>
+                <button
+                  disabled={s.harness.stages.length === 1}
+                  onClick={() =>
                     harness({
-                      stages: s.harness.stages.map((v, j) =>
-                        j === i ? e.target.value : v,
-                      ),
-                    })
-                  }
-                />
-              </label>
-              <label>
-                단계 {i + 1} 추론 설정
-                <select
-                  value={s.harness.stageEfforts?.[i] || ""}
-                  onChange={(e) =>
-                    harness({
-                      stageEfforts: s.harness.stages.map((_, j) =>
-                        i === j
-                          ? e.target.value
-                          : s.harness.stageEfforts?.[j] || "",
+                      stages: s.harness.stages.filter((_, j) => j !== i),
+                      stageEfforts: s.harness.stageEfforts?.filter(
+                        (_, j) => j !== i,
                       ),
                     })
                   }
                 >
-                  <option value="">하네스 설정 사용</option>
-                  <option value="server">서버 기본값</option>
-                  {["low", "medium", "high", "xhigh", "max"].map((x) => (
-                    <option key={x}>{x}</option>
-                  ))}
-                </select>
-              </label>
-              <button
-                disabled={!i}
-                onClick={() => {
-                  const stages = [...s.harness.stages];
-                  [stages[i - 1], stages[i]] = [stages[i], stages[i - 1]];
-                  const efforts = [
-                    ...(s.harness.stageEfforts || stages.map(() => "")),
-                  ];
-                  [efforts[i - 1], efforts[i]] = [efforts[i], efforts[i - 1]];
-                  harness({ stages, stageEfforts: efforts });
-                }}
-              >
-                위로
-              </button>
-              <button
-                disabled={s.harness.stages.length === 1}
-                onClick={() =>
-                  harness({
-                    stages: s.harness.stages.filter((_, j) => j !== i),
-                    stageEfforts: s.harness.stageEfforts?.filter(
-                      (_, j) => j !== i,
-                    ),
-                  })
-                }
-              >
-                단계 삭제
-              </button>
-            </div>
-          ))}
-          <button
-            disabled={s.harness.stages.length >= 12}
-            onClick={() =>
-              harness({
-                stages: [...s.harness.stages, ""],
-                stageEfforts: s.harness.stageEfforts && [
-                  ...s.harness.stageEfforts,
-                  "",
-                ],
-              })
-            }
-          >
-            단계 추가
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                const list = (await api.xcodeSkills?.()) || [];
-                setSkills(list);
-                setError(
-                  list.length
-                    ? ""
-                    : "사용자·워크스페이스의 .claude/skills에서 SKILL.md를 찾지 못했습니다.",
-                );
-              } catch (e) {
-                setError(String(e));
-              }
-            }}
-          >
-            .claude 스킬 찾기
-          </button>
-          {skills.map((k) => (
+                  단계 삭제
+                </button>
+              </div>
+            ))}
             <button
-              key={k.scope + k.name}
-              disabled={s.harness.skills.some(
-                (x) => x.name === k.name && x.instruction === k.instruction,
-              )}
+              disabled={s.harness.stages.length >= 12}
               onClick={() =>
                 harness({
-                  skills: [
-                    ...s.harness.skills,
-                    { name: k.name, instruction: k.instruction },
+                  stages: [...s.harness.stages, ""],
+                  stageEfforts: s.harness.stageEfforts && [
+                    ...s.harness.stageEfforts,
+                    "",
                   ],
                 })
               }
             >
-              {k.scope} · {k.name} 추가
+              단계 추가
             </button>
-          ))}
-          {s.harness.skills.map((k, i) => (
             <button
-              key={i}
-              onClick={() =>
-                harness({ skills: s.harness.skills.filter((_, j) => i !== j) })
-              }
-            >
-              {k.name} 제거
-            </button>
-          ))}
-          <button
-            onClick={() => {
-              const url = URL.createObjectURL(
-                new Blob([JSON.stringify(s.harness, null, 2)], {
-                  type: "application/json",
-                }),
-              );
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "xcode-harness.json";
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(url), 1000);
-            }}
-          >
-            하네스 내보내기
-          </button>
-          <label>
-            하네스 가져오기
-            <input
-              type="file"
-              accept=".json"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                e.target.value = "";
+              onClick={async () => {
                 try {
-                  if (!f) return;
-                  if (f.size > 200000)
-                    throw Error("200KB 이하 파일을 선택하세요.");
-                  const h = JSON.parse(await f.text());
-                  if (!validHarness(h))
-                    throw Error("하네스 형식이 올바르지 않습니다.");
-                  config({ harness: h });
-                } catch (err) {
-                  setError(String(err));
+                  const list = (await api.xcodeSkills?.()) || [];
+                  setSkills(list);
+                  setError(
+                    list.length
+                      ? ""
+                      : "사용자·워크스페이스의 .claude/skills에서 SKILL.md를 찾지 못했습니다.",
+                  );
+                } catch (e) {
+                  setError(String(e));
                 }
               }}
-            />
-          </label>
-        </fieldset>
-      </details>
+            >
+              .claude 스킬 찾기
+            </button>
+            {skills.length > 0 && (
+              <label>
+                스킬 검색
+                <input
+                  value={skillQuery}
+                  onChange={(e) => setSkillQuery(e.target.value)}
+                />
+              </label>
+            )}
+            {skills
+              .filter((k) =>
+                (k.scope + " " + k.name + " " + k.instruction)
+                  .toLowerCase()
+                  .includes(skillQuery.toLowerCase()),
+              )
+              .map((k) => (
+                <button
+                  key={k.scope + k.name}
+                  disabled={s.harness.skills.some(
+                    (x) => x.name === k.name && x.instruction === k.instruction,
+                  )}
+                  onClick={() =>
+                    harness({
+                      skills: [
+                        ...s.harness.skills,
+                        { name: k.name, instruction: k.instruction },
+                      ],
+                    })
+                  }
+                >
+                  {k.scope} · {k.name} 추가
+                </button>
+              ))}
+            {s.harness.skills.map((k, i) => (
+              <button
+                key={i}
+                onClick={() =>
+                  harness({
+                    skills: s.harness.skills.filter((_, j) => i !== j),
+                  })
+                }
+              >
+                {k.name} 제거
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                const url = URL.createObjectURL(
+                  new Blob([JSON.stringify(s.harness, null, 2)], {
+                    type: "application/json",
+                  }),
+                );
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "xcode-harness.json";
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }}
+            >
+              하네스 내보내기
+            </button>
+            <label>
+              하네스 가져오기
+              <input
+                type="file"
+                accept=".json"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  try {
+                    if (!f) return;
+                    if (f.size > 200000)
+                      throw Error("200KB 이하 파일을 선택하세요.");
+                    const h = JSON.parse(await f.text());
+                    if (!validHarness(h))
+                      throw Error("하네스 형식이 올바르지 않습니다.");
+                    config({ harness: h });
+                  } catch (err) {
+                    setError(String(err));
+                  }
+                }}
+              />
+            </label>
+          </fieldset>
+        </details>
+      </div>
       {s.turns.map((t, i) => (
         <article key={i}>
           <h3>요청 {i + 1}</h3>
           <p>{t.prompt}</p>
+          {t.execution?.configuration &&
+            validHarness(t.execution.configuration) && (
+              <button
+                disabled={busy || readonly}
+                onClick={() =>
+                  config({
+                    harness: structuredClone(t.execution!.configuration!),
+                  })
+                }
+              >
+                이 실행의 하네스 복제
+              </button>
+            )}
           {t.execution && (
             <small>
               {t.execution.model} · {t.execution.harness}
@@ -917,6 +1132,7 @@ export default function Xcode({
             }}
           />
         </label>
+        <ProjectInputs onAdd={(added) => setFiles((v) => [...v, ...added])} />
         {files.map((f, i) => (
           <button
             key={i}
@@ -927,6 +1143,10 @@ export default function Xcode({
         ))}
         <details>
           <summary>전송 미리보기</summary>
+          <p>
+            선택 텍스트 {textBytes.toLocaleString()} 바이트 · 이미지·PDF 전송량
+            별도
+          </p>
           <p>
             {s.model} · {s.endpoint}
           </p>

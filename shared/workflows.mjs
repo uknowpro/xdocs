@@ -277,3 +277,22 @@ export function addBlock(kind, source) {
     source.slice(pos)
   );
 }
+
+// A job can only run after all its declared prerequisites finish.
+export function jobDependencyIssues(nodes) {
+  const jobs = new Map(nodes.filter(n=>n.type==="Job").map(n=>[n.id,n.refs]));
+  const done = new Set(), path=[], issues=new Set();
+  function inspect(id){
+    if(done.has(id))return;
+    const start=path.indexOf(id);
+    if(start>=0){issues.add("순환 의존성 · "+[...path.slice(start),id].join(" → "));return;}
+    path.push(id);
+    for(const ref of jobs.get(id) || []){
+      if(!jobs.has(ref))issues.add(id+" · 찾을 수 없는 선행 job: "+ref);
+      else inspect(ref);
+    }
+    path.pop();done.add(id);
+  }
+  for(const id of jobs.keys())inspect(id);
+  return [...issues];
+}

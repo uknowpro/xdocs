@@ -46,9 +46,10 @@ export type Harness = {
 };
 export type InputFile = { name: string; text: string } | Attachment;
 export type Turn = {
+  runId?: string;
   prompt: string;
   files: InputFile[];
-  execution?: { model: string; harness: string; skills: string[] };
+  execution?: { model: string; harness: string; skills: string[]; configuration?: Harness };
   answers: {
     stage: string;
     text: string;

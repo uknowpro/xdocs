@@ -148,6 +148,10 @@ export default function SheetTable({
           <FileText size={14} />
           노트 표로 복제
         </button>
+        {!readonly && <button className="button" onClick={()=>{
+          const range=sheet.name+"!"+letter(minC)+(minR+1)+":"+letter(maxC)+(maxR+1);
+          onNote(range,"# "+range+"\n\n"+sheetMarkdown({...sheet,rows:selection()})+"\n");
+        }}>선택 범위를 노트로 복제</button>}
         {!readonly && (
           <>
             <button className="button" onClick={rename}>

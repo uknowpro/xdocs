@@ -67,6 +67,7 @@ export default function Analyzer({
     [busy, setBusy] = useState(false);
   const [pathLimit, setPathLimit] = useState(25),
     [findingLimit, setFindingLimit] = useState(100);
+  const [previous,setPrevious]=useState<Report|null>(null);
   const [localScan, setLocalScan] = useState(false);
   async function load(fn: () => Promise<unknown>, local = false) {
     setBusy(true);
@@ -74,7 +75,9 @@ export default function Analyzer({
     try {
       const raw = await fn();
       if (raw !== null) {
-        setResult(analyzerReport(raw));
+        const next=analyzerReport(raw);
+        setPrevious(result?.title===next.title ? result : null);
+        setResult(next);
         setLocalScan(local);
         setPathLimit(25);
         setFindingLimit(100);
@@ -196,6 +199,13 @@ export default function Analyzer({
           <h3>
             {result.title} {result.version}
           </h3>
+          {previous && <details><summary>직전 분석과 변경 비교</summary>
+            {(["추가","해소"] as const).map(label=>{
+              const [left,right]=label==="추가"?[result,previous]:[previous,result];
+              const entries=(r:Report)=>[...r.rows.map(row=>JSON.stringify(row)),...r.paths.map(p=>JSON.stringify([p.status,...p.nodes,...p.evidence]))];
+              const other=new Set(entries(right)), changed=[...new Set(entries(left))].filter(v=>!other.has(v));
+              return <section key={label}><strong>{label} {changed.length}건</strong><ul>{changed.map(v=><li key={v}>{JSON.parse(v).filter(Boolean).join(" · ")}</li>)}</ul></section>
+            })}</details>}
           {result.rules && <p>규칙 {result.rules}</p>}
           {result.steps.length > 0 && <p>{result.steps.join(" → ")}</p>}
           {result.paths.slice(0, pathLimit).map((p, i) => (

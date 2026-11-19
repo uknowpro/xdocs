@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "title": "GCP · Shared VPC · 서울·도쿄 리전별 이그레스",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "google_compute_shared_vpc_host_project",
+      "label": "google_compute_shared_vpc_host_project.host",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_shared_vpc_host_project.host",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "google_compute_shared_vpc_service_project",
+      "label": "google_compute_shared_vpc_service_project.orders",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_shared_vpc_service_project.orders",
+      "references": [
+        "google_compute_shared_vpc_host_project.host"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "google_compute_network",
+      "label": "google_compute_network.fabric",
+      "x": 540,
+      "y": 60,
+      "props": {
+        "name": "regional-fabric"
+      },
+      "original": {
+        "name": "regional-fabric"
+      },
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_network.fabric",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "google_compute_subnetwork",
+      "label": "google_compute_subnetwork.seoul",
+      "x": 780,
+      "y": 60,
+      "props": {
+        "name": "seoul-workloads",
+        "cidr": "10.71.0.0/20"
+      },
+      "original": {
+        "name": "seoul-workloads",
+        "cidr": "10.71.0.0/20"
+      },
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_subnetwork.seoul",
+      "references": [
+        "google_compute_network.fabric"
+      ],
+      "scopeAddress": "google_compute_network.fabric",
+      "placementSource": {
+        "file": "gcp-regional-shared-egress.tf.json",
+        "offset": 1076,
+        "address": "google_compute_network.fabric",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_4",
+      "kind": "google_compute_subnetwork",
+      "label": "google_compute_subnetwork.tokyo",
+      "x": 60,
+      "y": 200,
+      "props": {
+        "name": "tokyo-workloads",
+        "cidr": "10.72.0.0/20"
+      },
+      "original": {
+        "name": "tokyo-workloads",
+        "cidr": "10.72.0.0/20"
+      },
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_subnetwork.tokyo",
+      "references": [
+        "google_compute_network.fabric"
+      ],
+      "scopeAddress": "google_compute_network.fabric",
+      "placementSource": {
+        "file": "gcp-regional-shared-egress.tf.json",
+        "offset": 1314,
+        "address": "google_compute_network.fabric",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_5",
+      "kind": "google_compute_router",
+      "label": "google_compute_router.seoul",
+      "x": 300,
+      "y": 200,
+      "props": {
+        "name": "seoul-router"
+      },
+      "original": {
+        "name": "seoul-router"
+      },
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_router.seoul",
+      "references": [
+        "google_compute_network.fabric"
+      ],
+      "scopeAddress": "google_compute_network.fabric",
+      "placementSource": {
+        "file": "gcp-regional-shared-egress.tf.json",
+        "offset": 1545,
+        "address": "google_compute_network.fabric",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_6",
+      "kind": "google_compute_router",
+      "label": "google_compute_router.tokyo",
+      "x": 540,
+      "y": 200,
+      "props": {
+        "name": "tokyo-router"
+      },
+      "original": {
+        "name": "tokyo-router"
+      },
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_router.tokyo",
+      "references": [
+        "google_compute_network.fabric"
+      ],
+      "scopeAddress": "google_compute_network.fabric",
+      "placementSource": {
+        "file": "gcp-regional-shared-egress.tf.json",
+        "offset": 1697,
+        "address": "google_compute_network.fabric",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_7",
+      "kind": "google_compute_router_nat",
+      "label": "google_compute_router_nat.seoul",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_router_nat.seoul",
+      "references": [
+        "google_compute_router.seoul",
+        "google_compute_subnetwork.seoul"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "google_compute_router_nat",
+      "label": "google_compute_router_nat.tokyo",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "gcp-regional-shared-egress.tf.json",
+      "address": "google_compute_router_nat.tokyo",
+      "references": [
+        "google_compute_router.tokyo",
+        "google_compute_subnetwork.tokyo"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "gcp-regional-shared-egress.tf.json",
+      "content": "{\n  \"terraform\": {\n    \"required_providers\": {\n      \"google\": {\n        \"source\": \"hashicorp/google\",\n        \"version\": \"~> 6.0\"\n      }\n    }\n  },\n  \"variable\": {\n    \"host_project\": {\n      \"type\": \"string\"\n    },\n    \"service_project\": {\n      \"type\": \"string\"\n    }\n  },\n  \"provider\": {\n    \"google\": {\n      \"project\": \"${var.host_project}\",\n      \"region\": \"asia-northeast3\"\n    }\n  },\n  \"resource\": {\n    \"google_compute_shared_vpc_host_project\": {\n      \"host\": {\n        \"project\": \"${var.host_project}\"\n      }\n    },\n    \"google_compute_shared_vpc_service_project\": {\n      \"orders\": {\n        \"host_project\": \"${google_compute_shared_vpc_host_project.host.project}\",\n        \"service_project\": \"${var.service_project}\"\n      }\n    },\n    \"google_compute_network\": {\n      \"fabric\": {\n        \"name\": \"regional-fabric\",\n        \"auto_create_subnetworks\": false\n      }\n    },\n    \"google_compute_subnetwork\": {\n      \"seoul\": {\n        \"name\": \"seoul-workloads\",\n        \"region\": \"asia-northeast3\",\n        \"ip_cidr_range\": \"10.71.0.0/20\",\n        \"network\": \"${google_compute_network.fabric.id}\",\n        \"private_ip_google_access\": true\n      },\n      \"tokyo\": {\n        \"name\": \"tokyo-workloads\",\n        \"region\": \"asia-northeast1\",\n        \"ip_cidr_range\": \"10.72.0.0/20\",\n        \"network\": \"${google_compute_network.fabric.id}\",\n        \"private_ip_google_access\": true\n      }\n    },\n    \"google_compute_router\": {\n      \"seoul\": {\n        \"name\": \"seoul-router\",\n        \"region\": \"asia-northeast3\",\n        \"network\": \"${google_compute_network.fabric.id}\"\n      },\n      \"tokyo\": {\n        \"name\": \"tokyo-router\",\n        \"region\": \"asia-northeast1\",\n        \"network\": \"${google_compute_network.fabric.id}\"\n      }\n    },\n    \"google_compute_router_nat\": {\n      \"seoul\": {\n        \"name\": \"seoul-nat\",\n        \"region\": \"asia-northeast3\",\n        \"router\": \"${google_compute_router.seoul.name}\",\n        \"nat_ip_allocate_option\": \"AUTO_ONLY\",\n        \"source_subnetwork_ip_ranges_to_nat\": \"LIST_OF_SUBNETWORKS\",\n        \"subnetwork\": [\n          {\n            \"name\": \"${google_compute_subnetwork.seoul.id}\",\n            \"source_ip_ranges_to_nat\": [\n              \"ALL_IP_RANGES\"\n            ]\n          }\n        ]\n      },\n      \"tokyo\": {\n        \"name\": \"tokyo-nat\",\n        \"region\": \"asia-northeast1\",\n        \"router\": \"${google_compute_router.tokyo.name}\",\n        \"nat_ip_allocate_option\": \"AUTO_ONLY\",\n        \"source_subnetwork_ip_ranges_to_nat\": \"LIST_OF_SUBNETWORKS\",\n        \"subnetwork\": [\n          {\n            \"name\": \"${google_compute_subnetwork.tokyo.id}\",\n            \"source_ip_ranges_to_nat\": [\n              \"ALL_IP_RANGES\"\n            ]\n          }\n        ]\n      }\n    }\n  }\n}\n"
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "gcp-regional-shared-egress",
+  "review": {
+    "security": "서비스 프로젝트의 배포 주체에 필요한 서브넷 사용 권한을 별도 부여한다.",
+    "operations": "Compute API와 조직의 Shared VPC 권한이 필요하다. 리전별 NAT 포트 할당 실패를 모니터링한다.",
+    "performance": "서울·도쿄 워크로드의 지연과 NAT 연결 사용량을 각각 측정한다.",
+    "cost": "리전 간 전송과 NAT 처리량을 분리해 집계한다.",
+    "reliability": "한 리전의 NAT 장애 시 다른 리전의 아웃바운드 작업이 지속되는지 검증한다."
+  }
+}

@@ -16,14 +16,16 @@ export default function Graph({
   const [filter, setFilter] = useState("");
   const [limit, setLimit] = useState(60);
   const [scope, setScope] = useState<"local" | "all">("local");
+  const [depth,setDepth]=useState(1);
   const [selected, setSelected] = useState(active);
   const allEdges = useMemo(() => edgesFor(notes), [notes]);
-  const ids = new Set([
-    active,
-    ...allEdges
-      .filter((e) => e.source === active || e.target === active)
-      .flatMap((e) => [e.source, e.target]),
-  ]);
+  const ids=new Set([active]);
+  for(let hop=0;hop<(compact?1:depth);hop++){
+    const prior=new Set(ids);
+    for(const edge of allEdges) if(prior.has(edge.source)||prior.has(edge.target)){
+      ids.add(edge.source);ids.add(edge.target);
+    }
+  }
   const candidates = (
     scope === "all" && !compact ? notes : notes.filter((n) => ids.has(n.id))
   ).filter(
@@ -92,6 +94,8 @@ export default function Graph({
             onChange={(e) => setFilter(e.target.value)}
             placeholder="제목·폴더·태그로 필터"
           />
+          {scope==="local" && <label>연결 범위<select value={depth} onChange={e=>setDepth(Number(e.target.value))}>
+            <option value={1}>직접 연결</option><option value={2}>두 단계 연결</option></select></label>}
           <label>
             표시 개수{" "}
             <select

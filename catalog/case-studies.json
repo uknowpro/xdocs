@@ -82,5 +82,47 @@
       "google_bigquery_table",
       "google_vertex_ai_dataset"
     ]
+  },
+  {
+    "id": "azure-isolated-spokes",
+    "provider": "Azure",
+    "name": "업무 분리 · 허브와 두 스포크",
+    "study": "결제 주문과 재무 업무는 별도 VNet을 사용하고 공통 관리 허브와 양방향 피어링한다.",
+    "review": {
+      "security": "스포크 사이의 직접 피어링은 설정하지 않는다. 승인된 허브 경로와 NSG를 별도로 검토한다.",
+      "reliability": "한 스포크의 피어링 제거 시 다른 스포크의 허브 연결을 확인한다.",
+      "operations": "양방향 peering 상태와 유효 경로를 확인한다. 허브 경유 전이는 별도 라우팅 설계 대상이다.",
+      "performance": "허브와 각 업무 서브넷 간 지연을 따로 측정한다.",
+      "cost": "양방향 피어링 트래픽을 업무별로 집계한다."
+    },
+    "caseStudy": true,
+    "kinds": [
+      "azurerm_resource_group",
+      "azurerm_virtual_network",
+      "azurerm_subnet",
+      "azurerm_virtual_network_peering"
+    ]
+  },
+  {
+    "id": "gcp-regional-shared-egress",
+    "provider": "GCP",
+    "name": "Shared VPC · 서울·도쿄 리전별 이그레스",
+    "study": "호스트 프로젝트에 네트워크를 두고 업무 프로젝트를 연결한다. 두 리전의 프라이빗 서브넷은 리전별 NAT를 사용한다.",
+    "review": {
+      "security": "서비스 프로젝트의 배포 주체에 필요한 서브넷 사용 권한을 별도 부여한다.",
+      "operations": "Compute API와 조직의 Shared VPC 권한이 필요하다. 리전별 NAT 포트 할당 실패를 모니터링한다.",
+      "performance": "서울·도쿄 워크로드의 지연과 NAT 연결 사용량을 각각 측정한다.",
+      "cost": "리전 간 전송과 NAT 처리량을 분리해 집계한다.",
+      "reliability": "한 리전의 NAT 장애 시 다른 리전의 아웃바운드 작업이 지속되는지 검증한다."
+    },
+    "caseStudy": true,
+    "kinds": [
+      "google_compute_shared_vpc_host_project",
+      "google_compute_shared_vpc_service_project",
+      "google_compute_network",
+      "google_compute_subnetwork",
+      "google_compute_router",
+      "google_compute_router_nat"
+    ]
   }
 ]

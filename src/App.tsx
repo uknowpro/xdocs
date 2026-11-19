@@ -1432,7 +1432,7 @@ export default function App() {
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
               ) : xcode ? (
-                <Xcode key={active} page={active} scope={workspace!.root} prepare={flush} finish={async turn=>{
+                <Xcode local={!shared} key={active} page={active} scope={workspace!.root} prepare={flush} finish={async turn=>{
                   if(current.current?.id===active && !(await flush()))throw Error("세션 변경을 저장하지 못했습니다.");
                   const saved=await api.xcodeAppend!({scope:workspace!.root,page:active,turn});
                   update(saved);
@@ -1966,6 +1966,12 @@ export default function App() {
                 <FolderOpen size={15} />
                 폴더 변경
               </button>
+              {workspace && !shared && api.backupWorkspace && <button className="button" onClick={async()=>{
+                try {if(!await flush()) return;const backup=await api.backupWorkspace!();if(backup)setNotice(backup.count+"개 파일 검증 완료 · "+backup.folder);}catch(e){setError(String(e))}
+              }}>워크스페이스 백업</button>}
+              {workspace && !shared && api.restoreBackupCopy && <button className="button" onClick={async()=>{
+                try {const copy=await api.restoreBackupCopy!();if(copy)setNotice(copy.count+"개 파일 검증 · 복원 폴더: "+copy.folder);}catch(e){setError(String(e))}
+              }}>새 폴더에 시험 복원</button>}
               <button
                 className="button"
                 disabled={!workspace || !isDesktop || shared}

@@ -1,3 +1,4 @@
+import {portableBackup} from "./portable-backup.mjs";
 import { streamChat, readSkills } from "./xcode.mjs";
 import { homedir, tmpdir } from "node:os";
 import { readAnalyzerSource } from "./analyzer-source.mjs";
@@ -38,7 +39,7 @@ import {
 import { folderBody, withParent } from "../shared/page-parent.mjs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { readFile, writeFile, mkdir, readdir, mkdtemp, rm } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir, realpath, mkdtemp, rm } from "node:fs/promises";
 import { VaultClient } from "./vault-client.mjs";
 import { watch } from "chokidar";
 import TurndownService from "turndown";
@@ -282,6 +283,22 @@ app.whenReady().then(async () => {
     });
     return result.canceled ? null : chooseVault(result.filePaths[0]);
   });
+  register("vault:restore-copy",async()=>{
+    if(!vault || orgVault) throw Error("개인 워크스페이스에서 사용할 수 있습니다.");
+    const pick=async(title)=>{const choice=await dialog.showOpenDialog(window,{title,properties:["openDirectory","createDirectory"]});return !choice.canceled && choice.filePaths[0];};
+    const source=await pick("검증할 xdocs 백업 선택");if(!source)return null;
+    const target=await pick("시험 복원 사본을 저장할 상위 폴더");if(!target)return null;
+    const relative=path.relative(vault.root,await realpath(target));
+    if(!relative || (relative!==".." && !relative.startsWith(".."+path.sep) && !path.isAbsolute(relative)))throw Error("현재 워크스페이스 바깥을 선택하세요.");
+    return portableBackup(source,target,true);
+  });
+  register("vault:backup",async()=>{
+    const store=mustVault();
+    if(store===orgVault) throw Error("개인 워크스페이스에서 사용할 수 있습니다.");
+    const pick=await dialog.showOpenDialog(window,{title:"백업 사본을 저장할 상위 폴더",properties:["openDirectory","createDirectory"]});
+    if(pick.canceled || !pick.filePaths.length) return null;
+    return store.backup(pick.filePaths[0]);
+  });
   register("vault:refresh", () => mustVault().refresh());
   register("note:create", (title, body) => mustVault().create(title, body));
   register("note:save", (data) => mustVault().save(data));
@@ -452,6 +469,7 @@ app.whenReady().then(async () => {
     const match=note.body.match(pattern);
     if(!match)throw Error("원래 xcode 세션을 찾을 수 없습니다.");
     const session=JSON.parse(match[1]);
+    if (turn.runId && session.turns.some(t=>t.runId===turn.runId)) return note;
     session.turns.push(turn);
     const body=note.body.replace(pattern,()=>"```xdocs-xcode\n"+JSON.stringify(session).replaceAll("`","\\u0060")+"\n```");
     return store.save({id:page,revision:note.revision,body});

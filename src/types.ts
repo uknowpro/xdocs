@@ -76,6 +76,8 @@ export interface NoteAPI {
   analyzerNotices?(): Promise<{ name: string; text: string }[]>;
   analyzeDirectory?(request: { mode:string;from:string;to:string;namespace:string;release:string;customValues:boolean }):Promise<unknown>;
   xcodeAttachment?(data:{name:string;bytes:Uint8Array}):Promise<Attachment>;
+  restoreBackupCopy?():Promise<{folder:string;count:number}|null>;
+  backupWorkspace?():Promise<{folder:string;count:number}|null>;
   xcodeAppend?(data:{scope:string;page:string;turn:unknown}):Promise<Note>;
   xcodeSkills?():Promise<{scope:string;name:string;instruction:string}[]>;
   xcodeAuthorize?(endpoint:string):Promise<boolean>;
