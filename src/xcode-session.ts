@@ -1,6 +1,23 @@
 import type { Attachment } from "./types";
 import { unzipSync, strFromU8 } from "fflate";
 export const templates: Record<string, string[]> = {
+  "DeepSeek · 근거 기반 답변": [
+    "요청한 결과를 먼저 제시하세요. 첨부에서 가져온 주장은 파일명과 위치를 제시하고, 자료가 부족한 부분은 확인할 항목으로 남기세요.",
+  ],
+  "DeepSeek · 변경안 작성": [
+    "첨부에서 성공 조건, 변경할 파일·심볼, 유지해야 할 동작을 추출하세요. 다음 단계에서 사용할 짧은 작업 명세를 작성하세요.",
+    "작업 명세와 원본을 대조해 필요한 변경안을 작성하세요. 코드 변경 요청이면 파일별 패치와 예상 동작을 제시하세요.",
+    "제안이 요구사항, 경계값, 기존 호출자와 맞는지 원본에 대조하세요. 발견한 오류를 수정한 최종 변경안과 사용자가 실행할 검증 절차를 제시하세요.",
+  ],
+  "DeepSeek · 인프라 의사결정": [
+    "제공된 IaC, 도면, 운영 문서에서 현재 구성·제약·요구사항을 추출하고 출처를 붙이세요.",
+    "제약을 만족하는 설계 대안을 장애 범위, 데이터 경계, 비용 요인과 운영 복잡도로 비교하고 하나를 선택하세요.",
+    "선택한 방안이 실패할 조건을 점검하고 최종 결정, 전환 순서, 되돌리는 조건과 남은 확인 사항을 작성하세요.",
+  ],
+  "DeepSeek · 시각 자료 판독": [
+    "이미지·슬라이드에 보이는 레이블, 위치, 연결 방향과 수치를 출처별로 추출하세요. 판독하기 어려운 부분을 표시하세요.",
+    "사용자의 질문에 답하고 각 결론을 관찰 항목 또는 문서 근거에 연결하세요. 자료끼리 상충하는 곳은 양쪽 출처를 제시하세요.",
+  ],
   "직접 대화": ["요청에 직접 답하고 필요한 경우 근거를 표시하세요."],
   "코드 검토": [
     "제공된 코드의 흐름과 요구사항을 파악하세요.",
@@ -23,6 +40,7 @@ export type Harness = {
   name: string;
   stages: string[];
   effort?: string;
+  stageEfforts?: string[];
   historyTurns?: number;
   skills: { name: string; instruction: string }[];
 };
@@ -40,14 +58,24 @@ export type Session = {
   turns: Turn[];
 };
 export function preset(name: string): Harness {
-  return { name, stages: [...templates[name]], skills: [] };
+  const policies: Record<string, string[]> = {
+    "DeepSeek · 변경안 작성": ["low", "high", "high"],
+    "DeepSeek · 인프라 의사결정": ["low", "high", "high"],
+    "DeepSeek · 시각 자료 판독": ["low", "high"],
+  };
+  return {
+    name,
+    stages: [...templates[name]],
+    skills: [],
+    ...(policies[name] ? { stageEfforts: policies[name] } : {}),
+  };
 }
 export function fresh(): Session {
   return {
     endpoint: "http://127.0.0.1:8000/v1/chat/completions",
     model: "deepseek-ai/DeepSeek-V4.1-Flash",
     profile: "",
-    harness: preset("직접 대화"),
+    harness: preset("DeepSeek · 근거 기반 답변"),
     turns: [],
   };
 }
@@ -108,6 +136,12 @@ export function validHarness(h: Harness) {
     h.stages.length > 0 &&
     h.stages.length <= 12 &&
     h.stages.every((s) => typeof s === "string") &&
+    (h.stageEfforts === undefined ||
+      (Array.isArray(h.stageEfforts) &&
+        h.stageEfforts.length === h.stages.length &&
+        h.stageEfforts.every((e) =>
+          ["", "server", "low", "medium", "high", "xhigh", "max"].includes(e),
+        ))) &&
     Array.isArray(h.skills) &&
     h.skills.every(
       (s) => typeof s?.name === "string" && typeof s.instruction === "string",

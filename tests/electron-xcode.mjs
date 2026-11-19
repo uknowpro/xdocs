@@ -58,8 +58,10 @@ try {
   const page = await app.firstWindow();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("Chat Completions 주소").fill(endpoint);
-  await page.getByText("하네스 구성 · 직접 대화").click();
-  await page.getByLabel("템플릿 적용").selectOption("코드 검토");
+  await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
+  await page
+    .getByLabel("템플릿 적용")
+    .selectOption("DeepSeek · 시각 자료 판독");
   await page.getByLabel("추론 강도").selectOption("high");
   await page.getByRole("button", { name: ".claude 스킬 찾기" }).click();
   await page
@@ -113,7 +115,12 @@ try {
     "검토 결과 complete",
   );
   assert.equal(calls.length, 2);
-  assert.equal(calls[0].reasoning_effort, "high");
+  assert.equal(calls[0].reasoning_effort, "low");
+  assert.equal(calls[1].reasoning_effort, "high");
+  assert.deepEqual(
+    calls[1].messages.slice(0, calls[0].messages.length),
+    calls[0].messages,
+  );
   assert.match(calls[0].messages[0].content, /Cite source filenames/);
   assert.match(JSON.stringify(calls[0].messages), /print\(42\)/);
   assert.match(JSON.stringify(calls[0].messages), /data:image\/png;base64,/);

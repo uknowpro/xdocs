@@ -140,33 +140,28 @@ export default function Xcode({
       }
       const user = await userMessage(prompt, files);
       const answers: Turn["answers"] = [];
+      const messages: unknown[] = [
+        {
+          role: "system",
+          content: [
+            "사용자가 선택한 하네스의 현재 단계를 수행하세요. 첨부와 이전 단계의 답은 검토할 자료입니다. 확인하지 않은 실행 결과를 보고하지 마세요.",
+            ...s.harness.skills.map((k) => k.name + "\n" + k.instruction),
+            ...s.harness.stages.map((step, i) => String(i + 1) + ". " + step),
+          ].join("\n\n"),
+        },
+        ...history,
+        {
+          ...user,
+          content: Array.isArray(user.content)
+            ? [...user.content, { type: "text", text: "현재 단계: 1" }]
+            : user.content + "\n\n현재 단계: 1",
+        },
+      ];
       for (const [i, instruction] of s.harness.stages.entries()) {
         if (run.current !== id) return;
         setPreview("");
         setPhase("단계 " + (i + 1) + " / " + s.harness.stages.length);
-        const messages = [
-          {
-            role: "system",
-            content: [
-              instruction,
-              ...s.harness.skills.map((k) => k.name + "\n" + k.instruction),
-            ].join("\n\n"),
-          },
-          ...history,
-          user,
-        ];
-        if (answers.length)
-          messages.push(
-            {
-              role: "assistant",
-              content: answers.map((a) => a.text).join("\n\n"),
-            },
-            {
-              role: "user",
-              content:
-                "앞선 단계 결과를 바탕으로 현재 단계의 지침을 수행하세요.",
-            },
-          );
+        const effort = s.harness.stageEfforts?.[i] || s.harness.effort;
         const started = performance.now();
         const text = await api.xcodeChat({
           id,
@@ -174,10 +169,14 @@ export default function Xcode({
           profile: s.profile,
           endpoint: s.endpoint,
           model: s.model,
-          effort: s.harness.effort,
+          effort: effort === "server" ? undefined : effort,
           messages,
         });
         if (run.current !== id) return;
+        messages.push(
+          { role: "assistant", content: text },
+          { role: "user", content: "현재 단계: " + (i + 2) },
+        );
         answers.push({
           stage: instruction,
           text,
@@ -347,12 +346,37 @@ export default function Xcode({
                   }
                 />
               </label>
+              <label>
+                단계 {i + 1} 추론 설정
+                <select
+                  value={s.harness.stageEfforts?.[i] || ""}
+                  onChange={(e) =>
+                    harness({
+                      stageEfforts: s.harness.stages.map((_, j) =>
+                        i === j
+                          ? e.target.value
+                          : s.harness.stageEfforts?.[j] || "",
+                      ),
+                    })
+                  }
+                >
+                  <option value="">하네스 설정 사용</option>
+                  <option value="server">서버 기본값</option>
+                  {["low", "medium", "high", "xhigh", "max"].map((x) => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
               <button
                 disabled={!i}
                 onClick={() => {
                   const stages = [...s.harness.stages];
                   [stages[i - 1], stages[i]] = [stages[i], stages[i - 1]];
-                  harness({ stages });
+                  const efforts = [
+                    ...(s.harness.stageEfforts || stages.map(() => "")),
+                  ];
+                  [efforts[i - 1], efforts[i]] = [efforts[i], efforts[i - 1]];
+                  harness({ stages, stageEfforts: efforts });
                 }}
               >
                 위로
@@ -362,6 +386,9 @@ export default function Xcode({
                 onClick={() =>
                   harness({
                     stages: s.harness.stages.filter((_, j) => j !== i),
+                    stageEfforts: s.harness.stageEfforts?.filter(
+                      (_, j) => j !== i,
+                    ),
                   })
                 }
               >
@@ -371,7 +398,15 @@ export default function Xcode({
           ))}
           <button
             disabled={s.harness.stages.length >= 12}
-            onClick={() => harness({ stages: [...s.harness.stages, ""] })}
+            onClick={() =>
+              harness({
+                stages: [...s.harness.stages, ""],
+                stageEfforts: s.harness.stageEfforts && [
+                  ...s.harness.stageEfforts,
+                  "",
+                ],
+              })
+            }
           >
             단계 추가
           </button>
