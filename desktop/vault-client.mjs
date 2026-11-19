@@ -13,6 +13,7 @@ export class VaultClient {
       };
       const onMessage = (message) => {
         if (message.ready) {
+          client.root = message.root;
           cleanup();
           resolve();
         }

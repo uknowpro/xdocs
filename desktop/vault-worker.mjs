@@ -32,4 +32,4 @@ parentPort.on("message", ({ id, method, args }) => {
     }
   });
 });
-parentPort.postMessage({ ready: true });
+parentPort.postMessage({ ready: true, root: vault.root });
