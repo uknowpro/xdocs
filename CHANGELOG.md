@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.8
+
+- **Chat in xcode sessions.** Follow the model’s streamed reply beneath your message. Press Enter to send or Shift+Enter for a new line. Copy a finished answer or expand its stage history. Session settings are available in the upper-right corner.
+- **Resume interrupted work.** In a local workspace, reopen the session to review the partial reply and rerun from the first unfinished stage. Select project files to include with your next request.
+- **Explore five architecture case studies.** Inspect zonal egress in Seoul, private EKS operations, three-cloud retail analytics, isolated Azure spokes and regional GCP Shared VPC egress. Select a component to inspect its Terraform source.
+- **Verify workspace backups.** Create a backup with SHA-256 checksums and test a restore into a new folder before switching workspaces.
+
 ## 0.5.7
 
 - xcode 세션에서 텍스트·이미지·문서를 첨부하고 하네스와 스킬을 조합해 모델의 스트리밍 응답을 받을 수 있습니다.

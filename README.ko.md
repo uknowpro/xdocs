@@ -4,7 +4,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.2 개발용 프리릴리스**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.8 개발용 프리릴리스**입니다.
 
 ![다크 테마 노트 화면과 연결 그래프](docs/images/dark.png)
 
@@ -16,15 +16,23 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - 이미지·PDF 첨부, Markdown·HTML 가져오기, Markdown·HTML·PDF 내보내기
 - 시트 탭형 테이블·Excel/CSV/TSV 가져오기·탭 구분 클립보드
 - Terraform/OpenTofu·Kubernetes·Compose 인프라 목록·관계·운영 메모·변경 비교
-- **xcode** — 셀프서빙 모델과 스트리밍으로 대화하고, 문서·이미지·코드를 첨부해 업무별 하네스를 실행합니다. [세션 사용법](docs/xcode.md)
+- **xcode** — 프로젝트 파일을 첨부하고 셀프서빙 모델의 답변을 실시간으로 읽습니다. 오른쪽 위 **세션 설정 펼치기**에서 모델 연결·자동 재요청·하네스를 구성합니다. 로컬 세션은 중단된 단계부터 다시 실행할 수 있습니다. [세션 사용법](docs/xcode.md)
 - **Analyzer** — netspector·kubewiser·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.2) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.8) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
 IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 이름·Terraform 주소로 리소스를 찾고 선택한 경계 안에 컴포넌트를 추가할 수 있습니다. 경계를 접거나 잠그고, 참조선과 운영 주석을 선택해 볼 수 있습니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
-main의 보관함 **페이지 트리**에서 노트와 캔버스를 함께 탐색합니다. **새 폴더**로 시작해 폴더 옆 **+**에서 이름을 정하고 하위 폴더·노트·시트·캔버스를 만듭니다. 데스크톱의 **Excel 폴더 가져오기**는 디렉터리 구조와 시트 탭을 유지하며 파일마다 페이지를 만듭니다. IaCD 카탈로그에서 공급자와 편집 방식으로 템플릿을 찾고, 카드에 표시된 구성도 썸네일을 비교한 뒤 선택합니다. 설계 화면에서는 속성의 **Terraform 선언 보기**로 코드를 확인하고 **캔버스에서 보기**로 같은 리소스에 돌아갑니다. 페이지를 끌거나 **⋯** 메뉴로 하위 트리를 이동하고 순서를 조정합니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
+워크스페이스의 **페이지 트리**에서 노트와 캔버스를 함께 탐색합니다. **새 폴더**로 시작해 폴더 옆 **+**에서 이름을 정하고 하위 폴더·노트·시트·캔버스를 만듭니다. 데스크톱의 **Excel 폴더 가져오기**는 디렉터리 구조와 시트 탭을 유지하며 파일마다 페이지를 만듭니다. IaCD 카탈로그에서 공급자와 편집 방식으로 템플릿을 찾고, 카드에 표시된 구성도 썸네일을 비교한 뒤 선택합니다. 설계 화면에서는 속성의 **Terraform 선언 보기**로 코드를 확인하고 **캔버스에서 보기**로 같은 리소스에 돌아갑니다. 페이지를 끌거나 **⋯** 메뉴로 하위 트리를 이동하고 순서를 조정합니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
+
+<details>
+<summary>xcode 채팅과 세션 설정 화면</summary>
+
+![첨부한 질문과 답변, 접힌 실행 기록](docs/images/xcode-chat.png)
+![세션 설정의 자동 재요청 한도와 모델 연결 진단, 하네스 구성](docs/images/xcode-settings.png)
+
+</details>
 
 <details>
 <summary>AWS 계정 간 백업 드로잉과 노트 미리보기</summary>
@@ -98,7 +106,7 @@ Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과�
 
 자신과 회사의 내부 업무를 위한 사용·수정·파생물 제작을 허용합니다. 외부 배포에는 별도 허가가 필요합니다.
 
-main 개발판에는 **AWS·Azure·GCP 기본 각 30종, 멀티클라우드 VPN 2종과 사례 설계 5종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
+IaCD에는 **AWS·Azure·GCP 기본 각 30종, 멀티클라우드 VPN 2종과 사례 설계 5종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
 
 <details>
 <summary>Builder와 IaCD 템플릿 화면</summary>
