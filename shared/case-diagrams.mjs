@@ -1,3 +1,4 @@
+import {enterpriseCases} from "./enterprise-case-layouts.mjs";
 import {regionalCases} from "./regional-case-layouts.mjs";
 // Coordinates are in the reference design's view box. A resource address resolves
 // against the current canvas; conceptual frames never introduce Terraform dependencies.
@@ -136,6 +137,7 @@ const retail = [
 ];
 const layouts = {
   ...regionalCases,
+  ...enterpriseCases,
   "seoul-zonal-egress": {
     boxes: seoul,
     links: [

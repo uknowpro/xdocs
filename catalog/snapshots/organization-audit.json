@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "title": "AWS · 멀티계정 랜딩존 · 조직 감사 로그 분리",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_cloudtrail",
+      "label": "aws_cloudtrail.organization",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 61,
+      "address": "aws_cloudtrail.organization",
+      "references": [
+        "aws_s3_bucket_policy.delivery",
+        "aws_s3_bucket_versioning.retention",
+        "aws_s3_bucket.audit"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_s3_bucket",
+      "label": "aws_s3_bucket.audit",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "aws_s3_bucket.audit",
+      "references": [],
+      "unresolvedReferences": [
+        "aws.archive"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_s3_bucket_policy",
+      "label": "aws_s3_bucket_policy.delivery",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 46,
+      "address": "aws_s3_bucket_policy.delivery",
+      "references": [
+        "aws_s3_bucket.audit",
+        "data.aws_caller_identity.management",
+        "data.aws_organizations_organization.org"
+      ],
+      "unresolvedReferences": [
+        "aws.archive"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_s3_bucket_public_access_block",
+      "label": "aws_s3_bucket_public_access_block.private",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 35,
+      "address": "aws_s3_bucket_public_access_block.private",
+      "references": [
+        "aws_s3_bucket.audit"
+      ],
+      "unresolvedReferences": [
+        "aws.archive"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_s3_bucket_versioning",
+      "label": "aws_s3_bucket_versioning.retention",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "aws_s3_bucket_versioning.retention",
+      "references": [
+        "aws_s3_bucket.audit"
+      ],
+      "unresolvedReferences": [
+        "aws.archive"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.zone_a",
+      "x": 300,
+      "y": 200,
+      "props": {
+        "cidr": "10.72.10.0/24"
+      },
+      "original": {
+        "cidr": "10.72.10.0/24"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 74,
+      "address": "aws_subnet.zone_a",
+      "references": [
+        "aws_vpc.application"
+      ],
+      "scopeAddress": "aws_vpc.application",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2777,
+        "address": "aws_vpc.application",
+        "otherRefs": []
+      },
+      "unresolvedReferences": [
+        "aws.workload"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.zone_c",
+      "x": 540,
+      "y": 200,
+      "props": {
+        "cidr": "10.72.20.0/24"
+      },
+      "original": {
+        "cidr": "10.72.20.0/24"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 80,
+      "address": "aws_subnet.zone_c",
+      "references": [
+        "aws_vpc.application"
+      ],
+      "scopeAddress": "aws_vpc.application",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 2943,
+        "address": "aws_vpc.application",
+        "otherRefs": []
+      },
+      "unresolvedReferences": [
+        "aws.workload"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.application",
+      "x": 780,
+      "y": 200,
+      "props": {
+        "cidr": "10.72.0.0/16"
+      },
+      "original": {
+        "cidr": "10.72.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 70,
+      "address": "aws_vpc.application",
+      "references": [],
+      "unresolvedReferences": [
+        "aws.workload"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "aws_caller_identity",
+      "label": "data.aws_caller_identity.management",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 25,
+      "address": "data.aws_caller_identity.management",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "aws_organizations_organization",
+      "label": "data.aws_organizations_organization.org",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 24,
+      "address": "data.aws_organizations_organization.org",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws = { source = \"hashicorp/aws\", version = \"~> 6.0\" }\n  }\n}\n\nvariable \"archive_role_arn\" { type = string }\nvariable \"workload_role_arn\" { type = string }\nvariable \"archive_bucket\" { type = string }\n\n# Default credentials belong to the existing Organizations management account.\nprovider \"aws\" { region = \"ap-northeast-2\" }\nprovider \"aws\" {\n  alias  = \"archive\"\n  region = \"ap-northeast-2\"\n  assume_role { role_arn = var.archive_role_arn }\n}\nprovider \"aws\" {\n  alias  = \"workload\"\n  region = \"ap-northeast-2\"\n  assume_role { role_arn = var.workload_role_arn }\n}\n\ndata \"aws_organizations_organization\" \"org\" {}\ndata \"aws_caller_identity\" \"management\" {}\nresource \"aws_s3_bucket\" \"audit\" {\n  provider = aws.archive\n  bucket   = var.archive_bucket\n}\nresource \"aws_s3_bucket_versioning\" \"retention\" {\n  provider = aws.archive\n  bucket   = aws_s3_bucket.audit.id\n  versioning_configuration { status = \"Enabled\" }\n}\nresource \"aws_s3_bucket_public_access_block\" \"private\" {\n  provider                = aws.archive\n  bucket                  = aws_s3_bucket.audit.id\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\nlocals {\n  trail_arn = \"arn:aws:cloudtrail:ap-northeast-2:${data.aws_caller_identity.management.account_id}:trail/org-management\"\n}\nresource \"aws_s3_bucket_policy\" \"delivery\" {\n  provider = aws.archive\n  bucket   = aws_s3_bucket.audit.id\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      { Effect = \"Allow\", Principal = { Service = \"cloudtrail.amazonaws.com\" }, Action = \"s3:GetBucketAcl\",\n        Resource = aws_s3_bucket.audit.arn, Condition = { StringEquals = { \"aws:SourceArn\" = local.trail_arn } } },\n      { Effect = \"Allow\", Principal = { Service = \"cloudtrail.amazonaws.com\" }, Action = \"s3:PutObject\",\n        Resource = [\"${aws_s3_bucket.audit.arn}/AWSLogs/${data.aws_caller_identity.management.account_id}/*\",\n                    \"${aws_s3_bucket.audit.arn}/AWSLogs/${data.aws_organizations_organization.org.id}/*\"],\n        Condition = { StringEquals = { \"aws:SourceArn\" = local.trail_arn, \"s3:x-amz-acl\" = \"bucket-owner-full-control\" } } }\n    ]\n  })\n}\nresource \"aws_cloudtrail\" \"organization\" {\n  name                          = \"org-management\"\n  s3_bucket_name                = aws_s3_bucket.audit.id\n  is_organization_trail         = true\n  is_multi_region_trail         = true\n  include_global_service_events = true\n  enable_log_file_validation    = true\n  depends_on = [aws_s3_bucket_policy.delivery, aws_s3_bucket_versioning.retention]\n}\nresource \"aws_vpc\" \"application\" {\n  provider = aws.workload\n  cidr_block = \"10.72.0.0/16\"\n}\nresource \"aws_subnet\" \"zone_a\" {\n  provider = aws.workload\n  vpc_id = aws_vpc.application.id\n  availability_zone = \"ap-northeast-2a\"\n  cidr_block = \"10.72.10.0/24\"\n}\nresource \"aws_subnet\" \"zone_c\" {\n  provider = aws.workload\n  vpc_id = aws_vpc.application.id\n  availability_zone = \"ap-northeast-2c\"\n  cidr_block = \"10.72.20.0/24\"\n}\n",
+      "preservedDeclarations": [
+        "locals.0",
+        "provider.aws",
+        "terraform",
+        "variable.archive_bucket",
+        "variable.archive_role_arn",
+        "variable.workload_role_arn"
+      ]
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "organization-audit",
+  "review": {
+    "operations": "기존 Organizations의 모든 기능과 CloudTrail 신뢰 액세스, 두 멤버 계정 역할이 필요하다. 워크로드의 변경 이벤트가 조직 ID 경로에 도착하는지 확인한다.",
+    "reliability": "보관 계정 정책이 잘못됐을 때 전달 오류를 탐지하고 정책 복구 후 누락 기간을 대조한다.",
+    "security": "공개 접근을 차단하고 지정된 조직 추적 ARN에만 로그 전달을 허용한다.",
+    "cost": "조직 추적 중복과 버전 관리 객체의 보관 기간을 검토한다.",
+    "performance": "계정별 마지막 수신 시각과 이벤트 발생 시각 차이를 측정한다."
+  }
+}

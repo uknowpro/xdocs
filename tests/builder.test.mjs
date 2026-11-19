@@ -235,9 +235,12 @@ test("all enterprise catalog designs are distinct and retain Terraform contents 
     await readFile(new URL("../catalog/sources.json", import.meta.url)),
   );
   const all = [...architectureCatalog, ...index];
-  assert.equal(new Set(all.map((t) => t.id)).size, 92);
+  assert.equal(new Set(all.map((t) => t.id)).size, all.length);
   for (const provider of ["AWS", "Azure", "GCP"])
-    assert.equal(all.filter((t) => t.provider === provider).length, 30);
+    assert.ok(all.some(t => t.provider === provider));
+  const snapshotIds = (await (await import("node:fs/promises")).readdir(new URL("../catalog/snapshots/", import.meta.url))).map(f=>f.replace(/\.json$/, ""));
+  const studies = JSON.parse(await readFile(new URL("../catalog/case-studies.json", import.meta.url)));
+  assert.deepEqual(snapshotIds.sort(), [...index, ...studies].map(t=>t.id).sort());
   assert.equal(all.filter(t => t.provider === "멀티클라우드").length, 2);
   for (const t of index) {
     const m = JSON.parse(

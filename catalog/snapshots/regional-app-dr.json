@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "title": "Azure · 리전 장애 전환 · 한국과 일본의 이중 웹 서비스",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "azurerm_linux_web_app",
+      "label": "azurerm_linux_web_app.primary",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 46,
+      "address": "azurerm_linux_web_app.primary",
+      "references": [
+        "azurerm_resource_group.primary",
+        "azurerm_service_plan.primary"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "azurerm_linux_web_app",
+      "label": "azurerm_linux_web_app.recovery",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 69,
+      "address": "azurerm_linux_web_app.recovery",
+      "references": [
+        "azurerm_resource_group.recovery",
+        "azurerm_service_plan.recovery"
+      ]
+    },
+    {
+      "id": "n_import_2",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.primary",
+      "x": 540,
+      "y": 60,
+      "props": {
+        "location": "koreacentral"
+      },
+      "original": {
+        "location": "koreacentral"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 13,
+      "address": "azurerm_resource_group.primary",
+      "references": []
+    },
+    {
+      "id": "n_import_3",
+      "kind": "azurerm_resource_group",
+      "label": "azurerm_resource_group.recovery",
+      "x": 780,
+      "y": 60,
+      "props": {
+        "location": "japaneast"
+      },
+      "original": {
+        "location": "japaneast"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 17,
+      "address": "azurerm_resource_group.recovery",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "azurerm_service_plan",
+      "label": "azurerm_service_plan.primary",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "azurerm_service_plan.primary",
+      "references": [
+        "azurerm_resource_group.primary"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "azurerm_service_plan",
+      "label": "azurerm_service_plan.recovery",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 62,
+      "address": "azurerm_service_plan.recovery",
+      "references": [
+        "azurerm_resource_group.recovery"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "azurerm_traffic_manager_azure_endpoint",
+      "label": "azurerm_traffic_manager_azure_endpoint.primary",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 54,
+      "address": "azurerm_traffic_manager_azure_endpoint.primary",
+      "references": [
+        "azurerm_traffic_manager_profile.public",
+        "azurerm_linux_web_app.primary"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "azurerm_traffic_manager_azure_endpoint",
+      "label": "azurerm_traffic_manager_azure_endpoint.recovery",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 77,
+      "address": "azurerm_traffic_manager_azure_endpoint.recovery",
+      "references": [
+        "azurerm_traffic_manager_profile.public",
+        "azurerm_linux_web_app.recovery"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "azurerm_traffic_manager_profile",
+      "label": "azurerm_traffic_manager_profile.public",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "address": "azurerm_traffic_manager_profile.public",
+      "references": [
+        "azurerm_resource_group.primary"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    azurerm = { source = \"hashicorp/azurerm\", version = \"~> 4.0\" }\n  }\n}\nprovider \"azurerm\" {\n  features {}\n}\nvariable \"name_prefix\" {\n  type = string\n  description = \"Globally unique lowercase prefix for web app and DNS names.\"\n}\nresource \"azurerm_resource_group\" \"primary\" {\n  name = \"${var.name_prefix}-primary\"\n  location = \"koreacentral\"\n}\nresource \"azurerm_resource_group\" \"recovery\" {\n  name = \"${var.name_prefix}-recovery\"\n  location = \"japaneast\"\n}\nresource \"azurerm_traffic_manager_profile\" \"public\" {\n  name = \"${var.name_prefix}-global\"\n  resource_group_name = azurerm_resource_group.primary.name\n  traffic_routing_method = \"Priority\"\n  dns_config {\n    relative_name = var.name_prefix\n    ttl = 30\n  }\n  monitor_config {\n    protocol = \"HTTPS\"\n    port = 443\n    path = \"/health\"\n    interval_in_seconds = 30\n    timeout_in_seconds = 10\n    tolerated_number_of_failures = 3\n  }\n}\n\nresource \"azurerm_service_plan\" \"primary\" {\n  name                = \"${var.name_prefix}-primary\"\n  resource_group_name = azurerm_resource_group.primary.name\n  location            = azurerm_resource_group.primary.location\n  os_type             = \"Linux\"\n  sku_name            = \"P1v3\"\n}\nresource \"azurerm_linux_web_app\" \"primary\" {\n  name                = \"${var.name_prefix}-primary\"\n  resource_group_name = azurerm_resource_group.primary.name\n  location            = azurerm_resource_group.primary.location\n  service_plan_id     = azurerm_service_plan.primary.id\n  https_only          = true\n  site_config { always_on = true }\n}\nresource \"azurerm_traffic_manager_azure_endpoint\" \"primary\" {\n  name               = \"primary\"\n  profile_id         = azurerm_traffic_manager_profile.public.id\n  target_resource_id = azurerm_linux_web_app.primary.id\n  priority           = 1\n  weight             = 1\n}\n\nresource \"azurerm_service_plan\" \"recovery\" {\n  name                = \"${var.name_prefix}-recovery\"\n  resource_group_name = azurerm_resource_group.recovery.name\n  location            = azurerm_resource_group.recovery.location\n  os_type             = \"Linux\"\n  sku_name            = \"P1v3\"\n}\nresource \"azurerm_linux_web_app\" \"recovery\" {\n  name                = \"${var.name_prefix}-recovery\"\n  resource_group_name = azurerm_resource_group.recovery.name\n  location            = azurerm_resource_group.recovery.location\n  service_plan_id     = azurerm_service_plan.recovery.id\n  https_only          = true\n  site_config { always_on = true }\n}\nresource \"azurerm_traffic_manager_azure_endpoint\" \"recovery\" {\n  name               = \"recovery\"\n  profile_id         = azurerm_traffic_manager_profile.public.id\n  target_resource_id = azurerm_linux_web_app.recovery.id\n  priority           = 2\n  weight             = 1\n}\n",
+      "preservedDeclarations": [
+        "provider.azurerm",
+        "terraform",
+        "variable.name_prefix"
+      ]
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "regional-app-dr",
+  "review": {
+    "operations": "동일한 무상태 앱과 /health를 두 리전에 배포한다. 사용자 도메인과 TLS 바인딩은 별도 구성한다.",
+    "reliability": "주 서비스의 상태 점검을 실패시켜 DNS 응답 변경과 복귀를 검사한다. 기존 연결과 DNS 캐시의 영향을 포함한다.",
+    "security": "HTTPS 전용으로 운영하고 상태 응답에 내부 정보가 포함되지 않는지 확인한다.",
+    "cost": "두 리전의 상시 실행 App Service 요금과 DNS 쿼리를 산정한다.",
+    "performance": "한국과 일본에서 DNS TTL 및 실제 요청 회복 시간을 측정한다."
+  }
+}

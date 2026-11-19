@@ -1,0 +1,386 @@
+{
+  "version": 1,
+  "title": "멀티클라우드 · 하이브리드 지점망 · 이중 라우터와 AWS·GCP",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "aws_customer_gateway",
+      "label": "aws_customer_gateway.east",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 66,
+      "address": "aws_customer_gateway.east",
+      "references": []
+    },
+    {
+      "id": "n_import_1",
+      "kind": "aws_customer_gateway",
+      "label": "aws_customer_gateway.west",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 101,
+      "address": "aws_customer_gateway.west",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "aws_subnet",
+      "label": "aws_subnet.apps",
+      "x": 540,
+      "y": 60,
+      "props": {
+        "cidr": "10.80.1.0/24"
+      },
+      "original": {
+        "cidr": "10.80.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 22,
+      "address": "aws_subnet.apps",
+      "references": [
+        "aws_vpc.services"
+      ],
+      "scopeAddress": "aws_vpc.services",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 688,
+        "address": "aws_vpc.services",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_3",
+      "kind": "aws_vpc",
+      "label": "aws_vpc.services",
+      "x": 780,
+      "y": 60,
+      "props": {
+        "cidr": "10.80.0.0/16"
+      },
+      "original": {
+        "cidr": "10.80.0.0/16"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "address": "aws_vpc.services",
+      "references": []
+    },
+    {
+      "id": "n_import_4",
+      "kind": "aws_vpn_connection",
+      "label": "aws_vpn_connection.east",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 71,
+      "address": "aws_vpn_connection.east",
+      "references": [
+        "aws_customer_gateway.east",
+        "aws_vpn_gateway.services"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "aws_vpn_connection",
+      "label": "aws_vpn_connection.west",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 106,
+      "address": "aws_vpn_connection.west",
+      "references": [
+        "aws_customer_gateway.west",
+        "aws_vpn_gateway.services"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "aws_vpn_gateway",
+      "label": "aws_vpn_gateway.services",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 26,
+      "address": "aws_vpn_gateway.services",
+      "references": [
+        "aws_vpc.services"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "aws_vpn_gateway_route_propagation",
+      "label": "aws_vpn_gateway_route_propagation.apps",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "aws_vpn_gateway_route_propagation.apps",
+      "references": [
+        "aws_vpc.services",
+        "aws_vpn_gateway.services"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "google_compute_external_vpn_gateway",
+      "label": "google_compute_external_vpn_gateway.branch",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 53,
+      "address": "google_compute_external_vpn_gateway.branch",
+      "references": []
+    },
+    {
+      "id": "n_import_9",
+      "kind": "google_compute_ha_vpn_gateway",
+      "label": "google_compute_ha_vpn_gateway.data",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 49,
+      "address": "google_compute_ha_vpn_gateway.data",
+      "references": [
+        "google_compute_network.data"
+      ]
+    },
+    {
+      "id": "n_import_10",
+      "kind": "google_compute_network",
+      "label": "google_compute_network.data",
+      "x": 540,
+      "y": 340,
+      "props": {
+        "name": "branch-data"
+      },
+      "original": {
+        "name": "branch-data"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 34,
+      "address": "google_compute_network.data",
+      "references": []
+    },
+    {
+      "id": "n_import_11",
+      "kind": "google_compute_router",
+      "label": "google_compute_router.border",
+      "x": 780,
+      "y": 340,
+      "props": {
+        "name": "branch-border"
+      },
+      "original": {
+        "name": "branch-border"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 44,
+      "address": "google_compute_router.border",
+      "references": [
+        "google_compute_network.data"
+      ],
+      "scopeAddress": "google_compute_network.data",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1357,
+        "address": "google_compute_network.data",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_12",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.east",
+      "x": 60,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 87,
+      "address": "google_compute_router_interface.east",
+      "references": [
+        "google_compute_router.border",
+        "google_compute_vpn_tunnel.east"
+      ]
+    },
+    {
+      "id": "n_import_13",
+      "kind": "google_compute_router_interface",
+      "label": "google_compute_router_interface.west",
+      "x": 300,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 122,
+      "address": "google_compute_router_interface.west",
+      "references": [
+        "google_compute_router.border",
+        "google_compute_vpn_tunnel.west"
+      ]
+    },
+    {
+      "id": "n_import_14",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.east",
+      "x": 540,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 93,
+      "address": "google_compute_router_peer.east",
+      "references": [
+        "google_compute_router_interface.east",
+        "google_compute_router.border"
+      ]
+    },
+    {
+      "id": "n_import_15",
+      "kind": "google_compute_router_peer",
+      "label": "google_compute_router_peer.west",
+      "x": 780,
+      "y": 480,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 128,
+      "address": "google_compute_router_peer.west",
+      "references": [
+        "google_compute_router_interface.west",
+        "google_compute_router.border"
+      ]
+    },
+    {
+      "id": "n_import_16",
+      "kind": "google_compute_subnetwork",
+      "label": "google_compute_subnetwork.analytics",
+      "x": 60,
+      "y": 620,
+      "props": {
+        "name": "analytics",
+        "cidr": "10.90.1.0/24"
+      },
+      "original": {
+        "name": "analytics",
+        "cidr": "10.90.1.0/24"
+      },
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "google_compute_subnetwork.analytics",
+      "references": [
+        "google_compute_network.data"
+      ],
+      "scopeAddress": "google_compute_network.data",
+      "placementSource": {
+        "file": "main.tf",
+        "offset": 1243,
+        "address": "google_compute_network.data",
+        "otherRefs": []
+      }
+    },
+    {
+      "id": "n_import_17",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.east",
+      "x": 300,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 77,
+      "address": "google_compute_vpn_tunnel.east",
+      "references": [
+        "google_compute_external_vpn_gateway.branch",
+        "google_compute_router.border",
+        "google_compute_ha_vpn_gateway.data"
+      ]
+    },
+    {
+      "id": "n_import_18",
+      "kind": "google_compute_vpn_tunnel",
+      "label": "google_compute_vpn_tunnel.west",
+      "x": 540,
+      "y": 620,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 112,
+      "address": "google_compute_vpn_tunnel.west",
+      "references": [
+        "google_compute_external_vpn_gateway.branch",
+        "google_compute_router.border",
+        "google_compute_ha_vpn_gateway.data"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    aws    = { source = \"hashicorp/aws\", version = \"~> 6.0\" }\n    google = { source = \"hashicorp/google\", version = \"~> 6.0\" }\n  }\n}\nvariable \"gcp_project\" { type = string }\nvariable \"branch_public_ips\" {\n  type = tuple([string, string])\n  description = \"Public IPv4 addresses of the two existing on-premises BGP routers, AS 65010.\"\n}\nvariable \"google_tunnel_secrets\" {\n  type = tuple([string, string])\n  sensitive = true\n}\nprovider \"aws\" { region = \"ap-northeast-2\" }\nprovider \"google\" {\n  project = var.gcp_project\n  region  = \"asia-northeast3\"\n}\nresource \"aws_vpc\" \"services\" { cidr_block = \"10.80.0.0/16\" }\nresource \"aws_subnet\" \"apps\" {\n  vpc_id = aws_vpc.services.id\n  cidr_block = \"10.80.1.0/24\"\n}\nresource \"aws_vpn_gateway\" \"services\" {\n  vpc_id = aws_vpc.services.id\n  amazon_side_asn = 64520\n}\nresource \"aws_vpn_gateway_route_propagation\" \"apps\" {\n  vpn_gateway_id = aws_vpn_gateway.services.id\n  route_table_id = aws_vpc.services.main_route_table_id\n}\nresource \"google_compute_network\" \"data\" {\n  name = \"branch-data\"\n  auto_create_subnetworks = false\n  routing_mode = \"GLOBAL\"\n}\nresource \"google_compute_subnetwork\" \"analytics\" {\n  name = \"analytics\"\n  ip_cidr_range = \"10.90.1.0/24\"\n  network = google_compute_network.data.id\n}\nresource \"google_compute_router\" \"border\" {\n  name = \"branch-border\"\n  network = google_compute_network.data.id\n  bgp { asn = 64521 }\n}\nresource \"google_compute_ha_vpn_gateway\" \"data\" {\n  name = \"branch-ha\"\n  network = google_compute_network.data.id\n}\nresource \"google_compute_external_vpn_gateway\" \"branch\" {\n  name = \"branch-edge\"\n  redundancy_type = \"TWO_IPS_REDUNDANCY\"\n  interface {\n    id = 0\n    ip_address = var.branch_public_ips[0]\n  }\n  interface {\n    id = 1\n    ip_address = var.branch_public_ips[1]\n  }\n}\n\nresource \"aws_customer_gateway\" \"east\" {\n  bgp_asn    = 65010\n  ip_address = var.branch_public_ips[0]\n  type       = \"ipsec.1\"\n}\nresource \"aws_vpn_connection\" \"east\" {\n  customer_gateway_id = aws_customer_gateway.east.id\n  vpn_gateway_id = aws_vpn_gateway.services.id\n  type = \"ipsec.1\"\n  static_routes_only = false\n}\nresource \"google_compute_vpn_tunnel\" \"east\" {\n  name                            = \"branch-east\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.data.id\n  vpn_gateway_interface           = 0\n  peer_external_gateway           = google_compute_external_vpn_gateway.branch.id\n  peer_external_gateway_interface = 0\n  router                          = google_compute_router.border.id\n  shared_secret                   = var.google_tunnel_secrets[0]\n  ike_version                     = 2\n}\nresource \"google_compute_router_interface\" \"east\" {\n  name       = \"branch-east\"\n  router     = google_compute_router.border.name\n  ip_range   = \"169.254.70.1/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.east.id\n}\nresource \"google_compute_router_peer\" \"east\" {\n  name            = \"branch-east\"\n  router          = google_compute_router.border.name\n  interface       = google_compute_router_interface.east.name\n  peer_ip_address = \"169.254.70.2\"\n  peer_asn        = 65010\n}\n\nresource \"aws_customer_gateway\" \"west\" {\n  bgp_asn    = 65010\n  ip_address = var.branch_public_ips[1]\n  type       = \"ipsec.1\"\n}\nresource \"aws_vpn_connection\" \"west\" {\n  customer_gateway_id = aws_customer_gateway.west.id\n  vpn_gateway_id = aws_vpn_gateway.services.id\n  type = \"ipsec.1\"\n  static_routes_only = false\n}\nresource \"google_compute_vpn_tunnel\" \"west\" {\n  name                            = \"branch-west\"\n  vpn_gateway                     = google_compute_ha_vpn_gateway.data.id\n  vpn_gateway_interface           = 1\n  peer_external_gateway           = google_compute_external_vpn_gateway.branch.id\n  peer_external_gateway_interface = 1\n  router                          = google_compute_router.border.id\n  shared_secret                   = var.google_tunnel_secrets[1]\n  ike_version                     = 2\n}\nresource \"google_compute_router_interface\" \"west\" {\n  name       = \"branch-west\"\n  router     = google_compute_router.border.name\n  ip_range   = \"169.254.70.5/30\"\n  vpn_tunnel = google_compute_vpn_tunnel.west.id\n}\nresource \"google_compute_router_peer\" \"west\" {\n  name            = \"branch-west\"\n  router          = google_compute_router.border.name\n  interface       = google_compute_router_interface.west.name\n  peer_ip_address = \"169.254.70.6\"\n  peer_asn        = 65010\n}\n",
+      "preservedDeclarations": [
+        "provider.aws",
+        "provider.google",
+        "terraform",
+        "variable.branch_public_ips",
+        "variable.gcp_project",
+        "variable.google_tunnel_secrets"
+      ]
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "dual-cloud-branches",
+  "review": {
+    "operations": "지점 장비에서 AWS 터널 구성과 GCP IKEv2 키·링크 주소를 적용하고 지점 대역만 광고한다. 워크로드와 방화벽 정책은 운영자가 지정한다.",
+    "reliability": "지점 라우터 한 대를 격리하고 두 클라우드의 세션과 경로가 다른 장비에서 유지되는지 점검한다.",
+    "security": "서로 겹치지 않는 지점 대역을 사용하고 터널 키 및 Terraform 상태 접근을 제한한다.",
+    "cost": "AWS VPN 연결 두 개와 GCP 터널 두 개 및 송신 트래픽 비용을 검토한다.",
+    "performance": "각 지점에서 클라우드별 경로 수렴 시간·왕복 지연·비대칭 경로를 확인한다."
+  }
+}

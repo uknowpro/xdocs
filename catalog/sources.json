@@ -92,34 +92,6 @@
     "directory": "lambda-ddb-tenant-isolation/python/terraform"
   },
   {
-    "id": "aws-sfn-manage-batch-job-terraform",
-    "provider": "AWS",
-    "name": "상태 머신 기반 Batch 작업 제어",
-    "study": "작업 제출부터 완료 대기까지 실패를 재처리할 위치를 검토한다.",
-    "kinds": [
-      "aws_batch_compute_environment",
-      "aws_batch_job_definition",
-      "aws_batch_job_queue",
-      "aws_iam_instance_profile",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_internet_gateway",
-      "aws_internet_gateway_attachment",
-      "aws_route_table",
-      "aws_route_table_association",
-      "aws_security_group",
-      "aws_sfn_state_machine",
-      "aws_sns_topic",
-      "aws_subnet",
-      "aws_vpc",
-      "random_string"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "sfn-manage-batch-job/terraform"
-  },
-  {
     "id": "aws-apigw-rest-vpclink-pvt-alb-terraform",
     "provider": "AWS",
     "name": "VPC Link 기반 사설 REST 서비스",
@@ -175,33 +147,6 @@
     "directory": "sfn-emrserverless/terraform/templates"
   },
   {
-    "id": "aws-alb-path-based-route-lambda-python-terraform",
-    "provider": "AWS",
-    "name": "경로별 ALB 라우팅과 함수 분리",
-    "study": "서로 다른 경로가 같은 진입점을 공유할 때 배포 영향을 살펴본다.",
-    "kinds": [
-      "aws_alb_target_group_attachment",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_internet_gateway",
-      "aws_lambda_function",
-      "aws_lambda_permission",
-      "aws_lb",
-      "aws_lb_listener",
-      "aws_lb_listener_rule",
-      "aws_lb_target_group",
-      "aws_route_table",
-      "aws_route_table_association",
-      "aws_security_group",
-      "aws_subnet",
-      "aws_vpc"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "alb-path-based-route-lambda/python/terraform"
-  },
-  {
     "id": "aws-lambda-aurora-serverless-python-terraform",
     "provider": "AWS",
     "name": "사설 Aurora와 함수 기반 데이터 계층",
@@ -229,85 +174,6 @@
     "directory": "lambda-aurora-serverless/python/terraform"
   },
   {
-    "id": "aws-apigw-rest-api-eventbridge-terraform",
-    "provider": "AWS",
-    "name": "REST 명령 수신과 이벤트 버스 분리",
-    "study": "API 계약과 비동기 소비자의 결합 지점을 점검한다.",
-    "kinds": [
-      "aws_api_gateway_deployment",
-      "aws_api_gateway_integration",
-      "aws_api_gateway_integration_response",
-      "aws_api_gateway_method",
-      "aws_api_gateway_method_response",
-      "aws_api_gateway_resource",
-      "aws_api_gateway_rest_api",
-      "aws_api_gateway_stage",
-      "aws_cloudwatch_event_bus",
-      "aws_cloudwatch_event_rule",
-      "aws_cloudwatch_event_target",
-      "aws_cloudwatch_log_group",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "random_string"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-rest-api-eventbridge/terraform"
-  },
-  {
-    "id": "aws-lambda-managed-instances-python-terraform",
-    "provider": "AWS",
-    "name": "관리형 인스턴스 기반 함수 용량 계획",
-    "study": "용량 공급과 실행 환경의 네트워크 의존성을 살펴본다.",
-    "kinds": [
-      "aws_cloudwatch_log_group",
-      "aws_default_security_group",
-      "aws_eip",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_internet_gateway",
-      "aws_lambda_alias",
-      "aws_lambda_capacity_provider",
-      "aws_lambda_function",
-      "aws_nat_gateway",
-      "aws_route_table",
-      "aws_route_table_association",
-      "aws_security_group",
-      "aws_subnet",
-      "aws_vpc"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "lambda-managed-instances/python/terraform"
-  },
-  {
-    "id": "aws-eventbridge-schedule-to-batch-terraform",
-    "provider": "AWS",
-    "name": "스케줄 기반 Batch 컴퓨팅 환경",
-    "study": "작업 큐와 컴퓨팅 환경의 실행 권한을 추적한다.",
-    "kinds": [
-      "aws_batch_compute_environment",
-      "aws_batch_job_definition",
-      "aws_batch_job_queue",
-      "aws_iam_instance_profile",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_internet_gateway",
-      "aws_route_table",
-      "aws_route_table_association",
-      "aws_scheduler_schedule",
-      "aws_security_group",
-      "aws_subnet",
-      "aws_vpc",
-      "random_string"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "eventbridge-schedule-to-batch/terraform"
-  },
-  {
     "id": "aws-apigw-websocket-api-sqs-lambda-python-terraform",
     "provider": "AWS",
     "name": "WebSocket 요청의 큐 기반 비동기 처리",
@@ -332,58 +198,6 @@
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
     "directory": "apigw-websocket-api-sqs-lambda/python/terraform"
-  },
-  {
-    "id": "aws-apigw-bedrock-nova-canvas-python-terraform",
-    "provider": "AWS",
-    "name": "이미지 생성 API의 모델 호출 경계",
-    "study": "모델 호출 권한과 사용자 요청 경로를 대조한다.",
-    "kinds": [
-      "aws_api_gateway_deployment",
-      "aws_api_gateway_integration",
-      "aws_api_gateway_method",
-      "aws_api_gateway_resource",
-      "aws_api_gateway_rest_api",
-      "aws_api_gateway_stage",
-      "aws_cloudwatch_log_group",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_lambda_function",
-      "aws_lambda_layer_version",
-      "aws_lambda_permission",
-      "aws_s3_bucket",
-      "random_string"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-bedrock-nova-canvas/python/terraform"
-  },
-  {
-    "id": "aws-apigw-lambda-snapstart-java-terraform",
-    "provider": "AWS",
-    "name": "Java API 버전 게시와 시작 지연",
-    "study": "함수 버전과 API 통합이 어떤 배포 단위를 참조하는지 본다.",
-    "kinds": [
-      "aws_api_gateway_deployment",
-      "aws_api_gateway_integration",
-      "aws_api_gateway_method",
-      "aws_api_gateway_resource",
-      "aws_api_gateway_rest_api",
-      "aws_api_gateway_stage",
-      "aws_dynamodb_table",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_lambda_alias",
-      "aws_lambda_function",
-      "aws_lambda_permission",
-      "aws_s3_bucket",
-      "aws_s3_bucket_server_side_encryption_configuration"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-lambda-snapstart/java/terraform"
   },
   {
     "id": "aws-apigw-http-api-lambda-rds-proxy-python-terraform-vpc-rds-setup",
@@ -421,31 +235,6 @@
     "directory": "apigw-http-api-lambda-rds-proxy/python/terraform/vpc-rds-setup"
   },
   {
-    "id": "aws-apigw-sfn-crud-terraform",
-    "provider": "AWS",
-    "name": "상태 머신 기반 CRUD 처리",
-    "study": "작업별 권한과 API 응답 경로를 추적한다.",
-    "kinds": [
-      "aws_api_gateway_deployment",
-      "aws_api_gateway_integration",
-      "aws_api_gateway_integration_response",
-      "aws_api_gateway_method",
-      "aws_api_gateway_method_response",
-      "aws_api_gateway_resource",
-      "aws_api_gateway_rest_api",
-      "aws_api_gateway_stage",
-      "aws_cloudwatch_log_group",
-      "aws_dynamodb_table",
-      "aws_iam_role",
-      "aws_iam_role_policy",
-      "aws_iam_role_policy_attachment",
-      "aws_sfn_state_machine"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-sfn-crud/terraform"
-  },
-  {
     "id": "aws-s3-trigger-lambda-glue-workflow-python-terraform",
     "provider": "AWS",
     "name": "객체 수집·Glue ETL 파이프라인",
@@ -471,31 +260,6 @@
     "directory": "s3-trigger-lambda-glue-workflow/python/terraform"
   },
   {
-    "id": "aws-eventbridge-fanout-pattern-python-terraform",
-    "provider": "AWS",
-    "name": "소비자별 이벤트 팬아웃",
-    "study": "대상별 장애 격리와 권한 범위를 검토한다.",
-    "kinds": [
-      "aws_cloudwatch_event_bus",
-      "aws_cloudwatch_event_rule",
-      "aws_cloudwatch_event_target",
-      "aws_cloudwatch_log_group",
-      "aws_iam_role",
-      "aws_iam_role_policy",
-      "aws_iam_role_policy_attachment",
-      "aws_lambda_function",
-      "aws_lambda_permission",
-      "aws_scheduler_schedule",
-      "aws_sns_topic",
-      "aws_sns_topic_policy",
-      "aws_sqs_queue",
-      "aws_sqs_queue_policy"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "eventbridge-fanout-pattern/python/terraform"
-  },
-  {
     "id": "aws-apigw-lambda-durable-tenant-isolation-callback-nodejs-terraform",
     "provider": "AWS",
     "name": "테넌트별 장기 작업 콜백 격리",
@@ -519,31 +283,6 @@
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
     "directory": "apigw-lambda-durable-tenant-isolation-callback/nodejs/terraform"
-  },
-  {
-    "id": "aws-apigw-lambda-transcribe-python-terraform",
-    "provider": "AWS",
-    "name": "비동기 음성 전사 서비스",
-    "study": "파일 저장과 전사 작업의 역할 분담을 추적한다.",
-    "kinds": [
-      "aws_api_gateway_deployment",
-      "aws_api_gateway_integration",
-      "aws_api_gateway_method",
-      "aws_api_gateway_resource",
-      "aws_api_gateway_rest_api",
-      "aws_api_gateway_stage",
-      "aws_cloudwatch_log_group",
-      "aws_iam_role",
-      "aws_iam_role_policy",
-      "aws_lambda_function",
-      "aws_lambda_permission",
-      "aws_s3_bucket",
-      "aws_s3_bucket_notification",
-      "random_string"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-lambda-transcribe/python/terraform"
   },
   {
     "id": "aws-ecs-efs-integration-bash-terraform",
@@ -618,141 +357,6 @@
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
     "directory": "vpc-lattice-lambda/python/terraform"
-  },
-  {
-    "id": "aws-eventbridge-schedule-ecs-terraform",
-    "provider": "AWS",
-    "name": "프라이빗 서브넷의 예약 ECS 작업",
-    "study": "스케줄러 실행 역할과 태스크 네트워크 구성을 분리해 본다.",
-    "kinds": [
-      "aws_cloudwatch_log_group",
-      "aws_ecs_cluster",
-      "aws_ecs_task_definition",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_internet_gateway",
-      "aws_route",
-      "aws_route_table",
-      "aws_route_table_association",
-      "aws_scheduler_schedule",
-      "aws_security_group",
-      "aws_subnet",
-      "aws_vpc"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "eventbridge-schedule-ecs/terraform"
-  },
-  {
-    "id": "aws-apigw-websocket-api-sns-terraform",
-    "provider": "AWS",
-    "name": "WebSocket 알림 분배와 이벤트 전달",
-    "study": "연결 상태와 비동기 알림 경로의 실패 지점을 비교한다.",
-    "kinds": [
-      "aws_apigatewayv2_api",
-      "aws_apigatewayv2_integration",
-      "aws_apigatewayv2_integration_response",
-      "aws_apigatewayv2_model",
-      "aws_apigatewayv2_route",
-      "aws_apigatewayv2_route_response",
-      "aws_apigatewayv2_stage",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy_attachment",
-      "aws_sns_topic"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-websocket-api-sns/terraform"
-  },
-  {
-    "id": "aws-eventbridge-scheduler-ses-abandoned-cart-python-terraform",
-    "provider": "AWS",
-    "name": "사용자별 예약 알림 수명 관리",
-    "study": "예약 생성·취소와 메일 발송 권한을 추적한다.",
-    "kinds": [
-      "aws_cloudwatch_log_group",
-      "aws_dynamodb_table",
-      "aws_dynamodb_table_item",
-      "aws_iam_role",
-      "aws_iam_role_policy",
-      "aws_iam_role_policy_attachment",
-      "aws_lambda_function",
-      "aws_scheduler_schedule",
-      "aws_sqs_queue",
-      "aws_sqs_queue_policy"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "eventbridge-scheduler-ses-abandoned-cart/python/terraform"
-  },
-  {
-    "id": "aws-s3-eventbridge-ecs-python-terraform",
-    "provider": "AWS",
-    "name": "객체 이벤트 기반 컨테이너 배치",
-    "study": "객체 도착부터 컨테이너 실행까지 이벤트 전달 경계를 추적한다.",
-    "kinds": [
-      "aws_cloudwatch_event_rule",
-      "aws_cloudwatch_event_target",
-      "aws_cloudwatch_log_group",
-      "aws_ecs_cluster",
-      "aws_ecs_task_definition",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_s3_bucket",
-      "aws_s3_bucket_notification",
-      "aws_s3_bucket_public_access_block"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "s3-eventbridge-ecs/python/terraform"
-  },
-  {
-    "id": "aws-s3-eventbridge-sfn-terraform",
-    "provider": "AWS",
-    "name": "객체 상태 변경 처리 워크플로",
-    "study": "이벤트 규칙과 상태 전이를 따라 중복 처리 위험을 검토한다.",
-    "kinds": [
-      "aws_cloudwatch_event_rule",
-      "aws_cloudwatch_event_target",
-      "aws_iam_role",
-      "aws_iam_role_policy",
-      "aws_s3_bucket",
-      "aws_s3_bucket_notification",
-      "aws_s3_bucket_policy",
-      "aws_sfn_state_machine",
-      "aws_sqs_queue",
-      "aws_sqs_queue_policy"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "s3-eventbridge-sfn/terraform"
-  },
-  {
-    "id": "aws-apigw-rest-api-dynamodb-terraform",
-    "provider": "AWS",
-    "name": "사용량 정책을 둔 DynamoDB API",
-    "study": "API 키·사용 계획·로그와 데이터 쓰기 권한을 비교한다.",
-    "kinds": [
-      "aws_api_gateway_account",
-      "aws_api_gateway_api_key",
-      "aws_api_gateway_deployment",
-      "aws_api_gateway_method_settings",
-      "aws_api_gateway_rest_api",
-      "aws_api_gateway_stage",
-      "aws_api_gateway_usage_plan",
-      "aws_api_gateway_usage_plan_key",
-      "aws_cloudwatch_log_group",
-      "aws_cloudwatch_log_resource_policy",
-      "aws_dynamodb_table",
-      "aws_iam_policy",
-      "aws_iam_role",
-      "aws_iam_role_policy",
-      "aws_iam_role_policy_attachment"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-rest-api-dynamodb/terraform"
   },
   {
     "id": "azure-quickstart-301-machine-learning-hub-spoke-secure",
@@ -898,68 +502,6 @@
     "directory": "quickstart/201-synapse-secure"
   },
   {
-    "id": "azure-quickstart-201-azfw-with-ipgroups",
-    "provider": "Azure",
-    "name": "IP 그룹 기반 방화벽 정책 운영",
-    "study": "주소 그룹 변경이 여러 정책에 미치는 영향을 비교한다.",
-    "kinds": [
-      "azapi_resource",
-      "azapi_resource_action",
-      "azurerm_firewall",
-      "azurerm_firewall_policy",
-      "azurerm_firewall_policy_rule_collection_group",
-      "azurerm_ip_group",
-      "azurerm_linux_virtual_machine",
-      "azurerm_network_interface",
-      "azurerm_network_interface_security_group_association",
-      "azurerm_network_security_group",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_route_table",
-      "azurerm_storage_account",
-      "azurerm_subnet",
-      "azurerm_subnet_route_table_association",
-      "azurerm_virtual_network",
-      "random_password",
-      "random_pet",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/201-azfw-with-ipgroups"
-  },
-  {
-    "id": "azure-quickstart-101-azure-load-balancer-internal",
-    "provider": "Azure",
-    "name": "내부 업무 서비스의 부하 분산",
-    "study": "프런트엔드·백엔드 풀과 상태 검사 실패의 범위를 비교한다.",
-    "kinds": [
-      "azurerm_bastion_host",
-      "azurerm_lb",
-      "azurerm_lb_backend_address_pool",
-      "azurerm_lb_probe",
-      "azurerm_lb_rule",
-      "azurerm_linux_virtual_machine",
-      "azurerm_nat_gateway",
-      "azurerm_nat_gateway_public_ip_association",
-      "azurerm_network_interface",
-      "azurerm_network_interface_backend_address_pool_association",
-      "azurerm_network_security_group",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_subnet",
-      "azurerm_subnet_nat_gateway_association",
-      "azurerm_subnet_network_security_group_association",
-      "azurerm_virtual_machine_extension",
-      "azurerm_virtual_network",
-      "random_password",
-      "random_pet"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-azure-load-balancer-internal"
-  },
-  {
     "id": "azure-quickstart-201-azfw-with-secure-hub",
     "provider": "Azure",
     "name": "보안 가상 허브와 중앙 방화벽",
@@ -1049,63 +591,6 @@
     "directory": "quickstart/301-aks-enterprise"
   },
   {
-    "id": "azure-quickstart-101-standard-service-endpoint-storage",
-    "provider": "Azure",
-    "name": "서비스 엔드포인트 기반 저장소 격리",
-    "study": "서브넷 정책과 저장소 허용 규칙의 결합을 확인한다.",
-    "kinds": [
-      "azapi_resource",
-      "azapi_resource_action",
-      "azurerm_linux_virtual_machine",
-      "azurerm_nat_gateway",
-      "azurerm_nat_gateway_public_ip_association",
-      "azurerm_network_interface",
-      "azurerm_network_security_perimeter",
-      "azurerm_network_security_perimeter_access_rule",
-      "azurerm_network_security_perimeter_association",
-      "azurerm_network_security_perimeter_profile",
-      "azurerm_public_ip",
-      "azurerm_public_ip_prefix",
-      "azurerm_resource_group",
-      "azurerm_storage_account",
-      "azurerm_storage_share",
-      "azurerm_virtual_network",
-      "random_pet",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-standard-service-endpoint-storage"
-  },
-  {
-    "id": "azure-quickstart-201-azfw-with-avzones",
-    "provider": "Azure",
-    "name": "가용 영역을 고려한 방화벽 배치",
-    "study": "가용 영역 설정과 네트워크 진입점 의존성을 점검한다.",
-    "kinds": [
-      "azurerm_firewall",
-      "azurerm_firewall_policy",
-      "azurerm_firewall_policy_rule_collection_group",
-      "azurerm_network_interface",
-      "azurerm_network_interface_security_group_association",
-      "azurerm_network_security_group",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_route_table",
-      "azurerm_storage_account",
-      "azurerm_subnet",
-      "azurerm_subnet_route_table_association",
-      "azurerm_virtual_network",
-      "azurerm_windows_virtual_machine",
-      "random_password",
-      "random_pet",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/201-azfw-with-avzones"
-  },
-  {
     "id": "azure-quickstart-301-hub-spoke",
     "provider": "Azure",
     "name": "허브·스포크 네트워크 분리",
@@ -1131,87 +616,6 @@
     "repo": "Azure/terraform",
     "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
     "directory": "quickstart/301-hub-spoke"
-  },
-  {
-    "id": "azure-quickstart-201-azfw-multi-addresses",
-    "provider": "Azure",
-    "name": "다중 공인 주소 방화벽",
-    "study": "복수 주소가 인바운드 규칙과 맺는 관계를 추적한다.",
-    "kinds": [
-      "azurerm_firewall",
-      "azurerm_firewall_policy",
-      "azurerm_firewall_policy_rule_collection_group",
-      "azurerm_network_interface",
-      "azurerm_network_interface_security_group_association",
-      "azurerm_network_security_group",
-      "azurerm_public_ip",
-      "azurerm_public_ip_prefix",
-      "azurerm_resource_group",
-      "azurerm_route_table",
-      "azurerm_subnet",
-      "azurerm_subnet_route_table_association",
-      "azurerm_virtual_network",
-      "azurerm_windows_virtual_machine",
-      "random_password",
-      "random_pet"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/201-azfw-multi-addresses"
-  },
-  {
-    "id": "azure-quickstart-201-vmss-packer-jumpbox",
-    "provider": "Azure",
-    "name": "이미지 기반 VM 확장 집합 운영",
-    "study": "이미지 제작·관리 접속·자동 확장의 책임을 분리한다.",
-    "kinds": [
-      "azapi_resource",
-      "azapi_resource_action",
-      "azurerm_lb",
-      "azurerm_lb_backend_address_pool",
-      "azurerm_lb_probe",
-      "azurerm_lb_rule",
-      "azurerm_network_interface",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_subnet",
-      "azurerm_virtual_machine",
-      "azurerm_virtual_machine_scale_set",
-      "azurerm_virtual_network",
-      "random_password",
-      "random_pet",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/201-vmss-packer-jumpbox"
-  },
-  {
-    "id": "azure-quickstart-101-backup-vm",
-    "provider": "Azure",
-    "name": "가상 머신 백업과 복구 정책",
-    "study": "보호 대상·보관함·백업 정책의 수명 차이를 검토한다.",
-    "kinds": [
-      "azurerm_backup_policy_vm",
-      "azurerm_backup_protected_vm",
-      "azurerm_network_interface",
-      "azurerm_network_interface_security_group_association",
-      "azurerm_network_security_group",
-      "azurerm_public_ip",
-      "azurerm_recovery_services_vault",
-      "azurerm_resource_group",
-      "azurerm_storage_account",
-      "azurerm_subnet",
-      "azurerm_virtual_network",
-      "azurerm_windows_virtual_machine",
-      "random_id",
-      "random_password",
-      "random_pet",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-backup-vm"
   },
   {
     "id": "azure-quickstart-202-machine-learning-moderately-secure-existing-vnet",
@@ -1291,31 +695,6 @@
     "directory": "quickstart/201-ddos-protection-azfw"
   },
   {
-    "id": "azure-quickstart-101-vm-cluster-linux",
-    "provider": "Azure",
-    "name": "Linux VM 클러스터 인프라",
-    "study": "컴퓨팅 노드와 공통 네트워크 의존성을 살펴본다.",
-    "kinds": [
-      "azapi_resource",
-      "azapi_resource_action",
-      "azurerm_availability_set",
-      "azurerm_lb",
-      "azurerm_lb_backend_address_pool",
-      "azurerm_linux_virtual_machine",
-      "azurerm_managed_disk",
-      "azurerm_network_interface",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_subnet",
-      "azurerm_virtual_machine_data_disk_attachment",
-      "azurerm_virtual_network",
-      "random_pet"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-vm-cluster-linux"
-  },
-  {
     "id": "azure-quickstart-101-front-door-premium-storage-blobs-private-link",
     "provider": "Azure",
     "name": "Front Door와 사설 Blob 원본",
@@ -1339,52 +718,6 @@
     "repo": "Azure/terraform",
     "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
     "directory": "quickstart/101-front-door-premium-storage-blobs-private-link"
-  },
-  {
-    "id": "azure-quickstart-101-aks-network-traffic",
-    "provider": "Azure",
-    "name": "AKS 네트워크 트래픽 제어",
-    "study": "워크로드 네트워크와 클러스터 진입점을 확인한다.",
-    "kinds": [
-      "azurerm_firewall",
-      "azurerm_firewall_policy",
-      "azurerm_firewall_policy_rule_collection_group",
-      "azurerm_kubernetes_cluster",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_role_assignment",
-      "azurerm_route",
-      "azurerm_route_table",
-      "azurerm_subnet",
-      "azurerm_subnet_route_table_association",
-      "azurerm_virtual_network"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-aks-network-traffic"
-  },
-  {
-    "id": "azure-quickstart-201-vm-disk-encryption-extension",
-    "provider": "Azure",
-    "name": "VM 디스크 암호화와 키 관리",
-    "study": "키 접근 권한과 VM 확장 적용 순서를 추적한다.",
-    "kinds": [
-      "azurerm_key_vault",
-      "azurerm_key_vault_access_policy",
-      "azurerm_key_vault_key",
-      "azurerm_linux_virtual_machine",
-      "azurerm_network_interface",
-      "azurerm_resource_group",
-      "azurerm_subnet",
-      "azurerm_virtual_machine_extension",
-      "azurerm_virtual_network",
-      "local_sensitive_file",
-      "random_pet",
-      "tls_private_key"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/201-vm-disk-encryption-extension"
   },
   {
     "id": "azure-quickstart-201-private-link-iothub-builtin-endpoint",
@@ -1453,50 +786,6 @@
     "directory": "quickstart/101-virtual-network-manager-create-mesh"
   },
   {
-    "id": "azure-quickstart-201-confidential-vm",
-    "provider": "Azure",
-    "name": "기밀 컴퓨팅 워크로드 경계",
-    "study": "기밀 VM과 연결된 스토리지·네트워크 의존성을 검토한다.",
-    "kinds": [
-      "azurerm_disk_encryption_set",
-      "azurerm_key_vault",
-      "azurerm_key_vault_access_policy",
-      "azurerm_key_vault_key",
-      "azurerm_linux_virtual_machine",
-      "azurerm_network_interface",
-      "azurerm_resource_group",
-      "azurerm_subnet",
-      "azurerm_virtual_network",
-      "random_pet",
-      "tls_private_key"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/201-confidential-vm"
-  },
-  {
-    "id": "azure-quickstart-101-application-gateway",
-    "provider": "Azure",
-    "name": "애플리케이션 게이트웨이 트래픽 분배",
-    "study": "리스너·라우팅·백엔드 사이의 구성 관계를 비교한다.",
-    "kinds": [
-      "azurerm_application_gateway",
-      "azurerm_network_interface",
-      "azurerm_network_interface_application_gateway_backend_address_pool_association",
-      "azurerm_public_ip",
-      "azurerm_resource_group",
-      "azurerm_subnet",
-      "azurerm_virtual_machine_extension",
-      "azurerm_virtual_network",
-      "azurerm_windows_virtual_machine",
-      "random_password",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-application-gateway"
-  },
-  {
     "id": "azure-quickstart-101-aks-automatic-private-custom-network",
     "provider": "Azure",
     "name": "사용자 지정 네트워크의 프라이빗 AKS",
@@ -1513,51 +802,6 @@
     "repo": "Azure/terraform",
     "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
     "directory": "quickstart/101-aks-automatic-private-custom-network"
-  },
-  {
-    "id": "azure-quickstart-101-aks-access-keyvault",
-    "provider": "Azure",
-    "name": "AKS 워크로드의 비밀 관리",
-    "study": "클러스터에서 Key Vault에 접근하는 인증 경로를 추적한다.",
-    "kinds": [
-      "azurerm_key_vault",
-      "azurerm_key_vault_secret",
-      "azurerm_kubernetes_cluster",
-      "azurerm_log_analytics_workspace",
-      "azurerm_resource_group",
-      "azurerm_role_assignment",
-      "random_string"
-    ],
-    "repo": "Azure/terraform",
-    "revision": "041fd4da7ca6afcff27770acd353913f28b339a0",
-    "directory": "quickstart/101-aks-access-keyvault"
-  },
-  {
-    "id": "gcp-lb-int-https-lb-https-redirect",
-    "provider": "GCP",
-    "name": "내부 HTTPS 서비스와 리디렉션",
-    "study": "HTTP와 TLS 트래픽이 백엔드에 전달되는 경로를 비교한다.",
-    "kinds": [
-      "google_compute_address",
-      "google_compute_firewall",
-      "google_compute_forwarding_rule",
-      "google_compute_instance",
-      "google_compute_instance_template",
-      "google_compute_network",
-      "google_compute_region_backend_service",
-      "google_compute_region_health_check",
-      "google_compute_region_instance_group_manager",
-      "google_compute_region_ssl_certificate",
-      "google_compute_region_target_http_proxy",
-      "google_compute_region_target_https_proxy",
-      "google_compute_region_url_map",
-      "google_compute_subnetwork",
-      "tls_private_key",
-      "tls_self_signed_cert"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "lb/int_https_lb_https_redirect"
   },
   {
     "id": "gcp-lb-shared-vpc-https-ilb-with-mig-backend-cross-reference-example",
@@ -1606,54 +850,6 @@
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
     "directory": "eventarc/use_cmek/advanced"
-  },
-  {
-    "id": "gcp-certificate-manager-google-managed-lb-auth",
-    "provider": "GCP",
-    "name": "관리형 인증서와 로드 밸런서 인증",
-    "study": "인증서 발급과 엣지 서비스의 수명 차이를 비교한다.",
-    "kinds": [
-      "google_certificate_manager_certificate",
-      "google_certificate_manager_certificate_map",
-      "google_certificate_manager_certificate_map_entry",
-      "google_compute_backend_bucket",
-      "google_compute_global_address",
-      "google_compute_global_forwarding_rule",
-      "google_compute_managed_ssl_certificate",
-      "google_compute_target_https_proxy",
-      "google_compute_url_map",
-      "google_project_service",
-      "google_storage_bucket",
-      "google_storage_bucket_iam_member",
-      "random_id"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "certificate_manager/google_managed_lb_auth"
-  },
-  {
-    "id": "gcp-lb-external-ssl-proxy-lb-mig-backend-custom-header",
-    "provider": "GCP",
-    "name": "SSL 프록시와 MIG 요청 헤더",
-    "study": "TLS 종단 이후 백엔드로 전달되는 요청 정보를 점검한다.",
-    "kinds": [
-      "google_compute_backend_service",
-      "google_compute_firewall",
-      "google_compute_global_address",
-      "google_compute_global_forwarding_rule",
-      "google_compute_health_check",
-      "google_compute_instance_group_manager",
-      "google_compute_instance_template",
-      "google_compute_network",
-      "google_compute_ssl_certificate",
-      "google_compute_subnetwork",
-      "google_compute_target_ssl_proxy",
-      "tls_private_key",
-      "tls_self_signed_cert"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "lb/external_ssl_proxy_lb_mig_backend_custom_header"
   },
   {
     "id": "gcp-gke-quickstart-multitenant",
@@ -1724,50 +920,6 @@
     "directory": "run/multiple_regions"
   },
   {
-    "id": "gcp-lb-regional-external-http-load-balancer",
-    "provider": "GCP",
-    "name": "리전 단위 외부 HTTP 서비스",
-    "study": "라우팅·백엔드·상태 검사와 리전 경계를 연결한다.",
-    "kinds": [
-      "google_compute_address",
-      "google_compute_firewall",
-      "google_compute_forwarding_rule",
-      "google_compute_instance_group_manager",
-      "google_compute_instance_template",
-      "google_compute_network",
-      "google_compute_region_backend_service",
-      "google_compute_region_health_check",
-      "google_compute_region_target_http_proxy",
-      "google_compute_region_url_map",
-      "google_compute_subnetwork"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "lb/regional_external_http_load_balancer"
-  },
-  {
-    "id": "gcp-run-image-processing",
-    "provider": "GCP",
-    "name": "이벤트 기반 이미지 처리 플랫폼",
-    "study": "이미지 입력과 출력 사이의 서비스 권한을 검토한다.",
-    "kinds": [
-      "google_cloud_run_service_iam_binding",
-      "google_cloud_run_v2_service",
-      "google_project_iam_binding",
-      "google_project_service_identity",
-      "google_pubsub_subscription",
-      "google_pubsub_topic",
-      "google_pubsub_topic_iam_binding",
-      "google_service_account",
-      "google_storage_bucket",
-      "google_storage_notification",
-      "random_id"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "run/image_processing"
-  },
-  {
     "id": "gcp-network-connectivity-interconnect-ha-vpn-over-interconnect-10gb-attach",
     "provider": "GCP",
     "name": "Interconnect 위의 HA VPN",
@@ -1831,65 +983,6 @@
     "directory": "compute/packet_mirroring_full"
   },
   {
-    "id": "gcp-workflows-cloud-run-job",
-    "provider": "GCP",
-    "name": "Workflows 기반 Cloud Run 배치",
-    "study": "작업 오케스트레이션과 배치 실행 계정의 권한을 검토한다.",
-    "kinds": [
-      "google_artifact_registry_repository",
-      "google_cloud_run_v2_job",
-      "google_eventarc_trigger",
-      "google_project_iam_member",
-      "google_project_service",
-      "google_service_account",
-      "google_storage_bucket",
-      "google_workflows_workflow",
-      "random_id"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "workflows/cloud_run_job"
-  },
-  {
-    "id": "gcp-lb-external-http-lb-bucket-backend",
-    "provider": "GCP",
-    "name": "버킷 백엔드와 글로벌 HTTP 라우팅",
-    "study": "정적 원본 선택과 엣지 요청 경로를 대조한다.",
-    "kinds": [
-      "google_compute_backend_bucket",
-      "google_compute_global_address",
-      "google_compute_global_forwarding_rule",
-      "google_compute_target_http_proxy",
-      "google_compute_url_map",
-      "google_storage_bucket",
-      "google_storage_bucket_iam_member",
-      "google_storage_bucket_object",
-      "random_id"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "lb/external_http_lb_bucket_backend"
-  },
-  {
-    "id": "gcp-vpn-external-vpn-gateway",
-    "provider": "GCP",
-    "name": "외부 게이트웨이 하이브리드 VPN",
-    "study": "외부 피어 인터페이스와 터널의 대응을 추적한다.",
-    "kinds": [
-      "google_compute_external_vpn_gateway",
-      "google_compute_ha_vpn_gateway",
-      "google_compute_network",
-      "google_compute_router",
-      "google_compute_router_interface",
-      "google_compute_router_peer",
-      "google_compute_subnetwork",
-      "google_compute_vpn_tunnel"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "vpn/external_vpn_gateway"
-  },
-  {
     "id": "gcp-vpn-ha-vpn-gateway-gcp-to-gcp",
     "provider": "GCP",
     "name": "분리 VPC 간 HA VPN",
@@ -1906,61 +999,6 @@
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
     "directory": "vpn/ha_vpn_gateway_gcp_to_gcp"
-  },
-  {
-    "id": "gcp-eventarc-workflows",
-    "provider": "GCP",
-    "name": "이벤트 기반 Workflows 실행",
-    "study": "이벤트 전달 계정과 워크플로 실행 권한을 구분한다.",
-    "kinds": [
-      "google_eventarc_trigger",
-      "google_project_iam_member",
-      "google_project_service",
-      "google_service_account",
-      "google_storage_bucket",
-      "google_workflows_workflow",
-      "random_id"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "eventarc/workflows"
-  },
-  {
-    "id": "gcp-backupdr-backup-plan-association",
-    "provider": "GCP",
-    "name": "워크로드 백업 정책 연결",
-    "study": "백업 보관함·정책·보호 대상의 관계를 확인한다.",
-    "kinds": [
-      "google_backup_dr_backup_plan",
-      "google_backup_dr_backup_plan_association",
-      "google_backup_dr_backup_vault",
-      "google_compute_disk",
-      "google_compute_instance",
-      "google_service_account",
-      "google_sql_database_instance"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "backupdr/backup_plan_association"
-  },
-  {
-    "id": "gcp-bigquery-biglake-bigquery-create-partitioned-biglake-table",
-    "provider": "GCP",
-    "name": "분할 BigLake 분석 테이블",
-    "study": "외부 데이터 접근 권한과 파티션 구성을 점검한다.",
-    "kinds": [
-      "google_bigquery_connection",
-      "google_bigquery_dataset",
-      "google_bigquery_table",
-      "google_project_iam_member",
-      "google_storage_bucket",
-      "google_storage_bucket_object",
-      "random_id",
-      "time_sleep"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "bigquery/biglake/bigquery_create_partitioned_biglake_table"
   },
   {
     "id": "gcp-cloud-sql-postgres-instance-psa-psc",
@@ -1998,28 +1036,6 @@
     "directory": "compute/ha_controller_multi_nic_static_ip"
   },
   {
-    "id": "gcp-gke-autopilot-iap",
-    "provider": "GCP",
-    "name": "IAP 기반 Autopilot 접근",
-    "study": "사용자 진입점과 클러스터 서비스 사이의 인증 경계를 확인한다.",
-    "kinds": [
-      "google_compute_address",
-      "google_compute_region_ssl_certificate",
-      "google_compute_subnetwork",
-      "google_container_cluster",
-      "kubernetes_deployment_v1",
-      "kubernetes_ingress_v1",
-      "kubernetes_manifest",
-      "kubernetes_service_v1",
-      "time_sleep",
-      "tls_private_key",
-      "tls_self_signed_cert"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "gke/autopilot/iap"
-  },
-  {
     "id": "gcp-gke-standard-regional-gemma-tgi",
     "provider": "GCP",
     "name": "리전 GKE의 모델 추론 워크로드",
@@ -2055,25 +1071,6 @@
     "directory": "network_management/vpcflowlogs/vpn_tunnel_full"
   },
   {
-    "id": "gcp-run-static-outbound",
-    "provider": "GCP",
-    "name": "Cloud Run 고정 송신 경로",
-    "study": "서버리스 서비스에서 VPC·NAT까지 송신 경로를 추적한다.",
-    "kinds": [
-      "google_cloud_run_v2_service",
-      "google_compute_address",
-      "google_compute_network",
-      "google_compute_router",
-      "google_compute_router_nat",
-      "google_compute_subnetwork",
-      "google_project_service",
-      "google_vpc_access_connector"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "run/static_outbound"
-  },
-  {
     "id": "gcp-vertex-ai-index-endpoint-deploy-vpc",
     "provider": "GCP",
     "name": "사설 VPC 벡터 검색 엔드포인트",
@@ -2092,23 +1089,6 @@
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
     "directory": "vertex_ai/index_endpoint_deploy_vpc"
-  },
-  {
-    "id": "gcp-privateca-quickstart",
-    "provider": "GCP",
-    "name": "사설 인증기관 계층 운영",
-    "study": "인증서 풀과 발급 체인에 필요한 권한을 구분한다.",
-    "kinds": [
-      "google_privateca_ca_pool",
-      "google_privateca_certificate",
-      "google_privateca_certificate_authority",
-      "google_project_service",
-      "tls_cert_request",
-      "tls_private_key"
-    ],
-    "repo": "terraform-google-modules/terraform-docs-samples",
-    "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "privateca/quickstart"
   },
   {
     "id": "gcp-network-security-intercept-project-consumer",

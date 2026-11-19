@@ -42,7 +42,7 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
   await page.getByLabel("템플릿 검색").fill("no-matching-template");
   await expect(page.getByRole("button", { name: "템플릿으로 시작" })).toBeDisabled();
   await page.getByRole("button", { name: "검색 조건 초기화" }).click();
-  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(31);
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(19);
   await page.getByRole("button",{name:"AVM · 사업부별 사설 데이터 구역",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await page.getByRole("button", { name: "Terraform 선언 보기" }).click();
@@ -206,4 +206,23 @@ test("Seoul case opens both AZs and selects the NAT declaration", async ({page})
   await capture.setContent('<style>body{margin:0}svg{display:block;width:100%}</style>'+svg);
   await capture.locator("svg").screenshot({path:"test-results/seoul-case.png"});
   await capture.close();
+});
+
+for(const [provider,title,address] of [
+  ["AWS","멀티계정 랜딩존 · 조직 감사 로그 분리","aws_cloudtrail.organization"],
+  ["Azure","리전 장애 전환 · 한국과 일본의 이중 웹 서비스","azurerm_linux_web_app.recovery"],
+  ["멀티클라우드","하이브리드 지점망 · 이중 라우터와 AWS·GCP","google_compute_router_peer.west"],
+]) test(title+" opens offline with selectable Terraform declarations",async({page})=>{
+  await page.setViewportSize({width:1600,height:1000});
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/,route=>route.abort());
+  await page.goto("/");
+  const btn=(name:string)=>page.getByRole("button",{name,exact:true});
+  await btn("새로 만들기").click();await btn("IaCD 아키텍처").click();
+  await page.getByLabel("공급자",{exact:true}).selectOption(provider);
+  await btn("사례 설계").click();await btn(title).click();await btn("템플릿으로 시작").click();
+  const diagram=page.locator(".case-blueprint");
+  const resource=diagram.locator("[data-resource]").filter({has:page.locator("title",{hasText:address})});
+  await resource.click();await expect(page.getByLabel("컴포넌트 표시 이름")).toHaveValue(address);
+  await expect(page.getByLabel("Terraform 코드")).toContainText(address.split(".")[0]);
+  if(provider==="멀티클라우드")await diagram.screenshot({path:"test-results/branch-routing.png"});
 });
