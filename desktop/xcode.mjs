@@ -1,12 +1,15 @@
 import { builderEndpoint } from "./builder-model.mjs";
-import { readFile, readdir, realpath, stat } from "node:fs/promises";
+import { readFile, readdir, lstat } from "node:fs/promises";
 import path from "node:path";
 import { parse } from "yaml";
 
 export async function readSkills(roots) {
   const result = [];
   for (const [scope, root] of roots) {
-    const folder = path.join(root, ".claude", "skills");
+    const config = path.join(root, ".claude");
+    const folder = path.join(config, "skills");
+    if (!(await lstat(config).catch(() => null))?.isDirectory() ||
+        !(await lstat(folder).catch(() => null))?.isDirectory()) continue;
     const entries = await readdir(folder, { withFileTypes: true }).catch(
       (e) => {
         if (e.code === "ENOENT") return [];
@@ -17,11 +20,8 @@ export async function readSkills(roots) {
       .filter((e) => e.isDirectory())
       .sort((a, b) => a.name.localeCompare(b.name))) {
       const file = path.join(folder, entry.name, "SKILL.md");
-      if (
-        (await realpath(file).catch(() => "")) !== file ||
-        (await stat(file)).size > 100000
-      )
-        continue;
+      const info = await lstat(file).catch(() => null);
+      if (!info?.isFile() || info.size > 100000) continue;
       const content = await readFile(file, "utf8");
       const match = /^---\r?\n([^]*?)\r?\n---\r?\n([^]*)$/.exec(content);
       if (!match) continue;
