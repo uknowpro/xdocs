@@ -70,13 +70,28 @@ export async function streamChat(
     throw Error("[XCODE_RETRY] 모델 연결이 중단되었습니다.");
   });
   if (!response.ok) {
-    const detail = (await response.text()).slice(0, 4000);
+    const reader = response.body?.getReader();
+    const bytes = Buffer.alloc(4096);
+    let used = 0;
+    try {
+      while (reader && used < bytes.length) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        const part = value.subarray(0, bytes.length - used);
+        bytes.set(part, used);
+        used += part.length;
+      }
+    } finally {
+      await reader?.cancel().catch(() => {});
+    }
+    const detail = bytes.toString("utf8", 0, used);
     throw modelFailure(response.status, detail);
   }
   if (!response.headers.get("content-type")?.includes("text/event-stream"))
     throw Error("서버가 SSE 응답을 반환하지 않았습니다.");
   const reader = response.body.getReader(),
     decoder = new TextDecoder();
+  let received = 0;
   let buffer = "",
     answer = "",
     finished = false,
@@ -87,11 +102,15 @@ export async function streamChat(
         if (signal.aborted && signal.reason?.name !== "TimeoutError") throw e;
         throw Error("[XCODE_RETRY] 스트림 연결이 끊겼습니다.");
       });
+      received += value?.byteLength ?? 0;
+      if (received > 16 * 1024 * 1024) throw Error("스트림 수신 한도(16 MiB)를 초과했습니다.");
       buffer += done
         ? decoder.decode()
         : decoder.decode(value, { stream: true });
       const events = buffer.split(/\r?\n\r?\n/);
       buffer = events.pop() || "";
+      if ([...events, buffer].some(part => Buffer.byteLength(part) > 256 * 1024))
+        throw Error("스트림 이벤트 한도(256 KiB)를 초과했습니다.");
       if (done && buffer.trim()) {
         events.push(buffer);
         buffer = "";

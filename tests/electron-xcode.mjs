@@ -77,7 +77,17 @@ try {
       : {}),
     env: { ...process.env, XDOCS_TEST_DATA: data },
   });
+  await app.evaluate(({dialog}) => {
+    dialog.showMessageBox = async (_window, options) => {
+      if (options.message !== "이 서버로 세션 내용을 전송할까요?") throw Error("Unexpected dialog");
+      return {response: 1};
+    };
+  });
   const page = await app.firstWindow();
+  await assert.rejects(page.evaluate(endpoint => window.xdocs.xcodeChat({
+    id: "unapproved", endpoint, model: "test", messages: [{role: "user", content: "test"}],
+  }), endpoint), /주소를 먼저 확인/);
+  assert.equal(calls.length, 0);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("Chat Completions 주소").fill(endpoint);
   await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
@@ -229,6 +239,12 @@ try {
   const stopped = calls.length;
   await new Promise((r) => setTimeout(r, 1200));
   assert.equal(calls.length, stopped);
+  await page.getByLabel("자동 요청 한도(회)").fill("1");
+  await page.getByLabel("이어지는 응답 자동 요청").check();
+  await input.fill("budget-case");
+  await send.click();
+  await expect(page.locator(".xcode [role=alert]")).toContainText("1회에 도달");
+  assert.equal(calls.length, stopped + 2);
   console.log(
     "PASS xcode: streaming, harnesses, concurrent page isolation, retries, quota stops and repeat cancellation",
   );

@@ -59,6 +59,7 @@ export type Session = {
   repeatCompleted?: boolean;
   autoRetry?: boolean;
   retrySeconds?: number;
+  maxAutoRequests?: number;
 };
 export function preset(name: string): Harness {
   const policies: Record<string, string[]> = {

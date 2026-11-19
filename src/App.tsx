@@ -1,4 +1,4 @@
-import {leaveWorkspace,useRunningPages} from "./xcode-run";
+import {leaveWorkspace,stopWorkspaceRuns,useRunningPages} from "./xcode-run";
 import Xcode from "./Xcode";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
@@ -986,6 +986,7 @@ export default function App() {
         )}
         {runningPages.length>0 && <details className="xcode-running">
           <summary>실행 중인 xcode 세션 · {runningPages.length}</summary>
+          <button className="nav-item" onClick={()=>stopWorkspaceRuns(workspace?.root)}>실행 중인 세션 모두 중지</button>
           {runningPages.map(id=><button className="nav-item" key={id} onClick={()=>void navigate(id)}>{notes.find(n=>n.id===id)?.title || "xcode 세션"}</button>)}
         </details>}
         <PageTree

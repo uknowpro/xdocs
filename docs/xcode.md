@@ -41,3 +41,7 @@
 - [DeepSeek-V4.1-Flash 모델 카드](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash)
 - [OpenCode 파일 컨텍스트](https://opencode.ai/docs/tui/)
 - [Claude Code 스킬](https://code.claude.com/docs/en/skills)
+
+## 전송 및 자동 요청 관리
+
+앱을 실행한 후 처음 사용하는 모델 주소는 전송 전에 확인합니다. 허용은 해당 주소에만 적용되며 앱을 종료하면 초기화됩니다. 자동 요청 횟수는 직접 전송할 때마다 새로 계산합니다. 오류 재시도와 정상 완료 후 이어쓰기가 같은 한도(기본 5회)를 사용합니다. 사이드바의 실행 중인 세션 목록에서 현재 워크스페이스의 모든 요청과 대기를 중지할 수 있습니다.

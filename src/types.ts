@@ -78,6 +78,7 @@ export interface NoteAPI {
   xcodeAttachment?(data:{name:string;bytes:Uint8Array}):Promise<Attachment>;
   xcodeAppend?(data:{scope:string;page:string;turn:unknown}):Promise<Note>;
   xcodeSkills?():Promise<{scope:string;name:string;instruction:string}[]>;
+  xcodeAuthorize?(endpoint:string):Promise<boolean>;
   xcodeChat?(request:{id:string;profile:string;endpoint:string;model:string;key:string;effort?:string;messages:unknown[]}):Promise<string>;
   xcodeCancel?(id:string):Promise<void>;
   onXcodeDelta?(callback:(chunk:{id:string;token:string})=>void):()=>void;

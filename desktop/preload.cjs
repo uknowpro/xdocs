@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   xcodeAttachment:data=>ipcRenderer.invoke("xcode:attachment",data),
   xcodeAppend:data=>ipcRenderer.invoke("xcode:append",data),
   xcodeSkills:()=>ipcRenderer.invoke("xcode:skills"),
+  xcodeAuthorize:endpoint=>ipcRenderer.invoke("xcode:authorize",endpoint),
   xcodeChat:request=>ipcRenderer.invoke("xcode:chat",request),
   xcodeCancel:id=>ipcRenderer.invoke("xcode:cancel",id),
   onXcodeDelta:callback=>{

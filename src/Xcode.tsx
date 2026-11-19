@@ -120,6 +120,8 @@ export default function Xcode({
       if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
       if (!s.harness.stages.every((i) => i.trim()))
         throw Error("빈 단계에 지침을 입력하세요.");
+      if (!await api.xcodeAuthorize?.(s.endpoint)) throw Error("모델 서버 전송을 취소했습니다.");
+      if (run.id !== id) return;
       const history: unknown[] = [];
       let historyBytes = 0;
       const start =
@@ -163,7 +165,11 @@ export default function Xcode({
         1,
         Math.min(3600, Math.round(s.retrySeconds || 60)),
       );
+      const limit = Math.max(1, Math.min(100, Math.floor(Number(s.maxAutoRequests) || 5)));
+      let remaining = limit;
       async function delay(label: string) {
+        if (remaining <= 0) throw Error("자동 요청 " + limit + "회에 도달하여 중단했습니다.");
+        remaining--;
         if (run.id !== id || !run.enabled)
           throw Error("자동 재요청을 중단했습니다.");
         run.patch({ phase: label + " · " + seconds + "초 후 계속해주세요" });
@@ -330,6 +336,11 @@ export default function Xcode({
             <option value="failure">중단된 응답만 이어받기</option>
             <option value="repeat">정상 완료 후에도 계속 요청</option>
           </select>
+        </label>
+        <label>
+          자동 요청 한도(회)
+          <input type="number" min={1} max={100} disabled={busy} value={s.maxAutoRequests ?? 5}
+            onChange={e => config({maxAutoRequests: Math.max(1, Math.min(100, Math.floor(Number(e.target.value) || 1)))})} />
         </label>
         <label>
           재요청 간격(초)

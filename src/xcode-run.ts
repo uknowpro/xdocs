@@ -68,6 +68,10 @@ export function sessionRun(scope: string, page: string) {
   runs.set(key, created);
   return created;
 }
+export function stopWorkspaceRuns(scope?: string) {
+  for (const run of runs.values())
+    if (run.scope === scope && run.snapshot().busy) run.cancel();
+}
 export function leaveWorkspace(scope: string) {
   for (const [key, r] of runs)
     if (r.scope === scope) {

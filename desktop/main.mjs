@@ -4,7 +4,7 @@ import { readAnalyzerSource } from "./analyzer-source.mjs";
 import { analyzeDirectory } from "./analyzer.mjs";
 import {modelProfiles} from "./builder-profiles.mjs";
 import {builderResources} from "./builder-mcp.mjs";
-import {runBuilderModel} from "./builder-model.mjs";
+import {builderEndpoint,runBuilderModel} from "./builder-model.mjs";
 import { templates, workflowNodes } from "../shared/workflows.mjs";
 import { importArchitecture } from "./architecture-import.mjs";
 import {
@@ -419,6 +419,18 @@ app.whenReady().then(async () => {
   register("builder:resources",async request=>{mustVault();return builderResources(request)});
   const profiles=modelProfiles(app.getPath("userData"),safeStorage);
   const chats = new Map();
+  const trustedEndpoints = new Set();
+  register("xcode:authorize", async endpoint => {
+    const address = builderEndpoint(endpoint).href;
+    if (trustedEndpoints.has(address)) return true;
+    const {response} = await dialog.showMessageBox(window, {
+      type: "question", buttons: ["취소", "이 주소 허용"], defaultId: 0, cancelId: 0,
+      message: "이 서버로 세션 내용을 전송할까요?",
+      detail: address + "\n\n대화 기록, 선택한 첨부와 스킬, 설정한 API 키를 전송합니다. 이 허용은 앱을 종료할 때까지 유지됩니다."
+    });
+    if (response === 1) trustedEndpoints.add(address);
+    return response === 1;
+  });
   register("xcode:attachment",async ({name,bytes})=>{
     const store = mustVault();
     const ext=path.extname(path.basename(name)).toLowerCase();
@@ -448,6 +460,8 @@ app.whenReady().then(async () => {
   register("xcode:cancel",id=>chats.get(id)?.abort());
   register("xcode:chat",async ({id,profile,...request})=>{
     if(typeof id !== "string" || chats.has(id)) throw Error("중복된 세션 요청입니다.");
+    if (!trustedEndpoints.has(builderEndpoint(request.endpoint).href))
+      throw Error("모델 서버 주소를 먼저 확인하세요.");
     const controller=new AbortController(); chats.set(id,controller);
     try {
       const key=request.key || await profiles.keyFor(profile,request.endpoint,request.model);
