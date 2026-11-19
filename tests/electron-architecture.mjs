@@ -47,6 +47,7 @@ try {
     [file, gcpFile],
   );
   const page = await app.firstWindow();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -170,6 +171,7 @@ try {
     });
   }, project);
   const button = (name) => page.getByRole("button", { name, exact: true });
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await button("IaCD 아키텍처").click();
   await button("로컬 모듈 포함 폴더 가져오기").click();
   await expect(page.locator(".infra-preview")).toContainText("module/main.tf");

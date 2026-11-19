@@ -4,6 +4,7 @@ test("canvas library, linked preview and source edits share one document", async
 }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByLabel("자동화 캔버스 만들기").selectOption("actions");
   const source =
     "name: Desktop packages\non: workflow_dispatch\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n      - name: Unit tests\n        run: npm ci && npm test\n  package:\n    needs: verify\n    runs-on: ubuntu-latest\n    steps:\n      - name: Build installer\n        run: npm run dist\n";
@@ -48,6 +49,7 @@ test("AWS account drawings preserve edits and render inside a note", async ({
 }) => {
   await page.setViewportSize({ width: 1520, height: 1180 });
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();

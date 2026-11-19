@@ -8,6 +8,7 @@ test("keyboard search reveals folded resources and preserves the saved layout", 
   await page.goto("/");
   const button = (name: string) =>
     page.getByRole("button", { name, exact: true });
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await button("IaCD 아키텍처").click();
   await button("멀티클라우드 예제").click();
   const ec2 = button("컴포넌트 Application EC2");
@@ -43,6 +44,7 @@ test("context insertion assigns the selected subnet and undoes the entire operat
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -80,6 +82,7 @@ test("AWS search distinguishes vaults by account and selects the matching SVG el
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -103,6 +106,7 @@ for (const [kind, query, source] of [
     kind + " search opens the source block and protects drafts",
     async ({ page }) => {
       await page.goto("/");
+      await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
       await page.getByLabel("자동화 캔버스 만들기").selectOption(kind);
       const downloadSource = async () => {
         const ready = page.waitForEvent("download");

@@ -4,7 +4,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.13 개발용 프리릴리스**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.12 개발용 프리릴리스**입니다.
 
 ![내장 kubewiser로 분석한 Kubernetes 업그레이드 보고서](docs/images/analyzer-upgrade.png)
 
@@ -22,11 +22,11 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - **Analyzer** — netspector·kubewiser v0.2.0-alpha.10·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.13) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.12) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
-IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 이름·Terraform 주소로 리소스를 찾고 선택한 경계 안에 컴포넌트를 추가할 수 있습니다. 경계를 접거나 잠그고, 참조선과 운영 주석을 선택해 볼 수 있습니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
+IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 이름·Terraform 주소로 리소스를 찾고 선택한 경계 안에 컴포넌트를 추가할 수 있습니다. 경계를 접거나 잠그고, 참조선과 운영 주석을 선택해 볼 수 있습니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새로 만들기 → 새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
-워크스페이스의 **페이지 트리**에서 노트와 캔버스를 함께 탐색합니다. 개인 보관함의 **+**는 새 폴더, 폴더 옆 **+**는 새 노트를 만듭니다. 폴더의 **⋯ → 하위 페이지 추가**에서는 하위 폴더·시트·캔버스도 만들 수 있습니다. 데스크톱의 **Excel·CSV 폴더 가져오기**는 디렉터리 구조와 시트 탭을 유지하며 파일마다 페이지를 만듭니다. IaCD 카탈로그에서 공급자·업무 시나리오·편집 방식으로 템플릿을 찾고, 카드에 표시된 구성도 썸네일을 비교한 뒤 선택합니다. 캔버스 옆 Terraform 뷰어에서 편집 결과와 파일별 변경 줄을 확인합니다. 속성의 **Terraform 선언 보기**로 코드를 확인하고 **캔버스에서 보기**로 같은 리소스에 돌아갑니다. 페이지를 끌거나 **⋯** 메뉴로 하위 트리를 이동하고 순서를 조정합니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
+워크스페이스의 **페이지 트리**에서 노트와 캔버스를 함께 탐색합니다. **새로 만들기**에서 시트·캔버스·도구를 열고, 상단 워크스페이스 이름을 눌러 개인·조직 공간을 선택합니다. 개인 보관함의 **+**는 새 폴더, 폴더 옆 **+**는 새 노트를 만듭니다. 폴더의 **⋯ → 하위 페이지 추가**에서는 하위 폴더·시트·캔버스도 만들 수 있습니다. 데스크톱의 **Excel·CSV 폴더 가져오기**는 디렉터리 구조와 시트 탭을 유지하며 파일마다 페이지를 만듭니다. IaCD 카탈로그에서 공급자·업무 시나리오·편집 방식으로 템플릿을 찾고, 카드에 표시된 구성도 썸네일을 비교한 뒤 선택합니다. 캔버스 옆 Terraform 뷰어에서 편집 결과와 파일별 변경 줄을 확인합니다. 속성의 **Terraform 선언 보기**로 코드를 확인하고 **캔버스에서 보기**로 같은 리소스에 돌아갑니다. 페이지를 끌거나 **⋯** 메뉴로 하위 트리를 이동하고 순서를 조정합니다. 일반 노트의 **캔버스 미리보기 삽입**으로 원본을 연결하세요. 미리보기를 누르면 같은 캔버스가 열립니다.
 
 <details>
 <summary>xcode 채팅과 세션 설정 화면</summary>

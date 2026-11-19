@@ -91,6 +91,7 @@ try {
     };
     safeStorage.isEncryptionAvailable = () => false;
   });
+  await page.getByRole("button", { name: "워크스페이스 전환", exact: true }).click();
   await page
     .getByRole("button", { name: "조직 보관함 SSO", exact: true })
     .click();
@@ -121,6 +122,7 @@ try {
       .querySelector(".save-state")
       ?.textContent?.includes("이 기기에 저장됨"),
   );
+  await page.getByRole("button", { name: "워크스페이스 전환", exact: true }).click();
   await page
     .getByRole("button", { name: "보관함 새로고침", exact: true })
     .click();
@@ -146,6 +148,7 @@ try {
     .waitFor();
   await page.locator(".page-row.current").getByRole("button",{name:/페이지 메뉴$/}).click();
   await page.getByRole("button",{name:"휴지통으로 이동",exact:true}).click();
+  await page.getByRole("button", { name: "워크스페이스 전환", exact: true }).click();
   await page
     .getByRole("button", { name: "보관함 새로고침", exact: true })
     .click();

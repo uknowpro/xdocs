@@ -99,6 +99,7 @@ try {
     /주소를 먼저 확인/,
   );
   assert.equal(calls.length, 0);
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);
@@ -285,6 +286,7 @@ try {
   await page.getByLabel("xcode 메시지").fill("parallel-first");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);
   await page.getByLabel("xcode 메시지").fill("parallel-second");
@@ -355,6 +357,7 @@ try {
   await send.click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
   const firstCount = calls.length;
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);
   await expect(page.getByLabel("서버 동시 요청 수")).toHaveValue("1");
@@ -386,6 +389,7 @@ try {
   await input.fill("queue-owner");
   await send.click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);
   await input.fill("queue-successor");

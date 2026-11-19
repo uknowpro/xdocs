@@ -52,9 +52,11 @@ try {
     return terraform;
   }
   if (mode === "seed") {
+    await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
     await button("새 시트 테이블").click();
     await page.locator(".sheet-grid textarea").first().fill("분기 예산");
     await expect(page.locator(".save-state")).toContainText("로컬에 저장됨");
+    await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
     await button("IaCD 아키텍처").click();
     await button("멀티클라우드 예제").click();
     await expect(page.getByLabel("아키텍처 제목")).toHaveValue(

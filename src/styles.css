@@ -2876,3 +2876,25 @@ textarea {
 }
 .arch-review-rail .terraform-live { padding:8px 12px; }
 .live-file-actions button, .arch-review-issues button { padding:5px 8px; border:1px solid var(--line); border-radius:5px; }
+
+.sidebar { overflow:hidden; }
+.sidebar .sidebar-heading { margin-bottom:0; }
+.sidebar .page-tree { flex:1 1 0; min-height:0; max-height:none; overflow:auto; overscroll-behavior:contain; }
+.sidebar .sidebar-bottom { display:flex; gap:4px; margin-top:0; padding-top:6px; border-top:1px solid var(--line); }
+.sidebar-bottom .nav-item { flex:1; }
+.sidebar .nav-label { padding-top:8px; }
+.create-shortcuts { display:flex; align-items:center; gap:4px; }
+.create-shortcuts button { flex:auto; width:auto; min-height:32px; }
+.create-trigger { anchor-name:--create-trigger; display:flex; align-items:center; gap:6px; padding:5px 8px; background:var(--active); border-radius:6px; }
+.workspace-switch { anchor-name:--workspace-trigger; }
+.sidebar-popover { inset:auto; margin:0; padding:6px; width:min(240px,90vw); max-height:65dvh; overflow:auto; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:8px; box-shadow:0 6px 18px #0002; }
+#create-options { position-anchor:--create-trigger; top:anchor(bottom); left:anchor(left); }
+#workspace-options { position-anchor:--workspace-trigger; top:anchor(bottom); left:anchor(left); }
+.sidebar-popover strong { display:block; font-size:11px; padding:8px 9px 2px; color:var(--muted); }
+.sidebar-popover .nav-item { padding:6px 8px; min-height:30px; }
+.sidebar-popover .vault-path { overflow-wrap:anywhere; }
+.xcode-running { max-height:22dvh; overflow:auto; }
+@media (hover:hover) {
+  .page-row.current:not(:hover):not(:focus-within) .page-add[title="페이지 메뉴"] {opacity:0;}
+}
+@media (max-height:450px) { .sidebar {overflow-y:auto;} .sidebar .page-tree { min-height:6rem; } }

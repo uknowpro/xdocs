@@ -2,6 +2,7 @@ import {test,expect} from "@playwright/test";
 
 test("selected sheet range creates a note without neighbouring cells",async({page})=>{
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button",{name:"새 시트 테이블",exact:true}).click();
   const cell=(address:string)=>page.getByLabel("시트 1 "+address,{exact:true});
   await cell("A1").fill("공유 항목");await cell("A2").fill("선택 값");await cell("B1").fill("제외 값");
@@ -11,7 +12,9 @@ test("selected sheet range creates a note without neighbouring cells",async({pag
 });
 
 test("consecutive Analyzer imports expose added and removed evidence",async({page})=>{
-  await page.goto("/");await page.getByRole("button",{name:"Analyzer 만들기"}).click();
+  await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
+  await page.getByRole("button",{name:"Analyzer 만들기"}).click();
   for(const target of ["/old","/new"]){
     await page.getByLabel("기존 분석 JSON 열기").setInputFiles({name:"scan.json",mimeType:"application/json",
       buffer:Buffer.from(JSON.stringify({project:{},connections:[],findings:[{direction:"inbound",kind:"route",target,file:"Orders.java",line:5,status:"candidate"}]}))});
@@ -45,7 +48,10 @@ test("folder quick actions, block editing, trash confirmation and session switch
   await expect(btn("결산 영구삭제")).toHaveCount(0);
   page.once("dialog",d=>d.accept());await btn("휴지통 비우기").click();
   await expect(btn("휴지통 비우기")).toBeDisabled();await btn("복원 창 닫기").click();
-  await btn("xcode 세션 만들기").click();await btn("xcode 세션 만들기").click();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
+  await btn("xcode 세션 만들기").click();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
+  await btn("xcode 세션 만들기").click();
   await btn("왼쪽 메뉴 접기").click();
   const tabs=page.getByRole("navigation",{name:"xcode 세션 전환"});
   await tabs.getByRole("button",{name:"새 xcode 세션",exact:true}).click();

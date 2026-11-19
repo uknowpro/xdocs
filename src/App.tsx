@@ -163,6 +163,9 @@ export default function App() {
     return () => query.removeEventListener("change", resize);
   }, []);
   const sidebarToggle = useRef<HTMLButtonElement>(null);
+  function dismissSidebarAction(event: React.MouseEvent<HTMLDivElement>) {
+    if ((event.target as Element).closest("button")) event.currentTarget.hidePopover();
+  }
   function toggleSidebar() {
     requestAnimationFrame(() =>
       sidebarToggle.current?.focus({ preventScroll: true }),
@@ -888,7 +891,7 @@ export default function App() {
           if (
             compactNav &&
             (e.target as Element).closest(
-              "button.nav-item:not(.note-item), .workspace-switch",
+              "button.nav-item:not(.note-item):not([data-keep-drawer])",
             )
           )
             setDrawer(false);
@@ -897,7 +900,8 @@ export default function App() {
         <div className="sidebar-heading">
           <button
             className="workspace-switch"
-            onClick={openVault}
+            popoverTarget="workspace-options"
+            aria-label="워크스페이스 전환"
             disabled={busy}
           >
             <span className="workspace-icon">
@@ -905,12 +909,52 @@ export default function App() {
             </span>
             <span>
               <strong>{workspace?.name || "워크스페이스"}</strong>
-              <small>
-                {isDesktop ? "Personal workspace" : "Browser preview"}
-              </small>
             </span>
             <ChevronDown size={14} />
           </button>
+          <div
+            id="workspace-options"
+            popover="auto"
+            className="sidebar-popover"
+            onClick={dismissSidebarAction}
+          >
+            <button className="nav-item" disabled={busy} onClick={openVault}>
+              <FolderOpen size={16} />
+              개인 워크스페이스 열기
+            </button>
+            <button
+              className="nav-item"
+              onClick={async () => {
+                if (await flush()) setOrganizationPanel(true);
+              }}
+            >
+              <Building2 size={16} />
+              <span>조직 보관함</span>
+              <small>SSO</small>
+            </button>
+            <div className="vault-state">
+              <span className="status-dot" />
+              {isDesktop
+                ? workspace
+                  ? shared
+                    ? "조직 보관함 연결됨"
+                    : "로컬 보관함 연결됨"
+                  : "보관함을 선택하세요"
+                : "브라우저 미리보기"}
+              <button
+                onClick={refresh}
+                disabled={!workspace || busy}
+                aria-label="보관함 새로고침"
+              >
+                <RefreshCw size={13} />
+              </button>
+            </div>
+            {isDesktop && (
+              <div className="vault-path" title={workspace?.root}>
+                {workspace?.root || "내 파일에서 시작하기"}
+              </div>
+            )}
+          </div>
           {sidebar && (
             <button
               className="sidebar-switch"
@@ -933,6 +977,141 @@ export default function App() {
           <span>빠른 검색</span>
           <kbd>⌘ K</kbd>
         </button>
+        <div className="create-shortcuts">
+          <button
+            className="create-trigger"
+            popoverTarget="create-options"
+            disabled={!workspace || readonly || busy}
+          >
+            <Plus size={16} />
+            새로 만들기
+          </button>
+          <button
+            className="nav-item"
+            disabled={!workspace || workspace.role === "reader" || busy}
+            onClick={() => void createNote()}
+          >
+            <FileText size={16} />새 노트
+          </button>
+        </div>
+        <div
+          popover="auto"
+          id="create-options"
+          className="sidebar-popover"
+          aria-label="새로 만들기"
+          onClick={dismissSidebarAction}
+        >
+          <strong>페이지</strong>
+          <button className="nav-item" onClick={() => void createNote()}>
+            <FileText size={16} />
+            일반 노트
+          </button>
+          <button
+            className="nav-item"
+            data-keep-drawer
+            onClick={() => nameFolder()}
+          >
+            <FolderOpen size={16} />새 폴더
+          </button>
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={() => void createSheets()}
+          >
+            <Plus size={16} />새 시트 테이블
+          </button>
+          <strong>설계 및 도구</strong>
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={async () => {
+              if (await flush()) setInfrastructureStart(true);
+            }}
+          >
+            <FileStack size={16} />
+            인프라 문서
+          </button>
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={async () => {
+              await createPage("architecture");
+            }}
+          >
+            <Workflow size={16} />
+            IaCD 아키텍처
+          </button>
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={() => void createPage("xcode")}
+          >
+            <Code2 size={16} />
+            xcode 세션 만들기
+          </button>
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={() => void createPage("analyzer")}
+          >
+            <Network size={16} />
+            Analyzer 만들기
+          </button>
+          <button
+            className="nav-item"
+            disabled={!workspace || readonly || busy}
+            onClick={() => void createPage("builder")}
+          >
+            <Workflow size={16} />
+            Builder 만들기
+          </button>
+          <select
+            className="nav-item"
+            aria-label="자동화 캔버스 만들기"
+            value=""
+            disabled={!workspace || readonly || busy}
+            onChange={(e) => {
+              const k = e.target.value as keyof typeof templates;
+              if (k) {
+                e.currentTarget
+                  .closest<HTMLElement>("[popover]")
+                  ?.hidePopover();
+                setDrawer(false);
+                void createPage(k);
+              }
+            }}
+          >
+            <option value="">새 자동화·스택 캔버스</option>
+            {Object.entries(templates).map(([k, t]) => (
+              <option key={k} value={k}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          {(api.importSheetDirectory || api.importSpreadsheet) && (
+            <strong>가져오기</strong>
+          )}
+          {api.importSheetDirectory && (
+            <button
+              className="nav-item"
+              disabled={!workspace || readonly || busy}
+              onClick={() => void importSheets(true)}
+            >
+              <FolderOpen size={16} />
+              Excel·CSV 폴더 가져오기
+            </button>
+          )}
+          {api.importSpreadsheet && (
+            <button
+              className="nav-item"
+              disabled={!workspace || readonly || busy}
+              onClick={() => void importSheets()}
+            >
+              <Upload size={16} />
+              Excel·CSV 시트 가져오기
+            </button>
+          )}
+        </div>
         <button
           className={`nav-item ${view === "graph" ? "active" : ""}`}
           onClick={() => setView("graph")}
@@ -943,23 +1122,16 @@ export default function App() {
         <div className="nav-label">
           <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
           <button
-            aria-label={shared?"조직 보관함 새 폴더":"개인 보관함 새 폴더"}
+            aria-label={shared ? "조직 보관함 새 폴더" : "개인 보관함 새 폴더"}
             title="새 폴더"
             onClick={() => {
               nameFolder();
             }}
-            disabled={!workspace || workspace.role==="reader" || busy}
+            disabled={!workspace || workspace.role === "reader" || busy}
           >
             <Plus size={15} />
           </button>
         </div>
-        <button
-          className="nav-item"
-          disabled={!workspace || workspace.role === "reader" || busy}
-          onClick={() => void createNote()}
-        >
-          <FileText size={16} />새 노트
-        </button>
         {naming && (
           <form
             className="folder-name-form"
@@ -970,7 +1142,9 @@ export default function App() {
           >
             <label>
               {naming.existing
-                ? isFolderPage(naming.existing) ? "폴더 이름 변경" : "페이지 이름 변경"
+                ? isFolderPage(naming.existing)
+                  ? "폴더 이름 변경"
+                  : "페이지 이름 변경"
                 : naming.kind
                   ? "페이지 이름"
                   : "폴더 이름"}
@@ -988,17 +1162,44 @@ export default function App() {
             </button>
           </form>
         )}
-        {runningPages.length>0 && <details className="xcode-running">
-          <summary>실행 중인 xcode 세션 · {runningPages.length}</summary>
-          <button className="nav-item" onClick={()=>stopWorkspaceRuns(workspace?.root)}>실행 중인 세션 모두 중지</button>
-          {runningPages.map(({page:id,phase})=><div key={id} className="xcode-running-row">
-            <button className="nav-item" onClick={()=>void navigate(id)}>{notes.find(n=>n.id===id)?.title || "xcode 세션"} · {phase || "준비 중"}</button>
-            <button aria-label={(notes.find(n=>n.id===id)?.title || "xcode 세션")+" 실행 중지"} onClick={()=>sessionRun(workspace!.root,id).cancel()}>중지</button>
-          </div>)}
-        </details>}
+        {runningPages.length > 0 && (
+          <details className="xcode-running">
+            <summary
+              aria-label={`실행 중인 xcode 세션 · ${runningPages.length}`}
+            >
+              <span className="status-dot" /> xcode 실행 중 ·{" "}
+              {runningPages.length}
+            </summary>
+            <button
+              className="nav-item"
+              onClick={() => stopWorkspaceRuns(workspace?.root)}
+            >
+              실행 중인 세션 모두 중지
+            </button>
+            {runningPages.map(({ page: id, phase }) => (
+              <div key={id} className="xcode-running-row">
+                <button className="nav-item" onClick={() => void navigate(id)}>
+                  {notes.find((n) => n.id === id)?.title || "xcode 세션"} ·{" "}
+                  {phase || "준비 중"}
+                </button>
+                <button
+                  aria-label={
+                    (notes.find((n) => n.id === id)?.title || "xcode 세션") +
+                    " 실행 중지"
+                  }
+                  onClick={() => sessionRun(workspace!.root, id).cancel()}
+                >
+                  중지
+                </button>
+              </div>
+            ))}
+          </details>
+        )}
         <PageTree
-          onFolderNote={(id,dir)=>void createNote(id,"새 노트",dir)}
-          onTrash={(name,items,folder)=>void trashPages(name,items,folder)}
+          onFolderNote={(id, dir) => void createNote(id, "새 노트", dir)}
+          onTrash={(name, items, folder) =>
+            void trashPages(name, items, folder)
+          }
           onRename={(note) => nameFolder(undefined, note)}
           onMove={placePage}
           key={workspace?.root}
@@ -1020,103 +1221,6 @@ export default function App() {
             void createPage(kind, parent);
           }}
         />
-        <div className="nav-label">
-          <span>문서 만들기</span>
-        </div>
-        <button
-          className="nav-item"
-          disabled={!workspace || readonly || busy}
-          onClick={() => void createSheets()}
-        >
-          <Plus size={16} />새 시트 테이블
-        </button>
-        <button
-          className="nav-item"
-          disabled={!workspace || readonly || busy}
-          onClick={async () => {
-            if (await flush()) setInfrastructureStart(true);
-          }}
-        >
-          <FileStack size={16} />
-          인프라 문서
-        </button>
-        <button
-          className="nav-item"
-          disabled={!workspace || readonly || busy}
-          onClick={async () => {
-            await createPage("architecture");
-          }}
-        >
-          <Workflow size={16} />
-          IaCD 아키텍처
-        </button>
-        <button className="nav-item" disabled={!workspace || readonly || busy} onClick={() => void createPage("xcode")}>
-          <Code2 size={16} />xcode 세션 만들기
-        </button>
-        <button className="nav-item" disabled={!workspace || readonly || busy} onClick={() => void createPage("analyzer")}>
-          <Network size={16} />Analyzer 만들기
-        </button>
-        <button
-          className="nav-item"
-          disabled={!workspace || readonly || busy}
-          onClick={() => void createPage("builder")}
-        >
-          <Workflow size={16} />
-          Builder 만들기
-        </button>
-        <select
-          className="nav-item"
-          aria-label="자동화 캔버스 만들기"
-          value=""
-          disabled={!workspace || readonly || busy}
-          onChange={(e) => {
-            const k = e.target.value as keyof typeof templates;
-            if (k) {
-              setDrawer(false);
-              void createPage(k);
-            }
-          }}
-        >
-          <option value="">새 자동화·스택 캔버스</option>
-          {Object.entries(templates).map(([k, t]) => (
-            <option key={k} value={k}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-        {api.importSheetDirectory && (
-          <button
-            className="nav-item"
-            disabled={!workspace || readonly || busy}
-            onClick={() => void importSheets(true)}
-          >
-            <FolderOpen size={16} />
-            Excel·CSV 폴더 가져오기
-          </button>
-        )}
-        {api.importSpreadsheet && (
-          <button
-            className="nav-item"
-            disabled={!workspace || readonly || busy}
-            onClick={() => void importSheets()}
-          >
-            <Upload size={16} />
-            Excel·CSV 시트 가져오기
-          </button>
-        )}
-        <div className="nav-label">
-          <span>함께하는 공간</span>
-        </div>
-        <button
-          className="nav-item"
-          onClick={async () => {
-            if (await flush()) setOrganizationPanel(true);
-          }}
-        >
-          <Building2 size={16} />
-          <span>조직 보관함</span>
-          <small>SSO</small>
-        </button>
         <div className="sidebar-bottom">
           {api.listTrash && !shared && (
             <button
@@ -1131,28 +1235,6 @@ export default function App() {
             <Settings2 size={16} />
             <span>환경 설정</span>
           </button>
-          <div className="vault-state">
-            <span className="status-dot" />
-            {isDesktop
-              ? workspace
-                ? shared
-                  ? "조직 보관함 연결됨"
-                  : "로컬 보관함 연결됨"
-                : "보관함을 선택하세요"
-              : "브라우저 미리보기"}
-            <button
-              onClick={refresh}
-              disabled={!workspace || busy}
-              aria-label="보관함 새로고침"
-            >
-              <RefreshCw size={13} />
-            </button>
-          </div>
-          {isDesktop && (
-            <div className="vault-path" title={workspace?.root}>
-              {workspace?.root || "내 파일에서 시작하기"}
-            </div>
-          )}
         </div>
       </aside>
       <main className="main" inert={compactNav && drawer}>

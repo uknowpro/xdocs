@@ -41,6 +41,7 @@ try {
     });
   }, file);
   const page = await app.firstWindow();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Excel·CSV 시트 가져오기" }).click();
   await page.getByRole("textbox", { name: "매출 C2", exact: true }).waitFor();
   assert.equal(
@@ -82,6 +83,7 @@ try {
     });
     dialog.showMessageBox = async () => ({ response: 2 });
   }, protectedFile);
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Excel·CSV 시트 가져오기" }).click();
   await page
     .getByRole("button", { name: "원본 파일 열기", exact: true })
@@ -94,6 +96,7 @@ try {
   await app.evaluate(({ dialog }, dir) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [dir] });
   }, directory);
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Excel·CSV 폴더 가져오기" }).click();
   await page.getByRole("button", { name: "결산", exact: true }).click();
   await page.getByRole("tab", { name: "예산", exact: true }).waitFor();
@@ -117,6 +120,7 @@ try {
   const csv = dirPath => path.join(dirPath,"고객.csv");
   await writeFile(csv(temp),'업체,메모\r\n가나다,"서울, 본사"\r\n');
   await app.evaluate(({dialog},file)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[file]});},csv(temp));
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button",{name:"Excel·CSV 시트 가져오기"}).click();
   const cell=page.getByRole("textbox",{name:"고객 B2",exact:true});
   await cell.waitFor();

@@ -3,11 +3,13 @@ test("Builder uses the selected sheet and saves a linked evidence note", async (
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "새 시트 테이블", exact: true })
     .click();
   await page.getByLabel("시트 1 A1", { exact: true }).fill("예산");
   await page.getByLabel("시트 1 A2", { exact: true }).fill("1200");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Builder 만들기" }).click();
   await page
     .getByLabel("시트 페이지", { exact: true })
@@ -30,6 +32,7 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -58,6 +61,7 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
 test("packaged multi-cloud VPN case opens without network access", async ({ page }) => {
   await page.goto("/");
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, (r) => r.abort());
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -84,6 +88,7 @@ test("a named harness copy keeps its rules and clears the original note input", 
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Builder 만들기" }).click();
   await page.getByLabel("하네스 템플릿").selectOption("meeting");
   await page
@@ -103,6 +108,7 @@ test("workspace harness library applies a versioned snapshot", async ({
 }) => {
   await page.goto("/");
   const create = page.getByRole("button", { name: "Builder 만들기" });
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await create.click();
   await page
     .getByLabel("프롬프트", { exact: true })
@@ -115,6 +121,7 @@ test("workspace harness library applies a versioned snapshot", async ({
   await expect(
     page.getByLabel("워크스페이스 템플릿", { exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await create.click();
   await page
     .getByLabel("워크스페이스 템플릿", { exact: true })
@@ -127,6 +134,7 @@ test("workspace harness library applies a versioned snapshot", async ({
 test("nested network gallery previews match the AWS subnet canvas", async ({ page }) => {
   await page.setViewportSize({width:1440,height:1000});
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", {name:"IaCD 아키텍처", exact:true}).click();
   const compute = page.getByRole("button",{name:"결제 서비스 · 격리 복구 리허설",exact:true});
   await expect(compute.getByAltText("영역형 구성도")).toBeVisible();
@@ -143,6 +151,7 @@ test("nested network gallery previews match the AWS subnet canvas", async ({ pag
 
 test("Analyzer findings become a saved Builder source with both network directions", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button",{name:"Analyzer 만들기"}).click();
   await page.getByLabel("기존 분석 JSON 열기").setInputFiles({name:"scan.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({
     project:{},connections:[],findings:["inbound","outbound"].map(direction=>({direction,kind:"route",target:"/orders",file:"Orders.java",line:9,status:"candidate"}))
@@ -150,6 +159,7 @@ test("Analyzer findings become a saved Builder source with both network directio
   await expect(page.locator(".analyzer-path")).toHaveCount(2);
   await page.getByRole("button",{name:"보고서를 하위 노트로 저장"}).click();
   await expect(page.locator(".markdown")).toContainText("Orders.java:9");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button",{name:"Builder 만들기"}).click();
   await page.getByLabel("하네스 템플릿").selectOption("network");
   await page.getByLabel("입력 노트",{exact:true}).selectOption({label:"네트워크 분석"});
@@ -160,12 +170,14 @@ test("Analyzer findings become a saved Builder source with both network directio
 test("Builder copies a customized step from another page independently", async ({page})=>{
   await page.goto("/");
   const create=page.getByRole("button",{name:"Builder 만들기"});
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await create.click();
   await page.getByLabel("단계 이름").fill("운영 예산");
   await page.getByLabel("초과 기준").fill("2300");
   await page.getByText("하네스 공유와 복제",{exact:true}).click();
   await page.getByLabel("사본 이름").fill("원본 하네스");
   await page.getByRole("button",{name:"워크스페이스에 사본 저장"}).click();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await create.click();
   await page.getByText("다른 Builder에서 단계 가져오기",{exact:true}).click();
   await page.getByLabel("원본 Builder").selectOption({label:"원본 하네스"});
@@ -177,6 +189,7 @@ test("Builder copies a customized step from another page independently", async (
 
 test("Seoul case opens both AZs and selects the NAT declaration", async ({page}) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", {name:"IaCD 아키텍처",exact:true}).click();
   await page.getByRole("button", {name:"사례 설계",exact:true}).click();
   await page.getByRole("button", {name:"서울 리전 · 이중 AZ 프라이빗 이그레스",exact:true}).click();

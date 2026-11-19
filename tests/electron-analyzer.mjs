@@ -46,6 +46,7 @@ try {
     process.env.PATH = "";
   });
   const page = await app.firstWindow();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Analyzer 만들기" }).click();
   for (const [mode, folder, heading] of [
     ["network", dir("project"), "네트워크 분석"],

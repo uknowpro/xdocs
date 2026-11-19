@@ -57,6 +57,7 @@ async function launch() {
 }
 try {
   let page = await launch();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button",{name:"세션 설정 펼치기"}).click();
   await page

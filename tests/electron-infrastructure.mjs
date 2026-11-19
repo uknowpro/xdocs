@@ -31,6 +31,7 @@ try {
     });
   }, file);
   const page = await app.firstWindow();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "인프라 문서", exact: true }).click();
   await page.getByRole("button", { name: "파일 선택", exact: true }).click();
   await page.getByRole("button", { name: "인프라 노트 생성" }).click();

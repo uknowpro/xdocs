@@ -4,6 +4,7 @@ test("IaCD canvas edits, moves, connects, undoes and preserves WAF notes with co
 }) => {
   await page.setViewportSize({ width: 1600, height: 1100 });
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -111,6 +112,7 @@ test("Invalid architecture blocks export until required connection is supplied",
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -132,6 +134,7 @@ test("dropping a compute instance into another subnet changes membership", async
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -169,6 +172,7 @@ test("selected references and generated IaC reflect the same subnet move", async
 }) => {
   await page.setViewportSize({ width: 1500, height: 1080 });
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -231,6 +235,7 @@ test("boundary view edits preserve IaC and collapse nested resources", async ({
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -271,6 +276,7 @@ test("boundary view edits preserve IaC and collapse nested resources", async ({
 
 test("WAF compares local module inputs and outputs and clears invalid results", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "IaCD 아키텍처", exact: true }).click();
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
   await page.getByRole("button", { name: "WAF 검토" }).click();
@@ -292,6 +298,7 @@ test("review a live Terraform edit beside the canvas and follow incoming referen
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
   const button = (name: string) => page.getByRole("button", { name, exact: true });
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await button("IaCD 아키텍처").click();
   const gallery = page.getByRole("group", { name: "설계 템플릿" });
   const total = await gallery.getByRole("button").count();

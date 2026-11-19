@@ -26,6 +26,7 @@ test("laptop sidebar stays reachable, remembers its width state and gives the tr
   expect(
     await tree.evaluate((e) => e.scrollHeight - e.clientHeight),
   ).toBeLessThanOrEqual(1);
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "새 시트 테이블" }).click();
   expect(
     await page.locator(".sheet-scroll").evaluate((e) => e.clientHeight),
@@ -62,6 +63,7 @@ test("narrow screens can navigate, read code and reach dialog controls", async (
   await fitsWidth(page, ".dialog");
   await page.getByRole("button", { name: "설정 닫기" }).click();
   await open.click();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
@@ -88,6 +90,7 @@ for (const width of [390, 780, 1440]) {
     const menu = page.getByRole("button", { name: "왼쪽 메뉴 펼치기" });
     async function openFromMenu(name: string) {
       if (await menu.isVisible()) await menu.click();
+      await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
       await page.getByRole("button", { name, exact: true }).click();
     }
     async function gapAbove(selector: string) {
@@ -130,3 +133,36 @@ for (const width of [390, 780, 1440]) {
     }
   });
 }
+
+test("compact navigation leaves ten complete rows visible on a 1366px laptop", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.addInitScript(() => {
+    const notes = Array.from({ length: 35 }, (_, index) => ({
+      id: String(index), title: "페이지 " + index, path: index + ".md",
+      body: "# 페이지 " + index, revision: "1",
+    }));
+    localStorage.setItem("xdocs.preview.v1", JSON.stringify({name:"워크스페이스", root:"미리보기", notes}));
+  });
+  await page.goto("/");
+  const tree = page.getByRole("navigation", {name:"보관함 페이지"});
+  await expect(tree.locator(".page-row")).toHaveCount(35);
+  const visible = await tree.evaluate(list => {
+    const bounds = list.getBoundingClientRect();
+    return [...list.querySelectorAll(".page-row")].filter(row => {
+      const box = row.getBoundingClientRect();
+      return box.top >= bounds.top && box.bottom <= bounds.bottom;
+    }).length;
+  });
+  expect(visible).toBeGreaterThanOrEqual(10);
+  console.log("1366x768 fully visible page rows:", visible);
+  await tree.evaluate(list => { list.scrollTop = list.scrollHeight; });
+  const create = page.getByRole("button", {name:"새로 만들기", exact:true});
+  await expect(create).toBeInViewport();
+  await expect(page.getByRole("button", {name:"환경 설정"})).toBeInViewport();
+  await create.click();
+  await expect(page.getByRole("button", {name:"IaCD 아키텍처"})).toBeInViewport();
+  await page.keyboard.press("Escape");
+  await expect(create).toBeFocused();
+  await page.getByRole("button", {name:"워크스페이스 전환"}).click();
+  await expect(page.getByRole("button", {name:"조직 보관함 SSO"})).toBeInViewport();
+});

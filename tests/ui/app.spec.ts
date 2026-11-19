@@ -119,6 +119,7 @@ test("sheet tabs persist, multiline TSV pastes and rectangle copies with tabs", 
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
     .getByRole("button", { name: "새 시트 테이블", exact: true })
     .click();
@@ -284,6 +285,7 @@ test("infrastructure example saves operating notes and renders all themes", asyn
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "인프라 문서", exact: true }).click();
   await page.getByRole("button", { name: "예제로 살펴보기" }).click();
   await page.getByRole("button", { name: "인프라 노트 생성" }).click();
