@@ -1,3 +1,4 @@
+import {leaveWorkspace,useRunningPages} from "./xcode-run";
 import Xcode from "./Xcode";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
@@ -191,6 +192,7 @@ export default function App() {
     kind?: PageKind;
   } | null>(null);
   const [folderName, setFolderName] = useState("");
+  useEffect(()=>{const scope=workspace?.root;return ()=>{if(scope)leaveWorkspace(scope);};},[workspace?.root]);
   useEffect(() => setNaming(null), [workspace?.root]);
   function nameFolder(parent?: string, existing?: Note) {
     setFolderName(existing?.title || "");
@@ -266,6 +268,7 @@ export default function App() {
     workspace?.role === "reader" ||
     workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
+  const runningPages=useRunningPages(workspace?.root);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
   const canvases = useMemo(() => notes.filter(isCanvas), [notes]);
   const outgoing = useMemo(
@@ -652,9 +655,14 @@ export default function App() {
       return;
     }
     await action(async () => {
+      let sessionTitle="새 xcode 세션";
+      if(kind==="xcode"){
+        const titles=new Set(notes.map(n=>n.title));
+        for(let i=2;titles.has(sessionTitle);i++)sessionTitle="새 xcode 세션 "+i;
+      }
       const title =
         name ||
-        (kind === "xcode" ? "새 xcode 세션" : kind === "analyzer" ? "새 Analyzer" : kind === "builder" ? "새 Builder" : templates[kind].label + " 캔버스");
+        (kind === "xcode" ? sessionTitle : kind === "analyzer" ? "새 Analyzer" : kind === "builder" ? "새 Builder" : templates[kind].label + " 캔버스");
       const n = await api.create(
         title,
         withParent(
@@ -976,6 +984,10 @@ export default function App() {
             </button>
           </form>
         )}
+        {runningPages.length>0 && <details className="xcode-running">
+          <summary>실행 중인 xcode 세션 · {runningPages.length}</summary>
+          {runningPages.map(id=><button className="nav-item" key={id} onClick={()=>void navigate(id)}>{notes.find(n=>n.id===id)?.title || "xcode 세션"}</button>)}
+        </details>}
         <PageTree
           onRename={(note) => nameFolder(undefined, note)}
           onMove={placePage}
@@ -1416,7 +1428,13 @@ export default function App() {
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
               ) : xcode ? (
-                <Xcode key={active} session={xcode} readonly={readonly} change={next => changeBody(replaceSession(draft.current,next))} />
+                <Xcode key={active} page={active} scope={workspace!.root} prepare={flush} finish={async turn=>{
+                  if(current.current?.id===active && !(await flush()))throw Error("세션 변경을 저장하지 못했습니다.");
+                  const saved=await api.xcodeAppend!({scope:workspace!.root,page:active,turn});
+                  update(saved);
+                  if(current.current?.id===active && draft.current===current.current.body)select(saved);
+                  else setNotice(saved.title+" · xcode 응답 저장 완료");
+                }} session={xcode} readonly={readonly} change={next => changeBody(replaceSession(draft.current,next))} />
               ) : analyzer ? (
                 <Analyzer key={active} readonly={readonly} settings={readAnalyzerSettings(body)} onSettings={settings=>changeBody(writeAnalyzerSettings(draft.current,settings))} onSave={async(title, content)=>{
                   if(readonly || !(await flush())) return;

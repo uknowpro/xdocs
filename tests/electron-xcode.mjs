@@ -20,11 +20,33 @@ await writeFile(
   JSON.stringify({ root: vault }),
 );
 const calls = [];
+let slowResponse,
+  caseMode = "normal",
+  retryCalls = 0;
 const server = createServer(async (req, res) => {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
   const packet = JSON.parse(Buffer.concat(chunks));
   calls.push(packet);
+  if (caseMode === "hold") {
+    slowResponse = res;
+    return;
+  }
+  if (
+    caseMode === "quota" ||
+    caseMode === "429" ||
+    (caseMode === "temporary" && retryCalls++ === 0)
+  ) {
+    res.writeHead(caseMode === "429" ? 429 : 503);
+    res.end(
+      caseMode === "quota"
+        ? "usage_limit_exceeded"
+        : caseMode === "429"
+          ? "Too Many Requests"
+          : "Unavailable",
+    );
+    return;
+  }
   res.writeHead(200, { "content-type": "text/event-stream" });
   res.write(": ping\r\n\r\n");
   const bytes = Buffer.from(
@@ -147,8 +169,68 @@ try {
   await page.getByRole("button", { name: "중지", exact: true }).click();
   await expect(page.locator(".xcode [role=alert]")).toContainText("중지");
   assert.match(JSON.stringify(calls[2].messages), /Review this/);
+  // A pending first session completes while a second page is open.
+  caseMode = "hold";
+  await page.getByLabel("템플릿 적용").selectOption("직접 대화");
+  await page.getByLabel("xcode 메시지").fill("parallel-first");
+  await page.getByRole("button", { name: "전송", exact: true }).click();
+  await expect.poll(() => Boolean(slowResponse)).toBe(true);
+  await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  await page.getByLabel("xcode 메시지").fill("parallel-second");
+  caseMode = "normal";
+  await page.getByRole("button", { name: "전송", exact: true }).click();
+  await expect(page.locator(".xcode article")).toContainText("parallel-second");
+  slowResponse.writeHead(200, { "content-type": "text/event-stream" });
+  slowResponse.end(
+    'data: {"choices":[{"delta":{"content":"first finished"}}]}\n\ndata: [DONE]\n\n',
+  );
+  await expect
+    .poll(async () =>
+      page.evaluate(
+        async (id) => (await window.xdocs.readNote(id)).body,
+        note.id,
+      ),
+    )
+    .toContain("first finished");
+  await expect(page.locator(".xcode article")).not.toContainText(
+    "first finished",
+  );
+  const send = page.getByRole("button", { name: "전송", exact: true }),
+    input = page.getByLabel("xcode 메시지");
+  await page.getByLabel("이어지는 응답 자동 요청").check();
+  await page.getByLabel("재요청 간격(초)").fill("1");
+  caseMode = "temporary";
+  await input.fill("retry-case");
+  await send.click();
+  await expect(page.locator(".xcode article").last()).toContainText(
+    "retry-case",
+  );
+  assert.equal(retryCalls, 2);
+  assert.match(JSON.stringify(calls.at(-1).messages.at(-1)), /계속해주세요/);
+  for (const kind of ["429", "quota"]) {
+    caseMode = kind;
+    const before = calls.length;
+    await input.fill("stop-" + kind);
+    await send.click();
+    await expect(page.locator(".xcode [role=alert]")).toContainText("사용량");
+    await new Promise((r) => setTimeout(r, 1100));
+    assert.equal(calls.length, before + 1);
+  }
+  caseMode = "normal";
+  await page.getByLabel("재요청 방식").selectOption("repeat");
+  await input.fill("repeat-case");
+  await send.click();
+  await expect(page.locator(".xcode article").last()).toContainText(
+    "계속해주세요",
+  );
+  await page.getByLabel("이어지는 응답 자동 요청").uncheck();
+  await expect(send).toBeDisabled(); // The completed prompt has been cleared.
+  const stopped = calls.length;
+  await new Promise((r) => setTimeout(r, 1200));
+  assert.equal(calls.length, stopped);
   console.log(
-    "PASS xcode: session persistence, multimodal history, streamed UTF-8, custom staged harness, Claude skill and cancellation",
+    "PASS xcode: streaming, harnesses, concurrent page isolation, retries, quota stops and repeat cancellation",
   );
 } finally {
   if (app) await app.close();

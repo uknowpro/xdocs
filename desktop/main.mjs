@@ -431,6 +431,19 @@ app.whenReady().then(async () => {
       return {...await store.addAttachment(file),name:path.basename(name)};
     } finally {await rm(folder,{recursive:true,force:true});}
   });
+  register("xcode:append", async ({scope,page,turn})=>{
+    const store=mustVault();
+    const root=store===orgVault ? orgVault.session.server+" / "+orgVault.workspace.name : store.root;
+    if(scope!==root)throw Error("워크스페이스가 변경되었습니다.");
+    const note=await store.readNote(page);
+    const pattern=/^```xdocs-xcode\r?\n([^]*?)\r?\n```$/m;
+    const match=note.body.match(pattern);
+    if(!match)throw Error("원래 xcode 세션을 찾을 수 없습니다.");
+    const session=JSON.parse(match[1]);
+    session.turns.push(turn);
+    const body=note.body.replace(pattern,()=>"```xdocs-xcode\n"+JSON.stringify(session).replaceAll("`","\\u0060")+"\n```");
+    return store.save({id:page,revision:note.revision,body});
+  });
   register("xcode:skills",()=>readSkills([["사용자",homedir()],...(vault?.root ? [["워크스페이스",vault.root]] : [])]));
   register("xcode:cancel",id=>chats.get(id)?.abort());
   register("xcode:chat",async ({id,profile,...request})=>{

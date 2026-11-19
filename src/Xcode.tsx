@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { sessionRun, waitForRetry } from "./xcode-run";
+import { useEffect, useSyncExternalStore, useState } from "react";
 import { api } from "./api";
 import type { ModelProfile } from "./types";
 import {
@@ -37,50 +38,47 @@ async function userMessage(prompt: string, files: InputFile[]) {
 
 export default function Xcode({
   session: s,
+  scope,
+  page,
+  prepare,
+  finish,
   change,
   readonly,
 }: {
   session: Session;
+  scope: string;
+  page: string;
+  prepare: () => Promise<boolean>;
+  finish: (t: Turn) => Promise<void>;
   change: (s: Session) => void;
   readonly: boolean;
 }) {
-  const [prompt, setPrompt] = useState(""),
-    [files, setFiles] = useState<InputFile[]>([]),
-    [key, setKey] = useState("");
+  const run = sessionRun(scope, page);
+  const { busy, preview, phase, error, prompt, files } = useSyncExternalStore(
+    run.subscribe,
+    run.snapshot,
+  );
+  const setPrompt = (prompt: string) => run.patch({ prompt });
+  const setFiles = (fn: InputFile[] | ((v: InputFile[]) => InputFile[])) =>
+    run.patch({
+      files: typeof fn === "function" ? fn(run.snapshot().files) : fn,
+    });
+  const setError = (error: string) => run.patch({ error });
+  const [key, setKey] = useState("");
   const [profiles, setProfiles] = useState<ModelProfile[]>([]),
     [skills, setSkills] = useState<
       { scope: string; name: string; instruction: string }[]
     >([]);
-  const [busy, setBusy] = useState(false),
-    [preview, setPreview] = useState(""),
-    [phase, setPhase] = useState(""),
-    [error, setError] = useState("");
-  const run = useRef(""),
-    alive = useRef(true);
   useEffect(() => {
-    alive.current = true;
     api
       .builderProfiles?.()
       .then(setProfiles)
-      .catch((e) => setError(String(e)));
-    const off = api.onXcodeDelta?.((c) => {
-      if (run.current === c.id) setPreview((v) => v + c.token);
-    });
-    return () => {
-      alive.current = false;
-      if (run.current) void api.xcodeCancel?.(run.current);
-      run.current = "";
-      off?.();
-    };
-  }, []);
+      .catch((e) => run.patch({ error: String(e) }));
+  }, [run]);
   const config = (patch: Partial<Session>) => change({ ...s, ...patch });
   const harness = (patch: Partial<Harness>) =>
     config({ harness: { ...s.harness, ...patch } });
-  function cancel() {
-    const id = run.current;
-    run.current = "";
-    if (id) void api.xcodeCancel?.(id);
-  }
+  const cancel = () => run.cancel();
   const [importing, setImporting] = useState(false);
   async function attach(selected: File[]) {
     if (busy || readonly || importing) return;
@@ -111,11 +109,15 @@ export default function Xcode({
     if (!api.xcodeChat || busy || readonly || (!prompt.trim() && !files.length))
       return;
     const id = crypto.randomUUID();
-    run.current = id;
-    setBusy(true);
-    setPreview("");
-    setError("");
+    run.id = id;
+    run.enabled = s.autoRetry === true;
+    run.patch({ busy: true, preview: "", phase: "", error: "" });
+    const off = api.onXcodeDelta?.((c) => {
+      if (run.id === c.id)
+        run.patch({ preview: run.snapshot().preview + c.token });
+    });
     try {
+      if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
       if (!s.harness.stages.every((i) => i.trim()))
         throw Error("빈 단계에 지침을 입력하세요.");
       const history: unknown[] = [];
@@ -125,7 +127,7 @@ export default function Xcode({
           ? 0
           : Math.max(0, s.turns.length - s.harness.historyTurns);
       for (const t of s.turns.slice(start)) {
-        if (run.current !== id) return;
+        if (run.id !== id) return;
         const prior = await userMessage(t.prompt, t.files);
         historyBytes += new Blob([
           JSON.stringify(prior),
@@ -157,22 +159,81 @@ export default function Xcode({
             : user.content + "\n\n현재 단계: 1",
         },
       ];
-      for (const [i, instruction] of s.harness.stages.entries()) {
-        if (run.current !== id) return;
-        setPreview("");
-        setPhase("단계 " + (i + 1) + " / " + s.harness.stages.length);
+      const seconds = Math.max(
+        1,
+        Math.min(3600, Math.round(s.retrySeconds || 60)),
+      );
+      async function delay(label: string) {
+        if (run.id !== id || !run.enabled)
+          throw Error("자동 재요청을 중단했습니다.");
+        run.patch({ phase: label + " · " + seconds + "초 후 계속해주세요" });
+        run.wait = new AbortController();
+        try {
+          await waitForRetry(seconds * 1000, run.wait.signal);
+        } finally {
+          run.wait = null;
+        }
+        if (!run.enabled || run.id !== id)
+          throw Error("자동 재요청을 중단했습니다.");
+      }
+      async function ask(stage: string, i: number) {
+        run.patch({ preview: "", phase: stage });
         const effort = s.harness.stageEfforts?.[i] || s.harness.effort;
+        let resume = "",
+          retried = false;
+        for (;;) {
+          if (run.id !== id) throw Error("요청을 중지했습니다.");
+          const requestMessages = [...messages];
+          if (retried && resume)
+            requestMessages.push(
+              { role: "assistant", content: resume },
+              { role: "user", content: "계속해주세요" },
+            );
+          else if (retried) {
+            const last = requestMessages.pop() as {
+              role: string;
+              content: unknown[] | string;
+            };
+            requestMessages.push({
+              ...last,
+              content:
+                typeof last.content === "string"
+                  ? last.content + "\n\n계속해주세요"
+                  : [...last.content, { type: "text", text: "계속해주세요" }],
+            });
+          }
+          try {
+            const answer = await api.xcodeChat!({
+              id,
+              key,
+              profile: s.profile,
+              endpoint: s.endpoint,
+              model: s.model,
+              effort: effort === "server" ? undefined : effort,
+              messages: requestMessages,
+            });
+            if (run.id !== id) throw Error("요청을 중지했습니다.");
+            return resume + answer;
+          } catch (e) {
+            if (
+              run.id !== id ||
+              !run.enabled ||
+              !String(e).includes("[XCODE_RETRY]")
+            )
+              throw e;
+            resume = run.snapshot().preview;
+            await delay(stage);
+            run.patch({ phase: stage + " · 이어서 요청 중" });
+            retried = true;
+          }
+        }
+      }
+      for (const [i, instruction] of s.harness.stages.entries()) {
         const started = performance.now();
-        const text = await api.xcodeChat({
-          id,
-          key,
-          profile: s.profile,
-          endpoint: s.endpoint,
-          model: s.model,
-          effort: effort === "server" ? undefined : effort,
-          messages,
-        });
-        if (run.current !== id) return;
+        const text = await ask(
+          "단계 " + (i + 1) + " / " + s.harness.stages.length,
+          i,
+        );
         messages.push(
           { role: "assistant", content: text },
           { role: "user", content: "현재 단계: " + (i + 2) },
@@ -186,19 +247,40 @@ export default function Xcode({
       const next = { ...s, turns: [...s.turns, { prompt, files, answers }] };
       if (new Blob([JSON.stringify(next)]).size > 4800000)
         throw Error("세션 저장 한도에 도달했습니다. 새 세션으로 이어가세요.");
-      change(next);
+      await finish({ prompt, files, answers });
       setFiles([]);
       setPrompt("");
-      setPreview("");
-    } catch (e) {
-      if (alive.current)
-        setError(run.current === id ? String(e) : "요청을 중지했습니다.");
-    } finally {
-      if (alive.current) {
-        setBusy(false);
-        setPhase("");
+      run.patch({ preview: "" });
+      messages.pop(); // No next harness stage after the final answer.
+      while (run.id === id && run.enabled && s.repeatCompleted) {
+        await delay("다음 대화 대기");
+        messages.push({ role: "user", content: "계속해주세요" });
+        const started = performance.now();
+        const text = await ask("자동 이어쓰기", s.harness.stages.length - 1);
+        await finish({
+          prompt: "계속해주세요",
+          files: [],
+          answers: [
+            {
+              stage: "자동 이어쓰기",
+              text,
+              elapsedMs: Math.round(performance.now() - started),
+            },
+          ],
+        });
+        messages.push({ role: "assistant", content: text });
+        run.patch({ preview: "" });
       }
-      run.current = "";
+    } catch (e) {
+      setError(
+        run.id === id
+          ? String(e).replace("[XCODE_RETRY] ", "")
+          : "요청을 중지했습니다.",
+      );
+    } finally {
+      off?.();
+      run.patch({ busy: false, phase: "" });
+      run.id = "";
     }
   }
   return (
@@ -222,6 +304,52 @@ export default function Xcode({
       }}
     >
       <h2>xcode</h2>
+      <fieldset disabled={readonly}>
+        <legend>자동 재요청</legend>
+        <label>
+          <input
+            type="checkbox"
+            checked={s.autoRetry === true}
+            onChange={(e) => {
+              run.enabled = e.target.checked;
+              if (!run.enabled) run.wait?.abort();
+              config({ autoRetry: e.target.checked });
+            }}
+          />
+          이어지는 응답 자동 요청
+        </label>
+        <label>
+          재요청 방식
+          <select
+            disabled={busy}
+            value={s.repeatCompleted ? "repeat" : "failure"}
+            onChange={(e) =>
+              config({ repeatCompleted: e.target.value === "repeat" })
+            }
+          >
+            <option value="failure">중단된 응답만 이어받기</option>
+            <option value="repeat">정상 완료 후에도 계속 요청</option>
+          </select>
+        </label>
+        <label>
+          재요청 간격(초)
+          <input
+            type="number"
+            min={1}
+            max={3600}
+            disabled={busy}
+            value={s.retrySeconds ?? 60}
+            onChange={(e) =>
+              config({
+                retrySeconds: Math.max(
+                  1,
+                  Math.min(3600, Math.round(Number(e.target.value) || 1)),
+                ),
+              })
+            }
+          />
+        </label>
+      </fieldset>
       <fieldset disabled={busy || readonly}>
         <legend>모델 연결</legend>
         {profiles.length > 0 && (

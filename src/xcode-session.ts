@@ -56,6 +56,9 @@ export type Session = {
   profile: string;
   harness: Harness;
   turns: Turn[];
+  repeatCompleted?: boolean;
+  autoRetry?: boolean;
+  retrySeconds?: number;
 };
 export function preset(name: string): Harness {
   const policies: Record<string, string[]> = {

@@ -65,19 +65,28 @@ export async function streamChat(
     },
     body,
     signal,
+  }).catch((e) => {
+    if (signal.aborted && signal.reason?.name !== "TimeoutError") throw e;
+    throw Error("[XCODE_RETRY] 모델 연결이 중단되었습니다.");
   });
-  if (!response.ok)
-    throw Error("모델 요청 실패 (HTTP " + response.status + ")");
+  if (!response.ok) {
+    const detail = (await response.text()).slice(0, 4000);
+    throw modelFailure(response.status, detail);
+  }
   if (!response.headers.get("content-type")?.includes("text/event-stream"))
     throw Error("서버가 SSE 응답을 반환하지 않았습니다.");
   const reader = response.body.getReader(),
     decoder = new TextDecoder();
   let buffer = "",
     answer = "",
-    finished = false;
+    finished = false,
+    lengthLimited = false;
   try {
     for (;;) {
-      const { value, done } = await reader.read();
+      const { value, done } = await reader.read().catch((e) => {
+        if (signal.aborted && signal.reason?.name !== "TimeoutError") throw e;
+        throw Error("[XCODE_RETRY] 스트림 연결이 끊겼습니다.");
+      });
       buffer += done
         ? decoder.decode()
         : decoder.decode(value, { stream: true });
@@ -99,10 +108,13 @@ export async function streamChat(
           break;
         }
         const chunk = JSON.parse(data);
-        if (chunk.error) throw Error("모델 서버가 스트림 오류를 반환했습니다.");
+        if (chunk.error)
+          throw modelFailure(
+            Number(chunk.error.status || chunk.error.code || 0),
+            JSON.stringify(chunk.error),
+          );
         const choice = chunk.choices?.[0];
-        if (choice?.finish_reason === "length")
-          throw Error("모델의 출력 한도에 도달했습니다. 요청 범위를 줄이세요.");
+        if (choice?.finish_reason === "length") lengthLimited = true;
         if (choice?.finish_reason === "stop") finished = true;
         const token = choice?.delta?.content;
         if (typeof token === "string") {
@@ -111,12 +123,35 @@ export async function streamChat(
           onText(token);
         }
       }
+      if (lengthLimited)
+        throw Error("[XCODE_RETRY] 모델 출력 길이 한도에 도달했습니다.");
       if (done || finished) break;
     }
-    if (!finished || !answer.trim())
-      throw Error("완전한 텍스트 응답을 받지 못했습니다.");
+    if (!finished)
+      throw Error("[XCODE_RETRY] 스트림이 완료되기 전에 종료됐습니다.");
+    if (!answer.trim()) throw Error("완전한 텍스트 응답을 받지 못했습니다.");
     return answer;
   } finally {
     await reader.cancel().catch(() => {});
   }
+}
+
+export function modelFailure(status, detail) {
+  if (
+    status === 429 ||
+    status === 402 ||
+    /\b429\b|quota|usage.{0,16}(?:exceed|limit)|insufficient[_ ](?:balance|credit)|rate[_ -]?limit|resource[_ ]exhausted|billing|사용량.{0,12}(?:초과|한도)/i.test(
+      detail,
+    )
+  )
+    return Error(
+      "사용량 또는 요청 한도에 도달했습니다. 자동 재요청을 중단합니다.",
+    );
+  if (
+    [408, 500, 502, 503, 504, 529].includes(status) ||
+    (!status &&
+      /server_error|overloaded_error|temporarily_unavailable/.test(detail))
+  )
+    return Error("[XCODE_RETRY] 모델 서버 일시 오류 (HTTP " + status + ")");
+  return Error("모델 요청 실패" + (status ? " (HTTP " + status + ")" : ""));
 }
