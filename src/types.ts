@@ -1,4 +1,5 @@
 export interface Note {
+  pageKind?: string;
   sheet?: boolean | 0 | 1;
   canvas?: boolean | 0 | 1;
   unloaded?: boolean;
@@ -165,6 +166,7 @@ export interface NoteAPI {
     historyRevision: string;
   }): Promise<Note>;
   listTrash?(): Promise<TrashEntry[]>;
+  purgeTrash?(tokens:string[]):Promise<void>;
   restoreTrash?(token: string): Promise<Note>;
   addAttachment?(): Promise<Attachment | null>;
   readAttachment?(relative: string): Promise<{ mime: string; data: string }>;
@@ -173,8 +175,9 @@ export interface NoteAPI {
   open(): Promise<Workspace | null>;
   load(): Promise<Workspace | null>;
   refresh(): Promise<Workspace>;
-  create(title: string, body?: string): Promise<Note>;
+  create(title: string, body?: string, directory?:string): Promise<Note>;
   save(data: Pick<Note, "id" | "body" | "revision">): Promise<Note>;
+  trashPages?(items:Pick<Note,"id"|"revision">[]):Promise<void>;
   trash(data: Pick<Note, "id" | "revision">): Promise<void>;
   search(query: string): Promise<Note[]>;
   export(data: { id: string; format: "md" | "html" | "pdf" }): Promise<boolean>;

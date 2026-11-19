@@ -35,6 +35,7 @@ try {
   const page = await app.firstWindow();
   await page.getByRole("heading", { name: "데스크톱 테스트" }).waitFor();
   await page.getByRole("button", { name: "편집하기" }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 데스크톱 테스트\n\n한글 저장 완료");
@@ -50,6 +51,7 @@ try {
   const index = await readFile(path.join(vault, ".xdocs", "index.sqlite"));
   assert.equal(index.subarray(0, 15).toString(), "SQLite format 3");
   await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 두 번째 노트\n\n[[데스크톱 테스트]]");

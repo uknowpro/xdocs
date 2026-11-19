@@ -1,4 +1,4 @@
-import type { Note, NoteAPI, Workspace } from "./types";
+import type { Note, NoteAPI, Workspace, TrashEntry } from "./types";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 const key = "xdocs.preview.v1";
@@ -42,6 +42,11 @@ const read = (): Workspace => {
   return { root: "브라우저 미리보기", name: "워크스페이스", notes };
 };
 const write = (w: Workspace) => localStorage.setItem(key, JSON.stringify(w));
+function previewTrash():TrashEntry[] {
+  const items = JSON.parse(localStorage.getItem(key+".trash") || "[]") as TrashEntry[];
+  return items.map(n=>({...n, token:n.token || n.id, deletedAt:n.deletedAt || ""}));
+}
+function writeTrash(items:TrashEntry[]) {localStorage.setItem(key+".trash",JSON.stringify(items));}
 const preview: NoteAPI = {
   async load() {
     return read();
@@ -52,13 +57,13 @@ const preview: NoteAPI = {
   async refresh() {
     return read();
   },
-  async create(title, body = "# " + title + "\n\n") {
+  async create(title, body = "# " + title + "\n\n", directory="") {
     const w = read();
     const n = {
       id: crypto.randomUUID(),
       title,
       body,
-      path: title + ".md",
+      path: (directory ? directory+"/" : "")+ title + ".md",
       revision: crypto.randomUUID(),
     };
     w.notes.push(n);
@@ -87,11 +92,28 @@ const preview: NoteAPI = {
       throw new Error(
         "다른 창에서 변경되었습니다. 새로고침 후 다시 확인하세요.",
       );
-    const trash = JSON.parse(localStorage.getItem(key + ".trash") || "[]");
-    trash.push(n);
-    localStorage.setItem(key + ".trash", JSON.stringify(trash));
+    writeTrash([{...n,token:crypto.randomUUID(),deletedAt:new Date().toISOString()},...previewTrash()]);
     w.notes = w.notes.filter((n) => n.id !== id);
     write(w);
+  },
+  async trashPages(items){
+    const w=read(),selected=new Map(items.map(n=>[n.id,n.revision]));
+    const notes=w.notes.filter(n=>selected.has(n.id));
+    if(notes.length!==selected.size || notes.some(n=>selected.get(n.id)!==n.revision))throw Error("다른 창에서 변경되었습니다. 새로고침 후 다시 확인하세요.");
+    writeTrash([...notes.map(n=>({...n,token:crypto.randomUUID(),deletedAt:new Date().toISOString()})),...previewTrash()]);
+    write({...w,notes:w.notes.filter(n=>!selected.has(n.id))});
+  },
+  async listTrash(){return previewTrash();},
+  async restoreTrash(token){
+    const items=previewTrash(),entry=items.find(n=>n.token===token),w=read();
+    if(!entry || w.notes.some(n=>n.id===entry.id))throw Error("복원할 수 없는 항목입니다.");
+    const {token:_token,deletedAt:_date,...note}=entry;
+    w.notes.push(note);write(w);writeTrash(items.filter(n=>n.token!==token));return note;
+  },
+  async purgeTrash(tokens){
+    const items=previewTrash(),selected=new Set(tokens);
+    if(tokens.some(t=>!items.some(n=>n.token===t)))throw Error("휴지통이 변경됐습니다.");
+    writeTrash(items.filter(n=>!selected.has(n.token)));
   },
   async search(q) {
     return read().notes.filter((n) =>

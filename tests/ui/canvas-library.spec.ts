@@ -101,6 +101,7 @@ test("a canvas and nested note share a persistent page tree", async ({
     })
     .click();
   await tree.getByLabel("하위 페이지 유형").selectOption("note");
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByLabel("노트 본문")
     .fill("# 배포 검토\n\n워크플로 변경 이력을 기록합니다.");
@@ -154,18 +155,19 @@ test("move a linked subtree, reorder siblings and undo without changing file pat
   await expect(btn(title)).toHaveCount(0);
   await expect(btn("GitHub Actions 캔버스")).toHaveCount(0);
   await btn(parent + " 펼치기").click();
-  await btn(title + " 페이지 이동").click();
+  await btn(title + " 페이지 메뉴").click();
   await expect(
     tree
       .getByLabel("이동할 상위 페이지")
       .locator("option")
       .filter({ hasText: "GitHub Actions 캔버스" }),
   ).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await btn("페이지 이동 실행 취소").click();
   await expect(btn(parent + " 접기")).toHaveCount(0);
   const titles = () => tree.locator(".note-item").allTextContents();
   const order = await titles();
-  await btn(title + " 페이지 이동").click();
+  await btn(title + " 페이지 메뉴").click();
   await tree.getByRole("button", { name: "위로", exact: true }).click();
   await expect
     .poll(async () => (await titles()).indexOf(title))
@@ -185,18 +187,20 @@ test("named folders persist with child folders and pages", async ({ page }) => {
   await page.goto("/");
   const button = (name: string) =>
     page.getByRole("button", { name, exact: true });
-  await button("새 폴더").click();
+  await button("개인 보관함 새 폴더").click();
   await page.getByLabel("폴더 이름", { exact: true }).fill("업무");
   await button("저장").click();
-  await button("업무 하위 페이지 추가").click();
+  await button("업무 페이지 메뉴").click();
+  await button("하위 페이지 추가").click();
   await page.getByLabel("하위 페이지 유형").selectOption("folder");
   await page.getByLabel("폴더 이름", { exact: true }).fill("설계");
   await button("저장").click();
-  await button("설계 하위 페이지 추가").click();
+  await button("설계 페이지 메뉴").click();
+  await button("하위 페이지 추가").click();
   await page.getByLabel("하위 페이지 유형").selectOption("sheet");
   await page.getByLabel("페이지 이름").fill("비용표");
   await button("저장").click();
-  await button("설계 페이지 이동").click();
+  await button("설계 페이지 메뉴").click();
   await button("폴더 이름 변경").click();
   await page.getByLabel("폴더 이름 변경", { exact: true }).fill("구성도");
   await button("저장").click();

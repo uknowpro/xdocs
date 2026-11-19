@@ -1825,8 +1825,8 @@ textarea {
   resize: none;
   overflow: hidden;
 }
+.sheet-grid textarea[data-multiline="true"] {height:52px;}
 .sheet-grid textarea:focus {
-  height: 52px;
   overflow: auto;
 }
 
@@ -2842,3 +2842,12 @@ textarea {
 
 .xcode .chat-json fieldset {display:grid;align-items:start;}
 .chat-json textarea {font-family:monospace;}
+
+.page-tree .page-popup {position:fixed;z-index:50;display:grid;gap:3px;width:192px;max-height:min(240px,70vh);overflow:auto;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);box-shadow:0 6px 18px #0002;}
+.page-popup button,.page-popup select {text-align:left;padding:5px 8px;color:var(--ink);background:var(--bg);}
+.page-popup button:hover {background:var(--hover);}
+.session-tabs {display:flex;flex:none;gap:4px;overflow-x:auto;min-width:0;border-bottom:1px solid var(--line);padding:4px 12px;}
+.session-tabs button {flex:none;padding:5px 10px;border-radius:5px;color:var(--muted);}
+.session-tabs button[aria-current] {color:var(--ink);background:var(--active);}
+.document-layout:not(.sheet-layout) .document {padding-top:clamp(14px,2vw,26px);}
+.document-layout:not(.sheet-layout) .note-utilities {margin-bottom:10px;}

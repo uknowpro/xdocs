@@ -226,6 +226,7 @@ export default function SheetTable({
                       >
                         <textarea
                           rows={1}
+                          data-multiline={sheet.rows[r]?.[c]?.includes("\n") || undefined}
                           aria-label={`${sheet.name} ${letter(c)}${r + 1}`}
                           value={sheet.rows[r]?.[c] || ""}
                           readOnly={readonly}

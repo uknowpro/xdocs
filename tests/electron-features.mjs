@@ -27,6 +27,7 @@ try {
   );
   await page.getByRole("heading", { name: "외부 변경", exact: true }).waitFor();
   await page.getByRole("button", { name: "편집하기", exact: true }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 외부 변경\n\n수정한 내용");
@@ -64,7 +65,8 @@ try {
   await page.evaluate(() => {
     window.confirm = () => true;
   });
-  await page.getByRole("button", { name: "노트 삭제", exact: true }).click();
+  await page.locator(".page-row.current").getByRole("button",{name:/페이지 메뉴$/}).click();
+  await page.getByRole("button",{name:"휴지통으로 이동",exact:true}).click();
   await page.getByRole("button", { name: "휴지통", exact: true }).click();
   await page.getByRole("button", { name: "복원", exact: true }).first().click();
   await page
@@ -110,6 +112,7 @@ try {
   await auth.locator("#kc-login").click();
   await page.getByRole("button", { name: "열기", exact: true }).first().click();
   await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# Electron 조직 테스트\n\n공유 문서 저장");
@@ -141,7 +144,8 @@ try {
     .locator(".markdown")
     .getByText("동시 편집 내용", { exact: true })
     .waitFor();
-  await page.getByRole("button", { name: "노트 삭제", exact: true }).click();
+  await page.locator(".page-row.current").getByRole("button",{name:/페이지 메뉴$/}).click();
+  await page.getByRole("button",{name:"휴지통으로 이동",exact:true}).click();
   await page
     .getByRole("button", { name: "보관함 새로고침", exact: true })
     .click();

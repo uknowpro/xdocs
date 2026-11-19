@@ -44,6 +44,29 @@ export default function VaultTools({
       setBusy(false);
     }
   }
+  async function purge(entries: TrashEntry[], all = false) {
+    if (busy || readonly || !api.purgeTrash || !entries.length) return;
+    const target = all
+      ? "휴지통의 " + entries.length + "개 항목을"
+      : "‘" + entries[0].title + "’ 항목을";
+    if (!confirm(target + " 영구삭제할까요? 삭제 후에는 복원할 수 없습니다."))
+      return;
+    setBusy(true);
+    setError("");
+    try {
+      await api.purgeTrash(entries.map((n) => n.token));
+      setPreview("");
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      try {
+        setTrash(await api.listTrash!());
+      } catch (err) {
+        setError(String(err));
+      }
+      setBusy(false);
+    }
+  }
   const rows =
     mode === "history"
       ? history.map((n) => ({ ...n, key: n.revision, date: n.savedAt }))
@@ -70,13 +93,22 @@ export default function VaultTools({
             <X size={18} />
           </button>
         </header>
+        {mode === "trash" && api.purgeTrash && (
+          <button
+            className="button"
+            disabled={busy || readonly || !trash.length}
+            onClick={() => void purge(trash, true)}
+          >
+            휴지통 비우기
+          </button>
+        )}
         {error && <p role="alert">{error}</p>}
         {!rows.length && <p className="muted">아직 보관된 항목이 없습니다.</p>}
         {rows.map((n) => (
           <div className="recovery-row" key={n.key}>
             <button onClick={() => setPreview(n.body)}>
               <strong>{n.title}</strong>
-              <small>{new Date(n.date).toLocaleString()}</small>
+              <small>{n.date ? new Date(n.date).toLocaleString() : ""}</small>
             </button>
             <button
               className="button"
@@ -86,12 +118,25 @@ export default function VaultTools({
               <RotateCcw size={14} />
               복원
             </button>
+            {mode === "trash" && api.purgeTrash && (
+              <button
+                className="button"
+                disabled={busy || readonly}
+                aria-label={n.title + " 영구삭제"}
+                onClick={() =>
+                  void purge(trash.filter((item) => item.token === n.key))
+                }
+              >
+                영구삭제
+              </button>
+            )}
           </div>
         ))}
         {preview && <pre className="history-preview">{preview}</pre>}
         <p className="small-text muted">
-          변경 이력 복원 시 현재 내용도 보관합니다. 휴지통 복원 파일은 보관함
-          최상위에 새 이름으로 저장합니다.
+          {mode === "history"
+            ? "이력을 복원하면 현재 내용도 보관합니다."
+            : "복원하면 페이지를 다시 열 수 있습니다."}
         </p>
       </section>
     </div>

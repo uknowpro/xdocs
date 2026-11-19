@@ -7,8 +7,19 @@ import {
   Workflow,
   Plus,
   MoreHorizontal,
+  Table2,
+  Terminal,
+  Blocks,
+  ScanSearch,
+  Network,
+  Layers,
+  GitBranch,
+  Boxes,
+  Cloud,
+  ListTree,
 } from "lucide-react";
 import type { Note } from "./types";
+import { pageKind } from "../shared/page-kind.mjs";
 import { isCanvas } from "./canvasPreview";
 import { templates } from "../shared/workflows.mjs";
 import {
@@ -78,6 +89,21 @@ function tree(notes: Note[]) {
     });
   return { root, pages };
 }
+const icons: Record<string, typeof FileText> = {
+  note: FileText,
+  sheets: Table2,
+  folder: Folder,
+  xcode: Terminal,
+  analyzer: ScanSearch,
+  builder: Blocks,
+  infra: Network,
+  architecture: Layers,
+  workflow: Workflow,
+  actions: GitBranch,
+  ansible: ListTree,
+  jenkins: Boxes,
+  cloudformation: Cloud,
+};
 export type PageKind =
   | "xcode"
   | "analyzer"
@@ -95,10 +121,14 @@ export default function PageTree({
   onCreate,
   onMove,
   onRename,
+  onTrash,
+  onFolderNote,
 }: {
   notes: Note[];
   active: string;
   readonly: boolean;
+  onFolderNote: (parent?: string, directory?: string) => void;
+  onTrash: (name: string, notes: Note[], folder: boolean) => void;
   onRename: (note: Note) => void;
   onOpen: (id: string) => void;
   onMove: (id: string, expected: string, next: string) => Promise<boolean>;
@@ -155,6 +185,23 @@ export default function PageTree({
       before: string;
       after: string;
     } | null>(null);
+  const [position, setPosition] = useState({ left: 0, top: 0 });
+  useEffect(() => {
+    if (!moving) return;
+    const dismiss = (ev: Event) => {
+      if (!(
+        ev.target instanceof Element &&
+        ev.target.closest(".page-popup,.page-add")
+      ))
+        setMoving("");
+    };
+    document.addEventListener("pointerdown", dismiss);
+    window.addEventListener("resize", dismiss);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      window.removeEventListener("resize", dismiss);
+    };
+  }, [moving]);
   const lock = useRef(false);
   function allowed(source: Entry, target: Entry) {
     for (let n: Entry | undefined = target; n; n = n.parent)
@@ -220,12 +267,8 @@ export default function PageTree({
         .map(({ entry: e, depth }) => {
           const n = e.page,
             open = !closed.has(e.key),
-            Icon =
-              n && !isFolderPage(n)
-                ? isCanvas(n)
-                  ? Workflow
-                  : FileText
-                : Folder;
+            folder = !n || isFolderPage(n),
+            Icon = folder ? Folder : icons[pageKind(n!)] || FileText;
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
               <div
@@ -319,73 +362,140 @@ export default function PageTree({
                   <Icon size={15} />
                   <span>{e.name}</span>
                 </button>
-                {n && !readonly && n.role !== "reader" && (
+                {!readonly && n?.role !== "reader" && (
                   <button
                     className="page-add"
-                    aria-label={e.name + " 페이지 이동"}
-                    onClick={() => {
+                    title="페이지 메뉴"
+                    aria-label={e.name + " 페이지 메뉴"}
+                    aria-expanded={moving === e.key}
+                    onClick={(event) => {
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      setPosition({
+                        left: Math.max(
+                          4,
+                          Math.min(innerWidth - 212, rect.right - 190),
+                        ),
+                        top: Math.max(
+                          4,
+                          Math.min(innerHeight - 250, rect.bottom + 2),
+                        ),
+                      });
                       setMenu("");
-                      setMoving(moving === n.id ? "" : n.id);
+                      setMoving(moving === e.key ? "" : e.key);
                     }}
                   >
-                    <MoreHorizontal size={13} />
+                    <MoreHorizontal size={15} />
                   </button>
                 )}
-                {n && !readonly && (
+                {!readonly && n?.role !== "reader" && (
                   <button
                     className="page-add"
-                    aria-expanded={menu === n.id}
-                    aria-label={e.name + " 하위 페이지 추가"}
-                    onClick={() => setMenu(menu === n.id ? "" : n.id)}
+                    title={folder ? "새 노트" : "하위 페이지 추가"}
+                    aria-label={
+                      e.name + (folder ? " 새 노트" : " 하위 페이지 추가")
+                    }
+                    onClick={() => {
+                      setMoving("");
+                      if (folder)
+                        onFolderNote(n?.id, n ? undefined : e.key.slice(3));
+                      else if (n) setMenu(menu === n.id ? "" : n.id);
+                    }}
                   >
-                    <Plus size={13} />
+                    <Plus size={14} />
                   </button>
                 )}
               </div>
-              {n && moving === n.id && (
-                <div className="page-move">
-                  {isFolderPage(n) && (
+              {moving === e.key && (
+                <div
+                  className="page-move page-popup"
+                  role="group"
+                  aria-label={e.name + " 작업"}
+                  style={position}
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Escape") {
+                      setMoving("");
+                      (
+                        ev.currentTarget.previousElementSibling?.querySelector(
+                          '[aria-expanded="true"].page-add',
+                        ) as HTMLElement
+                      )?.focus();
+                    }
+                  }}
+                >
+                  {n && (
                     <button
+                      autoFocus
                       onClick={() => {
                         setMoving("");
                         onRename(n);
                       }}
                     >
-                      폴더 이름 변경
+                      {folder ? "폴더 이름 변경" : "이름 변경"}
                     </button>
                   )}
-                  <select
-                    aria-label="이동할 상위 페이지"
-                    value=""
-                    onChange={(ev) => {
-                      const dest =
-                        ev.target.value === "@"
-                          ? root
-                          : pages.get(ev.target.value);
-                      if (dest) append(e, dest);
+                  {n && (
+                    <button
+                      onClick={() => {
+                        setMoving("");
+                        setMenu(n.id);
+                      }}
+                    >
+                      하위 페이지 추가
+                    </button>
+                  )}
+                  {n && (
+                    <select
+                      aria-label="이동할 상위 페이지"
+                      value=""
+                      onChange={(ev) => {
+                        const dest =
+                          ev.target.value === "@"
+                            ? root
+                            : pages.get(ev.target.value);
+                        if (dest) append(e, dest);
+                      }}
+                    >
+                      <option value="">다른 페이지 아래로 이동</option>
+                      <option value="@">보관함 최상위</option>
+                      {Array.from(pages.values())
+                        .filter((t) => allowed(e, t))
+                        .map((t) => (
+                          <option key={t.key} value={t.page!.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                  {n && (
+                    <div>
+                      <button
+                        disabled={e.parent?.children.find((t) => t.page) === e}
+                        onClick={() => step(e, -1)}
+                      >
+                        위로
+                      </button>
+                      <button
+                        disabled={e.parent?.children.at(-1) === e}
+                        onClick={() => step(e, 1)}
+                      >
+                        아래로
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      setMoving("");
+                      const items: Note[] = [];
+                      const stack = [e];
+                      while (stack.length) {
+                        const item = stack.pop()!;
+                        if (item.page) items.push(item.page);
+                        if (folder) stack.push(...item.children);
+                      }
+                      onTrash(e.name, items.reverse(), folder);
                     }}
                   >
-                    <option value="">다른 페이지 아래로 이동</option>
-                    <option value="@">보관함 최상위</option>
-                    {Array.from(pages.values())
-                      .filter((t) => allowed(e, t))
-                      .map((t) => (
-                        <option key={t.key} value={t.page!.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                  </select>
-                  <button
-                    disabled={e.parent?.children.find((t) => t.page) === e}
-                    onClick={() => step(e, -1)}
-                  >
-                    위로
-                  </button>
-                  <button
-                    disabled={e.parent?.children.at(-1) === e}
-                    onClick={() => step(e, 1)}
-                  >
-                    아래로
+                    휴지통으로 이동
                   </button>
                 </div>
               )}

@@ -253,3 +253,19 @@ test("older trash entries restore without path metadata", async (t) => {
   assert.equal(note.body, "# 예전 휴지통");
   assert.equal(note.path, "legacy.md");
 });
+
+test("folder trash rolls back conflicts and permanently removes only confirmed entries",async t=>{
+  const {root,vault}=await setup(t);
+  await mkdir(path.join(root,"team"));
+  const n=await vault.create("first",undefined,"team"), other=await vault.create("second");
+  assert.equal(path.dirname(n.path),"team");
+  await assert.rejects(vault.trashPages([n,{...other,revision:"stale"}]));
+  assert.deepEqual(await vault.listTrash(),[]);
+  await vault.trashPages([n,other]);
+  const entries=await vault.listTrash(),first=entries.find(e=>e.id===n.id);
+  await assert.rejects(vault.purgeTrash([first.token,"../unexpected"]));
+  assert.equal((await vault.listTrash()).length,2);
+  await vault.purgeTrash([first.token]);
+  await assert.rejects(vault.restoreTrash(first.token));
+  assert.equal((await vault.restoreTrash(entries.find(e=>e.id===other.id).token)).id,other.id);
+});

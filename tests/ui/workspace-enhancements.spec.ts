@@ -21,3 +21,33 @@ test("consecutive Analyzer imports expose added and removed evidence",async({pag
   const diff=page.locator("details").filter({has:page.getByText("직전 분석과 변경 비교",{exact:true})});
   await expect(diff).toContainText("/old");await expect(diff).toContainText("/new");
 });
+
+test("folder quick actions, block editing, trash confirmation and session switching",async ({page})=>{
+  await page.goto("/");
+  const btn=(name:string)=>page.getByRole("button",{name,exact:true});
+  await btn("개인 보관함 새 폴더").click();
+  await page.getByLabel("폴더 이름",{exact:true}).fill("업무");
+  await btn("저장").click();
+  await btn("업무 새 노트").click();
+  await expect(page.getByRole("textbox",{name:"블록 편집기"})).toBeVisible();
+  const menu=()=>page.locator(".page-row.current").getByRole("button",{name:/페이지 메뉴$/});
+  await menu().click();await btn("이름 변경").click();
+  await page.getByLabel("페이지 이름 변경").fill("결산");
+  await btn("저장").click();
+  await btn("업무 페이지 메뉴").click();
+  page.once("dialog",d=>d.dismiss());
+  await btn("휴지통으로 이동").click();
+  await expect(page.locator(".page-tree").getByRole("button",{name:"결산",exact:true})).toBeVisible();
+  await btn("업무 페이지 메뉴").click();
+  page.once("dialog",d=>d.accept());await btn("휴지통으로 이동").click();
+  await btn("휴지통").click();
+  page.once("dialog",d=>d.accept());await btn("결산 영구삭제").click();
+  await expect(btn("결산 영구삭제")).toHaveCount(0);
+  page.once("dialog",d=>d.accept());await btn("휴지통 비우기").click();
+  await expect(btn("휴지통 비우기")).toBeDisabled();await btn("복원 창 닫기").click();
+  await btn("xcode 세션 만들기").click();await btn("xcode 세션 만들기").click();
+  await btn("왼쪽 메뉴 접기").click();
+  const tabs=page.getByRole("navigation",{name:"xcode 세션 전환"});
+  await tabs.getByRole("button",{name:"새 xcode 세션",exact:true}).click();
+  await expect(tabs.getByRole("button",{name:"새 xcode 세션",exact:true})).toHaveAttribute("aria-current","page");
+});

@@ -1,3 +1,4 @@
+import { pageKind } from "../shared/page-kind.mjs";
 import { collaborationBody } from "../shared/collab-blocks.mjs";
 import * as Y from "yjs";
 import { createServer } from "node:http";
@@ -284,6 +285,7 @@ export class OrganizationVault {
           this.metadataOnly
             ? {
                 ...n,
+                pageKind: pageKind(n),
                 sheet: /^```xdocs-sheets\r?$/m.test(n.body),
                 canvas: /^```xdocs-(architecture|workflow)\r?$/m.test(n.body),
                 body: JSON.parse(JSON.stringify(n.body.slice(0,240))),

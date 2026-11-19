@@ -1,3 +1,4 @@
+import { pageKind } from "../shared/page-kind.mjs";
 import {sessionRun,leaveWorkspace,stopWorkspaceRuns,useRunningPages} from "./xcode-run";
 import Xcode from "./Xcode";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
@@ -119,7 +120,8 @@ export default function App() {
   const [body, setBody] = useState("");
   const [view, setView] = useState<"note" | "graph">("note");
   const [edit, setEdit] = useState(false);
-  const [editorMode, setEditorMode] = useState<"source" | "blocks">("source");
+  const [preferredEditor, setEditorMode] = useState<"source" | "blocks">("blocks");
+  const editorMode = /^---\s*$|<\/?[a-zA-Z]|!\[|^\[\^/m.test(body) ? "source" : preferredEditor;
   const [architectureStart, setArchitectureStart] = useState(false);
   const [infrastructureStart, setInfrastructureStart] = useState(false);
   const [permissions, setPermissions] = useState(false);
@@ -210,15 +212,15 @@ export default function App() {
     }
     await action(async () => {
       const full =
-        existing?.unloaded && api.readNote
+        existing && current.current?.id===existing.id ? current.current : existing?.unloaded && api.readNote
           ? await api.readNote(existing.id)
           : existing;
       const saved =
         existing && full
           ? await api.save({
               id: existing.id,
-              revision: existing.revision,
-              body: full.body.replace(/^# .+$/m, () => "# " + title),
+              revision: full.revision,
+              body: /^# .+$/m.test(full.body) ? full.body.replace(/^# .+$/m, () => "# " + title) : (full.body.match(parentHeader)?.[0] || "") + "# " + title + "\n\n" + full.body.replace(parentHeader,""),
             })
           : await api.create(title, folderBody(parent, title));
       update(saved);
@@ -340,6 +342,7 @@ export default function App() {
     const note = isDesktop
       ? {
           ...full,
+          pageKind: pageKind(full),
           sheet: /^```xdocs-sheets\r?$/m.test(full.body),
           canvas: Boolean(isCanvas(full)),
           body: JSON.parse(JSON.stringify(full.body.slice(0, 240))),
@@ -580,7 +583,7 @@ export default function App() {
       }
     });
   }
-  async function createNote(parent?: string, title = "새 노트") {
+  async function createNote(parent?: string, title = "새 노트", directory?:string) {
     if (readonly) return;
     setCreatingNote(true);
     try {
@@ -588,11 +591,12 @@ export default function App() {
       await action(async () => {
         const n = await api.create(
           title,
-          parent ? withParent(parent, "# " + title + "\n\n") : undefined,
+          parent ? withParent(parent, "# " + title + "\n\n") : undefined, directory,
         );
         update(n);
         select(n);
         setView("note");
+        setEditorMode("blocks");
         setEdit(true);
       });
     } finally {
@@ -776,20 +780,19 @@ export default function App() {
         setNotice(`${format.toUpperCase()} 내보내기를 완료했습니다.`);
     });
   }
-  async function remove() {
-    if (readonly) return;
-    if (!activeNote || !(await flush())) return;
-    if (
-      !confirm(
-        "이 노트를 휴지통으로 이동할까요? 원본은 .xdocs/trash 폴더에 보관됩니다.",
-      )
-    )
-      return;
-    await action(async () => {
-      await api.trash({ id: active, revision: current.current!.revision });
-      const remaining = notes.filter((n) => n.id !== active);
-      setWorkspace((w) => (w ? { ...w, notes: remaining } : w));
-      select(remaining[0]);
+  async function trashPages(name:string, targets:Note[], folder:boolean) {
+    if(!targets.length || workspace?.role==="reader" || targets.some(n=>n.role==="reader")){setError("삭제할 수 없는 페이지가 있습니다.");return;}
+    if(!confirm(folder ? "‘"+name+"’ 폴더와 그 안의 페이지를 휴지통으로 이동할까요? 대상 "+targets.length+"개" : "‘"+name+"’ 페이지를 휴지통으로 이동할까요?"))return;
+    if(!(await flush()))return;
+    await action(async()=>{
+      try {
+        const items=targets.map(n=>({id:n.id,revision:current.current?.id===n.id?current.current.revision:n.revision}));
+        if(!shared && api.trashPages && items.length>1)await api.trashPages(items);
+        else for(const item of items)await api.trash(item);
+      } finally {
+        const w=await api.refresh();setWorkspace(w);
+        if(!w.notes.some(n=>n.id===current.current?.id))select(w.notes[0]);
+      }
     });
   }
   async function conflictCopy() {
@@ -841,6 +844,8 @@ export default function App() {
               : "로컬에 저장됨"
             : "브라우저에 저장됨";
 
+  const sessionTabs = !sidebar && view==="note" && xcode
+    ? notes.filter(n=>n.id===active || pageKind(n)==="xcode") : [];
   return (
     <div className={`app ${sidebar ? "" : "sidebar-hidden"}`}>
       <header className="titlebar">
@@ -938,13 +943,12 @@ export default function App() {
         <div className="nav-label">
           <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
           <button
-            aria-label="새 노트"
-            title="새 노트"
+            aria-label={shared?"조직 보관함 새 폴더":"개인 보관함 새 폴더"}
+            title="새 폴더"
             onClick={() => {
-              setDrawer(false);
-              void createNote();
+              nameFolder();
             }}
-            disabled={!workspace || busy}
+            disabled={!workspace || workspace.role==="reader" || busy}
           >
             <Plus size={15} />
           </button>
@@ -952,9 +956,9 @@ export default function App() {
         <button
           className="nav-item"
           disabled={!workspace || workspace.role === "reader" || busy}
-          onClick={() => nameFolder()}
+          onClick={() => void createNote()}
         >
-          <FolderOpen size={16} />새 폴더
+          <FileText size={16} />새 노트
         </button>
         {naming && (
           <form
@@ -966,7 +970,7 @@ export default function App() {
           >
             <label>
               {naming.existing
-                ? "폴더 이름 변경"
+                ? isFolderPage(naming.existing) ? "폴더 이름 변경" : "페이지 이름 변경"
                 : naming.kind
                   ? "페이지 이름"
                   : "폴더 이름"}
@@ -993,6 +997,8 @@ export default function App() {
           </div>)}
         </details>}
         <PageTree
+          onFolderNote={(id,dir)=>void createNote(id,"새 노트",dir)}
+          onTrash={(name,items,folder)=>void trashPages(name,items,folder)}
           onRename={(note) => nameFolder(undefined, note)}
           onMove={placePage}
           key={workspace?.root}
@@ -1085,7 +1091,7 @@ export default function App() {
             onClick={() => void importSheets(true)}
           >
             <FolderOpen size={16} />
-            Excel 폴더 가져오기
+            Excel·CSV 폴더 가져오기
           </button>
         )}
         {api.importSpreadsheet && (
@@ -1095,7 +1101,7 @@ export default function App() {
             onClick={() => void importSheets()}
           >
             <Upload size={16} />
-            Excel · 시트 가져오기
+            Excel·CSV 시트 가져오기
           </button>
         )}
         <div className="nav-label">
@@ -1150,6 +1156,10 @@ export default function App() {
         </div>
       </aside>
       <main className="main" inert={compactNav && drawer}>
+        {sessionTabs.length>1 && <nav className="session-tabs" aria-label="xcode 세션 전환">
+          {sessionTabs.map((n,i)=><button key={n.id} aria-current={active===n.id?"page":undefined} title={n.path} onClick={()=>void navigate(n.id)}>
+            {n.title}{sessionTabs.some(t=>t!==n && t.title===n.title)?" · "+(i+1):""}</button>)}
+        </nav>}
         <div className="toolbar">
           <div className="breadcrumb">
             <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
@@ -1310,19 +1320,6 @@ export default function App() {
             className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || xcode || analyzer || builder || flow ? "sheet-layout" : ""}`}
           >
             <article className="document">
-              <div className="document-kicker">
-                <span className="eyebrow">
-                  {flow || architectureData ? "캔버스" : ""}
-                </span>
-                <button
-                  className="icon-button"
-                  aria-label="노트 삭제"
-                  title="휴지통으로 이동"
-                  onClick={remove}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
               {activeNote && (
                 <div className="note-utilities">
                   {!edit &&

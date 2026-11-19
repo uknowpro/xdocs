@@ -300,13 +300,15 @@ app.whenReady().then(async () => {
     return store.backup(pick.filePaths[0]);
   });
   register("vault:refresh", () => mustVault().refresh());
-  register("note:create", (title, body) => mustVault().create(title, body));
+  register("note:create", (title, body, directory) => mustVault().create(title, body, directory));
   register("note:save", (data) => mustVault().save(data));
+  register("vault:trash-pages", items=>{if(orgVault || !vault)throw Error("로컬 보관함을 선택하세요.");return vault.trashPages(items);});
   register("note:trash", (data) => mustVault().trash(data));
   register("note:read", (id) => mustVault().readNote(id));
   register("note:search", (query) => mustVault().search(query));
   register("note:history", (id) => mustVault().history(id));
   register("note:restore-history", (data) => mustVault().restoreHistory(data));
+  register("vault:purge-trash", (tokens) => { if (orgVault || !vault) throw Error("로컬 휴지통을 선택하세요."); return vault.purgeTrash(tokens); });
   register("vault:trash", () => mustVault().listTrash());
   register("vault:restore", (token) => mustVault().restoreTrash(token));
   register("note:permissions", (id, principal, readOnly) => {
@@ -512,7 +514,7 @@ app.whenReady().then(async () => {
   register("sheet:directory", async () => {
     const store = mustVault();
     const choice = await dialog.showOpenDialog(window, {
-      title: "Excel 폴더 가져오기",
+      title: "Excel·CSV 폴더 가져오기",
       properties: ["openDirectory"],
     });
     if (choice.canceled || !choice.filePaths.length) return null;

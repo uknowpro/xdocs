@@ -1,3 +1,4 @@
+import { pageKind } from "../shared/page-kind.mjs";
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID, createHash } from "node:crypto";
 import {
@@ -221,12 +222,13 @@ export class Vault {
         notes: Array.from(
           this.db
             .prepare(
-              "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,240) AS body,(instr(char(10)||n.body,char(10)||'```xdocs-architecture')>0 OR instr(char(10)||n.body,char(10)||'```xdocs-workflow')>0) AS canvas,(instr(char(10)||n.body,char(10)||'```xdocs-sheets')>0) AS sheet,m.tags FROM notes n LEFT JOIN note_metadata m ON m.id=n.id ORDER BY n.title COLLATE NOCASE",
+              "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,1024) AS body,(instr(char(10)||n.body,char(10)||'```xdocs-architecture')>0 OR instr(char(10)||n.body,char(10)||'```xdocs-workflow')>0) AS canvas,(instr(char(10)||n.body,char(10)||'```xdocs-sheets')>0) AS sheet,m.tags FROM notes n LEFT JOIN note_metadata m ON m.id=n.id ORDER BY n.title COLLATE NOCASE",
             )
             .iterate(),
           (n) => ({
             ...n,
-            body: n.body,
+            pageKind: pageKind(n),
+            body: n.body.slice(0,240),
             tags: JSON.parse(n.tags || "[]"),
             unloaded: true,
             links: links.get(n.id) || [],
@@ -242,7 +244,7 @@ export class Vault {
         .all(),
     };
   }
-  async create(title = "새 노트", body) {
+  async create(title = "새 노트", body, directory = "") {
     if (
       typeof title !== "string" ||
       title.length > 200 ||
@@ -261,8 +263,14 @@ export class Vault {
       ".md";
     const text = `<!-- xdocs:id=${id} -->\n${body ?? "# " + title + "\n\n"}`;
     checkNoteSize(text);
-    await writeFile(path.join(this.root, filename), text, { flag: "wx" });
-    const note = decodeNote(text, filename);
+    if(typeof directory!=="string" || (directory && (path.isAbsolute(directory) || directory.split(/[\\/]/).some(segment=>!segment || segment.startsWith(".")))))
+      throw Error("허용되지 않은 페이지 폴더입니다.");
+    const parent=path.resolve(this.root,directory);
+    if(await realpath(parent)!==parent || (parent!==this.root && !parent.startsWith(this.root+path.sep)))
+      throw Error("워크스페이스 내부 폴더를 선택하세요.");
+    const relative=path.join(directory,filename);
+    await writeFile(path.join(parent, filename), text, { flag: "wx" });
+    const note = decodeNote(text, relative);
     this.index(note);
     return note;
   }
@@ -330,6 +338,16 @@ export class Vault {
     this.db.prepare("DELETE FROM note_metadata WHERE id=?").run(id);
     this.db.prepare("DELETE FROM links WHERE source=?").run(id);
     this.db.prepare("DELETE FROM notes_fts WHERE id=?").run(id);
+    return token;
+  }
+  async trashPages(items) {
+    const moved=[];
+    try {
+      for(const item of items)moved.push(await this.trash(item));
+    } catch(error) {
+      for(const token of moved.reverse())await this.restoreTrash(token);
+      throw error;
+    }
   }
   async internalDir(...parts) {
     let folder = this.root;
@@ -407,6 +425,28 @@ export class Vault {
       });
     }
     return entries.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
+  }
+  async purgeTrash(tokens) {
+    if (!Array.isArray(tokens) || tokens.some(t => typeof t !== "string"))
+      throw Error("휴지통 항목을 확인하세요.");
+    const selected = new Set(tokens);
+    const all = await this.listTrash();
+    const entries = all.filter(n => selected.has(n.token));
+    if (entries.length !== selected.size) throw Error("휴지통이 변경됐습니다. 다시 확인하세요.");
+    const folder = await this.internalDir("trash");
+    const meta = await this.internalDir("trash-paths");
+    for (const n of entries) {
+      if (!all.some(other => other.id === n.id && !selected.has(other.token)) &&
+          !this.db.prepare("SELECT id FROM notes WHERE id=?").get(n.id)) {
+        const history = await this.internalDir("history", n.id);
+        for (const item of await readdir(history,{withFileTypes:true})) {
+          if (item.isFile() && /^[a-f0-9]{64}\.json$/.test(item.name))
+            await unlink(path.join(history,item.name));
+        }
+      }
+      await unlink(path.join(folder,n.token));
+      await unlink(path.join(meta,n.token.slice(0,36)+".json")).catch(e=>{if(e.code!=="ENOENT")throw e;});
+    }
   }
   async restoreTrash(token) {
     const n = (await this.listTrash()).find((n) => n.token === token);
@@ -527,7 +567,7 @@ export class Vault {
         query.length >= 3 && !/[\\%_]/.test(query)
           ? this.db
               .prepare(
-                "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,240) AS body FROM notes n JOIN notes_fts f ON n.id=f.id WHERE f.title LIKE ? OR f.body LIKE ? ORDER BY n.title LIMIT 200",
+                "SELECT n.id,n.title,n.path,n.revision,substr(n.body,1,1024) AS body FROM notes n JOIN notes_fts f ON n.id=f.id WHERE f.title LIKE ? OR f.body LIKE ? ORDER BY n.title LIMIT 200",
               )
               .all(term, term)
           : this.db

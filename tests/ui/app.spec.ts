@@ -11,6 +11,7 @@ test("themes persist, notes save, search and graph navigate", async ({
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 테스트 노트\n\n한글 저장 확인 [[UI 디자인 원칙]]");
@@ -33,6 +34,7 @@ test("untrusted Markdown cannot execute scripts or navigate away", async ({
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "편집하기" }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill(
@@ -86,6 +88,7 @@ test("block editor preserves linked text and supports formatting and block movem
   });
   await page.goto("/");
   await page.getByRole("button", { name: "편집하기", exact: true }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill(
@@ -169,6 +172,7 @@ test("Markdown table selection copies tab-separated cells", async ({
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 표 복사\n\n| 이름 | 값 |\n| --- | --- |\n| 한글 | 12 |");
@@ -262,6 +266,7 @@ test("delayed filesystem refresh does not replace a newer draft", async ({
   await page.waitForFunction(
     () => typeof (window as any).__resolveRead === "function",
   );
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 내가 쓰는 새 내용");
@@ -350,6 +355,7 @@ test("creating a note suspends the old editor until the new note is ready", asyn
   );
   await expect(page.getByRole("textbox", { name: "노트 본문" })).toHaveCount(0);
   await page.evaluate(() => (window as any).__finishCreate());
+  await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
     .fill("# 새 노트 입력 보존");
@@ -393,7 +399,8 @@ test("existing preview workspaces keep notes and reject stale deletes", async ({
     localStorage.setItem("xdocs.preview.v1", JSON.stringify(w));
   });
   page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "노트 삭제" }).click();
+  await page.locator(".page-row.current").getByRole("button",{name:/페이지 메뉴$/}).click();
+  await page.getByRole("button",{name:"휴지통으로 이동",exact:true}).click();
   await expect(
     page.getByText("다른 창에서 변경되었습니다. 새로고침 후 다시 확인하세요."),
   ).toBeVisible();
