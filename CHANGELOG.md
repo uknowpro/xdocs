@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.13
+
+- Review live Terraform beside the architecture canvas, copy the current file and compare changed lines with the version from when you opened the page.
+- Focus on a resource and its neighbours, follow incoming and outgoing references, and jump from a design issue to the affected resource. Filter template previews by scenario and provider.
+- Manage notes and folders from the workspace tree, confirm folder deletion, remove individual items from the trash or empty it. Switch xcode sessions using tabs when the sidebar is collapsed.
+- Create new notes in the block editor and import CSV files through the spreadsheet importer.
+
 ## 0.5.12
 
 - Updated both README screenshot galleries and removed the legacy project license file from the desktop package and license screen.
