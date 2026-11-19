@@ -101,6 +101,23 @@ try {
   assert.equal(calls.length, 0);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("Chat Completions 주소").fill(endpoint);
+  for (const kind of ["text", "image", "pdf"]) {
+    await page.getByLabel("연결 진단 입력").selectOption(kind);
+    await page.getByRole("button", { name: "연결 진단 실행" }).click();
+    await expect(page.locator(".xcode [role=status]")).toContainText(
+      "SSE 텍스트 응답",
+    );
+    const packet = calls.pop();
+    assert.equal(packet.messages.length, 1);
+    if (kind !== "text")
+      assert.ok(
+        JSON.stringify(packet).includes(
+          kind === "pdf"
+            ? "data:application/pdf;base64,"
+            : "data:image/png;base64,",
+        ),
+      );
+  }
   await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
   await page
     .getByLabel("템플릿 적용")

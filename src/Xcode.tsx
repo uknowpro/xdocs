@@ -1,4 +1,9 @@
 import {
+  diagnosticInput,
+  diagnosticResult,
+  type Probe,
+} from "./xcode-diagnostic";
+import {
   acquireServer,
   serverOrigin,
   setCapacity,
@@ -152,6 +157,51 @@ export default function Xcode({
       setError(String(e));
     } finally {
       setImporting(false);
+    }
+  }
+  const [probe, setProbe] = useState<Probe>("text");
+  const [report, setReport] = useState("");
+  useEffect(() => setReport(""), [s.endpoint, s.model, key, probe]);
+  async function diagnose() {
+    if (run.snapshot().busy || !api.xcodeChat || readonly) return;
+    const id = crypto.randomUUID();
+    const controller = new AbortController();
+    let release: (() => void) | undefined;
+    run.id = id;
+    run.request = controller;
+    run.patch({ busy: true, phase: "연결 진단", error: "" });
+    setReport("");
+    try {
+      if (!(await api.xcodeAuthorize?.(s.endpoint)))
+        throw Error("서버 전송을 취소했습니다.");
+      release = await acquireServer(origin, controller.signal);
+      controller.signal.throwIfAborted();
+      const answer = await api.xcodeChat({
+        id,
+        profile: s.profile,
+        endpoint: s.endpoint,
+        model: s.model,
+        key,
+        messages: [{ role: "user", content: diagnosticInput(probe) }],
+      });
+      controller.signal.throwIfAborted();
+      setReport(diagnosticResult(probe, answer));
+    } catch (error) {
+      const detail = String(error).replace("[XCODE_RETRY] ", "");
+      setReport(
+        controller.signal.aborted
+          ? "연결 진단을 중지했습니다."
+          : /HTTP (401|403)/.test(detail)
+            ? "인증이 거부되었습니다. API 키와 권한을 확인하세요."
+            : /HTTP 404/.test(detail)
+              ? "주소 또는 모델을 찾을 수 없습니다. 모델 ID와 경로를 확인하세요."
+              : detail,
+      );
+    } finally {
+      release?.();
+      run.request = null;
+      run.id = "";
+      run.patch({ busy: false, phase: "" });
     }
   }
   async function send() {
@@ -578,6 +628,24 @@ export default function Xcode({
             onChange={(e) => setKey(e.target.value)}
           />
         </label>
+        <label>
+          연결 진단 입력
+          <select
+            value={probe}
+            onChange={(e) => setProbe(e.target.value as Probe)}
+          >
+            <option value="text">짧은 텍스트</option>
+            <option value="image">샘플 이미지</option>
+            <option value="pdf">샘플 PDF</option>
+          </select>
+        </label>
+        <button
+          disabled={!api.xcodeChat || !s.model.trim() || !origin}
+          onClick={() => void diagnose()}
+        >
+          연결 진단 실행
+        </button>
+        {report && <p role="status">{report}</p>}
       </fieldset>
       <details>
         <summary>하네스 구성 · {s.harness.name}</summary>
