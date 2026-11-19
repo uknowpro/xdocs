@@ -4,7 +4,9 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.11 개발용 프리릴리스**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.12 개발용 프리릴리스**입니다.
+
+![내장 kubewiser로 분석한 Kubernetes 업그레이드 보고서](docs/images/analyzer-upgrade.png)
 
 ![다크 테마 노트 화면과 연결 그래프](docs/images/dark.png)
 
@@ -20,7 +22,7 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - **Analyzer** — netspector·kubewiser v0.2.0-alpha.10·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.11) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.12) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
 IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 이름·Terraform 주소로 리소스를 찾고 선택한 경계 안에 컴포넌트를 추가할 수 있습니다. 경계를 접거나 잠그고, 참조선과 운영 주석을 선택해 볼 수 있습니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
@@ -56,9 +58,9 @@ AWS 카탈로그에서 **결제 서비스 · 격리 복구 리허설**를 열면
 
 ![AWS·Azure·GCP·Kubernetes 경계와 소속 리소스를 중첩한 IaCD 캔버스](docs/images/iacd.png)
 
-![Azure VM에서 NIC를 거쳐 확인된 서브넷 소속](docs/images/azure-nic.png)
+![허브와 두 스포크의 Azure 네트워크](docs/images/azure-spokes.png)
 
-![GCP 다중 NIC VM의 서로 다른 두 서브넷 참조](docs/images/gcp-nics.png)
+![서울·도쿄의 GCP Shared VPC 이그레스](docs/images/gcp-egress.png)
 
 ![EC2 소속 서브넷 변경 전후의 CloudFormation 코드 비교](docs/images/iac-changes.png)
 
@@ -117,4 +119,4 @@ IaCD에는 **AWS·Azure·GCP 기본 각 30종, 멀티클라우드 VPN 2종과 �
 
 </details>
 
-이전에 MIT로 공개한 코드와 제3자 구성요소에는 각각 기존 허가가 유지됩니다. [이전 MIT 고지](LICENSE.previous-MIT)
+이전에 MIT로 공개한 코드와 제3자 구성요소에는 각각 기존 허가가 유지됩니다.

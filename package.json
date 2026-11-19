@@ -1,6 +1,6 @@
 {
   "name": "xdocs",
-  "version": "0.5.11",
+  "version": "0.5.12",
   "private": true,
   "description": "Local-first connected notes for desktop",
   "author": "uknowpro",
@@ -96,10 +96,6 @@
       {
         "from": "LICENSE",
         "to": "LICENSE.xdocs.txt"
-      },
-      {
-        "from": "LICENSE.previous-MIT",
-        "to": "LICENSE.previous-MIT"
       }
     ],
     "linux": {

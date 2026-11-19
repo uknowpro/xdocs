@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.12
+
+- Updated both README screenshot galleries and removed the legacy project license file from the desktop package and license screen.
+
 ## 0.5.11
 
 - Updated the bundled Kubernetes Analyzer engine, kubewiser, from v0.2.0-alpha.8 to v0.2.0-alpha.10 on Windows, Ubuntu and macOS.

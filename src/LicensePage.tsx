@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import current from "../LICENSE?raw";
-import previous from "../LICENSE.previous-MIT?raw";
 import { version } from "../package.json";
 
 export function LicensePage({
@@ -52,10 +51,6 @@ export function LicensePage({
         <details>
           <summary>현재 사용권 전문</summary>
           <pre>{current}</pre>
-        </details>
-        <details>
-          <summary>이전에 MIT로 공개한 코드의 고지</summary>
-          <pre>{previous}</pre>
         </details>
         {window.xdocs && (
           <>
