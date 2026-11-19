@@ -12,6 +12,7 @@ import type {
 } from "./ArchitectureDocument";
 type View = NonNullable<ArchitectureModel["presentation"]>;
 type Props = {
+  focusRelated: boolean;
   fit: boolean;
   model: ArchitectureModel;
   selected: string;
@@ -22,6 +23,7 @@ type Props = {
 };
 export default function NetworkLayout({
   model,
+  focusRelated,
   fit,
   selected,
   readonly,
@@ -48,7 +50,7 @@ export default function NetworkLayout({
   const view = model.presentation || {},
     node = model.nodes.find((n) => n.id === selected);
   const updateView = onView;
-  const refs = view.refs ?? false,
+  const refs = focusRelated || (view.refs ?? false),
     all = refs ? architectureEdges(model) : [];
   const { representatives } = boundaryLayout({ ...model, presentation: view });
   const edges = all.filter(
@@ -112,7 +114,8 @@ export default function NetworkLayout({
           <label key={key}>
             <input
               type="checkbox"
-              checked={view[key] ?? defaultValue}
+              checked={key === "refs" ? refs : view[key] ?? defaultValue}
+              disabled={key === "refs" && focusRelated}
               onChange={(e) => updateView({ ...view, [key]: e.target.checked })}
             />
             {label}

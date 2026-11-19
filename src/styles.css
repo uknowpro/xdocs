@@ -2851,3 +2851,28 @@ textarea {
 .session-tabs button[aria-current] {color:var(--ink);background:var(--active);}
 .document-layout:not(.sheet-layout) .document {padding-top:clamp(14px,2vw,26px);}
 .document-layout:not(.sheet-layout) .note-utilities {margin-bottom:10px;}
+
+.arch-review-rail { min-width:0; }
+.arch-review-rail select { max-width:100%; }
+.arch-review-issues { border-block:1px solid var(--line); padding:8px 12px; }
+.arch-review-issues button { display:block; text-align:start; margin-block:6px; }
+.live-file-actions { display:flex; flex-wrap:wrap; gap:6px; margin-block:8px; }
+.live-added { background:rgba(43,170,92,.17); }
+.live-removed { background:rgba(200,67,68,.17); }
+@media (min-width:1051px) {
+  .arch-editor,.arch-editor.inspector-closed { grid-template-columns:clamp(110px,11vw,160px) minmax(0,1fr) clamp(235px,22vw,380px); }
+  .arch-review-rail { min-height:0; display:flex; flex-direction:column; overflow:hidden; border-left:1px solid var(--line); }
+  .arch-review-rail .arch-properties { flex:1 1 45%; min-height:0; overflow:auto; }
+  .arch-review-rail .terraform-live { margin:0; border:0; }
+  .arch-review-rail .terraform-live[open] { flex:1 1 50%; min-height:0; overflow:auto; }
+  .arch-review-issues[open] { max-height:30%; overflow:auto; }
+}
+@media (max-width:1050px) {
+  .arch-review-rail { grid-column:1 / -1; }
+  .arch-editor:has(.arch-review-rail) { height:auto; }
+}
+@media (min-width:780px) {
+  .architecture-catalog { grid-template-columns:auto auto minmax(0,1fr); }
+}
+.arch-review-rail .terraform-live { padding:8px 12px; }
+.live-file-actions button, .arch-review-issues button { padding:5px 8px; border:1px solid var(--line); border-radius:5px; }

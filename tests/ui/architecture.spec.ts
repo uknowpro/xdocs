@@ -286,3 +286,34 @@ test("WAF compares local module inputs and outputs and clears invalid results", 
   await expect(page.locator(".module-contract [role=alert]")).toBeVisible();
   await expect(page.locator(".module-contract li")).toHaveCount(0);
 });
+
+test("review a live Terraform edit beside the canvas and follow incoming references", async ({ page, context }) => {
+  await page.setViewportSize({ width: 1600, height: 950 });
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const button = (name: string) => page.getByRole("button", { name, exact: true });
+  await button("IaCD 아키텍처").click();
+  const gallery = page.getByRole("group", { name: "설계 템플릿" });
+  const total = await gallery.getByRole("button").count();
+  await page.getByLabel("업무 시나리오").selectOption("복구 · 백업");
+  const filtered = await gallery.getByRole("button").count();
+  expect(filtered).toBeGreaterThan(0);
+  expect(filtered).toBeLessThan(total);
+  await button("멀티클라우드 예제").click();
+  await button("컴포넌트 VPC").click();
+  await button("연결 집중 보기").click();
+  await expect(button("연결 집중 보기")).toHaveAttribute("aria-pressed", "true");
+  await page.getByText("이 리소스를 참조하는 항목", { exact:true }).click();
+  await page.locator(".arch-properties details[open]").getByRole("button", {name:/Subnet ·/}).first().click();
+  await expect(page.getByLabel("컴포넌트 표시 이름")).toHaveValue("Subnet");
+  await button("컴포넌트 Application EC2").click();
+  const viewer = page.getByLabel("Terraform 코드");
+  await page.getByRole("textbox", {name:"AMI ID",exact:true}).fill("ami-0123456789abcdef0");
+  await expect(viewer).toContainText("ami-0123456789abcdef0");
+  await button("현재 파일 복사").click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await viewer.innerText());
+  await button("변경 줄 보기").click();
+  await expect(page.locator(".live-added")).toContainText("ami-0123456789abcdef0");
+  await button("아키텍처 실행 취소").click();
+  await expect(page.getByText("페이지를 열었을 때와 같습니다.")).toBeVisible();
+});

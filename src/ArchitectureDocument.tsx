@@ -10,6 +10,7 @@ import {
   indexedPlacementTarget,
 } from "../shared/network-boundaries.mjs";
 import { canPlace, reassignPlacement } from "../shared/placement-edit.mjs";
+import { diffLines } from "diff";
 import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
@@ -118,6 +119,13 @@ const icon = (kind: string) =>
       : kind.startsWith("k8s_")
         ? Container
         : Cloud;
+const scenarios: Record<string, RegExp> = {
+  "복구 · 백업": /복구|백업|failover|recovery|backup|disaster/i,
+  "네트워크 격리": /격리|망 분리|스포크|isolat|private|사설|프라이빗|spoke/i,
+  "공유 이그레스": /이그레스|egress|중앙.{0,8}NAT|shared.{0,8}NAT/i,
+  "컨테이너 플랫폼": /kubernetes|컨테이너|eks|aks|gke/i,
+  "데이터 분석": /분석|analytics|warehouse|lake|웨어하우스/i,
+};
 export function ArchitectureStart({
   onClose,
   onCreate,
@@ -133,10 +141,12 @@ export function ArchitectureStart({
   const [templateId, setTemplateId] = useState(cloudTemplates[0].id);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogMode, setCatalogMode] = useState("전체");
+  const [scenario, setScenario] = useState("");
   const query = catalogSearch.trim().toLowerCase();
   const matches = cloudTemplates.filter(
     (t) =>
       t.provider === provider &&
+      (!scenario || scenarios[scenario].test([t.name, t.study, t.id, ...t.kinds].join(" "))) &&
       (catalogMode === "전체" || catalogMode === ("caseStudy" in t ? "사례 설계" : "repo" in t ? "Terraform 원본" : "컴포넌트 편집")) &&
       (!query ||
         [t.name, t.study, t.id, ...t.kinds].some((v) =>
@@ -261,6 +271,13 @@ export function ArchitectureStart({
             </select>
           </label>
           <label className="catalog-field">
+            <span>업무 시나리오</span>
+            <select value={scenario} onChange={e => setScenario(e.target.value)}>
+              <option value="">전체 시나리오</option>
+              {Object.keys(scenarios).map(name => <option key={name}>{name}</option>)}
+            </select>
+          </label>
+          <label className="catalog-field">
             <span>템플릿 검색</span>
             <input
               value={catalogSearch}
@@ -300,7 +317,7 @@ export function ArchitectureStart({
           ) : (
             <div className="catalog-empty" role="status">
               <p>일치하는 템플릿이 없습니다.</p>
-              <button type="button" onClick={() => { setCatalogSearch(""); setCatalogMode("전체"); }}>
+              <button type="button" onClick={() => { setCatalogSearch(""); setCatalogMode("전체"); setScenario(""); }}>
                 검색 조건 초기화
               </button>
             </div>
@@ -422,6 +439,28 @@ export default function ArchitectureDocument({
   const livePath = terraformFiles.includes(liveFile)
     ? liveFile
     : terraformFiles[0];
+  const [focusRelated, setFocusRelated] = useState(false);
+  const neighbours = edges.filter(edge => edge.source === selected || edge.target === selected);
+  const focusIds = new Set([selected, ...neighbours.flatMap(edge => [edge.source, edge.target])]);
+  if (focusRelated && node) {
+    const { parents } = boundaryLayout(model);
+    for (const id of focusIds) {
+      const parent = parents.get(id);
+      if (parent) focusIds.add(parent);
+    }
+  }
+  const focusAttributes = ["data-scope", "data-boundary", "data-free-id", "data-resource"];
+  const mutedSelector = focusRelated && node
+    ? model.nodes.filter(n => !focusIds.has(n.id)).flatMap(n =>
+        focusAttributes.map(attr => `.arch-workspace [${attr}="${CSS.escape(n.id)}"]`)).join(",")
+    : "";
+  const openingModel = useRef(model);
+  const [compareFile, setCompareFile] = useState(false);
+  const initialFiles = useMemo(() => compareFile ? generateArchitecture(openingModel.current, "terraform").files : {}, [compareFile]);
+  const fileChanges = useMemo(() => {
+    if (!compareFile || !livePath) return [];
+    return diffLines(initialFiles[livePath] || "", result.files[livePath], { timeout: 150 });
+  }, [compareFile, livePath, initialFiles, result.files]);
   const scopedNodes = useMemo(
     () =>
       model.nodes.filter((n) =>
@@ -941,7 +980,9 @@ export default function ArchitectureDocument({
               })}
           </aside>
           <div className="arch-workspace">
+            {mutedSelector && <style>{mutedSelector + "{opacity:0.25}"}</style>}
             <div className="arch-canvas-tools">
+              <button type="button" disabled={!node} aria-pressed={focusRelated} onClick={() => setFocusRelated(!focusRelated)}>연결 집중 보기</button>
               <div className="segmented">
                 {model.caseStudyId && <button aria-pressed={caseView} className={caseView ? "selected" : ""} onClick={() => setCaseView(true)}>사례 구성도</button>}
                 <button
@@ -980,7 +1021,7 @@ export default function ArchitectureDocument({
                     ? "연결할 대상 컴포넌트를 선택하세요."
                     : "항목을 선택해 속성을 편집하거나 상위 경계의 제목으로 끌어 소속을 변경하세요."}
                 </p>
-                <NetworkLayout
+                <NetworkLayout focusRelated={focusRelated}
                   fit={fitBoundary}
                   model={displayModel}
                   selected={selected}
@@ -1127,6 +1168,7 @@ export default function ArchitectureDocument({
                           return (
                             <path
                               key={i}
+                              opacity={focusRelated && node && e.source !== selected && e.target !== selected ? 0.15 : 1}
                               d={architectureConnection(
                                 drag?.id === a.id
                                   ? { ...a, x: drag.x, y: drag.y }
@@ -1248,6 +1290,7 @@ export default function ArchitectureDocument({
               </>
             )}
           </div>
+          <div className="arch-review-rail">
           <aside
             className="arch-properties"
             onKeyDown={(e) => {
@@ -1527,6 +1570,14 @@ export default function ArchitectureDocument({
                     </p>
                   ))}
                 <details>
+                  <summary>이 리소스를 참조하는 항목</summary>
+                  {neighbours.filter(edge => edge.target === node.id).map((edge, index) =>
+                    <button key={index} onClick={() => openDetail(edge.source)}>
+                      {model.nodes.find(n => n.id === edge.source)?.label} · {edge.field}
+                    </button>)}
+                  {!neighbours.some(edge => edge.target === node.id) && <p>들어오는 참조가 없습니다.</p>}
+                </details>
+                <details>
                   <summary>참조하는 대상</summary>
                   {edges
                     .filter((e) => e.source === node.id)
@@ -1585,9 +1636,13 @@ export default function ArchitectureDocument({
               </p>
             </details>
           </aside>
-        </div>
-      )}
-      {tab === "canvas" && (
+          <details className="arch-review-issues">
+            <summary>설계 이슈 ({issues.length})</summary>
+            {issues.length === 0 && <p>발견된 이슈가 없습니다.</p>}
+            {issues.map((issue, i) => <button key={i} onClick={() => openDetail(issue.id)}>
+              {model.nodes.find(n => n.id === issue.id)?.label} · {issue.message}
+            </button>)}
+          </details>
         <details open ref={viewer} className="terraform-live">
           <summary>Terraform 뷰어</summary>
           {livePath && (
@@ -1646,9 +1701,24 @@ export default function ArchitectureDocument({
                   ))}
                 </details>
               )}
-              <pre aria-label="Terraform 코드">
+              <div className="live-file-actions">
+                <button type="button" onClick={async () => {
+                  try { await navigator.clipboard.writeText(result.files[livePath]); setStatus("현재 파일을 복사했습니다."); }
+                  catch { setStatus("클립보드에 접근할 수 없습니다."); }
+                }}>현재 파일 복사</button>
+                <button type="button" aria-pressed={compareFile} onClick={() => setCompareFile(!compareFile)}>변경 줄 보기</button>
+                {terraformFiles.filter(path => path !== livePath && path.endsWith("/zz_xdocs_override.tf.json")).map(path =>
+                  <button key={path} onClick={() => setLiveFile(path)}>변경 오버라이드 보기</button>)}
+              </div>
+              {compareFile ? <div aria-label="페이지를 열었을 때와 비교">
+                {!fileChanges ? <p>파일이 커서 변경 줄 비교 시간을 초과했습니다.</p> :
+                  fileChanges.some(part => part.added || part.removed) ?
+                    <pre>{fileChanges.filter(part => part.added || part.removed).map((part, i) =>
+                      <span key={i} className={part.added ? "live-added" : "live-removed"}>{part.value.replace(/^./gm, line => (part.added ? "+ " : "− ") + line)}</span>)}</pre>
+                    : <p>페이지를 열었을 때와 같습니다.</p>}
+              </div> : <pre aria-label="Terraform 코드">
                 <code>{result.files[livePath]}</code>
-              </pre>
+              </pre>}
             </>
           )}
           {result.errors.map((message: string) => (
@@ -1660,6 +1730,8 @@ export default function ArchitectureDocument({
             <p>표시할 Terraform 파일이 없습니다.</p>
           )}
         </details>
+          </div>
+        </div>
       )}
       {tab === "code" && (
         <section className="arch-export">
