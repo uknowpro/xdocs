@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.14
+
+- Preview reusable architecture components before inserting them. Edit names, IPv4 CIDRs and external connections, detect overlapping subnets in the same AWS, Azure or GCP network, and undo the insertion in one step.
+- Inspect local Terraform and OpenTofu plans by module, action and instance address. Review replacement paths and save selected changes, affected diagram resources and a checklist to a linked block note with sensitive values masked.
+- Browse enterprise architecture templates, trace Terraform changes and resume reading notes. The compact workspace tree supports keyboard navigation and leaves more room for pages.
+
 ## 0.5.13
 
 - Review live Terraform beside the architecture canvas, copy the current file and compare changed lines with the version from when you opened the page.
