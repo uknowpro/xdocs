@@ -2801,3 +2801,37 @@ textarea {
 
 .project-file-list {max-height: 16rem; overflow:auto;}
 .project-file-list label {overflow-wrap:anywhere;}
+
+.xcode .chat-header, .chat-toolbar, .chat-result-actions, .chat-files {display:flex; align-items:center; gap:.6rem;}
+.chat-header {flex-wrap:wrap;}
+.chat-header span {color:var(--muted); font-size:.82rem; overflow-wrap:anywhere;}
+.xcode .chat-settings-toggle {margin-inline-start:auto; display:inline-flex; align-items:center; gap:.45rem;}
+.chat-workbench {display:flex; flex-direction:column; height:clamp(340px,calc(100dvh - 245px),860px); min-width:0; gap:.8rem;}
+.chat-transcript {position:relative; flex:1; min-height:0;}
+.chat-scroll {height:100%; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; padding:.5rem clamp(.3rem,2vw,1.5rem);}
+.chat-empty {display:grid; place-content:center; justify-items:center; height:100%; color:var(--muted);}
+.xcode article.chat-turn {border:0; padding:0 0 1.6rem;}
+.chat-question {margin:0 0 1rem auto; width:fit-content; max-width:85%; background:var(--hover); padding:.65rem 1rem; border-radius:16px 16px 4px 16px; overflow-wrap:anywhere;}
+.chat-question p {margin:0; white-space:pre-wrap;}
+.chat-keys,.chat-result-actions,.chat-toolbar summary {font-size:.82rem; color:var(--muted);}
+.chat-answer,.chat-live {line-height:1.65; overflow-wrap:anywhere; min-width:0;}
+.chat-answer {overflow-x:auto;}
+.xcode .chat-answer p {white-space:normal;}
+.xcode .chat-answer pre {white-space:pre; overflow-x:auto; max-height:none; border-radius:8px;}
+.xcode .chat-live pre {max-height:none; background:transparent; font:inherit; padding:0;}
+.chat-result-actions {align-items:baseline;}
+.chat-result-actions details {min-width:0;}
+.xcode .chat-latest {position:absolute; bottom:.35rem; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:.35rem; background:var(--bg); border-radius:1rem;}
+.chat-composer {max-height:55%; overflow:auto; flex:none; padding:.65rem .85rem; border:1px solid var(--line); border-radius:14px; background:var(--surface);}
+.chat-composer:focus-within {border-color:var(--muted);}
+.builder-panel .chat-composer textarea {border:0; background:transparent; min-height:3rem; resize:vertical; max-height:8rem;}
+.chat-toolbar,.chat-files {flex-wrap:wrap;}
+.chat-toolbar > details[open],.chat-project:has(details[open]) {flex-basis:100%;}
+.xcode fieldset.chat-project {display:block; margin:0; padding:0; border:0;}
+.xcode .chat-toolbar button {margin:0;}
+.xcode .chat-attach,.xcode .chat-submit {display:grid; place-items:center; width:34px; height:34px; padding:0; border-radius:50%;}
+.xcode .chat-toolbar .chat-submit {margin-left:auto; background:var(--ink); color:var(--bg);}
+.xcode .chat-submit:enabled:hover {background:var(--ink); opacity:.85;}
+.chat-submit:disabled {opacity:.45;}
+.chat-files {gap:.3rem;}
+.chat-keys {display:block; margin-top:.3rem;}

@@ -100,6 +100,7 @@ try {
   );
   assert.equal(calls.length, 0);
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
   await page.getByLabel("Chat Completions 주소").fill(endpoint);
   for (const kind of ["text", "image", "pdf"]) {
     await page.getByLabel("연결 진단 입력").selectOption(kind);
@@ -127,57 +128,68 @@ try {
   await page
     .getByRole("button", { name: "워크스페이스 · evidence 추가" })
     .click();
-  await page.locator(".xcode input[type=file][multiple]:not([webkitdirectory])").setInputFiles([
-    {
-      name: "omit.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from("omitted-marker"),
-    },
-    {
-      name: "hello.py",
-      mimeType: "text/plain",
-      buffer: Buffer.from("print(42)"),
-    },
-    ...[
-      [
-        "brief.docx",
-        "word/document.xml",
-        "<root><p><t>Document evidence</t></p></root>",
-      ],
-      [
-        "slides.pptx",
-        "ppt/slides/slide1.xml",
-        "<root><p><t>Slide evidence</t></p></root>",
-      ],
-      [
-        "book.xlsx",
-        "xl/worksheets/sheet1.xml",
-        '<worksheet><row><c r="A1"><v>42</v></c></row></worksheet>',
-      ],
-    ].map(([name, part, xml]) => ({
-      name,
-      mimeType: "application/octet-stream",
-      buffer: Buffer.from(zipSync({ [part]: strToU8(xml) })),
-    })),
-    {
-      name: "brief.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from("%PDF-1.4"),
-    },
-    {
-      name: "diagram.png",
-      mimeType: "image/png",
-      buffer: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/6V8AAAAASUVORK5CYII=",
-        "base64",
-      ),
-    },
-  ]);
+  await page
+    .locator(".xcode input[type=file][multiple]:not([webkitdirectory])")
+    .setInputFiles([
+      {
+        name: "omit.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("omitted-marker"),
+      },
+      {
+        name: "hello.py",
+        mimeType: "text/plain",
+        buffer: Buffer.from("print(42)"),
+      },
+      ...[
+        [
+          "brief.docx",
+          "word/document.xml",
+          "<root><p><t>Document evidence</t></p></root>",
+        ],
+        [
+          "slides.pptx",
+          "ppt/slides/slide1.xml",
+          "<root><p><t>Slide evidence</t></p></root>",
+        ],
+        [
+          "book.xlsx",
+          "xl/worksheets/sheet1.xml",
+          '<worksheet><row><c r="A1"><v>42</v></c></row></worksheet>',
+        ],
+      ].map(([name, part, xml]) => ({
+        name,
+        mimeType: "application/octet-stream",
+        buffer: Buffer.from(zipSync({ [part]: strToU8(xml) })),
+      })),
+      {
+        name: "brief.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("%PDF-1.4"),
+      },
+      {
+        name: "diagram.png",
+        mimeType: "image/png",
+        buffer: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/6V8AAAAASUVORK5CYII=",
+          "base64",
+        ),
+      },
+    ]);
   await page.getByRole("button", { name: "diagram.png 제거" }).waitFor();
   await page.getByText("전송 미리보기", { exact: true }).click();
   await page.getByLabel("새 첨부 · omit.txt").uncheck();
-  await page.getByLabel("xcode 메시지").fill("Review this.");
-  await page.getByRole("button", { name: "전송", exact: true }).click();
+  const composer = page.getByLabel("xcode 메시지");
+  await composer.fill("Review");
+  await composer.press("Shift+Enter");
+  await expect(composer).toHaveValue("Review\n");
+  await composer.fill("Review this.");
+  await composer.dispatchEvent("keydown", { key: "Enter", isComposing: true });
+  assert.equal(calls.length, 0);
+  await composer.press("Enter");
+  await expect(page.locator(".chat-question").first()).toContainText(
+    "Review this.",
+  );
   await expect(page.locator(".xcode article").first()).toContainText(
     "검토 결과 complete",
   );

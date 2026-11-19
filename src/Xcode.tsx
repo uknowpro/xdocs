@@ -1,3 +1,5 @@
+import ChatTimeline from "./ChatTimeline";
+import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
 import ProjectInputs from "./ProjectInputs";
 import {
   loadCheckpoint,
@@ -18,7 +20,13 @@ import {
   useCapacity,
 } from "./xcode-queue";
 import { sessionRun, waitForRetry } from "./xcode-run";
-import { useEffect, useMemo, useSyncExternalStore, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useMemo,
+  useSyncExternalStore,
+  useState,
+} from "react";
 import { api } from "./api";
 import type { ModelProfile } from "./types";
 import {
@@ -85,7 +93,7 @@ export default function Xcode({
   readonly: boolean;
 }) {
   const run = sessionRun(scope, page);
-  const { busy, preview, phase, error, prompt, files, omitted } =
+  const { pending, busy, preview, phase, error, prompt, files, omitted } =
     useSyncExternalStore(run.subscribe, run.snapshot);
   const origin = serverOrigin(s.endpoint);
   const capacity = useCapacity(origin);
@@ -130,8 +138,9 @@ export default function Xcode({
       files: typeof fn === "function" ? fn(run.snapshot().files) : fn,
     });
   const setError = (error: string) => run.patch({ error });
+  const attachmentPicker = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(
-    () => localStorage.getItem("xdocs.xcode.settings") !== "hidden",
+    () => localStorage.getItem("xdocs.xcode.settings") === "shown",
   );
   const [skillQuery, setSkillQuery] = useState("");
   const [key, setKey] = useState("");
@@ -285,7 +294,7 @@ export default function Xcode({
     }
     if (
       !api.xcodeChat ||
-      busy ||
+      run.snapshot().busy ||
       readonly ||
       (!prompt.trim() && !selectedFiles.length)
     )
@@ -293,7 +302,17 @@ export default function Xcode({
     const id = crypto.randomUUID();
     run.id = id;
     run.enabled = s.autoRetry === true;
-    run.patch({ busy: true, preview: "", phase: "", error: "" });
+    run.patch({
+      pending: {
+        prompt,
+        files: selectedFiles.map((f) => f.name),
+        index: s.turns.length,
+      },
+      busy: true,
+      preview: "",
+      phase: "",
+      error: "",
+    });
     let checkpoint: Checkpoint | undefined,
       lastWrite = 0;
     const off = api.onXcodeDelta?.((c) => {
@@ -557,10 +576,14 @@ export default function Xcode({
         omitted: files.filter((f) => !selected(fileKey(f))).map(fileKey),
       });
       setPrompt("");
-      run.patch({ preview: "" });
+      run.patch({ pending: null, preview: "" });
+      let completed = s.turns.length + 1;
       messages.pop(); // No next harness stage after the final answer.
       while (run.id === id && run.enabled && s.repeatCompleted) {
         await delay("다음 대화 대기");
+        run.patch({
+          pending: { prompt: "계속해주세요", files: [], index: completed },
+        });
         messages.push({ role: "user", content: "계속해주세요" });
         const started = performance.now();
         const result = await ask(
@@ -580,8 +603,9 @@ export default function Xcode({
             },
           ],
         });
+        completed++;
         messages.push({ role: "assistant", content: result.text });
-        run.patch({ preview: "" });
+        run.patch({ pending: null, preview: "" });
       }
     } catch (e) {
       setError(
@@ -615,7 +639,24 @@ export default function Xcode({
         }
       }}
     >
-      <h2>xcode</h2>
+      <header className="chat-header">
+        <h2>xcode</h2>
+        <span title={s.model}>{s.model}</span>
+        <button
+          className="chat-settings-toggle"
+          aria-expanded={showSettings}
+          onClick={() => {
+            setShowSettings(!showSettings);
+            localStorage.setItem(
+              "xdocs.xcode.settings",
+              showSettings ? "hidden" : "shown",
+            );
+          }}
+        >
+          <SlidersHorizontal size={15} />
+          {showSettings ? "세션 설정 접기" : "세션 설정 펼치기"}
+        </button>
+      </header>
       {local && recovery && !busy && (
         <fieldset disabled={readonly}>
           <legend>중단된 실행 복구</legend>
@@ -645,18 +686,6 @@ export default function Xcode({
           </button>
         </fieldset>
       )}
-      <button
-        aria-expanded={showSettings}
-        onClick={() => {
-          setShowSettings(!showSettings);
-          localStorage.setItem(
-            "xdocs.xcode.settings",
-            showSettings ? "hidden" : "shown",
-          );
-        }}
-      >
-        {showSettings ? "세션 설정 접기" : "세션 설정 펼치기"}
-      </button>
       <div hidden={!showSettings}>
         <fieldset disabled={readonly}>
           <legend>자동 재요청</legend>
@@ -1071,134 +1100,151 @@ export default function Xcode({
           </fieldset>
         </details>
       </div>
-      {s.turns.map((t, i) => (
-        <article key={i}>
-          <h3>요청 {i + 1}</h3>
-          <p>{t.prompt}</p>
-          {t.execution?.configuration &&
-            validHarness(t.execution.configuration) && (
-              <button
-                disabled={busy || readonly}
-                onClick={() =>
-                  config({
-                    harness: structuredClone(t.execution!.configuration!),
-                  })
-                }
-              >
-                이 실행의 하네스 복제
-              </button>
-            )}
-          {t.execution && (
-            <small>
-              {t.execution.model} · {t.execution.harness}
-              {t.execution.skills.length > 0 &&
-                " · " + t.execution.skills.join(", ")}
-            </small>
-          )}
-          <small>{t.files.map((f) => f.name).join(" · ")}</small>
-          {t.answers.map((a, j) => (
-            <details key={j} open={j === t.answers.length - 1}>
-              <summary>
-                단계 {j + 1} 결과
-                {a.effort &&
-                  " · 추론 " +
-                    (a.effort === "server" ? "서버 기본값" : a.effort)}
-                {a.retries !== undefined && " · 재시도 " + a.retries + "회"}
-                {a.elapsedMs !== undefined &&
-                  " · " + (a.elapsedMs / 1000).toFixed(1) + "초"}
-              </summary>
-              <pre>{a.text}</pre>
-            </details>
-          ))}
-        </article>
-      ))}
-      <fieldset disabled={busy || readonly}>
-        <legend>메시지</legend>
-        <textarea
-          aria-label="xcode 메시지"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+      <div className="chat-workbench">
+        <ChatTimeline
+          turns={s.turns}
+          preview={preview}
+          phase={phase}
+          pending={pending}
+          error={error}
+          busy={busy}
+          readonly={readonly}
+          applyHarness={(h) => config({ harness: h })}
         />
-        <label>
-          파일 첨부 · 코드, 이미지, PDF, Word, PowerPoint, Excel
-          <input
-            type="file"
-            multiple
-            disabled={importing}
-            onChange={(e) => {
-              const list = Array.from(e.target.files || []);
-              e.target.value = "";
-              void attach(list);
+        <div className="chat-composer">
+          <textarea
+            aria-label="xcode 메시지"
+            placeholder="메시지를 입력하세요"
+            rows={2}
+            disabled={readonly || busy}
+            value={busy && pending ? "" : prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key !== "Enter" ||
+                e.shiftKey ||
+                e.nativeEvent.isComposing ||
+                e.nativeEvent.keyCode === 229
+              )
+                return;
+              e.preventDefault();
+              if (!e.repeat && !importing && !run.snapshot().busy && !readonly)
+                void send();
             }}
           />
-        </label>
-        <ProjectInputs onAdd={(added) => setFiles((v) => [...v, ...added])} />
-        {files.map((f, i) => (
-          <button
-            key={i}
-            onClick={() => setFiles((v) => v.filter((_, j) => j !== i))}
-          >
-            {f.name} 제거
-          </button>
-        ))}
-        <details>
-          <summary>전송 미리보기</summary>
-          <p>
-            선택 텍스트 {textBytes.toLocaleString()} 바이트 · 이미지·PDF 전송량
-            별도
-          </p>
-          <p>
-            {s.model} · {s.endpoint}
-          </p>
-          <p>
-            이전 대화{" "}
-            {
-              candidates.filter((_, i) => selected("turn:" + (start + i)))
-                .length
-            }
-            개 · 새 첨부 {selectedFiles.length}개 · 스킬 {selectedSkills.length}
-            개
-          </p>
-          {candidates.map((t, i) => (
-            <div key={i}>
-              {inclusion(
-                "turn:" + (start + i),
-                "이전 요청 " + (start + i + 1) + " · " + t.prompt.slice(0, 80),
+          <div className="chat-toolbar">
+            <button
+              className="chat-attach"
+              aria-label="파일 첨부"
+              title="파일 첨부"
+              disabled={busy || readonly || importing}
+              onClick={() => attachmentPicker.current?.click()}
+            >
+              <Paperclip size={16} />
+            </button>
+            <input
+              ref={attachmentPicker}
+              hidden
+              aria-label="파일 첨부 선택"
+              type="file"
+              multiple
+              disabled={importing}
+              onChange={(e) => {
+                const list = Array.from(e.target.files || []);
+                e.target.value = "";
+                void attach(list);
+              }}
+            />
+            <fieldset disabled={busy || readonly} className="chat-project">
+              <ProjectInputs
+                onAdd={(added) => setFiles((v) => [...v, ...added])}
+              />
+            </fieldset>
+            <details>
+              <summary>전송 미리보기</summary>
+              <p>
+                선택 텍스트 {textBytes.toLocaleString()} 바이트 · 이미지·PDF
+                전송량 별도
+              </p>
+              <p>
+                {s.model} · {s.endpoint}
+              </p>
+              <p>
+                이전 대화{" "}
+                {
+                  candidates.filter((_, i) => selected("turn:" + (start + i)))
+                    .length
+                }
+                개 · 새 첨부 {selectedFiles.length}개 · 스킬{" "}
+                {selectedSkills.length}개
+              </p>
+              {candidates.map((t, i) => (
+                <div key={i}>
+                  {inclusion(
+                    "turn:" + (start + i),
+                    "이전 요청 " +
+                      (start + i + 1) +
+                      " · " +
+                      t.prompt.slice(0, 80),
+                  )}
+                  {selected("turn:" + (start + i)) &&
+                    t.files.map((f, j) =>
+                      inclusion(
+                        "prior:" + (start + i) + ":" + j,
+                        "이전 첨부 · " + f.name,
+                      ),
+                    )}
+                </div>
+              ))}
+              {files.map((f) => inclusion(fileKey(f), "새 첨부 · " + f.name))}
+              {s.harness.skills.map((k, i) =>
+                inclusion("skill:" + i + ":" + k.name, "스킬 · " + k.name),
               )}
-              {selected("turn:" + (start + i)) &&
-                t.files.map((f, j) =>
-                  inclusion(
-                    "prior:" + (start + i) + ":" + j,
-                    "이전 첨부 · " + f.name,
-                  ),
-                )}
+            </details>
+            {busy ? (
+              <button
+                className="chat-submit"
+                aria-label="중지"
+                title="중지"
+                onClick={cancel}
+              >
+                <Square size={14} />
+              </button>
+            ) : (
+              <button
+                className="chat-submit"
+                aria-label="전송"
+                title="전송 (Enter)"
+                disabled={
+                  readonly ||
+                  importing ||
+                  !api.xcodeChat ||
+                  (!prompt.trim() && !selectedFiles.length)
+                }
+                onClick={() => void send()}
+              >
+                <ArrowUp size={18} />
+              </button>
+            )}
+          </div>
+          {files.length > 0 && (
+            <div className="chat-files">
+              {" "}
+              {files.map((f, i) => (
+                <button
+                  key={i}
+                  disabled={readonly || busy}
+                  onClick={() => setFiles((v) => v.filter((_, j) => j !== i))}
+                >
+                  {f.name} 제거
+                </button>
+              ))}
             </div>
-          ))}
-          {files.map((f) => inclusion(fileKey(f), "새 첨부 · " + f.name))}
-          {s.harness.skills.map((k, i) =>
-            inclusion("skill:" + i + ":" + k.name, "스킬 · " + k.name),
           )}
-        </details>
-        <button
-          disabled={
-            importing ||
-            !api.xcodeChat ||
-            (!prompt.trim() && !selectedFiles.length)
-          }
-          onClick={() => void send()}
-        >
-          전송
-        </button>
-      </fieldset>
+          <small className="chat-keys">Enter 전송 · Shift+Enter 줄바꿈</small>
+        </div>
+      </div>
       {!api.xcodeChat && <p>모델 연결은 데스크톱 앱에서 사용할 수 있습니다.</p>}
-      {busy && (
-        <>
-          <span role="status">{phase}</span>
-          <button onClick={cancel}>중지</button>
-        </>
-      )}
-      {preview && <pre>{preview}</pre>}
-      {error && <p role="alert">{error}</p>}
     </section>
   );
 }

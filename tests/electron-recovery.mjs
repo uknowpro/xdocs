@@ -56,6 +56,7 @@ async function launch() {
 try {
   let page = await launch();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await page.getByRole("button",{name:"세션 설정 펼치기"}).click();
   await page
     .getByLabel("Chat Completions 주소")
     .fill("http://127.0.0.1:" + server.address().port + "/v1/chat/completions");
@@ -64,7 +65,7 @@ try {
   await page.getByLabel("xcode 메시지").fill("recover this run");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(2);
-  await expect(page.locator(".xcode > pre")).toContainText("partial");
+  await expect(page.locator(".xcode .chat-live pre")).toContainText("partial");
   const closed = app.waitForEvent("close");
   app.process().kill("SIGKILL");
   await closed;

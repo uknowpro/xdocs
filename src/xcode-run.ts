@@ -6,6 +6,7 @@ import { api } from "./api";
 function createRun(scope: string, page: string) {
   const listeners = new Set<() => void>();
   let state = {
+    pending: null as { prompt: string; files: string[]; index: number } | null,
     busy: false,
     preview: "",
     phase: "",
