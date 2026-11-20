@@ -30,7 +30,7 @@ test("folder quick actions, block editing, trash confirmation and session switch
   const btn=(name:string)=>page.getByRole("button",{name,exact:true});
   await btn("개인 보관함 새 폴더").click();
   await page.getByLabel("폴더 이름",{exact:true}).fill("업무");
-  await btn("저장").click();
+  await btn("만들기").click();
   await btn("업무 새 노트").click();
   await expect(page.getByRole("textbox",{name:"블록 편집기"})).toBeVisible();
   const menu=()=>page.locator(".page-row.current").getByRole("button",{name:/페이지 메뉴$/});

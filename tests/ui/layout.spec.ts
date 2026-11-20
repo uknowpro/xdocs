@@ -185,3 +185,25 @@ test("tree keyboard navigation focuses rows, opens actions and renames pages",as
   await page.keyboard.press("F2");
   await expect(page.getByRole("textbox",{name:"페이지 이름 변경"})).toHaveValue("주간 아이디어");
 });
+
+test("create a folder inline with Enter or cancel with Escape on desktop and mobile", async ({page}) => {
+  for (const width of [1366, 390]) {
+    await page.setViewportSize({width, height:800});
+    await page.goto("/");
+    if (width === 390) await page.getByRole("button",{name:"왼쪽 메뉴 펼치기"}).click();
+    const add = page.getByRole("button",{name:"개인 보관함 새 폴더"});
+    await add.click();
+    const input = page.getByRole("textbox",{name:"폴더 이름",exact:true});
+    await expect(input).toBeFocused();
+    await expect(input).toHaveAttribute("placeholder","폴더 이름 입력");
+    await expect(page.locator(".folder-name-form")).not.toContainText("폴더 이름");
+    await expect(page.getByRole("button",{name:"만들기",exact:true})).toBeDisabled();
+    await input.fill("취소할 폴더");
+    await input.press("Escape");
+    await expect(input).toHaveCount(0);
+    await add.click();
+    await input.fill("프로젝트 " + width);
+    await input.press("Enter");
+    await expect(page.getByRole("button",{name:"프로젝트 "+width,exact:true})).toBeVisible();
+  }
+});

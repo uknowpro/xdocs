@@ -2644,16 +2644,18 @@ textarea {
 .placement-evidence pre { max-height: 24rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .folder-name-form {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  justify-items: start;
+  gap: 8px;
   padding: 8px;
 }
-.folder-name-form label,
 .folder-name-form input {
-  display: block;
+  grid-column: 1 / -1;
   width: 100%;
+  min-width: 0;
 }
-.folder-name-form button {
-  margin: 6px 6px 0 0;
-}
+.folder-name-form button { padding: 4px 8px; }
 .terraform-live {
   min-width: 0;
   margin-block: 10px;

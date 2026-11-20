@@ -862,6 +862,9 @@ export default function App() {
 
   const sessionTabs = !sidebar && view==="note" && xcode
     ? notes.filter(n=>n.id===active || pageKind(n)==="xcode") : [];
+  const nameFieldLabel = naming?.existing
+    ? (isFolderPage(naming.existing) ? "폴더 이름 변경" : "페이지 이름 변경")
+    : (naming?.kind ? "페이지 이름" : "폴더 이름");
   return (
     <div className={`app ${sidebar ? "" : "sidebar-hidden"}`}>
       <header className="titlebar">
@@ -1153,23 +1156,29 @@ export default function App() {
               void submitFolder();
             }}
           >
-            <label>
-              {naming.existing
-                ? isFolderPage(naming.existing)
-                  ? "폴더 이름 변경"
-                  : "페이지 이름 변경"
-                : naming.kind
-                  ? "페이지 이름"
-                  : "폴더 이름"}
-              <input
-                autoFocus
-                required
-                maxLength={100}
-                value={folderName}
-                onChange={(e) => setFolderName(e.target.value)}
-              />
-            </label>
-            <button disabled={busy || !folderName.trim()}>저장</button>
+            <input
+              autoFocus
+              required
+              maxLength={100}
+              aria-label={nameFieldLabel}
+              placeholder={nameFieldLabel + (naming.existing ? "" : " 입력")}
+              value={folderName}
+              onChange={e => setFolderName(e.target.value)}
+              onKeyDown={e => {
+                if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) {
+                  if (e.key === "Enter") e.preventDefault();
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setNaming(null);
+                }
+              }}
+            />
+            <button type="submit" disabled={busy || !folderName.trim()}>
+              {naming.existing ? "저장" : "만들기"}
+            </button>
             <button type="button" onClick={() => setNaming(null)}>
               취소
             </button>
