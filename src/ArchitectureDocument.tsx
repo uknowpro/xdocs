@@ -2,7 +2,7 @@ import {caseDiagram} from "../shared/case-diagrams.mjs";
 import type {Note} from "./types";
 import DesignFragments from "./DesignFragments";
 import PlanReview, {type PlanRows} from "./PlanReview";
-import {planNode} from "../shared/plan-review.mjs";
+import {planNode,planModuleTarget} from "../shared/plan-review.mjs";
 import ArchitectureImpact from "./ArchitectureImpact";
 import TemplatePreview from "./TemplatePreview";
 import TemplateThumbnail from "./TemplateThumbnail";
@@ -59,6 +59,33 @@ import {
 } from "../shared/architecture.mjs";
 import { zipSync, strToU8 } from "fflate";
 import { api } from "./api";
+function moduleDeclarationPreview(
+  source: ArchitectureModel["sources"][number] | undefined,
+  address: string,
+) {
+  if (!source) return "";
+  if (source.name.endsWith(".json")) {
+    const parts = address.split(".");
+    const block = parts.length === 3 ? parts.shift()! : "resource";
+    try {
+      return JSON.stringify(
+        JSON.parse(source.content)[block]?.[parts[0]]?.[parts[1]],
+        null,
+        2,
+      );
+    } catch {
+      return source.name;
+    }
+  }
+  const line = source.declarationLines?.[address];
+  return line
+    ? source.name +
+        ":" +
+        line +
+        " · " +
+        source.content.split("\n")[line - 1]?.trim()
+    : source.name;
+}
 export type ArchitectureNode = {
   id: string;
   kind: string;
@@ -97,7 +124,7 @@ export type ArchitectureModel = {
   title: string;
   settings: Record<string, string>;
   nodes: ArchitectureNode[];
-  sources: { name: string; content: string; preservedDeclarations?:string[] }[];
+  sources: { name: string; content: string; preservedDeclarations?:string[]; declarationLines?:Record<string,number> }[];
   warnings: string[];
   caseStudyId?: string;
   drawing?: Drawing;
@@ -455,11 +482,12 @@ export default function ArchitectureDocument({
   const planLabels=useMemo(()=>{
     const labels:Record<string,string>={};
     for(const row of planRows){
-      const id=planNode(row.address,model.nodes);
+      const id=planNode(row.address,model.nodes) || planModuleTarget(row,model)?.id;
       if(id && !labels[id]?.split(" · ").includes(row.action)) labels[id]=labels[id] ? labels[id]+" · "+row.action : row.action;
     }
     return labels;
   },[planRows,model.nodes]);
+  const [moduleFocus,setModuleFocus] = useState<{file:string;address:string}|null>(null);
   const [liveFile, setLiveFile] = useState("");
   const livePath = terraformFiles.includes(liveFile)
     ? liveFile
@@ -1662,7 +1690,12 @@ export default function ArchitectureDocument({
               </p>
             </details>
           </aside>
-          <PlanReview readonly={readonly} saveReview={saveReview} selected={selected} model={model} rows={planRows} setRows={setPlanRows} onNode={openDetail}/>
+          <PlanReview readonly={readonly} saveReview={saveReview} selected={selected} model={model} rows={planRows} setRows={setPlanRows} onNode={openDetail} onSource={(id,file,address) => {
+            setModuleFocus({file,address});
+            openDetail(id); setLiveFile("terraform/"+file); setCompareFile(false);
+            if(viewer.current) viewer.current.open=true;
+            requestAnimationFrame(()=>viewer.current?.scrollIntoView({block:"nearest"}));
+          }}/>
           <DesignFragments model={model} notes={notes} save={saveFragment} insert={change} selected={selected} readonly={readonly}/>
           {model.sources.length>0 && <details className="arch-review-issues"><summary>Terraform 편집 범위</summary>
             {model.sources.map(source=><details key={source.name}><summary>{source.name}</summary>
@@ -1704,6 +1737,10 @@ export default function ArchitectureDocument({
                   <option key={name}>{name}</option>
                 ))}
               </select>
+              {moduleFocus && livePath === "terraform/"+moduleFocus.file && <div>
+                <strong>{moduleFocus.address}</strong>
+                <pre aria-label="모듈 리소스 선언">{moduleDeclarationPreview(model.sources.find(s=>s.name===moduleFocus.file),moduleFocus.address)}</pre>
+              </div>}
               {declarations.length > 0 && (
                 <details ref={resourceCode}>
                   <summary>리소스별 코드</summary>

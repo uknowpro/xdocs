@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { architectureEdges } from "../shared/architecture.mjs";
-import { reviewPlan, planNode } from "../shared/plan-review.mjs";
+import {
+  reviewPlan,
+  planNode,
+  planModuleTarget,
+} from "../shared/plan-review.mjs";
 import type { ArchitectureModel } from "./ArchitectureDocument";
 
 export type PlanRows = {
@@ -24,6 +28,7 @@ export default function PlanReview({
   rows,
   setRows,
   onNode,
+  onSource,
   saveReview,
   readonly,
 }: {
@@ -34,6 +39,7 @@ export default function PlanReview({
   rows: PlanRows;
   setRows: (r: PlanRows) => void;
   onNode: (id: string) => void;
+  onSource: (id: string, file: string, address: string) => void;
 }) {
   const [status, setStatus] = useState("");
   const [moduleFilter, setModuleFilter] = useState("*"),
@@ -82,6 +88,7 @@ export default function PlanReview({
         if (!row) continue;
         lines.push("## " + text(row.action + " · " + row.address), "");
         const id = planNode(row.address, model.nodes);
+        const call = planModuleTarget(row, model);
         const neighbours = new Set(
           edges.filter((edge) => edge.target === id).map((edge) => edge.source),
         );
@@ -92,7 +99,9 @@ export default function PlanReview({
           id
             ? "도면 리소스 · " +
                 text(model.nodes.find((n) => n.id === id)!.label)
-            : "도면에 대응하는 리소스 없음",
+            : call
+              ? "도면 모듈 · " + text(call.address)
+              : "도면에 대응하는 리소스 없음",
           "",
         );
         if (linked.length)
@@ -237,8 +246,9 @@ export default function PlanReview({
       )}
       {visible.map(({ row, index }) => {
         const id = planNode(row.address, model.nodes);
+        const call = planModuleTarget(row, model);
         return (
-          <details key={index} data-plan-node={id || ""}>
+          <details key={index} data-plan-node={id || call?.id || ""}>
             <summary>
               {row.action} · {row.address}
             </summary>
@@ -265,6 +275,21 @@ export default function PlanReview({
             {row.action === "교체" && <p>교체 근거 · {reason(row)}</p>}
             {id ? (
               <button onClick={() => onNode(id)}>도면에서 보기</button>
+            ) : call ? (
+              <div>
+                <button onClick={() => onNode(call.id)}>
+                  도면에서 모듈 보기 · {call.address}
+                </button>
+                {call.file && (
+                  <button
+                    onClick={() =>
+                      onSource(call.id, call.file, row.declaration)
+                    }
+                  >
+                    선언 열기 · {row.declaration} · {call.file}
+                  </button>
+                )}
+              </div>
             ) : (
               <p>대응하는 도면 리소스 없음</p>
             )}

@@ -41,7 +41,7 @@ export async function projectSources(root, read) {
 function first(value) {
   return Array.isArray(value) ? value[0] : value;
 }
-function localDir(source) {
+export function localDir(source) {
   return typeof source === "string" &&
     /^\.\/(?:[A-Za-z0-9_-][\w.-]*\/)*[A-Za-z0-9_-][\w.-]*$/.test(source)
     ? source.slice(2)
@@ -52,7 +52,7 @@ export function parseSource(file) {
     ? JSON.parse(file.content)
     : parse(file.name, file.content);
 }
-export async function attachModuleTraces(model, calls) {
+export async function attachModuleTraces(model, calls, declarationLines) {
   const definitions = new Map();
   if (
     model.sources.some((f) =>
@@ -74,6 +74,10 @@ export async function attachModuleTraces(model, calls) {
       continue;
     }
     const parsed = await parseSource(file);
+    file.declarationLines = Object.fromEntries(await declarationLines(file));
+    file.preservedDeclarations = ["resource","data"].flatMap(block =>
+      Object.entries(parsed[block] || {}).flatMap(([kind, items]) =>
+        Object.keys(items).map(name => (block === "data" ? "data." : "") + kind + "." + name)));
     for (const [output, block] of Object.entries(parsed.output || {})) {
       if (defs.outputs.has(output))
         throw Error("로컬 모듈에 중복 output 선언이 있습니다.");

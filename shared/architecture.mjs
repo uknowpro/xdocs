@@ -416,6 +416,7 @@ export function validateArchitecture(m) {
     if (
       n.imported &&
       (!/^(?:data\.)?[A-Za-z_][\w-]*\.[A-Za-z_][\w-]*$/.test(n.address) ||
+        (n.subnetPrefixes !== undefined && (!Array.isArray(n.subnetPrefixes) || n.subnetPrefixes.some(v => typeof v !== "string"))) ||
         (n.moduleTrace !== undefined &&
           (!plain(n.moduleTrace) ||
             ["address", "file", "expression"].some(
@@ -558,6 +559,9 @@ function subset(m, ids) {
 export function architectureIssues(m) {
   validateArchitecture(m);
   const issues = [];
+  for (const issue of subnetConflicts(m.nodes)) {
+    issues.push({id:issue.id, message:issue.message}, {id:issue.otherId, message:issue.message});
+  }
   const seen = new Set();
   for (const n of m.nodes) {
     if (n.imported) {
@@ -687,17 +691,67 @@ function validCIDR(v) {
   );
 }
 // Explicit subnet components in the editable architecture model use IPv4.
+const subnetNetworks = new Map([
+  ["aws_subnet", "vpc"],
+  ["azurerm_subnet", "network"],
+  ["google_compute_subnetwork", "network"],
+]);
+function subnetConflicts(nodes, incoming) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const byAddress = new Map(
+    nodes.filter((n) => n.address).map((n) => [n.address, n]),
+  );
+  const groups = new Map();
+  const conflicts = [];
+  for (const node of nodes) {
+    const ref = subnetNetworks.get(node.kind);
+    if (!ref || node.address?.startsWith("data.")) continue;
+    const parent = node.imported
+      ? byAddress.get(node.scopeAddress)
+      : byId.get(node.props[ref]);
+    if (!parent || parent.multipleInstances) continue;
+    const ranges =
+      node.imported && node.kind === "azurerm_subnet"
+        ? node.subnetPrefixes || []
+        : [node.props.cidr];
+    const group = groups.get(parent.id) || [];
+    for (const range of ranges.filter(validCIDR)) {
+      for (const other of group) {
+        if (
+          node.id === other.node.id ||
+          (incoming && !incoming.has(node.id) && !incoming.has(other.node.id))
+        )
+          continue;
+        if (
+          cidrContains(range, other.range) ||
+          cidrContains(other.range, range)
+        ) {
+          const message =
+            parent.label +
+            " · CIDR 충돌: " +
+            other.node.label +
+            " (" +
+            other.range +
+            ") / " +
+            node.label +
+            " (" +
+            range +
+            ")";
+          conflicts.push({ id: node.id, otherId: other.node.id, message });
+        }
+      }
+      group.push({ node, range });
+    }
+    groups.set(parent.id, group);
+  }
+  return conflicts;
+}
 export function fragmentIssues(existing, incoming) {
   const issues = new Set();
-  const networks = new Map([
-    ["aws_subnet", "vpc"],
-    ["azurerm_subnet", "network"],
-    ["google_compute_subnetwork", "network"],
-  ]);
   const previous = existing.slice();
   const all = [...existing, ...incoming];
   for (const node of incoming) {
-    const owner = networks.get(node.kind);
+    const owner = subnetNetworks.get(node.kind);
     const parent = owner && all.find((n) => n.id === node.props[owner]);
     for (const [field, value] of Object.entries(node.props)) {
       if (COMPONENTS[node.kind]?.fields[field]?.cidr && !validCIDR(value))
@@ -728,25 +782,6 @@ export function fragmentIssues(existing, incoming) {
       if (other.kind !== node.kind) continue;
       if (owner && (!parent || other.props[owner] !== parent.id)) continue;
       if (
-        owner &&
-        validCIDR(node.props.cidr) &&
-        validCIDR(other.props.cidr) &&
-        (cidrContains(node.props.cidr, other.props.cidr) ||
-          cidrContains(other.props.cidr, node.props.cidr))
-      )
-        issues.add(
-          parent.label +
-            " · CIDR 충돌: " +
-            other.label +
-            " (" +
-            other.props.cidr +
-            ") / " +
-            node.label +
-            " (" +
-            node.props.cidr +
-            ")",
-        );
-      if (
         node.props.name &&
         other.props.name === node.props.name &&
         (other.props.namespace || "") === (node.props.namespace || "")
@@ -759,6 +794,7 @@ export function fragmentIssues(existing, incoming) {
       issues.add("표시 이름과 배포 이름을 입력하세요.");
     previous.push(node);
   }
+  for (const conflict of subnetConflicts(all, new Set(incoming.map(n => n.id)))) issues.add(conflict.message);
   return [...issues];
 }
 

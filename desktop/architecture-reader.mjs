@@ -1,8 +1,9 @@
-import { attachModuleTraces } from "./local-modules.mjs";
+import { attachModuleTraces, localDir } from "./local-modules.mjs";
 import { placementFields } from "../shared/network-boundaries.mjs";
 import { parse, getReferencesInExpression } from "@cdktn/hcl2json";
 import {
   newArchitecture,
+  generateArchitecture,
   validateArchitecture,
   IMPORT_FIELDS,
 } from "../shared/architecture.mjs";
@@ -98,9 +99,53 @@ function placement(n, raw) {
   return owner?.[key];
 }
 export async function parseTerraformFiles(files) {
+  validateArchitecture({ ...newArchitecture(), sources: files });
+  // Recover editing state only when the complete file can be reproduced by our exporter.
+  const overlay = files.find((f) => f.name === "zz_xdocs_override.tf.json");
+  if (
+    overlay &&
+    files.length > 1 &&
+    !files.some(
+      (f) =>
+        f !== overlay &&
+        !f.name.includes("/") &&
+        /(?:^|_)override\.tf(?:\.json)?$/.test(f.name),
+    )
+  ) {
+    let base;
+    try {
+      base = await parseBase(files.filter((f) => f !== overlay));
+    } catch {
+      // An ordinary Terraform file with the reserved name may itself contain the only resources.
+      return parseBase(files);
+    }
+    const values = JSON.parse(overlay.content)?.resource;
+    if (values && typeof values === "object") {
+      for (const node of base.nodes) {
+        if (node.address.startsWith("data.")) continue;
+        const [type, name] = node.address.split(".");
+        for (const [key, attr] of Object.entries(IMPORT_FIELDS[type] || {})) {
+          const value = values[type]?.[name]?.[attr];
+          if (Object.hasOwn(node.original, key) && typeof value === "string")
+            node.props[key] = value
+              .replaceAll("$${", () => "${")
+              .replaceAll("%%{", "%{");
+        }
+      }
+      if (
+        generateArchitecture(base, "terraform").files[
+          "terraform/" + overlay.name
+        ] === overlay.content
+      )
+        return validateArchitecture(base);
+    }
+  }
+  return parseBase(files);
+}
+async function parseBase(files) {
   const model = newArchitecture();
   model.title = "가져온 Terraform";
-  model.sources = files;
+  model.sources = files.map(file => ({...file}));
   validateArchitecture(model);
   const addresses = new Set(),
     pending = [];
@@ -178,6 +223,9 @@ export async function parseTerraformFiles(files) {
           address,
           references: [],
         };
+        if (block === "module" && localDir(raw.source)) n.moduleDirectory = localDir(raw.source);
+        if (block === "resource" && kind === "azurerm_subnet" && Array.isArray(raw.address_prefixes))
+          n.subnetPrefixes = raw.address_prefixes.filter(value => typeof value === "string");
         model.nodes.push(n);
         const marked = located.parsed?.[block]?.[kind]?.[name];
         pending.push([
@@ -307,7 +355,7 @@ export async function parseTerraformFiles(files) {
     if (unresolved.length) n.unresolvedReferences = unresolved;
     n.references = [...refs].filter((r) => r !== n.address && addresses.has(r));
   }
-  await attachModuleTraces(model, calls);
+  await attachModuleTraces(model, calls, declarationLines);
   model.warnings = [
     ...new Set([
       ...model.warnings,

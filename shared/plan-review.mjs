@@ -118,3 +118,24 @@ export function planNode(address, nodes) {
   const base = address.replace(indexSuffix, "");
   return nodes.find((n) => (n.address || n.kind + "." + n.id) === base)?.id;
 }
+
+// A module call represents its instances on the declaration-level canvas.
+export function planModuleTarget(row, model) {
+  const firstCall = row.module.match(/^module\.[\w-]+/)?.[0];
+  if (!firstCall) return;
+  const call = model.nodes.find(
+    (n) => n.kind === "module" && n.address === firstCall,
+  );
+  if (!call) return;
+  const direct = row.module.replace(indexSuffix, "") === firstCall;
+  const source =
+    direct &&
+    call.moduleDirectory &&
+    model.sources.find(
+      (f) =>
+        f.name.includes("/") &&
+        f.name.slice(0, f.name.lastIndexOf("/")) === call.moduleDirectory &&
+        f.preservedDeclarations?.includes(row.declaration),
+    );
+  return { id: call.id, address: call.address, file: source?.name };
+}
