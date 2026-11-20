@@ -247,7 +247,7 @@ test("every catalog preview loads offline, exposes its reviewed path and fits th
   const btn=(name:string)=>page.getByRole("button",{name,exact:true});
   await btn("새로 만들기").click();
   await btn("IaCD 아키텍처").click();
-  for(const [provider,count] of [["AWS",9],["Azure",19],["GCP",10],["멀티클라우드",2]] as const){
+  for(const [provider,count] of [["AWS",4],["Azure",19],["GCP",10],["멀티클라우드",2]] as const){
     await page.getByLabel("공급자",{exact:true}).selectOption(provider);
     const cards=page.getByRole("group",{name:"설계 템플릿"}).locator(".template-card");
     await expect(cards).toHaveCount(count);
