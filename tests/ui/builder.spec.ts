@@ -131,7 +131,7 @@ test("workspace harness library applies a versioned snapshot", async ({
   );
 });
 
-test("nested network gallery previews match the AWS subnet canvas", async ({ page }) => {
+test("retired AWS templates are absent from gallery search", async ({ page }) => {
   await page.setViewportSize({width:1440,height:1000});
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
@@ -140,14 +140,8 @@ test("nested network gallery previews match the AWS subnet canvas", async ({ pag
   await search.fill("결제 서비스 · 격리 복구 리허설");
   await expect(page.getByRole("button", {name:"템플릿으로 시작"})).toBeDisabled();
   await search.fill("Fargate 서비스 검색");
-  const card = page.getByRole("button",{name:"Fargate 서비스 검색과 Cloud Map 공개 DNS",exact:true});
-  await expect(card.getByAltText("영역형 구성도")).toBeVisible();
-  await card.click();
-  await page.getByRole("button",{name:"템플릿으로 시작"}).click();
-  await expect(page.getByLabel("아키텍처 제목")).toHaveValue("AWS · Fargate 서비스 검색과 Cloud Map 공개 DNS");
-  const diagram = page.locator(".network-sheet");
-  await expect(diagram.locator("[data-scope]")).toHaveCount(14);
-  await diagram.screenshot({path:"test-results/aws-subnet-template.png"});
+  await expect(page.getByRole("button", {name:"템플릿으로 시작"})).toBeDisabled();
+  await expect(page.locator(".template-card")).toHaveCount(0);
 });
 
 test("Analyzer findings become a saved Builder source with both network directions", async ({ page }) => {
@@ -252,7 +246,7 @@ test("every catalog preview loads offline, exposes its reviewed path and fits th
   const btn=(name:string)=>page.getByRole("button",{name,exact:true});
   await btn("새로 만들기").click();
   await btn("IaCD 아키텍처").click();
-  for(const [provider,count] of [["AWS",17],["Azure",19],["GCP",17],["멀티클라우드",3]] as const){
+  for(const [provider,count] of [["AWS",16],["Azure",19],["GCP",17],["멀티클라우드",3]] as const){
     await page.getByLabel("공급자",{exact:true}).selectOption(provider);
     const cards=page.getByRole("group",{name:"설계 템플릿"}).locator(".template-card");
     await expect(cards).toHaveCount(count);

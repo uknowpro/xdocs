@@ -310,31 +310,6 @@
     "directory": "ecs-efs-integration/bash/terraform"
   },
   {
-    "id": "aws-cloudmap-fargate-terraform",
-    "provider": "AWS",
-    "name": "Fargate 서비스 검색과 Cloud Map 공개 DNS",
-    "study": "서비스 이름이 네트워크 내 태스크로 해석되는 경로를 확인한다.",
-    "kinds": [
-      "aws_default_security_group",
-      "aws_ecs_cluster",
-      "aws_ecs_cluster_capacity_providers",
-      "aws_ecs_service",
-      "aws_ecs_task_definition",
-      "aws_internet_gateway",
-      "aws_route",
-      "aws_route_table",
-      "aws_route_table_association",
-      "aws_security_group",
-      "aws_service_discovery_public_dns_namespace",
-      "aws_service_discovery_service",
-      "aws_subnet",
-      "aws_vpc"
-    ],
-    "repo": "aws-samples/serverless-patterns",
-    "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "cloudmap-fargate/terraform"
-  },
-  {
     "id": "aws-vpc-lattice-lambda-python-terraform",
     "provider": "AWS",
     "name": "VPC Lattice 서비스 네트워크",

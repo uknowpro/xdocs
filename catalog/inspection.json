@@ -161,16 +161,6 @@
       }
     ]
   },
-  "aws-cloudmap-fargate-terraform": {
-    "inputs": [],
-    "sites": [
-      {
-        "file": "main.tf",
-        "line": 160,
-        "property": "service_registries.registry_arn"
-      }
-    ]
-  },
   "aws-vpc-lattice-lambda-python-terraform": {
     "inputs": [],
     "sites": [
