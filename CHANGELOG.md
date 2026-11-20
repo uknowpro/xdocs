@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.21
+
+- Explore seven redesigned Azure and GCP architecture templates offline and jump from a diagram resource to its Terraform declaration.
+- Select sheet ranges with Shift+arrow keys and use F2 to select text within a cell. Retry individual files after a partial folder import.
+
 ## 0.5.20
 
 - Remove the persistent selection and clipboard shortcut instructions from sheets. Successful copies are silent, and selected cells still copy as tab-separated values.

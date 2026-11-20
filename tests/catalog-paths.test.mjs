@@ -164,7 +164,7 @@ test("network case drawings resolve every node, arrow and gallery reference agai
     const model = JSON.parse(await read("snapshots/" + id + ".json"));
     const nodes = new Map(model.nodes.map(n => [n.address, n]));
     for (const [key] of spec.boxes) {
-      if (key === "frame") continue;
+      if (key === "frame" || key.startsWith("step:")) continue;
       const node = nodes.get(key);
       assert.ok(node?.sourceFile && node.sourceLine, key);
     }

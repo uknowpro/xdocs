@@ -313,6 +313,10 @@ test("an Azure connection offers both source locations before jumping", async ({
 });
 
 for (const [provider, title, label, address, field] of [
+  ["Azure", "가상 데스크톱과 NetApp 사용자 프로필", "Profile volume · 100 GiB", "azurerm_netapp_volume.NetApp_Vol", "protocols"],
+  ["Azure", "격리형 Synapse 분석 워크스페이스", "Synapse Dev PE", "azurerm_private_endpoint.pe_dev", "private_connection_resource_id"],
+  ["GCP", "공유 VPC·교차 프로젝트 HTTPS 백엔드", "URL map", "google_compute_region_url_map.default", "default_service"],
+  ["GCP", "네트워크 트래픽 미러링과 수집", "Mirroring policy · BOTH", "google_compute_packet_mirroring.default", "collector_ilb"],
   ["GCP", "Interconnect 위의 HA VPN", "Tunnel 4", "google_compute_vpn_tunnel.tunnel_4", "peer_external_gateway_interface"],
   ["Azure", "격리형 ML 허브·스포크 플랫폼", "Workspace PE", "azurerm_private_endpoint.mlw_ple", "private_connection_resource_id"],
   ["Azure", "허브·스포크 네트워크 분리", "Management NIC", "azurerm_network_interface.spoke1-nic", "subnet_id"],

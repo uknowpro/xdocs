@@ -157,7 +157,7 @@ try {
   assert.match(sheetNote.body,/"firstRowHeader":true/);
   await cell.click();
   await cell.press("F2");
-  await cell.press("Home");
+  await cell.press(process.platform === "darwin" ? "Meta+ArrowLeft" : "Home");
   await cell.press("Shift+ArrowRight");
   await cell.press("Shift+ArrowRight");
   const copyKey = process.platform === "darwin" ? "Meta+c" : "Control+c";

@@ -1,3 +1,4 @@
+import {serviceCases} from "./service-case-layouts.mjs";
 // Representative Terraform references. Frames group resources without creating dependencies.
 const gcp = "google_compute_";
 const azure = "azurerm_";
@@ -78,6 +79,7 @@ const hub = {
   links: [1, 2].map(n => [azure+"virtual_network_peering.spoke"+n+"-hub-peer", azure+"virtual_network.hub-vnet", "remote VNet"]),
 };
 export const networkCases = {
+  ...serviceCases,
   "gcp-network-connectivity-interconnect-ha-vpn-over-interconnect-10gb-attach": vpn,
   "azure-quickstart-301-machine-learning-hub-spoke-secure": ml,
   "azure-quickstart-301-hub-spoke": hub,
