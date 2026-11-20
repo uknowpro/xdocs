@@ -53,7 +53,9 @@ async function launch() {
   await app.evaluate(({ dialog }) => {
     dialog.showMessageBox = async () => ({ response: 1 });
   });
-  return app.firstWindow();
+  const page = await app.firstWindow();
+  page.setDefaultTimeout(20000);
+  return page;
 }
 try {
   let page = await launch();
@@ -66,6 +68,7 @@ try {
   await page.getByText("고급 설정", {exact:true}).click();
   await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
   await page.getByLabel("템플릿 적용").selectOption("코드 검토");
+  await page.getByRole("button",{name:"전체 단계 적용"}).click();
   await page.getByLabel("xcode 메시지").fill("recover this run");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(2);
@@ -79,6 +82,7 @@ try {
   }
   await exited;
   page = await launch();
+  await page.getByRole("button", { name: "새로 만들기", exact: true }).waitFor();
   if (!(await page.locator(".xcode").count()))
     await page
       .getByRole("button", { name: "새 xcode 세션", exact: true })

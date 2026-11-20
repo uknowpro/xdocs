@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   importSheetDirectory: () => ipcRenderer.invoke("sheet:directory"),
   builderResources:request=>ipcRenderer.invoke("builder:resources",request),
   xcodeAttachment:data=>ipcRenderer.invoke("xcode:attachment",data),
+  renderWordTemplate:(bytes,context)=>ipcRenderer.invoke("word:render-template",bytes,context),
   wordHelper:()=>ipcRenderer.invoke("word:helper"),
   wordCapture:()=>ipcRenderer.invoke("word:capture"),
   wordPropose:(handle,text)=>ipcRenderer.invoke("word:propose",handle,text),

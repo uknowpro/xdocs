@@ -8,6 +8,7 @@ function createRun(scope: string, page: string) {
   let state = {
     pending: null as { prompt: string; files: string[]; index: number } | null,
     busy: false,
+    outcome:"" as ""|"failed"|"complete",
     preview: "",
     phase: "",
     error: "",
@@ -32,6 +33,7 @@ function createRun(scope: string, page: string) {
     },
     patch(next: Partial<typeof state>) {
       const changed =
+        (next.outcome!==undefined && next.outcome!==state.outcome) ||
         (next.busy !== undefined && next.busy !== state.busy) ||
         (next.phase !== undefined && next.phase !== state.phase);
       state = { ...state, ...next };
@@ -56,15 +58,15 @@ function subscribeActivity(cb: () => void) {
     activity.delete(cb);
   };
 }
-export function useRunningPages(
+export function useSessionActivity(
   scope?: string,
-): { page: string; phase: string }[] {
+): { page: string; phase: string; outcome:string; busy:boolean }[] {
   return JSON.parse(
     useSyncExternalStore(subscribeActivity, () =>
       JSON.stringify(
         [...runs.values()]
-          .filter((r) => r.scope === scope && r.snapshot().busy)
-          .map((r) => ({ page: r.page, phase: r.snapshot().phase })),
+          .filter((r) => r.scope === scope && (r.snapshot().busy||r.snapshot().outcome))
+          .map((r) => ({ page: r.page, phase: r.snapshot().phase, outcome:r.snapshot().outcome, busy:r.snapshot().busy })),
       ),
     ),
   );

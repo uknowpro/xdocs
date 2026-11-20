@@ -197,9 +197,12 @@ try {
       );
   }
   await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
+  await expect(page.getByLabel("직무 역할", { exact: true })).toHaveValue("");
+  await page.getByLabel("직무 역할", { exact: true }).selectOption("백엔드 엔지니어");
   await page
     .getByLabel("템플릿 적용")
     .selectOption("DeepSeek · 시각 자료 판독");
+  await page.getByRole("button",{name:"전체 단계 적용"}).click();
   await page.getByLabel("추론 강도").selectOption("high");
   await page.getByRole("button", { name: ".claude 스킬 찾기" }).click();
   await page
@@ -219,6 +222,14 @@ try {
         buffer: Buffer.from("print(42)"),
       },
       ...[
+        ["memo.hwpx", "Contents/section0.xml", "<s><p><t>HWPX evidence</t></p></s>"],
+        ...["odt", "ott", "odp", "otp"].map(ext => [
+          "sample." + ext, "content.xml",
+          '<root xmlns:t="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><t:p>' + ext + '<t:s/>evidence</t:p></root>',
+        ]),
+        ["letter.dotx", "word/document.xml", "<p><t>DOTX evidence</t></p>"],
+        ["deck.potx", "ppt/slides/slide1.xml", "<p><t>POTX evidence</t></p>"],
+        ["budget.xltx", "xl/worksheets/sheet1.xml", '<sheet><row><c r="B4"><v>123</v></c></row></sheet>'],
         [
           "brief.docx",
           "word/document.xml",
@@ -292,12 +303,15 @@ try {
     calls[1].messages.slice(0, calls[0].messages.length),
     calls[0].messages,
   );
+  for (const packet of calls.slice(0, 2)) assert.match(packet.messages[0].content, /직무 역할: 백엔드 엔지니어/);
   assert.match(calls[0].messages[0].content, /Cite source filenames/);
   assert.match(JSON.stringify(calls[0].messages), /print\(42\)/);
   assert.match(JSON.stringify(calls[0].messages), /data:image\/png;base64,/);
   for (const expected of [
     "Document evidence",
     "Slide evidence",
+    "HWPX evidence", "odt evidence", "ott evidence", "odp evidence", "otp evidence",
+    "DOTX evidence", "POTX evidence", "B4=123",
     "A1=42",
     "data:application/pdf;base64,",
   ])
@@ -338,9 +352,11 @@ try {
   // A pending first session completes while a second page is open.
   caseMode = "hold";
   await page.getByLabel("템플릿 적용").selectOption("직접 대화");
+  await page.getByRole("button",{name:"전체 단계 적용"}).click();
   await page.getByLabel("xcode 메시지").fill("parallel-first");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
+  await expect(page.locator('.page-tree .session-state-dot[data-state="running"]')).toHaveCount(1);
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);

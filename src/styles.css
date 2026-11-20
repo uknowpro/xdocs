@@ -2826,7 +2826,32 @@ textarea {
 .xcode .chat-answer p {white-space:normal;}
 .xcode .chat-answer pre {white-space:pre; overflow-x:auto; max-height:none; border-radius:8px;}
 .xcode .chat-live pre {max-height:none; background:transparent; font:inherit; padding:0;}
-.chat-result-actions {align-items:baseline;}
+.chat-result-actions {align-items:flex-start; gap:2px;}
+@media (hover: hover) and (pointer: fine) {
+  .chat-turn:not(:last-of-type):not(:hover):not(:focus-within) > .chat-result-actions:not(:has(details[open])) {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+.xcode .chat-result-actions .chat-action-icon {
+  display:inline-grid; place-items:center; vertical-align:top;
+  width:24px; height:24px; min-height:0; margin:0; padding:0;
+  border:0; border-radius:0; background:transparent; box-shadow:none;
+  color:var(--muted); list-style:none;
+}
+.xcode .chat-result-actions .chat-action-icon:hover,
+.xcode .chat-result-actions details[open] > .chat-action-icon {background:transparent; color:var(--ink);}
+.chat-action-icon::-webkit-details-marker {display:none;}
+.session-state-dot {
+  flex:0 0 7px; height:7px; margin-inline-start:auto;
+  box-sizing:border-box; border-radius:50%; background:var(--surface);
+  border:1px solid var(--muted); box-shadow:0 0 0 1px var(--surface);
+}
+.session-state-dot[data-state="running"] {background:#238857; border-color:#238857;}
+.session-state-dot[data-state="waiting"] {background:#ad721f; border-color:#ad721f;}
+@media (pointer:coarse) {
+  .xcode .chat-result-actions .chat-action-icon {width:40px;height:40px;}
+}
 .chat-result-actions details {min-width:0;}
 .xcode .chat-latest {position:absolute; bottom:.35rem; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:.35rem; background:var(--bg); border-radius:1rem;}
 .chat-composer {max-height:55%; overflow:auto; flex:none; padding:.65rem .85rem; border:1px solid var(--line); border-radius:14px; background:var(--surface);}
@@ -2959,3 +2984,38 @@ textarea {
 .word-selection fieldset :is(p,label,details) {width:100%; margin:0;}
 .word-selection label {display:grid; gap:6px;}
 .word-selection pre {max-height:12rem; overflow:auto; white-space:pre-wrap;}
+
+.session-state-dot[data-state="complete"] {background:#467ed4;border-color:#467ed4;}
+.session-state-dot[data-state="failed"] {background:#cc504c;border-color:#cc504c;}
+.form-fields {display:grid;gap:.5rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));}
+.office-form small {color:var(--muted);}
+.harness-preview li {margin-block:.4rem;}
+
+/* Keep labels, controls and results readable in the workspace detail pane. */
+.main :is(.builder-panel, .aws-inspector, .arch-properties, .infra-detail, .workflow-source) label:has(> :is(input:not([type=checkbox]):not([type=radio]), select, textarea)) {
+  display:grid; align-content:start; gap:8px; min-width:0;
+}
+.main .arch-properties label > :is(input,select,textarea) {margin-block-start:0;}
+.main :is(.builder-panel,.aws-inspector,.arch-properties,.infra-detail) :is(input:not([type=checkbox]):not([type=radio]),select,textarea) {max-width:100%;box-sizing:border-box;}
+.main .builder-panel fieldset > legend {padding-inline:5px;}
+.main .builder-panel :is(p,ol,pre) + :is(button,label,fieldset,details) {margin-block-start:10px;}
+.main .builder-panel details[open] > summary + :is(fieldset,p,div,label) {margin-block-start:8px;}
+.main .builder-panel .form-fields {gap:12px 16px;max-height:min(45vh,24rem);overflow:auto;align-items:start;padding:4px;}
+.main .form-fields label {margin:0;overflow-wrap:anywhere;}
+.main .harness-preview ol {padding-inline-start:1.6rem;line-height:1.55;}
+.main .sheet-grid-settings {gap:8px 16px;margin-block:12px 8px;}
+.main .sheet-toolbar,.main .editor-toolbar {row-gap:8px;}
+.main .office-form {margin-block:4px 8px;}
+.main .office-form fieldset {margin-block-end:6px;}
+@media (max-width:700px) {
+  .main .builder-panel {padding-inline:clamp(8px,2vw,14px);}
+  .main .builder-panel fieldset {padding-inline:10px;}
+  .main .xcode .chat-basic-settings {grid-template-columns:minmax(0,1fr);}
+}
+
+.main .office-form fieldset {display:grid;align-items:start;gap:12px;}
+.main .office-form fieldset > :is(label,p,div,button) {margin:0;min-width:0;}
+.main .office-form .form-actions {display:flex;flex-wrap:wrap;gap:8px;}
+.main .office-form .form-actions button {margin:0;}
+.main .office-form fieldset > button {justify-self:start;}
+.main .xcode > details.office-form {margin:0;padding:0;border:0;}

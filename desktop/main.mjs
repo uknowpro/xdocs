@@ -1,3 +1,4 @@
+import {wordRenderer} from "./docxtpl.mjs";
 import {wordSelections} from "./word-selection.mjs";
 import {portableBackup} from "./portable-backup.mjs";
 import { streamChat, readSkills } from "./xcode.mjs";
@@ -449,6 +450,15 @@ app.whenReady().then(async () => {
     await writeFile(choice.filePath,await readFile(path.join(directory,"word-selection.ps1")));
     return true;
   });
+  const renderDocx = wordRenderer(path.join(app.getPath("userData"),"word-python"), async root => {
+    const result = await dialog.showMessageBox(window,{
+      type:"question", buttons:["취소","설치하고 계속"], defaultId:0,cancelId:0,
+      message:"고급 Word 양식에 python-docx-template가 필요합니다.",
+      detail:"이 기기의 Python 3로 앱 전용 환경을 만들고 PyPI에서 docxtpl 0.20.2와 의존성을 다운로드합니다. 설치 위치: "+root
+    });
+    return result.response===1;
+  });
+  register("word:render-template",renderDocx);
   register("word:capture",async () => {
     const choice = await dialog.showOpenDialog(window,{title:"Word 선택 영역 가져오기",properties:["openFile"],filters:[{name:"xdocs Word",extensions:["json"]}]});
     return choice.canceled ? null : word.capture(choice.filePaths[0]);

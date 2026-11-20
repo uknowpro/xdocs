@@ -1,5 +1,5 @@
 import { pageKind } from "../shared/page-kind.mjs";
-import {sessionRun,leaveWorkspace,stopWorkspaceRuns,useRunningPages} from "./xcode-run";
+import {sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
 import Xcode from "./Xcode";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
@@ -278,7 +278,8 @@ export default function App() {
     workspace?.role === "reader" ||
     workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
-  const runningPages=useRunningPages(workspace?.root);
+  const activity=useSessionActivity(workspace?.root);
+  const runningPages=activity.filter(item=>item.busy);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
   const canvases = useMemo(() => notes.filter(isCanvas), [notes]);
   const outgoing = useMemo(
@@ -1218,6 +1219,7 @@ export default function App() {
           </details>
         )}
         <PageTree
+          runningPages={activity}
           workspaceKey={workspace?.root || ""}
           onQuickCreate={(kind,id,dir) => void createPage(kind,id,undefined,dir)}
           onTrash={(name, items, folder) =>

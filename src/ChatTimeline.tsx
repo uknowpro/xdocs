@@ -1,5 +1,5 @@
-import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, Check, Copy, Terminal } from "lucide-react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, Check, Copy, History, Terminal } from "lucide-react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { validHarness, type Harness, type Turn } from "./xcode-session";
@@ -80,6 +80,11 @@ export default function ChatTimeline({
   const [away, setAway] = useState(false),
     [copied, setCopied] = useState<number | null>(null),
     [copyError, setCopyError] = useState("");
+  useEffect(() => {
+    if (copied === null) return;
+    const timer = window.setTimeout(() => setCopied(null), 1800);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
   useLayoutEffect(() => {
     if (follow.current && view.current)
       view.current.scrollTop = view.current.scrollHeight;
@@ -115,7 +120,9 @@ export default function ChatTimeline({
               <div className="chat-result-actions">
                 {last && (
                   <button
-                    aria-label="답변 복사"
+                    className="chat-action-icon"
+                    aria-label={copied === i ? "복사됨" : "답변 복사"}
+                    title={copied === i ? "복사됨" : "답변 복사"}
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(last.text);
@@ -126,16 +133,19 @@ export default function ChatTimeline({
                       }
                     }}
                   >
-                    {copied === i ? <Check size={14} /> : <Copy size={14} />}
+                    {copied === i ? <Check size={11} /> : <Copy size={11} />}
                   </button>
                 )}
                 <details>
-                  <summary>실행 기록 · {t.answers.length}단계</summary>
+                  <summary className="chat-action-icon" aria-label="실행 기록" title="실행 기록">
+                    <History size={11} aria-hidden="true" />
+                  </summary>
                   {t.execution && (
                     <p>
                       {[
                         t.execution.model,
                         t.execution.harness,
+                        ...(t.execution.configuration?.jobRole && validHarness(t.execution.configuration) ? [t.execution.configuration.jobRole] : []),
                         ...t.execution.skills,
                       ].join(" · ")}
                     </p>

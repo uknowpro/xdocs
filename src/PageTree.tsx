@@ -123,12 +123,14 @@ export default function PageTree({
   onRename,
   onTrash,
   onQuickCreate,
+  runningPages,
   workspaceKey,
 }: {
   notes: Note[];
   active: string;
   readonly: boolean;
   workspaceKey: string;
+  runningPages: { page: string; phase: string; outcome:string; busy:boolean }[];
   onQuickCreate: (kind:"note"|"xcode",parent?: string, directory?: string) => void;
   onTrash: (name: string, notes: Note[], folder: boolean) => void;
   onRename: (note: Note) => void;
@@ -136,6 +138,7 @@ export default function PageTree({
   onMove: (id: string, expected: string, next: string) => Promise<boolean>;
   onCreate: (parent: string, kind: PageKind) => void;
 }) {
+  const phases = new Map(runningPages.map(item => [item.page, item]));
   const { root, pages } = useMemo(() => tree(notes), [notes]);
   const [closed, setClosed] = useState<Set<string>>(() => new Set());
   const limit = 100;
@@ -288,7 +291,13 @@ export default function PageTree({
             open = !closed.has(e.key),
             folder = !n || isFolderPage(n),
             quickLabel = sessionFolders.has(e.key) ? "새 xcode 세션" : "새 노트",
-            Icon = folder ? Folder : icons[pageKind(n!)] || FileText;
+            kind = folder ? "folder" : pageKind(n!),
+            Icon = icons[kind] || FileText;
+          const activity = n && phases.get(n.id);
+          const phase = activity?.phase;
+          const status = activity && !activity.busy && activity.outcome ? activity.outcome : phase === undefined ? "idle"
+            : /대기열|초 후/.test(phase) ? "waiting" : "running";
+          const statusLabel = status==="failed" ? "요청 실패" : status==="complete" ? "새 답변 도착" : phase === undefined ? "대기 중인 요청 없음" : phase || "요청 준비 중";
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
               <div
@@ -399,6 +408,7 @@ export default function PageTree({
                             : "노트 · ") + n.path
                       : e.name
                   }
+                  aria-description={kind === "xcode" ? statusLabel : undefined}
                   aria-current={n?.id === active ? "page" : undefined}
                   onClick={() =>
                     n && !isFolderPage(n) ? onOpen(n.id) : toggle(e.key)
@@ -406,6 +416,9 @@ export default function PageTree({
                 >
                   <Icon size={15} />
                   <span>{e.name}</span>
+                  {kind === "xcode" && (
+                    <i className="session-state-dot" data-state={status} title={statusLabel} aria-hidden="true" />
+                  )}
                 </button>
                 {!readonly && n?.role !== "reader" && (
                   <button

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.16
+
+- Review field values and sources before exporting copies of Word and Excel forms. Advanced Word templates can use an optional local python-docx-template environment installed with user consent.
+- Search 22 job roles and preview 29 task harnesses. Track running, waiting, completed and failed sessions in the page tree.
+- Read HWPX, OpenDocument and Office template attachments in xcode.
+
 ## 0.5.15
 
 - Browse 56 reviewed architecture templates across AWS, Azure, GCP and multi-cloud designs. Check required Terraform inputs and deployment prerequisites before creating a page.

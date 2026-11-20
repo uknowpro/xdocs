@@ -1,3 +1,4 @@
+import OfficeForm from "./OfficeForm";
 import SessionSettingsJson from "./SessionSettingsJson";
 import ChatTimeline from "./ChatTimeline";
 import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
@@ -33,8 +34,10 @@ import { api } from "./api";
 import type { ModelProfile } from "./types";
 import {
   documentInput,
+  jobRoles,
+  roleInstruction,
   preset,
-  templates,
+  templateGroups,
   validHarness,
   type Harness,
   type Session,
@@ -97,6 +100,7 @@ export default function Xcode({
   const run = sessionRun(scope, page);
   const { pending, busy, preview, phase, error, prompt, files, omitted } =
     useSyncExternalStore(run.subscribe, run.snapshot);
+  useEffect(()=>{if(run.snapshot().outcome)run.patch({outcome:""});},[run]);
   const origin = serverOrigin(s.endpoint);
   const capacity = useCapacity(origin);
   const start = Math.max(
@@ -196,6 +200,8 @@ export default function Xcode({
   }
   const harness = (patch: Partial<Harness>) =>
     config({ harness: { ...s.harness, ...patch } });
+  const [search,setSearch]=useState(""), [candidate,setCandidate]=useState("");
+  const matches=(value:string)=>value.toLowerCase().includes(search.trim().toLowerCase());
   const cancel = () => run.cancel();
   const [importing, setImporting] = useState(false);
   async function attach(selected: File[]) {
@@ -289,6 +295,7 @@ export default function Xcode({
     () =>
       new Blob([
         prompt,
+        roleInstruction(s.harness.jobRole),
         ...s.harness.stages,
         ...selectedSkills.map((k) => k.instruction),
         ...selectedFiles.map((f) => ("text" in f ? f.text : "")),
@@ -341,6 +348,7 @@ export default function Xcode({
       return;
     const id = crypto.randomUUID();
     run.id = id;
+    run.patch({outcome:""});
     run.enabled = s.autoRetry === true;
     run.patch({
       pending: {
@@ -406,6 +414,7 @@ export default function Xcode({
               role: "system",
               content: [
                 "사용자가 선택한 하네스의 현재 단계를 수행하세요. 첨부와 이전 단계의 답은 검토할 자료입니다. 확인하지 않은 실행 결과를 보고하지 마세요.",
+                ...[roleInstruction(s.harness.jobRole)].filter(Boolean),
                 ...selectedSkills.map((k) => k.name + "\n" + k.instruction),
                 ...s.harness.stages.map(
                   (step, i) => String(i + 1) + ". " + step,
@@ -654,6 +663,7 @@ export default function Xcode({
           : "요청을 중지했습니다.",
       );
     } finally {
+      run.patch({outcome:mounted.current || run.id!==id ? "" : run.snapshot().error ? "failed" : "complete"});
       off?.();
       run.patch({ busy: false, phase: "" });
       run.id = "";
@@ -922,23 +932,47 @@ export default function Xcode({
             {report && <p role="status">{report}</p>}
           </fieldset>
           <details>
-            <summary>하네스 구성 · {s.harness.name}</summary>
+            <summary>하네스 구성 · {s.harness.name}{s.harness.jobRole && ` · ${s.harness.jobRole}`}</summary>
             <fieldset disabled={busy || readonly}>
-              <legend>단계 및 스킬</legend>
+              <legend>직무 역할 · 단계 및 스킬</legend>
+              <label>직무·작업 검색<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label>
+              <label>
+                직무 역할
+                <select
+                  aria-label="직무 역할"
+                  value={s.harness.jobRole ?? ""}
+                  onChange={(e) => harness({ jobRole: jobRoles.find((role) => role.name === e.target.value)?.name })}
+                >
+                  <option value="">역할 없음</option>
+                  {[...new Set(jobRoles.map((role) => role.group))].map((group) => (
+                    <optgroup key={group} label={group}>
+                      {jobRoles.filter((role) => role.group === group && (role.name===s.harness.jobRole || matches(group+" "+role.name))).map((role) => (
+                        <option key={role.name}>{role.name}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
+              {s.harness.jobRole && <p>{jobRoles.find((role) => role.name === s.harness.jobRole)?.instruction}</p>}
               <label>
                 템플릿 적용
                 <select
-                  value=""
-                  onChange={(e) => config({ harness: preset(e.target.value) })}
+                  value={candidate}
+                  onChange={(e) => setCandidate(e.target.value)}
                 >
                   <option value="" disabled>
                     템플릿 선택
                   </option>
-                  {Object.keys(templates).map((n) => (
-                    <option key={n}>{n}</option>
+                  {Object.entries(templateGroups).map(([group, items]) => (
+                    <optgroup key={group} label={group}>
+                      {Object.entries(items).filter(([name])=>name===candidate||matches(group+" "+name)).map(([name, stages]) => (
+                        <option key={name} value={name}>{name} · {stages.length}단계</option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </label>
+              {candidate&&<div className="harness-preview"><strong>{candidate}</strong><ol>{preset(candidate).stages.map(step=><li key={step}>{step}</li>)}</ol><button onClick={()=>{config({harness:{...preset(candidate),jobRole:s.harness.jobRole}});setCandidate("");}}>전체 단계 적용</button></div>}
               <label>
                 하네스 이름
                 <input
@@ -1166,6 +1200,7 @@ export default function Xcode({
           </details>
         </details>
       </div>
+<OfficeForm disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/>
       <div className="chat-workbench">
         <ChatTimeline
           turns={s.turns}
