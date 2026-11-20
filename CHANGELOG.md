@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.19
+
+- Remove five tall, list-style AWS diagrams from the template gallery. The four AWS architecture case studies remain available.
+
 ## 0.5.18
 
 - Simplify Analyzer to Network, Helm, Manifest and Kubernetes Upgrade while keeping all six analysis paths.

@@ -1,6 +1,7 @@
 [
   {
     "id": "aws-public-alb-private-api-python-terraform",
+    "hiddenFromGallery": true,
     "provider": "AWS",
     "name": "공개 ALB와 사설 API의 진입 경계",
     "study": "인터넷 요청이 사설 API에 도달하는 경로와 인증 경계를 추적한다.",
@@ -124,6 +125,7 @@
   },
   {
     "id": "aws-sfn-emrserverless-terraform-templates",
+    "hiddenFromGallery": true,
     "provider": "AWS",
     "name": "EMR Serverless 데이터 처리 오케스트레이션",
     "study": "상태 전이와 작업 실행 권한을 함께 검토한다.",
@@ -151,6 +153,7 @@
   },
   {
     "id": "aws-lambda-aurora-serverless-python-terraform",
+    "hiddenFromGallery": true,
     "provider": "AWS",
     "name": "사설 Aurora와 함수 기반 데이터 계층",
     "study": "서브넷 배치와 DB 연결 경로를 추적한다.",
@@ -205,6 +208,7 @@
   },
   {
     "id": "aws-apigw-http-api-lambda-rds-proxy-python-terraform-vpc-rds-setup",
+    "hiddenFromGallery": true,
     "provider": "AWS",
     "name": "격리형 RDS Proxy 데이터 계층",
     "study": "DB 프록시와 데이터베이스의 자격 증명 및 네트워크 경계를 검토한다.",
@@ -318,6 +322,7 @@
   },
   {
     "id": "aws-vpc-lattice-lambda-python-terraform",
+    "hiddenFromGallery": true,
     "provider": "AWS",
     "name": "VPC Lattice 서비스 네트워크",
     "study": "서비스 네트워크와 함수 대상 간의 접근 경계를 검토한다.",

@@ -4,7 +4,7 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.18 개발용 프리릴리스**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.19 개발용 프리릴리스**입니다.
 
 ![내장 kubewiser로 분석한 Kubernetes 업그레이드 보고서](docs/images/analyzer-upgrade.png)
 
@@ -22,7 +22,7 @@ Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합�
 - **Analyzer** — netspector·kubewiser v0.2.0-alpha.10·Helm이 앱에 포함되어 별도 설치 없이 로컬에서 분석합니다. 프로젝트 네트워크 경로와 Kubernetes·Helm 호환성을 분석하고, 업그레이드 조치를 하위 노트로 저장해 Builder에서 검토합니다. [Analyzer 사용법](docs/analyzer.md)
 - 조직 보관함·SSO·오프라인 동기화·블록 공동 편집·문서별 편집 제한
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.18) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.19) — 코드 서명·공증 없는 개발용 프리릴리스입니다.
 
 IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resource Group → VNet → Subnet**, **GCP VPC → Subnetwork → VM**을 중첩해서 표시합니다. 이름·Terraform 주소로 리소스를 찾고 선택한 경계 안에 컴포넌트를 추가할 수 있습니다. 경계를 접거나 잠그고, 참조선과 운영 주석을 선택해 볼 수 있습니다. 속성 또는 드래그로 소속을 변경하고 Terraform·CloudFormation·Helm으로 내보낼 수 있습니다. 사이드바의 **새로 만들기 → 새 자동화·스택 캔버스**에서 GitHub Actions, Ansible, Jenkins Declarative, CloudFormation 파일을 가져와 카드별 원문을 편집할 수 있습니다. [캔버스 사용법](docs/automation-canvas-review.md)
 
@@ -106,7 +106,7 @@ Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과�
 
 자신과 회사의 내부 업무를 위한 사용·수정·파생물 제작을 허용합니다. 외부 배포에는 별도 허가가 필요합니다.
 
-IaCD에는 **AWS 9종, Azure 19종, GCP 10종, 멀티클라우드 2종을 합쳐 총 40종**의 오프라인 IaCD 템플릿이 있습니다. 카드에서 주요 참조를 확인하고, EFS 계정 간 복원·Azure 방화벽 라우팅·BigQuery 배치 전환 사례를 도면에서 따라갈 수 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
+IaCD에는 **AWS 4종, Azure 19종, GCP 10종, 멀티클라우드 2종을 합쳐 총 35종**의 오프라인 IaCD 템플릿이 있습니다. 카드에서 주요 참조를 확인하고, EFS 계정 간 복원·Azure 방화벽 라우팅·BigQuery 배치 전환 사례를 도면에서 따라갈 수 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
 
 <details>
 <summary>Builder와 IaCD 템플릿 화면</summary>
