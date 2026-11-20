@@ -2,10 +2,12 @@ import { useState } from "react";
 import { api } from "./api";
 
 export default function WordSelection({
+  close,
   attach,
   answer,
   disabled,
 }: {
+  close: () => void;
   attach: (name: string, text: string) => void;
   answer: string;
   disabled: boolean;
@@ -30,38 +32,45 @@ export default function WordSelection({
     }
   }
   return (
-    <details className="word-selection">
-      <summary>Word 선택 영역</summary>
+    <section className="word-selection" aria-label="Word 선택 영역">
+      <header>
+        <strong>Word 선택 영역</strong>
+        <button onClick={close} aria-label="Word 선택 영역 닫기">
+          닫기
+        </button>
+      </header>
       <fieldset disabled={working || disabled}>
         <legend>Windows Word 연결</legend>
         <p>
           Word에서 본문을 선택하고 Windows PowerShell로 도우미를 실행하세요.
           VMware에서는 도우미를 양쪽에서 열 수 있는 개인 공유 폴더에 저장하세요.
         </p>
-        <button
-          onClick={() =>
-            void action(async () => {
-              if (await api.wordHelper!())
-                setNotice("도우미를 저장했습니다. Windows에서 실행하세요.");
-            })
-          }
-        >
-          Windows 도우미 저장
-        </button>
-        <button
-          onClick={() =>
-            void action(async () => {
-              const captured = await api.wordCapture!();
-              if (!captured) return;
-              attach(captured.name, captured.text);
-              setSelection(captured);
-              setText("");
-              setNotice("선택한 텍스트를 메시지에 첨부했습니다.");
-            })
-          }
-        >
-          Word 선택 영역 가져오기
-        </button>
+        <div className="word-actions">
+          <button
+            onClick={() =>
+              void action(async () => {
+                if (await api.wordHelper!())
+                  setNotice("도우미를 저장했습니다. Windows에서 실행하세요.");
+              })
+            }
+          >
+            Windows 도우미 저장
+          </button>
+          <button
+            onClick={() =>
+              void action(async () => {
+                const captured = await api.wordCapture!();
+                if (!captured) return;
+                attach(captured.name, captured.text);
+                setSelection(captured);
+                setText("");
+                setNotice("선택한 텍스트를 메시지에 첨부했습니다.");
+              })
+            }
+          >
+            Word 선택 영역 가져오기
+          </button>
+        </div>
         {selection && (
           <>
             <details>
@@ -76,33 +85,35 @@ export default function WordSelection({
                 onChange={(e) => setText(e.target.value)}
               />
             </label>
-            {answer && (
+            <div className="word-actions">
+              {answer && (
+                <button
+                  disabled={answer.length > 50000}
+                  onClick={() => setText(answer)}
+                >
+                  최근 답변 사용
+                </button>
+              )}
               <button
-                disabled={answer.length > 50000}
-                onClick={() => setText(answer)}
+                disabled={!text.trim()}
+                onClick={() =>
+                  void action(async () => {
+                    await api.wordPropose!(selection.handle, text);
+                    setSelection(undefined);
+                    setText("");
+                    setNotice(
+                      "수정안을 보냈습니다. Windows에서 확인 후 Word 문서를 저장하세요.",
+                    );
+                  })
+                }
               >
-                최근 답변 사용
+                Word에 수정안 보내기
               </button>
-            )}
-            <button
-              disabled={!text.trim()}
-              onClick={() =>
-                void action(async () => {
-                  await api.wordPropose!(selection.handle, text);
-                  setSelection(undefined);
-                  setText("");
-                  setNotice(
-                    "수정안을 보냈습니다. Windows에서 확인 후 Word 문서를 저장하세요.",
-                  );
-                })
-              }
-            >
-              Word에 수정안 보내기
-            </button>
+            </div>
           </>
         )}
       </fieldset>
       {notice && <p role="status">{notice}</p>}
-    </details>
+    </section>
   );
 }

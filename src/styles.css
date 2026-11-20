@@ -2980,7 +2980,10 @@ textarea {
 .chat-basic-settings .token-storage { grid-column:1/-1; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 
 .word-selection {margin:4px 0; font-size:13px;}
-.word-selection fieldset {display:flex; flex-wrap:wrap; align-items:start; gap:8px; min-width:0;}
+.main .word-selection fieldset {display:grid; grid-template-columns:minmax(0,1fr); align-items:start; gap:12px; min-width:0;}
+.word-selection > header {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.word-selection .word-actions {display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.main .word-selection .word-actions button {margin:0;}
 .word-selection fieldset :is(p,label,details) {width:100%; margin:0;}
 .word-selection label {display:grid; gap:6px;}
 .word-selection pre {max-height:12rem; overflow:auto; white-space:pre-wrap;}
@@ -3019,3 +3022,13 @@ textarea {
 .main .office-form .form-actions button {margin:0;}
 .main .office-form fieldset > button {justify-self:start;}
 .main .xcode > details.office-form {margin:0;padding:0;border:0;}
+
+.chat-attach {anchor-name:--xcode-attach;}
+.chat-attachment-menu {
+  position:fixed; position-anchor:--xcode-attach; inset:auto;
+  left:anchor(left); bottom:anchor(top); position-try-fallbacks:flip-block,flip-inline;
+  margin:0 0 4px; padding:4px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); color:var(--ink);
+}
+.xcode .chat-attachment-menu button {display:block;width:100%;margin:0;padding:8px;text-align:start;border:0;}
+.office-form > header {display:flex;align-items:center;justify-content:space-between;gap:8px;}

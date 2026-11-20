@@ -144,6 +144,10 @@ export default function Xcode({
       files: typeof fn === "function" ? fn(run.snapshot().files) : fn,
     });
   const setError = (error: string) => run.patch({ error });
+  const formHarness = ["Word 양식 작성안", "Excel 양식 입력안"].includes(s.harness.name);
+  const [documentPanel, setDocumentPanel] = useState<"form" | "word" | null>(formHarness ? "form" : null);
+  useEffect(() => setDocumentPanel(formHarness ? "form" : null), [formHarness, s.harness.name]);
+  const attachmentMenu = useRef<HTMLDivElement>(null);
   const attachmentPicker = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(
     () => localStorage.getItem("xdocs.xcode.settings") === "shown",
@@ -1200,7 +1204,12 @@ export default function Xcode({
           </details>
         </details>
       </div>
-<OfficeForm disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/>
+      <div hidden={documentPanel !== "form"}><OfficeForm close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
+      {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
+        <WordSelection close={()=>setDocumentPanel(null)} disabled={busy || readonly}
+          answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
+          attach={(name,text)=>setFiles(previous=>[...previous,{name,text}])}/>
+      </div>}
       <div className="chat-workbench">
         <ChatTimeline
           turns={s.turns}
@@ -1233,18 +1242,32 @@ export default function Xcode({
                 void send();
             }}
           />
-          {local && api.wordCapture && <WordSelection disabled={busy || readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
-            attach={(name,text) => setFiles(previous => [...previous,{name,text}])}/>}
           <div className="chat-toolbar">
             <button
               className="chat-attach"
               aria-label="파일 첨부"
-              title="파일 첨부"
+              title="첨부 옵션"
               disabled={busy || readonly || importing}
-              onClick={() => attachmentPicker.current?.click()}
+              popoverTarget="xcode-attachment-menu"
             >
               <Paperclip size={16} />
             </button>
+            <div id="xcode-attachment-menu" popover="auto" ref={attachmentMenu} className="chat-attachment-menu">
+              <button disabled={busy || readonly || importing} onClick={() => {
+                attachmentMenu.current?.hidePopover();
+                attachmentPicker.current?.click();
+              }}>파일 첨부</button>
+              <button disabled={busy || readonly} onClick={() => {
+                attachmentMenu.current?.hidePopover();
+                setDocumentPanel("form");
+                requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".office-form input[type=file]")?.focus());
+              }}>Word·Excel 양식 채우기</button>
+              {local && api.wordCapture && <button disabled={busy || readonly} onClick={()=>{
+                attachmentMenu.current?.hidePopover();
+                setDocumentPanel("word");
+                requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>(".word-selection fieldset button")?.focus());
+              }}>Word 선택 영역</button>}
+            </div>
             <input
               ref={attachmentPicker}
               hidden

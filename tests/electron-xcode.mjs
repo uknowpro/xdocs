@@ -273,7 +273,9 @@ try {
     dialog.showOpenDialog = async()=>({canceled:false,filePaths:[requestFile]});
     dialog.showSaveDialog = async()=>({canceled:false,filePath:helperFile});
   },{requestFile,helperFile});
-  await page.getByText("Word 선택 영역",{exact:true}).click();
+  await expect(page.locator(".word-selection")).toBeHidden();
+  await page.getByRole("button",{name:"파일 첨부",exact:true}).click();
+  await page.getByRole("button",{name:"Word 선택 영역",exact:true}).click();
   await page.getByRole("button",{name:"Windows 도우미 저장"}).click();
   await expect(page.locator(".word-selection [role=status]")).toContainText("저장했습니다");
   assert.match(await readFile(helperFile,"utf8"),/Word\.Application/);
@@ -342,7 +344,8 @@ try {
   await expect(page.locator(".word-selection [role=status]")).toContainText("수정안을 보냈습니다");
   assert.deepEqual(JSON.parse(await readFile(path.join(root,wordId+".reply.json"),"utf8")),{id:wordId,text:"검토를 마친 문장입니다."});
   assert.equal(await readFile(path.join(root,wordId+".ready"),"utf8"),"");
-  await page.getByText("Word 선택 영역",{exact:true}).click();
+  await page.getByRole("button",{name:"Word 선택 영역 닫기"}).click();
+  await expect(page.locator(".word-selection")).toBeHidden();
   await page.getByLabel("xcode 메시지").fill("wait-for-cancel");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(3);

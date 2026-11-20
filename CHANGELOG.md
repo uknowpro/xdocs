@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.17
+
+- Open Word selection and Office forms from the attachment menu. Applying a Word or Excel form harness opens the form automatically.
+- Group Word capture and revision actions beneath their related controls.
+
 ## 0.5.16
 
 - Review field values and sources before exporting copies of Word and Excel forms. Advanced Word templates can use an optional local python-docx-template environment installed with user consent.

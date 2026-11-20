@@ -7,7 +7,9 @@ export default function OfficeForm({
   disabled,
   answer,
   prepare,
+  close,
 }: {
+  close: () => void;
   disabled: boolean;
   answer: string;
   prepare: (text: string) => void;
@@ -100,8 +102,8 @@ export default function OfficeForm({
     }
   }
   return (
-    <details className="office-form">
-      <summary>Word·Excel 양식 채우기</summary>
+    <section className="office-form" aria-label="Word·Excel 양식 채우기">
+      <header><strong>Word·Excel 양식 채우기</strong><button onClick={close} aria-label="양식 패널 닫기">닫기</button></header>
       <fieldset disabled={disabled || working}>
         <label>
           원본 양식
@@ -179,6 +181,6 @@ export default function OfficeForm({
         )}
       </fieldset>
       {notice && <p role="status">{notice}</p>}
-    </details>
+    </section>
   );
 }
