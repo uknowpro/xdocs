@@ -1,6 +1,7 @@
 import SessionSettingsJson from "./SessionSettingsJson";
 import ChatTimeline from "./ChatTimeline";
 import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
+import WordSelection from "./WordSelection";
 import ProjectInputs from "./ProjectInputs";
 import {
   loadCheckpoint,
@@ -144,7 +145,17 @@ export default function Xcode({
     () => localStorage.getItem("xdocs.xcode.settings") === "shown",
   );
   const [skillQuery, setSkillQuery] = useState("");
-  const [key, setKey] = useState("");
+  const [draftToken, setDraftToken] = useState({value:"", origin:""});
+  const key = draftToken.value;
+  const tokenNeedsApproval = Boolean(key && draftToken.origin !== origin);
+  const setKey = (value:string, endpoint = s.endpoint) =>
+    setDraftToken({value, origin:serverOrigin(endpoint)});
+  const [savingKey, setSavingKey] = useState(false);
+  const currentConnection = useRef({session:s,change,key});
+  currentConnection.current = {session:s,change,key};
+  const mounted = useRef(false);
+  useEffect(() => { mounted.current = true; return () => {mounted.current = false;}; }, []);
+
   const [profiles, setProfiles] = useState<ModelProfile[]>([]),
     [skills, setSkills] = useState<
       { scope: string; name: string; instruction: string }[]
@@ -156,6 +167,33 @@ export default function Xcode({
       .catch((e) => run.patch({ error: String(e) }));
   }, [run]);
   const config = (patch: Partial<Session>) => change({ ...s, ...patch });
+  const linkedProfile = profiles.find(p => p.name === s.profile);
+  const savedProfile = linkedProfile?.endpoint === s.endpoint && linkedProfile.model === s.model ? linkedProfile : undefined;
+  async function rememberToken() {
+    if (!api.saveBuilderProfile || !key || !origin || tokenNeedsApproval || savingKey) return;
+    setSavingKey(true);
+    try {
+      const name = (s.model.trim().slice(0,50) || "xcode") + " · " + crypto.randomUUID();
+      const next = await api.saveBuilderProfile({name,endpoint:s.endpoint,model:s.model,key,remember:true});
+      if (!mounted.current) return;
+      setProfiles(next);
+      const latest = currentConnection.current;
+      if (latest.session.endpoint === s.endpoint && latest.session.model === s.model && latest.key === key) {
+        latest.change({...latest.session,profile:name});
+        setKey("");
+      }
+    } catch (error) {
+      if (mounted.current) setError(String(error));
+    } finally {
+      if (mounted.current) setSavingKey(false);
+    }
+  }
+  function tokenReady() {
+    if (!tokenNeedsApproval && !savingKey) return true;
+    setShowSettings(true);
+    setError(savingKey ? "토큰을 저장하고 있습니다." : "변경한 서버에서 입력한 토큰을 사용할지 선택하세요.");
+    return false;
+  }
   const harness = (patch: Partial<Harness>) =>
     config({ harness: { ...s.harness, ...patch } });
   const cancel = () => run.cancel();
@@ -189,7 +227,7 @@ export default function Xcode({
   const [report, setReport] = useState("");
   useEffect(() => setReport(""), [s.endpoint, s.model, key, probe]);
   async function diagnose() {
-    if (run.snapshot().busy || !api.xcodeChat || readonly) return;
+    if (run.snapshot().busy || !api.xcodeChat || readonly || !tokenReady()) return;
     const id = crypto.randomUUID();
     const controller = new AbortController();
     let release: (() => void) | undefined;
@@ -272,6 +310,7 @@ export default function Xcode({
   );
   const currentInput = { s, prompt, selectedFiles, execution };
   async function send(saved?: Checkpoint) {
+    if (!tokenReady()) return;
     const {
       s: session,
       prompt: initialPrompt,
@@ -688,17 +727,14 @@ export default function Xcode({
         </fieldset>
       )}
       <div hidden={!showSettings}>
-        <fieldset className="chat-basic-settings" disabled={busy || readonly}>
+        <fieldset className="chat-basic-settings" disabled={busy || readonly || savingKey}>
           <legend>모델 연결</legend>
           <label>
             API 주소
             <input
               placeholder="https://server.example/v1/chat/completions"
               value={s.endpoint}
-              onChange={(e) => {
-                setKey("");
-                config({ endpoint: e.target.value, profile: "" });
-              }}
+              onChange={e => config({endpoint:e.target.value})}
             />
           </label>
           <label>
@@ -707,6 +743,7 @@ export default function Xcode({
               type="password"
               autoComplete="off"
               value={key}
+              placeholder={savedProfile?.hasKey ? "이 기기에 저장된 토큰 사용" : undefined}
               onChange={(e) => setKey(e.target.value)}
             />
           </label>
@@ -714,25 +751,25 @@ export default function Xcode({
             모델명
             <input
               value={s.model}
-              onChange={(e) => config({ model: e.target.value, profile: "" })}
+              onChange={e => config({model:e.target.value})}
             />
           </label>
+          <div className="token-storage">
+            {tokenNeedsApproval && origin && <button type="button" onClick={() => {setKey(key);setError("");}}>
+              {origin}에서 이 토큰 사용
+            </button>}
+            {key && api.saveBuilderProfile && <button type="button" disabled={tokenNeedsApproval || !origin || !s.model.trim()} onClick={() => void rememberToken()}>
+              이 기기에 토큰 저장
+            </button>}
+            <small>{key ? "입력한 토큰은 현재 화면에서만 유지됩니다." : savedProfile?.hasKey ? "이 기기에 저장된 토큰을 사용합니다." : linkedProfile?.hasKey ? "저장된 토큰은 원래 API 주소와 모델명으로 돌아가면 다시 사용됩니다." : "서버 인증이 필요하면 토큰을 입력하세요."}</small>
+          </div>
         </fieldset>
         <SessionSettingsJson
           session={s}
           disabled={busy || readonly}
           apply={(settings, token) => {
-            const sameEndpoint = settings.endpoint === s.endpoint;
-            if (token !== undefined || !sameEndpoint) setKey(token ?? "");
-            config({
-              ...settings,
-              profile:
-                sameEndpoint &&
-                settings.model === s.model &&
-                token === undefined
-                  ? s.profile
-                  : "",
-            });
+            if (token !== undefined) setKey(token,settings.endpoint);
+            config({...settings, profile:token === undefined ? s.profile : ""});
           }}
         />
         <details className="chat-advanced">
@@ -831,7 +868,7 @@ export default function Xcode({
               <label>
                 저장된 모델
                 <select
-                  value={s.profile}
+                  value={savedProfile?.name || ""}
                   onChange={(e) => {
                     const p = profiles.find((x) => x.name === e.target.value);
                     setKey("");
@@ -1161,6 +1198,8 @@ export default function Xcode({
                 void send();
             }}
           />
+          {local && api.wordCapture && <WordSelection disabled={busy || readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
+            attach={(name,text) => setFiles(previous => [...previous,{name,text}])}/>}
           <div className="chat-toolbar">
             <button
               className="chat-attach"

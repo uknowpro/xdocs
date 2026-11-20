@@ -1,7 +1,7 @@
 import { zipSync, strToU8 } from "fflate";
 import { _electron, expect } from "@playwright/test";
 import { createServer } from "node:http";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
@@ -20,6 +20,7 @@ await writeFile(
   JSON.stringify({ root: vault }),
 );
 const calls = [];
+let lastAuthorization;
 let slowResponse,
   caseMode = "normal",
   retryCalls = 0;
@@ -28,6 +29,7 @@ const server = createServer(async (req, res) => {
   for await (const chunk of req) chunks.push(chunk);
   const packet = JSON.parse(Buffer.concat(chunks));
   calls.push(packet);
+  lastAuthorization = req.headers.authorization;
   if (caseMode === "hold") {
     slowResponse = res;
     return;
@@ -148,12 +150,41 @@ try {
   await page.getByText("JSON 설정", { exact: true }).click();
   await openAdvanced();
   await expect(page.getByLabel("재요청 간격(초)")).toHaveValue("45");
+  const addressField = page.getByLabel("API 주소");
+  const tokenField = page.getByLabel("API 토큰 (선택)");
+  await addressField.fill("");
+  await addressField.fill(endpoint + "/alternative");
+  await expect(tokenField).toHaveValue("fixture-local-key");
+  await expect(page.getByRole("button",{name:/에서 이 토큰 사용/})).toHaveCount(0);
+  await addressField.fill("https://example.invalid/v1/chat/completions");
+  await expect(tokenField).toHaveValue("fixture-local-key");
+  await page.getByRole("button",{name:"연결 진단 실행"}).click();
+  await expect(page.getByText("변경한 서버에서 입력한 토큰을 사용할지 선택하세요.",{exact:true})).toBeVisible();
+  assert.equal(calls.length,0);
+  await page.getByRole("button",{name:"https://example.invalid에서 이 토큰 사용"}).click();
+  await addressField.fill(endpoint);
+  await page.getByRole("button",{name:new URL(endpoint).origin+"에서 이 토큰 사용"}).click();
+  const canStore = await app.evaluate(({safeStorage}) => safeStorage.isEncryptionAvailable() &&
+    !(process.platform === "linux" && safeStorage.getSelectedStorageBackend?.() === "basic_text"));
+  await page.getByRole("button",{name:"이 기기에 토큰 저장"}).click();
+  if (canStore) {
+    await expect(tokenField).toHaveValue("");
+    await expect(tokenField).toHaveAttribute("placeholder","이 기기에 저장된 토큰 사용");
+    await addressField.fill(endpoint + "/changed");
+    await expect(tokenField).not.toHaveAttribute("placeholder","이 기기에 저장된 토큰 사용");
+    await addressField.fill(endpoint);
+    await expect(tokenField).toHaveAttribute("placeholder","이 기기에 저장된 토큰 사용");
+  } else {
+    await expect(page.getByText(/운영체제 암호화 저장소와 API 키가 필요합니다/)).toBeVisible();
+    await expect(tokenField).toHaveValue("fixture-local-key");
+  }
   for (const kind of ["text", "image", "pdf"]) {
     await page.getByLabel("연결 진단 입력").selectOption(kind);
     await page.getByRole("button", { name: "연결 진단 실행" }).click();
     await expect(page.locator(".xcode [role=status]")).toContainText(
       "SSE 텍스트 응답",
     );
+    assert.equal(lastAuthorization,"Bearer fixture-local-key");
     const packet = calls.pop();
     assert.equal(packet.messages.length, 1);
     if (kind !== "text")
@@ -223,6 +254,20 @@ try {
       },
     ]);
   await page.getByRole("button", { name: "diagram.png 제거" }).waitFor();
+  const wordId = crypto.randomUUID();
+  const requestFile = path.join(root,wordId+".xdocs-word.json");
+  const helperFile = path.join(root,"xdocs-word.ps1");
+  await writeFile(requestFile,JSON.stringify({version:1,id:wordId,name:"업무 보고서.docx",text:"선택한 원문 문장",expires:Date.now()+1800000}));
+  await app.evaluate(({dialog},{requestFile,helperFile})=>{
+    dialog.showOpenDialog = async()=>({canceled:false,filePaths:[requestFile]});
+    dialog.showSaveDialog = async()=>({canceled:false,filePath:helperFile});
+  },{requestFile,helperFile});
+  await page.getByText("Word 선택 영역",{exact:true}).click();
+  await page.getByRole("button",{name:"Windows 도우미 저장"}).click();
+  await expect(page.locator(".word-selection [role=status]")).toContainText("저장했습니다");
+  assert.match(await readFile(helperFile,"utf8"),/Word\.Application/);
+  await page.getByRole("button",{name:"Word 선택 영역 가져오기"}).click();
+  await expect(page.locator(".word-selection [role=status]")).toContainText("첨부했습니다");
   await page.getByText("전송 미리보기", { exact: true }).click();
   await page.getByLabel("새 첨부 · omit.txt").uncheck();
   const composer = page.getByLabel("xcode 메시지");
@@ -274,6 +319,16 @@ try {
   assert.equal(stored.answers[0].retries, 0);
   assert.ok(stored.execution.model);
   assert.doesNotMatch(note.body, /iVBORw0/);
+  assert.match(JSON.stringify(calls[0].messages),/선택한 원문 문장/);
+  await page.getByRole("button",{name:"최근 답변 사용"}).click();
+  const wordEdit = page.getByLabel("Word에 반영할 수정안");
+  await expect(wordEdit).toHaveValue("검토 결과 complete");
+  await wordEdit.fill("검토를 마친 문장입니다.");
+  await page.getByRole("button",{name:"Word에 수정안 보내기"}).click();
+  await expect(page.locator(".word-selection [role=status]")).toContainText("수정안을 보냈습니다");
+  assert.deepEqual(JSON.parse(await readFile(path.join(root,wordId+".reply.json"),"utf8")),{id:wordId,text:"검토를 마친 문장입니다."});
+  assert.equal(await readFile(path.join(root,wordId+".ready"),"utf8"),"");
+  await page.getByText("Word 선택 영역",{exact:true}).click();
   await page.getByLabel("xcode 메시지").fill("wait-for-cancel");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(3);

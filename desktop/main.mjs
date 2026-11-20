@@ -1,3 +1,4 @@
+import {wordSelections} from "./word-selection.mjs";
 import {portableBackup} from "./portable-backup.mjs";
 import { streamChat, readSkills } from "./xcode.mjs";
 import { homedir, tmpdir } from "node:os";
@@ -440,6 +441,19 @@ app.whenReady().then(async () => {
   const profiles=modelProfiles(app.getPath("userData"),safeStorage);
   const chats = new Map();
   const trustedEndpoints = new Set();
+  const word = wordSelections();
+  register("word:helper",async () => {
+    const choice = await dialog.showSaveDialog(window,{title:"Windows Word 도우미 저장",defaultPath:"xdocs-word.ps1",filters:[{name:"Windows PowerShell",extensions:["ps1"]}]});
+    if(choice.canceled || !choice.filePath) return false;
+    if(path.extname(choice.filePath).toLowerCase() !== ".ps1") throw Error(".ps1 확장자로 저장하세요.");
+    await writeFile(choice.filePath,await readFile(path.join(directory,"word-selection.ps1")));
+    return true;
+  });
+  register("word:capture",async () => {
+    const choice = await dialog.showOpenDialog(window,{title:"Word 선택 영역 가져오기",properties:["openFile"],filters:[{name:"xdocs Word",extensions:["json"]}]});
+    return choice.canceled ? null : word.capture(choice.filePaths[0]);
+  });
+  register("word:propose",(handle,text) => word.propose(handle,text));
   register("xcode:authorize", async endpoint => {
     const address = builderEndpoint(endpoint).href;
     if (trustedEndpoints.has(address)) return true;

@@ -2951,3 +2951,11 @@ textarea {
 
 .page-popup label:has(select) { display:grid; gap:4px; padding:4px; font-size:12px; color:var(--muted); }
 .page-popup label select { width:100%; }
+
+.chat-basic-settings .token-storage { grid-column:1/-1; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+
+.word-selection {margin:4px 0; font-size:13px;}
+.word-selection fieldset {display:flex; flex-wrap:wrap; align-items:start; gap:8px; min-width:0;}
+.word-selection fieldset :is(p,label,details) {width:100%; margin:0;}
+.word-selection label {display:grid; gap:6px;}
+.word-selection pre {max-height:12rem; overflow:auto; white-space:pre-wrap;}

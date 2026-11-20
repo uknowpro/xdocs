@@ -1563,7 +1563,7 @@ export default function App() {
               ) : xcode ? (
                 <Xcode
                   local={!shared}
-                  key={active}
+                  key={JSON.stringify([workspace?.root, active])}
                   page={active}
                   scope={workspace!.root}
                   prepare={flush}
