@@ -23,6 +23,7 @@ export function validateWorkbook(value) {
       ids.has(sheet.id) ||
       typeof sheet.name !== "string" ||
       !sheet.name.trim() ||
+      (sheet.firstRowHeader !== undefined && typeof sheet.firstRowHeader !== "boolean") ||
       sheet.name.length > 100 ||
       !Array.isArray(sheet.rows) ||
       sheet.rows.length > LIMITS.rows
@@ -147,10 +148,10 @@ export function sheetMarkdown(sheet) {
     ) +
     " |";
   return (
-    row(sheet.rows[0] || []) +
+    row(sheet.firstRowHeader ? sheet.rows[0] || [] : Array(width).fill("")) +
     "\n" +
     row(Array(width).fill("---")) +
     "\n" +
-    sheet.rows.slice(1).map(row).join("\n")
+    sheet.rows.slice(sheet.firstRowHeader ? 1 : 0).map(row).join("\n")
   );
 }

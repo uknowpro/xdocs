@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus, Copy, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import {
   parseDelimited,
@@ -8,7 +8,12 @@ import {
 } from "../shared/tabular.mjs";
 export interface SheetBook {
   version: 1;
-  sheets: { id: string; name: string; rows: string[][] }[];
+  sheets: {
+    id: string;
+    name: string;
+    firstRowHeader?: boolean;
+    rows: string[][];
+  }[];
 }
 export default function SheetTable({
   workbook,
@@ -118,12 +123,81 @@ export default function SheetTable({
       label = String.fromCharCode(65 + ((n - 1) % 26)) + label;
     return label;
   };
+  const pointer = useRef<number | null>(null);
+  function extendSelection(e: React.PointerEvent<HTMLTableElement>) {
+    const cell = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest("td,th")
+      ?.querySelector("textarea");
+    if (!cell || !e.currentTarget.contains(cell)) return;
+    const r = Number(cell.dataset.row),
+      c = Number(cell.dataset.column);
+    setEnd((prev) => (prev[0] === r && prev[1] === c ? prev : [r, c]));
+  }
+  function renderRow(r: number, header = false) {
+    const Cell = header ? "th" : "td";
+    return (
+      <tr key={r}>
+        <th>{r + 1}</th>
+        {Array.from({ length: columns }, (_, c) => (
+          <Cell
+            scope={header ? "col" : undefined}
+            key={c}
+            className={
+              r >= minR && r <= maxR && c >= minC && c <= maxC ? "selected" : ""
+            }
+          >
+            <textarea
+              rows={1}
+              data-multiline={sheet.rows[r]?.[c]?.includes("\n") || undefined}
+              aria-label={`${sheet.name} ${letter(c)}${r + 1}`}
+              value={sheet.rows[r]?.[c] || ""}
+              readOnly={readonly}
+              onKeyDown={(e) => {
+                if (
+                  e.altKey ||
+                  !["Tab", "ArrowDown", "ArrowUp"].includes(e.key)
+                )
+                  return;
+                e.preventDefault();
+                let nr = r,
+                  nc = c;
+                if (e.key === "Tab") {
+                  nc += e.shiftKey ? -1 : 1;
+                  if (nc >= columns) {
+                    nc = 0;
+                    nr++;
+                  }
+                  if (nc < 0) {
+                    nc = columns - 1;
+                    nr--;
+                  }
+                } else nr += e.key === "ArrowDown" ? 1 : -1;
+                nr = Math.max(0, Math.min(rowCount - 1, nr));
+                setAnchor([nr, nc]);
+                setEnd([nr, nc]);
+                setPage(Math.floor(nr / 100));
+                const book = e.currentTarget.closest(".sheet-book");
+                requestAnimationFrame(() =>
+                  book
+                    ?.querySelector<HTMLTextAreaElement>(
+                      `textarea[data-row="${nr}"][data-column="${nc}"]`,
+                    )
+                    ?.focus(),
+                );
+              }}
+              data-row={r}
+              data-column={c}
+              onChange={(e) => updateCell(r, c, e.target.value)}
+            />
+          </Cell>
+        ))}
+      </tr>
+    );
+  }
   return (
     <section className="sheet-book" aria-label="시트 탭형 테이블">
       <div className="sheet-toolbar">
-        <span>
-          <strong>{sheet.name}</strong> · {sheet.rows.length.toLocaleString()}행
-        </span>
         <button
           className="button"
           onClick={async () => {
@@ -138,6 +212,7 @@ export default function SheetTable({
           <Copy size={14} />
           선택 복사
         </button>
+
         <button
           className="button"
           disabled={readonly}
@@ -148,10 +223,35 @@ export default function SheetTable({
           <FileText size={14} />
           노트 표로 복제
         </button>
-        {!readonly && <button className="button" onClick={()=>{
-          const range=sheet.name+"!"+letter(minC)+(minR+1)+":"+letter(maxC)+(maxR+1);
-          onNote(range,"# "+range+"\n\n"+sheetMarkdown({...sheet,rows:selection()})+"\n");
-        }}>선택 범위를 노트로 복제</button>}
+        {!readonly && (
+          <button
+            className="button"
+            onClick={() => {
+              const range =
+                sheet.name +
+                "!" +
+                letter(minC) +
+                (minR + 1) +
+                ":" +
+                letter(maxC) +
+                (maxR + 1);
+              onNote(
+                range,
+                "# " +
+                  range +
+                  "\n\n" +
+                  sheetMarkdown({
+                    ...sheet,
+                    firstRowHeader: !!sheet.firstRowHeader && minR === 0,
+                    rows: selection(),
+                  }) +
+                  "\n",
+              );
+            }}
+          >
+            선택 범위를 노트로 복제
+          </button>
+        )}
         {!readonly && (
           <>
             <button className="button" onClick={rename}>
@@ -182,10 +282,33 @@ export default function SheetTable({
         )}
       </div>
       <p className="small-text muted">
-        셀 클릭 후 Shift+클릭으로 범위 선택 · Ctrl/⌘ C 복사 · Ctrl/⌘ V 붙여넣기
-        · 값만 저장하며 수식을 실행하지 않습니다.
+        마우스 드래그 또는 Shift+클릭으로 범위 선택 · Ctrl/⌘ C 복사 · Ctrl/⌘ V
+        붙여넣기 · 값만 저장하며 수식을 실행하지 않습니다.
       </p>
       {message && <p role="status">{message}</p>}
+      <div className="sheet-grid-settings">
+        <span>
+          <strong>{sheet.name}</strong> · {sheet.rows.length.toLocaleString()}행
+        </span>
+        <label className="sheet-header-option">
+          <input
+            type="checkbox"
+            checked={Boolean(sheet.firstRowHeader)}
+            disabled={readonly}
+            onChange={(e) =>
+              commit({
+                ...workbook,
+                sheets: workbook.sheets.map((s) =>
+                  s.id === sheet.id
+                    ? { ...s, firstRowHeader: e.target.checked }
+                    : s,
+                ),
+              })
+            }
+          />
+          첫 행을 헤더로 사용
+        </label>
+      </div>
       <div
         className="sheet-scroll"
         onCopy={(e) => {
@@ -198,7 +321,38 @@ export default function SheetTable({
           paste(e.clipboardData.getData("text/plain"));
         }}
       >
-        <table className="sheet-grid" aria-label={sheet.name}>
+        <table
+          className="sheet-grid"
+          aria-label={sheet.name}
+          onPointerDown={(e) => {
+            const cell = (e.target as Element).closest("textarea");
+            if (!cell || e.button !== 0) return;
+            const pos: [number, number] = [
+              Number(cell.dataset.row),
+              Number(cell.dataset.column),
+            ];
+            if (!e.shiftKey) setAnchor(pos);
+            setEnd(pos);
+            if (e.pointerType === "mouse") {
+              pointer.current = e.pointerId;
+              cell.setPointerCapture(e.pointerId);
+            }
+          }}
+          onPointerMove={(e) => {
+            if (pointer.current !== e.pointerId || !(e.buttons & 1)) return;
+            extendSelection(e);
+          }}
+          onLostPointerCapture={() => {
+            pointer.current = null;
+          }}
+          onPointerUp={(e) => {
+            if (pointer.current === e.pointerId) extendSelection(e);
+            pointer.current = null;
+          }}
+          onPointerCancel={() => {
+            pointer.current = null;
+          }}
+        >
           <thead>
             <tr>
               <th></th>
@@ -206,79 +360,14 @@ export default function SheetTable({
                 <th key={c}>{letter(c)}</th>
               ))}
             </tr>
+            {sheet.firstRowHeader && renderRow(0, true)}
           </thead>
           <tbody>
             {Array.from(
               { length: Math.min(100, Math.max(0, rowCount - page * 100)) },
               (_, offset) => {
                 const r = page * 100 + offset;
-                return (
-                  <tr key={r}>
-                    <th>{r + 1}</th>
-                    {Array.from({ length: columns }, (_, c) => (
-                      <td
-                        key={c}
-                        className={
-                          r >= minR && r <= maxR && c >= minC && c <= maxC
-                            ? "selected"
-                            : ""
-                        }
-                      >
-                        <textarea
-                          rows={1}
-                          data-multiline={sheet.rows[r]?.[c]?.includes("\n") || undefined}
-                          aria-label={`${sheet.name} ${letter(c)}${r + 1}`}
-                          value={sheet.rows[r]?.[c] || ""}
-                          readOnly={readonly}
-                          onClick={(e) => {
-                            if (e.shiftKey) setEnd([r, c]);
-                            else {
-                              setAnchor([r, c]);
-                              setEnd([r, c]);
-                            }
-                          }}
-
-                          onKeyDown={(e) => {
-                            if (
-                              e.altKey ||
-                              !["Tab", "ArrowDown", "ArrowUp"].includes(e.key)
-                            )
-                              return;
-                            e.preventDefault();
-                            let nr = r,
-                              nc = c;
-                            if (e.key === "Tab") {
-                              nc += e.shiftKey ? -1 : 1;
-                              if (nc >= columns) {
-                                nc = 0;
-                                nr++;
-                              }
-                              if (nc < 0) {
-                                nc = columns - 1;
-                                nr--;
-                              }
-                            } else nr += e.key === "ArrowDown" ? 1 : -1;
-                            nr = Math.max(0, Math.min(rowCount - 1, nr));
-                            setAnchor([nr, nc]);
-                            setEnd([nr, nc]);
-                            setPage(Math.floor(nr / 100));
-                            const book = e.currentTarget.closest(".sheet-book");
-                            requestAnimationFrame(() =>
-                              book
-                                ?.querySelector<HTMLTextAreaElement>(
-                                  `textarea[data-row="${nr}"][data-column="${nc}"]`,
-                                )
-                                ?.focus(),
-                            );
-                          }}
-                          data-row={r}
-                          data-column={c}
-                          onChange={(e) => updateCell(r, c, e.target.value)}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                );
+                return sheet.firstRowHeader && r === 0 ? null : renderRow(r);
               },
             )}
           </tbody>

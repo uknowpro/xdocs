@@ -129,6 +129,7 @@ function exportHtml(note) {
     if (m)
       body = body.replace(/^```xdocs-architecture\r?\n[^]*?\r?\n```$/m, () =>
         sheetMarkdown({
+          firstRowHeader: true,
           rows: [
             ["컴포넌트", "종류"],
             ...m.nodes.map((n) => [n.label, n.kind]),

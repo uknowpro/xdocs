@@ -1,4 +1,4 @@
-import { _electron as electron } from "@playwright/test";
+import { _electron as electron, expect } from "@playwright/test";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -125,6 +125,25 @@ try {
   const cell=page.getByRole("textbox",{name:"고객 B2",exact:true});
   await cell.waitFor();
   assert.equal(await cell.inputValue(),"서울, 본사");
+  const header = page.getByRole("checkbox", {name:"첫 행을 헤더로 사용"});
+  assert.equal(await header.isChecked(),false);
+  await header.check();
+  const first = page.getByRole("textbox",{name:"고객 A1",exact:true});
+  assert.equal(await first.evaluate(el => el.closest("th")?.scope),"col");
+  await cell.dragTo(first);
+  await expect(page.locator(".sheet-grid .selected")).toHaveCount(4);
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+  const copied = await app.evaluate(({clipboard}) => clipboard.readText());
+  assert.equal(copied.replaceAll("\r\n","\n"),"업체\t메모\n가나다\t서울, 본사");
+  await page.waitForFunction(() => document.querySelector(".save-state")?.textContent?.includes("로컬에 저장됨"));
+  const sheetNote = await page.evaluate(async () => {
+    const vault = await window.xdocs.refresh();
+    return window.xdocs.readNote(vault.notes.find(n => n.title === "고객").id);
+  });
+  assert.match(sheetNote.body,/"firstRowHeader":true/);
+  await header.uncheck();
+  assert.equal(await first.evaluate(el => el.closest("td") !== null),true);
+  assert.equal(await readFile(csv(temp),"utf8"),'업체,메모\r\n가나다,"서울, 본사"\r\n');
   console.log(
     "PASS Electron sheet import: native picker, tabs, values, local save, source unchanged, protected file attached without extraction",
   );

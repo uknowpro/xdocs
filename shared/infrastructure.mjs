@@ -112,6 +112,7 @@ export function infrastructureMarkdown(value) {
   return (
     "## 리소스 목록\n\n" +
     sheetMarkdown({
+      firstRowHeader: true,
       rows: [
         ["리소스", "종류", "범위", "계획 작업", "참조 대상"],
         ...value.resources.map((r) => [
@@ -125,6 +126,7 @@ export function infrastructureMarkdown(value) {
     }) +
     "\n\n## 운영 메모\n\n" +
     sheetMarkdown({
+      firstRowHeader: true,
       rows: [["리소스", "메모"], ...Object.entries(value.notes || {})],
     })
   );
