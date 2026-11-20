@@ -203,9 +203,9 @@ export default function SheetTable({
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(toTSV(selection()));
-              setMessage("선택 영역을 탭 구분으로 복사했습니다.");
+              setMessage("");
             } catch {
-              setMessage("표 안에서 Ctrl/Cmd+C로 복사해 주세요.");
+              setMessage("클립보드에 복사하지 못했습니다.");
             }
           }}
         >
@@ -281,10 +281,6 @@ export default function SheetTable({
           </>
         )}
       </div>
-      <p className="small-text muted">
-        마우스 드래그 또는 Shift+클릭으로 범위 선택 · Ctrl/⌘ C 복사 · Ctrl/⌘ V
-        붙여넣기 · 값만 저장하며 수식을 실행하지 않습니다.
-      </p>
       {message && <p role="status">{message}</p>}
       <div className="sheet-grid-settings">
         <span>

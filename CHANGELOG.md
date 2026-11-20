@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.20
+
+- Remove the persistent selection and clipboard shortcut instructions from sheets. Successful copies are silent, and selected cells still copy as tab-separated values.
+
 ## 0.5.19
 
 - Remove five tall, list-style AWS diagrams from the template gallery. The four AWS architecture case studies remain available.
