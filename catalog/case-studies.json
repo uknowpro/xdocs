@@ -57,33 +57,6 @@
     ]
   },
   {
-    "id": "retail-data-estate",
-    "provider": "멀티클라우드",
-    "name": "리테일 · 3개 클라우드 주문 분석과 수요 예측",
-    "study": "AWS 주문 원본을 보존하고 GCP에서 정제 Parquet을 분석하며 Azure에는 지역별 집계 결과를 제공하는 설계다.",
-    "review": {
-      "reliability": "배치 ID·주문 일자·행 수를 기록한다. 누락된 날짜만 재처리한 후 집계 중복을 검사한다.",
-      "security": "원시 주문의 개인 식별자를 정제 단계에서 제거한다. 보고서 배포 계정에는 집계 영역 읽기만 부여한다.",
-      "cost": "원본 전체 재전송과 일 단위 증분 복제의 전송량, BigQuery 스캔 바이트, 데이터 보관 기간을 비교한다.",
-      "operations": "실선은 GCS의 Parquet을 읽는 BigQuery 외부 테이블이다. 점선의 전송 작업, 인증 연결, 모델 학습과 보고 파이프라인은 별도 구성 대상이다.",
-      "performance": "일자별 주문 집계의 완전성 및 도착 지연을 확인한 뒤 검증된 분할만 수요 예측 입력으로 승격한다."
-    },
-    "caseStudy": true,
-    "kinds": [
-      "aws_s3_bucket",
-      "aws_s3_bucket_versioning",
-      "aws_s3_bucket_public_access_block",
-      "azurerm_resource_group",
-      "azurerm_storage_account",
-      "azurerm_storage_data_lake_gen2_filesystem",
-      "azurerm_data_factory",
-      "google_storage_bucket",
-      "google_bigquery_dataset",
-      "google_bigquery_table",
-      "google_vertex_ai_dataset"
-    ]
-  },
-  {
     "id": "azure-isolated-spokes",
     "provider": "Azure",
     "name": "업무 분리 · 허브와 두 스포크",

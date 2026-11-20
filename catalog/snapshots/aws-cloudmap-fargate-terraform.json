@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "AWS · Fargate 서비스 검색과 사설 워크로드",
+  "title": "AWS · Fargate 서비스 검색과 Cloud Map 공개 DNS",
   "settings": {
     "aws_region": "ap-northeast-2",
     "azure_subscription": "",

@@ -136,16 +136,17 @@ test("nested network gallery previews match the AWS subnet canvas", async ({ pag
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", {name:"IaCD 아키텍처", exact:true}).click();
-  const compute = page.getByRole("button",{name:"결제 서비스 · 격리 복구 리허설",exact:true});
-  await expect(compute.getByAltText("영역형 구성도")).toBeVisible();
-  await page.getByLabel("템플릿 검색").fill("Fargate 서비스 검색");
-  await expect(page.getByAltText("영역형 구성도")).toBeVisible();
-  await page.getByLabel("템플릿 검색").fill("결제 서비스 · 격리 복구 리허설");
-  await compute.click();
+  const search = page.getByLabel("템플릿 검색");
+  await search.fill("결제 서비스 · 격리 복구 리허설");
+  await expect(page.getByRole("button", {name:"템플릿으로 시작"})).toBeDisabled();
+  await search.fill("Fargate 서비스 검색");
+  const card = page.getByRole("button",{name:"Fargate 서비스 검색과 Cloud Map 공개 DNS",exact:true});
+  await expect(card.getByAltText("영역형 구성도")).toBeVisible();
+  await card.click();
   await page.getByRole("button",{name:"템플릿으로 시작"}).click();
-  await expect(page.getByLabel("아키텍처 제목")).toHaveValue("AWS · 결제 서비스 · 격리 복구 리허설");
+  await expect(page.getByLabel("아키텍처 제목")).toHaveValue("AWS · Fargate 서비스 검색과 Cloud Map 공개 DNS");
   const diagram = page.locator(".network-sheet");
-  await expect(diagram.locator("[data-scope]")).toHaveCount(11);
+  await expect(diagram.locator("[data-scope]")).toHaveCount(14);
   await diagram.screenshot({path:"test-results/aws-subnet-template.png"});
 });
 

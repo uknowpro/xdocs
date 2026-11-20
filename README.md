@@ -14,7 +14,7 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 
 - **Notes** — Open **새로 만들기** for sheets, canvases and tools, or click the workspace name to switch workspaces. Use the workspace’s + to create a folder and a folder’s + to start a note. New notes open in the block editor. Edit Markdown or blocks, follow backlinks, browse the graph, restore revisions, attach images and PDFs, import HTML or Markdown, and export Markdown, HTML or PDF. Choose light, gray, dark or system appearance.
 - **Sheets** — Import Excel, CSV and TSV. Import a folder of workbooks to preserve the directory tree, with a page per workbook and a tab per sheet. Copy a selection as tab-separated text. [Sheet guide](docs/sheets.md)
-- **Infrastructure** — Inventory Terraform/OpenTofu, Kubernetes and Compose resources, inspect relationships and record operational notes. Design nested cloud networks and move between a component and its Terraform declaration. Compare module input and output declarations across two versions using local terraform-docs JSON files. Review local Terraform/OpenTofu plan JSON on the canvas and reuse selected boundaries as workspace templates. Filter template previews by provider and scenario. Edit a resource alongside its live Terraform, follow references in either direction and compare the current file with its opening version. Browse 57 designs covering AWS (17), Azure (19), GCP (17) and multi-cloud (4), including multi-account audit, regional application failover and dual-cloud branch routing. Each case includes a design question. Export supported components to Terraform, CloudFormation, Helm or Kubernetes manifests. [IaCD guide](docs/iacd.md) · [Infrastructure guide](docs/infrastructure.md)
+- **Infrastructure** — Inventory Terraform/OpenTofu, Kubernetes and Compose resources, inspect relationships and record operational notes. Design nested cloud networks and move between a component and its Terraform declaration. Compare module input and output declarations across two versions using local terraform-docs JSON files. Review local Terraform/OpenTofu plan JSON on the canvas and reuse selected boundaries as workspace templates. Filter template previews by provider and scenario. Edit a resource alongside its live Terraform, follow references in either direction and compare the current file with its opening version. Browse 54 designs covering AWS (16), Azure (19), GCP (16) and multi-cloud (3), including multi-account audit, regional application failover and dual-cloud branch routing. Each case includes a design question. Export supported components to Terraform, CloudFormation, Helm or Kubernetes manifests. [IaCD guide](docs/iacd.md) · [Infrastructure guide](docs/infrastructure.md)
 - **Automation canvases** — Import GitHub Actions, Jenkins Declarative, Ansible and CloudFormation files, edit individual blocks, and embed a linked canvas preview in a note. [Canvas guide](docs/automation-canvas-review.md)
 - **xcode** — Chat with a self-hosted model, attach project files and follow streamed replies. Enter the full Chat Completions URL, an optional API token and the model ID to start chatting. Import or edit `settings.json` to reuse a connection and retry settings. Resume interrupted stages in a local workspace. [Session guide](docs/xcode.md)
 - **Analyzer** — Project scans run offline using the bundled netspector, kubewiser v0.2.0-alpha.10 and Helm executables. Inspect project network paths, Kubernetes manifests and Helm charts. Compare Kubernetes versions and save findings as a linked report for Builder. [Analyzer guide](docs/analyzer.md)
@@ -32,15 +32,15 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 <details>
 <summary>Architecture and automation screenshots</summary>
 
-Under **IaCD → 사례 설계**, open the two-zone Seoul egress network, private EKS operations platform or three-cloud retail analytics design. The Azure hub-and-spoke and GCP regional Shared VPC cases include resource-level diagrams and operational review notes. Select a resource in the overview to inspect its Terraform source. Dashed arrows indicate integration work to configure.
+Under **IaCD → 사례 설계**, open the two-zone Seoul egress network, private EKS operations platform or dual-cloud branch routing design. The Azure hub-and-spoke and GCP regional Shared VPC cases include resource-level diagrams and operational review notes. Select a resource in the overview to inspect its Terraform source. Dashed arrows indicate integration work to configure.
 
 ![Seoul VPC design with two availability zones and zonal NAT gateways](docs/images/seoul-case.png)
 
 ![Dual on-premises routers with independent AWS and GCP paths](docs/images/branch-routing.png)
 
-In the AWS catalog, open **결제 서비스 · 격리 복구 리허설** to see an EC2 instance inside its subnet and VPC. Cards marked **영역형** show nested resource boundaries.
+In the AWS catalog, open **Fargate 서비스 검색과 Cloud Map 공개 DNS** to inspect the VPC, subnet and ECS service discovery resources. Cards marked **영역형** show nested resource boundaries.
 
-![EC2 inside a subnet and VPC](docs/images/aws-subnet-template.png)
+![Fargate service discovery network](docs/images/aws-subnet-template.png)
 
 ![Nested cloud and Kubernetes resources](docs/images/iacd.png)
 ![Azure hub with two isolated spokes](docs/images/azure-spokes.png)

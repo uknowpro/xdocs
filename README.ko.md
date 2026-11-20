@@ -48,15 +48,15 @@ IaCD의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Resou
 <details>
 <summary>IaCD 아키텍처 캔버스 보기</summary>
 
-**IaCD → 사례 설계**에서 서울 이중 AZ 이그레스, EKS 사설 운영 플랫폼, 멀티클라우드 주문 분석, Azure 허브·스포크, GCP 서울·도쿄 Shared VPC 설계를 열 수 있습니다. 구성도에서 리소스를 선택하면 속성과 Terraform 원본을 확인할 수 있습니다. 점선 화살표는 운영 시 연결할 경로입니다.
+**IaCD → 사례 설계**에서 서울 이중 AZ 이그레스, EKS 사설 운영 플랫폼, 이중 라우터 기반 AWS·GCP 지점망, Azure 허브·스포크, GCP 서울·도쿄 Shared VPC 설계를 열 수 있습니다. 구성도에서 리소스를 선택하면 속성과 Terraform 원본을 확인할 수 있습니다. 점선 화살표는 운영 시 연결할 경로입니다.
 
 ![서울 리전의 두 가용 영역과 NAT Gateway 이그레스 구성도](docs/images/seoul-case.png)
 
 ![지점 라우터 이중화와 AWS·GCP 독립 경로를 표시한 구성도](docs/images/branch-routing.png)
 
-AWS 카탈로그에서 **결제 서비스 · 격리 복구 리허설**를 열면 VPC 안의 서브넷과 그 안의 EC2를 볼 수 있습니다. 중첩된 경계가 있는 카드에는 **영역형**이 표시됩니다.
+AWS 카탈로그에서 **Fargate 서비스 검색과 Cloud Map 공개 DNS**를 열면 VPC와 서브넷, ECS 서비스 검색에 쓰이는 리소스를 확인할 수 있습니다. 중첩된 경계가 있는 카드에는 **영역형**이 표시됩니다.
 
-![VPC 안의 서브넷과 EC2](docs/images/aws-subnet-template.png)
+![Fargate 서비스 검색 네트워크](docs/images/aws-subnet-template.png)
 
 ![AWS·Azure·GCP·Kubernetes 경계와 소속 리소스를 중첩한 IaCD 캔버스](docs/images/iacd.png)
 
@@ -110,7 +110,7 @@ Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과�
 
 자신과 회사의 내부 업무를 위한 사용·수정·파생물 제작을 허용합니다. 외부 배포에는 별도 허가가 필요합니다.
 
-IaCD에는 **AWS 17종, Azure 19종, GCP 17종, 멀티클라우드 4종을 합쳐 총 57종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
+IaCD에는 **AWS 16종, Azure 19종, GCP 16종, 멀티클라우드 3종을 합쳐 총 54종**의 오프라인 IaCD 템플릿이 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
 
 <details>
 <summary>Builder와 IaCD 템플릿 화면</summary>

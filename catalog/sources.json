@@ -312,7 +312,7 @@
   {
     "id": "aws-cloudmap-fargate-terraform",
     "provider": "AWS",
-    "name": "Fargate 서비스 검색과 사설 워크로드",
+    "name": "Fargate 서비스 검색과 Cloud Map 공개 DNS",
     "study": "서비스 이름이 네트워크 내 태스크로 해석되는 경로를 확인한다.",
     "kinds": [
       "aws_default_security_group",

@@ -316,7 +316,7 @@ test("review a live Terraform edit beside the canvas and follow incoming referen
   await expect(page.locator(".catalog-large-preview")).toContainText("ap-northeast-2");
   await page.getByRole("slider",{name:/배율/}).press("End");
   expect(await page.locator(".catalog-preview-scroll").evaluate(el=>el.scrollWidth > el.clientWidth)).toBe(true);
-  await page.getByLabel("업무 시나리오").selectOption("복구 · 백업");
+  await page.getByLabel("업무 시나리오").selectOption("공유 이그레스");
   const filtered = await gallery.getByRole("button").count();
   expect(filtered).toBeGreaterThan(0);
   expect(filtered).toBeLessThan(total);

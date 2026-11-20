@@ -178,11 +178,20 @@ export function ArchitectureStart({
   const [catalogMode, setCatalogMode] = useState("전체");
   const [scenario, setScenario] = useState("");
   const query = catalogSearch.trim().toLowerCase();
+  const catalogModes = (cloud: string) => ["전체", ...["사례 설계", "컴포넌트 편집", "Terraform 원본"].filter(mode =>
+    cloudTemplates.some(t => t.provider === cloud && templateMode(t) === mode))];
+  function templateMode(t: typeof cloudTemplates[number]) {
+    return "caseStudy" in t ? "사례 설계" : "repo" in t ? "Terraform 원본" : "컴포넌트 편집";
+  }
+  const matchesScenario = (t: typeof cloudTemplates[number], name: string) =>
+    scenarios[name].test([t.name, t.study, t.id, ...t.kinds].join(" "));
+  const availableScenarios = (cloud: string) => Object.keys(scenarios).filter(name =>
+    cloudTemplates.some(t => t.provider === cloud && matchesScenario(t, name)));
   const matches = cloudTemplates.filter(
     (t) =>
       t.provider === provider &&
-      (!scenario || scenarios[scenario].test([t.name, t.study, t.id, ...t.kinds].join(" "))) &&
-      (catalogMode === "전체" || catalogMode === ("caseStudy" in t ? "사례 설계" : "repo" in t ? "Terraform 원본" : "컴포넌트 편집")) &&
+      (!scenario || matchesScenario(t, scenario)) &&
+      (catalogMode === "전체" || catalogMode === templateMode(t)) &&
       (!query ||
         [t.name, t.study, t.id, ...t.kinds].some((v) =>
           (v + " " + (COMPONENTS[v]?.label || "")).toLowerCase().includes(query),
@@ -295,6 +304,8 @@ export function ArchitectureStart({
               value={provider}
               onChange={(e) => {
                 setProvider(e.target.value);
+                if (scenario && !availableScenarios(e.target.value).includes(scenario)) setScenario("");
+                if (!catalogModes(e.target.value).includes(catalogMode)) setCatalogMode("전체");
                 setTemplateId(
                   cloudTemplates.find((t) => t.provider === e.target.value)!.id,
                 );
@@ -309,7 +320,7 @@ export function ArchitectureStart({
             <span>업무 시나리오</span>
             <select value={scenario} onChange={e => setScenario(e.target.value)}>
               <option value="">전체 시나리오</option>
-              {Object.keys(scenarios).map(name => <option key={name}>{name}</option>)}
+              {availableScenarios(provider).map(name => <option key={name}>{name}</option>)}
             </select>
           </label>
           <label className="catalog-field">
@@ -321,7 +332,7 @@ export function ArchitectureStart({
             />
           </label>
           <div className="catalog-modes" role="group" aria-label="템플릿 편집 방식">
-            {["전체", "사례 설계", "컴포넌트 편집", "Terraform 원본"].map((mode) => (
+            {catalogModes(provider).map((mode) => (
               <button key={mode} type="button" aria-pressed={catalogMode === mode}
                 onClick={() => setCatalogMode(mode)}>{mode}</button>
             ))}
@@ -334,7 +345,7 @@ export function ArchitectureStart({
                   onClick={() => setTemplateId(t.id)}>
                   <TemplateThumbnail id={t.id} />
                   <strong>{t.name}</strong>
-                  <small>{t.provider} · {"caseStudy" in t ? "사례 설계" : "repo" in t ? "Terraform 원본" : "컴포넌트 편집"}</small>
+                  <small>{t.provider} · {templateMode(t)}</small>
                 </button>
               ))}
             </div>

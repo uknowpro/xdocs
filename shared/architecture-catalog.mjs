@@ -5,31 +5,6 @@ import {
 } from "./architecture.mjs";
 const studies = [
   {
-    id: "aws-recovery-isolation",
-    provider: "AWS",
-    name: "결제 서비스 · 격리 복구 리허설",
-    study:
-      "운영의 API·정산 작업과 복구 검증 환경을 서로 다른 VPC에 배치한다. 격리된 복구 VPC에서 원본 데이터 반입과 검증 후 폐기 절차를 검토한다.",
-    build(add) {
-      const prod = add("aws_vpc", "payments-prod", { cidr: "10.40.0.0/16" });
-      const recovery = add("aws_vpc", "restore-lab", { cidr: "10.41.0.0/16" });
-      for (const [vpc, tier, cidr, workers] of [
-        [prod, "api", "10.40.1.0/24", ["orders", "ledger"]],
-        [prod, "batch", "10.40.2.0/24", ["settlement"]],
-        [
-          recovery,
-          "verification",
-          "10.41.1.0/24",
-          ["restore-runner", "reconciliation"],
-        ],
-      ]) {
-        const subnet = add("aws_subnet", tier, { vpc, cidr });
-        for (const name of workers) add("aws_instance", name, { subnet });
-      }
-      add("aws_s3_bucket", "payment-audit-archive");
-    },
-  },
-  {
     id: "azure-private-data-estate",
     provider: "Azure",
     name: "AVM · 사업부별 사설 데이터 구역",
@@ -48,31 +23,6 @@ const studies = [
           subnet_cidr: "10." + (50 + i) + ".1.0/24",
         });
         add("avm_storage_account", name + "store", { network, sku });
-      }
-    },
-  },
-  {
-    id: "gcp-data-cutover",
-    provider: "GCP",
-    name: "분석 배치 플랫폼 · 병행 이전 검증",
-    study:
-      "기존 적재·변환 워커와 후보 플랫폼을 분리하고 검증 워커에서 결과를 비교하는 이전 설계다. 전환 전 데이터 전송과 대조 절차를 정한다.",
-    build(add) {
-      for (const [i, env, tiers] of [
-        [0, "legacy", ["ingest", "transform"]],
-        [1, "candidate", ["ingest", "transform", "compare"]],
-      ]) {
-        const network = add("google_compute_network", env);
-        for (const [j, tier] of tiers.entries()) {
-          const subnet = add("google_compute_subnetwork", env + "-" + tier, {
-            network,
-            cidr: "10." + (60 + i) + "." + j + ".0/24",
-          });
-          add("google_compute_instance", env + "-" + tier + "-worker", {
-            subnet,
-          });
-        }
-        add("google_storage_bucket", env + "-results");
       }
     },
   },
