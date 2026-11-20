@@ -48,6 +48,9 @@ try {
   const page = await app.firstWindow();
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "Analyzer 만들기" }).click();
+  await expect(page.getByLabel("분석 종류").locator("option")).toHaveText([
+    "네트워크", "Helm", "Manifest", "쿠버네티스 업그레이드",
+  ]);
   for (const [mode, folder, heading] of [
     ["network", dir("project"), "네트워크 분석"],
     ["manifest", dir("manifest"), "Kubernetes 호환성 1.25"],
@@ -62,7 +65,10 @@ try {
         filePaths: [folder],
       });
     }, folder);
-    await page.getByLabel("분석 종류").selectOption(mode);
+    const category = mode === "helm-network" ? "network" : mode === "helm-upgrade" ? "upgrade" : mode;
+    await page.getByLabel("분석 종류").selectOption(category);
+    if (category === "network" || category === "upgrade")
+      await page.getByLabel("분석 대상").selectOption(mode);
     await page.getByRole("button", { name: "폴더 선택 및 분석" }).click();
     await expect(
       page.getByRole("heading", { name: heading, exact: true }),

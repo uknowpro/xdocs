@@ -10,7 +10,7 @@ test("Builder uses the selected sheet and saves a linked evidence note", async (
   await page.getByLabel("시트 1 A1", { exact: true }).fill("예산");
   await page.getByLabel("시트 1 A2", { exact: true }).fill("1200");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await page.getByRole("button", { name: "Builder 만들기" }).click();
+  await page.getByRole("button", { name: "Harness 만들기" }).click();
   await page
     .getByLabel("시트 페이지", { exact: true })
     .selectOption({ label: "새 시트" });
@@ -88,7 +88,7 @@ test("a named harness copy keeps its rules and clears the original note input", 
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await page.getByRole("button", { name: "Builder 만들기" }).click();
+  await page.getByRole("button", { name: "Harness 만들기" }).click();
   await page.getByLabel("하네스 템플릿").selectOption("meeting");
   await page
     .getByLabel("입력 노트", { exact: true })
@@ -106,7 +106,7 @@ test("workspace harness library applies a versioned snapshot", async ({
   page,
 }) => {
   await page.goto("/");
-  const create = page.getByRole("button", { name: "Builder 만들기" });
+  const create = page.getByRole("button", { name: "Harness 만들기" });
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await create.click();
   await page
@@ -156,7 +156,7 @@ test("Analyzer findings become a saved Builder source with both network directio
   await page.getByRole("button",{name:"보고서를 하위 노트로 저장"}).click();
   await expect(page.locator(".markdown")).toContainText("Orders.java:9");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await page.getByRole("button",{name:"Builder 만들기"}).click();
+  await page.getByRole("button",{name:"Harness 만들기"}).click();
   await page.getByLabel("하네스 템플릿").selectOption("network");
   await page.getByLabel("입력 노트",{exact:true}).selectOption({label:"네트워크 분석"});
   await expect(page.locator(".builder-panel pre").first()).toContainText("outbound");
@@ -165,7 +165,7 @@ test("Analyzer findings become a saved Builder source with both network directio
 
 test("Builder copies a customized step from another page independently", async ({page})=>{
   await page.goto("/");
-  const create=page.getByRole("button",{name:"Builder 만들기"});
+  const create=page.getByRole("button",{name:"Harness 만들기"});
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await create.click();
   await page.getByLabel("단계 이름").fill("운영 예산");

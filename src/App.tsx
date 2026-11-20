@@ -1080,7 +1080,7 @@ export default function App() {
             onClick={() => void createPage("builder")}
           >
             <Workflow size={16} />
-            Builder 만들기
+            Harness 만들기
           </button>
           <select
             className="nav-item"

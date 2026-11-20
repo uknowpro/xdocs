@@ -138,7 +138,7 @@ export default function SheetTable({
     const Cell = header ? "th" : "td";
     return (
       <tr key={r}>
-        <th>{r + 1}</th>
+        {header ? <th aria-hidden="true" /> : <th scope="row">{r + 1}</th>}
         {Array.from({ length: columns }, (_, c) => (
           <Cell
             scope={header ? "col" : undefined}
@@ -354,13 +354,14 @@ export default function SheetTable({
           }}
         >
           <thead>
+            {sheet.firstRowHeader ? renderRow(0, true) : (
             <tr>
               <th></th>
               {Array.from({ length: columns }, (_, c) => (
                 <th key={c}>{letter(c)}</th>
               ))}
             </tr>
-            {sheet.firstRowHeader && renderRow(0, true)}
+            )}
           </thead>
           <tbody>
             {Array.from(

@@ -60,6 +60,7 @@ export default function Analyzer({
   onSave: (title: string, body: string) => Promise<void>;
 }) {
   const { mode, from, to, release, namespace, customValues } = settings;
+  const category = mode === "helm-network" ? "network" : mode === "helm-upgrade" ? "upgrade" : mode;
   const edit = (key: string, value: string | boolean) =>
     onSettings({ ...settings, [key]: value });
   const [result, setResult] = useState<Report | null>(null),
@@ -95,21 +96,22 @@ export default function Analyzer({
         <legend>프로젝트 분석</legend>
         <label>
           분석 종류
-          <select value={mode} onChange={(e) => edit("mode", e.target.value)}>
-            {Object.entries({
-              network: "프로젝트 네트워크",
-              "helm-network": "Helm 네트워크",
-              manifest: "매니페스트 호환성",
-              helm: "Helm 호환성",
-              upgrade: "매니페스트 업그레이드",
-              "helm-upgrade": "Helm 업그레이드 비교",
-            }).map(([id, label]) => (
-              <option key={id} value={id}>
-                {label}
-              </option>
-            ))}
+          <select value={category} onChange={(e) => edit("mode", e.target.value)}>
+            <option value="network">네트워크</option>
+            <option value="helm">Helm</option>
+            <option value="manifest">Manifest</option>
+            <option value="upgrade">쿠버네티스 업그레이드</option>
           </select>
         </label>
+        {(category === "network" || category === "upgrade") && (
+          <label>
+            분석 대상
+            <select value={mode} onChange={(e) => edit("mode", e.target.value)}>
+              <option value={category}>{category === "network" ? "프로젝트" : "Manifest"}</option>
+              <option value={category === "network" ? "helm-network" : "helm-upgrade"}>Helm 차트</option>
+            </select>
+          </label>
+        )}
         {mode.endsWith("upgrade") && (
           <label>
             시작 Kubernetes 버전

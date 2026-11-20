@@ -128,6 +128,9 @@ try {
   const header = page.getByRole("checkbox", {name:"첫 행을 헤더로 사용"});
   assert.equal(await header.isChecked(),false);
   await header.check();
+  await expect(page.locator(".sheet-grid thead tr")).toHaveCount(1);
+  await expect(page.locator(".sheet-grid thead th").first()).toBeEmpty();
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("2");
   const first = page.getByRole("textbox",{name:"고객 A1",exact:true});
   assert.equal(await first.evaluate(el => el.closest("th")?.scope),"col");
   await cell.dragTo(first);
@@ -142,7 +145,25 @@ try {
   });
   assert.match(sheetNote.body,/"firstRowHeader":true/);
   await header.uncheck();
+  await expect(page.locator(".sheet-grid thead th").nth(1)).toHaveText("A");
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("1");
   assert.equal(await first.evaluate(el => el.closest("td") !== null),true);
+  const scroll = page.locator(".sheet-scroll");
+  await scroll.evaluate(el => { el.style.maxHeight = "52px"; el.scrollTop = el.scrollHeight; });
+  await expect.poll(() => scroll.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  const corner = page.locator(".sheet-grid thead th").first();
+  const visibleCorner = () => corner.evaluate(el => {
+    const rect=el.getBoundingClientRect();
+    const cell=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.closest("th");
+    return cell===el && cell.textContent==="";
+  });
+  await expect.poll(visibleCorner).toBe(true);
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveCSS("position","static");
+  await header.check();
+  await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await expect.poll(() => scroll.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  await expect.poll(visibleCorner).toBe(true);
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("2");
   assert.equal(await readFile(csv(temp),"utf8"),'업체,메모\r\n가나다,"서울, 본사"\r\n');
   console.log(
     "PASS Electron sheet import: native picker, tabs, values, local save, source unchanged, protected file attached without extraction",

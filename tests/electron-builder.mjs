@@ -62,7 +62,7 @@ try {
   });
   const p = await app.firstWindow();
   await p.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await p.getByRole("button", { name: "Builder 만들기" }).click();
+  await p.getByRole("button", { name: "Harness 만들기" }).click();
   await p
     .getByLabel("시트 페이지", { exact: true })
     .selectOption({ label: "비용 정산" });

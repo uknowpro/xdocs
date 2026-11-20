@@ -136,7 +136,7 @@ test("a canvas and nested note share a persistent page tree", async ({
   await expect(page.locator(".save-state")).toContainText("저장됨");
   await page.screenshot({ path: "test-results/canvas-embed.png" });
 });
-test("move a linked subtree, reorder siblings and undo without changing file paths", async ({
+test("move a linked subtree and reorder it without changing file paths", async ({
   page,
 }) => {
   await page.goto("/");
@@ -153,6 +153,16 @@ test("move a linked subtree, reorder siblings and undo without changing file pat
   await page.setViewportSize({ width: 1440, height: 1000 });
   await btn(title).dragTo(btn(parent));
   await expect(btn(parent + " 접기")).toBeVisible();
+  await page.keyboard.press("Control+z");
+  await expect(btn(parent + " 접기")).toHaveCount(0);
+  await page.keyboard.press("Control+Shift+z");
+  await expect(btn(parent + " 접기")).toBeVisible();
+  await page.keyboard.press("Control+z");
+  await expect(btn(parent + " 접기")).toHaveCount(0);
+  await page.keyboard.press("Control+y");
+  await expect(btn(parent + " 접기")).toHaveCount(0);
+  await page.keyboard.press("Control+Shift+z");
+  await expect(btn(parent + " 접기")).toBeVisible();
   await btn(parent + " 접기").click();
   await expect(btn(title)).toHaveCount(0);
   await expect(btn("GitHub Actions 캔버스")).toHaveCount(0);
@@ -160,8 +170,7 @@ test("move a linked subtree, reorder siblings and undo without changing file pat
   await btn(title + " 페이지 메뉴").click();
   await expect(tree.getByRole("group",{name:title+" 작업"}).getByRole("button")).toHaveText(["이름 변경","휴지통으로 이동"]);
   await page.keyboard.press("Escape");
-  await btn("페이지 이동 실행 취소").click();
-  await expect(btn(parent + " 접기")).toHaveCount(0);
+  await expect(btn("페이지 이동 실행 취소")).toHaveCount(0);
   const titles = () => tree.locator(".note-item").allTextContents();
   const order = await titles();
   const previous = btn(order[order.indexOf(title)-1]);

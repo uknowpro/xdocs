@@ -105,6 +105,15 @@ try {
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);
+  const draft = page.getByLabel("xcode 메시지");
+  await draft.fill("작성 중인 메시지");
+  await page.getByRole("button",{name:"설정 저장",exact:true}).click();
+  await expect(page.locator(".chat-header")).toContainText("세션 설정을 저장했습니다.");
+  await expect(draft).toBeFocused();
+  await expect(draft).toHaveValue("작성 중인 메시지");
+  assert.equal(calls.length, 0);
+  await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
+  await expect(page.getByLabel("API 주소")).toHaveValue(endpoint);
   await expect(page.getByLabel("API 토큰 (선택)")).toBeVisible();
   await expect(page.getByLabel("모델명", { exact: true })).toBeVisible();
   await expect(page.getByLabel("재요청 간격(초)")).toBeHidden();
@@ -197,6 +206,10 @@ try {
       );
   }
   await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
+  const finder = page.getByRole("searchbox",{name:"역할 또는 템플릿 찾기"});
+  await finder.fill("no-matching-template");
+  await expect(page.getByText("검색 결과 · 역할 0개 · 템플릿 0개")).toBeVisible();
+  await finder.fill("");
   await expect(page.getByLabel("직무 역할", { exact: true })).toHaveValue("");
   await page.getByLabel("직무 역할", { exact: true }).selectOption("백엔드 엔지니어");
   await page
@@ -386,7 +399,11 @@ try {
     input = page.getByLabel("xcode 메시지");
   await openAdvanced();
   await page.getByLabel("이어지는 응답 자동 요청").check();
-  await page.getByLabel("재요청 간격(초)").fill("1");
+  const interval = page.getByLabel("재요청 간격(초)");
+  await interval.fill("");
+  await expect(interval).toHaveValue("");
+  await interval.fill("1");
+  await interval.press("Tab");
   caseMode = "temporary";
   await input.fill("retry-case");
   await send.click();

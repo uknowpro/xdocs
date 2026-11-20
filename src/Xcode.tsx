@@ -78,6 +78,25 @@ async function userMessage(prompt: string, files: InputFile[]) {
   return { role: "user", content: files.length ? content : prompt };
 }
 
+function RetryLimit({ label, value, max, disabled, commit }: {
+  label: string; value: number; max: number; disabled: boolean; commit: (value: number) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return <label>{label}<input type="number" min={1} max={max} step={1}
+    disabled={disabled} value={draft ?? value}
+    onChange={event=>setDraft(event.target.value)}
+    onBlur={()=>{
+      if (draft === null) return;
+      const number = Number(draft);
+      if (draft.trim() && Number.isFinite(number)) {
+        const next = Math.max(1, Math.min(max, Math.round(number)));
+        if (next !== value) commit(next);
+      }
+      setDraft(null);
+    }}
+  /></label>;
+}
+
 export default function Xcode({
   session: s,
   local,
@@ -174,7 +193,32 @@ export default function Xcode({
       .then(setProfiles)
       .catch((e) => run.patch({ error: String(e) }));
   }, [run]);
-  const config = (patch: Partial<Session>) => change({ ...s, ...patch });
+  const [settingsSave, setSettingsSave] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const config = (patch: Partial<Session>) => {
+    setSettingsSave("idle");
+    change({ ...s, ...patch });
+  };
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (settingsSave !== "saved") return;
+    const timer = window.setTimeout(() => setSettingsSave("idle"), 2500);
+    return () => window.clearTimeout(timer);
+  }, [settingsSave]);
+  async function saveSettings() {
+    setSettingsSave("saving");
+    try {
+      const ok = await prepare();
+      if (!mounted.current) return;
+      setSettingsSave(ok ? "saved" : "failed");
+      if (ok) {
+        setShowSettings(false);
+        localStorage.setItem("xdocs.xcode.settings", "hidden");
+        requestAnimationFrame(() => composerRef.current?.focus());
+      }
+    } catch {
+      if (mounted.current) setSettingsSave("failed");
+    }
+  }
   const linkedProfile = profiles.find(p => p.name === s.profile);
   const savedProfile = linkedProfile?.endpoint === s.endpoint && linkedProfile.model === s.model ? linkedProfile : undefined;
   async function rememberToken() {
@@ -696,6 +740,7 @@ export default function Xcode({
       <header className="chat-header">
         <h2>xcode</h2>
         <span title={s.model}>{s.model}</span>
+        {settingsSave === "saved" && <small aria-live="polite">세션 설정을 저장했습니다.</small>}
         <button
           className="chat-settings-toggle"
           aria-expanded={showSettings}
@@ -788,158 +833,12 @@ export default function Xcode({
         />
         <details className="chat-advanced">
           <summary>고급 설정</summary>
-          <fieldset disabled={readonly}>
-            <legend>자동 재요청</legend>
-            <label>
-              <input
-                type="checkbox"
-                checked={s.autoRetry === true}
-                onChange={(e) => {
-                  run.enabled = e.target.checked;
-                  if (!run.enabled) {
-                    run.wait?.abort();
-                    if (run.automatic) {
-                      run.request?.abort(Error("자동 요청을 중지했습니다."));
-                      void api.xcodeCancel?.(run.id);
-                    }
-                  }
-                  config({ autoRetry: e.target.checked });
-                }}
-              />
-              이어지는 응답 자동 요청
-            </label>
-            <label>
-              재요청 방식
-              <select
-                disabled={busy}
-                value={s.repeatCompleted ? "repeat" : "failure"}
-                onChange={(e) =>
-                  config({ repeatCompleted: e.target.value === "repeat" })
-                }
-              >
-                <option value="failure">중단된 응답만 이어받기</option>
-                <option value="repeat">정상 완료 후에도 계속 요청</option>
-              </select>
-            </label>
-            <label>
-              자동 실행 한도(분)
-              <input
-                type="number"
-                min={1}
-                max={240}
-                disabled={busy}
-                value={s.autoMinutes ?? 15}
-                onChange={(e) =>
-                  config({
-                    autoMinutes: Math.max(
-                      1,
-                      Math.min(240, Number(e.target.value) || 1),
-                    ),
-                  })
-                }
-              />
-            </label>
-            <label>
-              자동 요청 한도(회)
-              <input
-                type="number"
-                min={1}
-                max={100}
-                disabled={busy}
-                value={s.maxAutoRequests ?? 5}
-                onChange={(e) =>
-                  config({
-                    maxAutoRequests: Math.max(
-                      1,
-                      Math.min(100, Math.floor(Number(e.target.value) || 1)),
-                    ),
-                  })
-                }
-              />
-            </label>
-            <label>
-              재요청 간격(초)
-              <input
-                type="number"
-                min={1}
-                max={3600}
-                disabled={busy}
-                value={s.retrySeconds ?? 60}
-                onChange={(e) =>
-                  config({
-                    retrySeconds: Math.max(
-                      1,
-                      Math.min(3600, Math.round(Number(e.target.value) || 1)),
-                    ),
-                  })
-                }
-              />
-            </label>
-          </fieldset>
-          <fieldset disabled={busy || readonly}>
-            <legend>연결 옵션</legend>
-            {profiles.length > 0 && (
-              <label>
-                저장된 모델
-                <select
-                  value={savedProfile?.name || ""}
-                  onChange={(e) => {
-                    const p = profiles.find((x) => x.name === e.target.value);
-                    setKey("");
-                    config(
-                      p
-                        ? {
-                            profile: p.name,
-                            model: p.model,
-                            endpoint: p.endpoint,
-                          }
-                        : { profile: "" },
-                    );
-                  }}
-                >
-                  <option value="">직접 입력</option>
-                  {profiles.map((p) => (
-                    <option key={p.name}>{p.name}</option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <label>
-              서버 동시 요청 수
-              <select
-                disabled={!origin}
-                value={capacity}
-                onChange={(e) => setCapacity(origin, Number(e.target.value))}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <option key={n}>{n}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              연결 진단 입력
-              <select
-                value={probe}
-                onChange={(e) => setProbe(e.target.value as Probe)}
-              >
-                <option value="text">짧은 텍스트</option>
-                <option value="image">샘플 이미지</option>
-                <option value="pdf">샘플 PDF</option>
-              </select>
-            </label>
-            <button
-              disabled={!api.xcodeChat || !s.model.trim() || !origin}
-              onClick={() => void diagnose()}
-            >
-              연결 진단 실행
-            </button>
-            {report && <p role="status">{report}</p>}
-          </fieldset>
           <details>
             <summary>하네스 구성 · {s.harness.name}{s.harness.jobRole && ` · ${s.harness.jobRole}`}</summary>
             <fieldset disabled={busy || readonly}>
               <legend>직무 역할 · 단계 및 스킬</legend>
-              <label>직무·작업 검색<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label>
+              <label>역할 또는 템플릿 찾기<input type="search" placeholder="백엔드, 장애 회고 등" value={search} onChange={e=>{setSearch(e.target.value);setCandidate("");}}/></label>
+              {search.trim() && <small aria-live="polite">검색 결과 · 역할 {jobRoles.filter(role=>matches(role.group+" "+role.name)).length}개 · 템플릿 {Object.entries(templateGroups).reduce((count,[group,items])=>count+Object.keys(items).filter(name=>matches(group+" "+name)).length,0)}개</small>}
               <label>
                 직무 역할
                 <select
@@ -1202,7 +1101,109 @@ export default function Xcode({
               </label>
             </fieldset>
           </details>
+          <fieldset disabled={readonly}>
+            <legend>자동 재요청</legend>
+            <label className="retry-toggle">
+              <input
+                type="checkbox"
+                checked={s.autoRetry === true}
+                onChange={(e) => {
+                  run.enabled = e.target.checked;
+                  if (!run.enabled) {
+                    run.wait?.abort();
+                    if (run.automatic) {
+                      run.request?.abort(Error("자동 요청을 중지했습니다."));
+                      void api.xcodeCancel?.(run.id);
+                    }
+                  }
+                  config({ autoRetry: e.target.checked });
+                }}
+              />
+              이어지는 응답 자동 요청
+            </label>
+            <label>
+              재요청 방식
+              <select
+                disabled={busy}
+                value={s.repeatCompleted ? "repeat" : "failure"}
+                onChange={(e) =>
+                  config({ repeatCompleted: e.target.value === "repeat" })
+                }
+              >
+                <option value="failure">중단된 응답만 이어받기</option>
+                <option value="repeat">정상 완료 후에도 계속 요청</option>
+              </select>
+            </label>
+            <RetryLimit label="자동 실행 한도(분)" value={s.autoMinutes ?? 15} max={240} disabled={busy} commit={autoMinutes=>config({autoMinutes})}/>
+            <RetryLimit label="자동 요청 한도(회)" value={s.maxAutoRequests ?? 5} max={100} disabled={busy} commit={maxAutoRequests=>config({maxAutoRequests})}/>
+            <RetryLimit label="재요청 간격(초)" value={s.retrySeconds ?? 60} max={3600} disabled={busy} commit={retrySeconds=>config({retrySeconds})}/>
+          </fieldset>
+          <fieldset disabled={busy || readonly}>
+            <legend>연결 옵션</legend>
+            {profiles.length > 0 && (
+              <label>
+                저장된 모델
+                <select
+                  value={savedProfile?.name || ""}
+                  onChange={(e) => {
+                    const p = profiles.find((x) => x.name === e.target.value);
+                    setKey("");
+                    config(
+                      p
+                        ? {
+                            profile: p.name,
+                            model: p.model,
+                            endpoint: p.endpoint,
+                          }
+                        : { profile: "" },
+                    );
+                  }}
+                >
+                  <option value="">직접 입력</option>
+                  {profiles.map((p) => (
+                    <option key={p.name}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label>
+              서버 동시 요청 수
+              <select
+                disabled={!origin}
+                value={capacity}
+                onChange={(e) => setCapacity(origin, Number(e.target.value))}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <option key={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              연결 진단 입력
+              <select
+                value={probe}
+                onChange={(e) => setProbe(e.target.value as Probe)}
+              >
+                <option value="text">짧은 텍스트</option>
+                <option value="image">샘플 이미지</option>
+                <option value="pdf">샘플 PDF</option>
+              </select>
+            </label>
+            <button
+              disabled={!api.xcodeChat || !s.model.trim() || !origin}
+              onClick={() => void diagnose()}
+            >
+              연결 진단 실행
+            </button>
+            {report && <p role="status">{report}</p>}
+          </fieldset>
         </details>
+        <div className="session-settings-save">
+          <button type="button" disabled={busy || readonly || savingKey || settingsSave === "saving"} onClick={() => void saveSettings()}>
+            {settingsSave === "saving" ? "저장 중…" : "설정 저장"}
+          </button>
+          <small aria-live="polite">{settingsSave === "failed" ? "세션 설정을 저장하지 못했습니다. 다시 시도하세요." : ""}</small>
+        </div>
       </div>
       <div hidden={documentPanel !== "form"}><OfficeForm close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
       {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
@@ -1223,6 +1224,7 @@ export default function Xcode({
         />
         <div className="chat-composer">
           <textarea
+            ref={composerRef}
             aria-label="xcode 메시지"
             placeholder="메시지를 입력하세요"
             rows={2}

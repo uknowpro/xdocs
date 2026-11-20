@@ -29,6 +29,7 @@ import {
   withParent,
   parentHeader,
 } from "../shared/page-parent.mjs";
+type PageMove = { id: string; before: string; after: string };
 type Entry = {
   key: string;
   name: string;
@@ -201,12 +202,7 @@ export default function PageTree({
     });
   }
   const [moving, setMoving] = useState(""),
-    [message, setMessage] = useState(""),
-    [undo, setUndo] = useState<{
-      id: string;
-      before: string;
-      after: string;
-    } | null>(null);
+    [message, setMessage] = useState("");
   const [position, setPosition] = useState({ left: 0, top: 0 });
   useEffect(() => {
     if (!moving) return;
@@ -225,6 +221,7 @@ export default function PageTree({
     };
   }, [moving]);
   const lock = useRef(false);
+  const history = useRef<{ undo: PageMove[]; redo: PageMove[] }>({ undo: [], redo: [] });
   function allowed(source: Entry, target: Entry) {
     for (let n: Entry | undefined = target; n; n = n.parent)
       if (n === source) return false;
@@ -234,13 +231,19 @@ export default function PageTree({
     id: string,
     before: string,
     after: string,
-    revert = false,
+    action: "move" | "undo" | "redo" = "move",
   ) {
     if (lock.current || readonly || before === after) return;
     lock.current = true;
     try {
       if (await onMove(id, before, after)) {
-        setUndo(revert ? null : { id, before, after });
+        const { undo, redo } = history.current;
+        if (action === "undo") redo.push(undo.pop()!);
+        else if (action === "redo") undo.push(redo.pop()!);
+        else {
+          undo.push({ id, before, after });
+          redo.length = 0;
+        }
         setMoving("");
         setMessage("");
       }
@@ -283,7 +286,17 @@ export default function PageTree({
     setMoving(moving === key ? "" : key);
   }
   return (
-    <nav className="note-list page-tree" aria-label="보관함 페이지">
+    <nav className="note-list page-tree" aria-label="보관함 페이지" tabIndex={-1}
+      onKeyDown={event => {
+        if (readonly || event.defaultPrevented || !(event.ctrlKey || event.metaKey) || event.altKey ||
+          (event.target instanceof HTMLElement && (event.target.isContentEditable || event.target.closest("input, textarea, select")))) return;
+        if (event.key.toLowerCase() !== "z") return;
+        const redo = event.shiftKey;
+        const move = history.current[redo ? "redo" : "undo"].at(-1);
+        if (!move) return;
+        event.preventDefault();
+        if (!event.repeat) void savePosition(move.id, redo ? move.before : move.after, redo ? move.after : move.before, redo ? "redo" : "undo");
+      }}>
       {rows
         .slice(current * limit, (current + 1) * limit)
         .map(({ entry: e, depth }) => {
@@ -339,6 +352,7 @@ export default function PageTree({
                   const mode = ev.currentTarget.dataset.drop;
                   delete ev.currentTarget.dataset.drop;
                   if (!source || source === e || !n || readonly) return;
+                  ev.currentTarget.closest("nav")?.focus({ preventScroll: true });
                   if (mode === "before" || mode === "after") {
                     const dest = e.parent!;
                     if (dest.key.startsWith("f:") && dest !== source.parent) {
@@ -527,7 +541,7 @@ export default function PageTree({
                   <option value="sheet">시트 테이블</option>
                   <option value="xcode">xcode 세션</option>
                   <option value="analyzer">Analyzer</option>
-                  <option value="builder">Builder</option>
+                  <option value="builder">Harness</option>
                   <option value="architecture">IaCD 아키텍처</option>
                   {Object.entries(templates).map(([k, t]) => (
                     <option key={k} value={k}>
@@ -539,16 +553,6 @@ export default function PageTree({
             </div>
           );
         })}
-      {undo && !readonly && (
-        <button
-          className="text-button"
-          onClick={() =>
-            void savePosition(undo.id, undo.after, undo.before, true)
-          }
-        >
-          페이지 이동 실행 취소
-        </button>
-      )}
       {message && <p role="alert">{message}</p>}
       {!notes.length && (
         <p className="sidebar-empty">첫 페이지를 만들어 보세요.</p>

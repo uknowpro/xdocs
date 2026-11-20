@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.18
+
+- Simplify Analyzer to Network, Helm, Manifest and Kubernetes Upgrade while keeping all six analysis paths.
+- Display the first sheet row as column headers, keep body row numbers and prevent numbers from covering the header corner when scrolling.
+- Undo and redo workspace page moves with Ctrl+Z and Ctrl+Shift+Z (Command on macOS).
+- Save xcode settings and return to the current draft. Find roles and templates in advanced settings, and edit retry intervals without premature numeric resets.
+- Create a harness from the workspace and folder creation menus.
+
 ## 0.5.17
 
 - Open Word selection and Office forms from the attachment menu. Applying a Word or Excel form harness opens the form automatically.
