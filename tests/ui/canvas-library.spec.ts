@@ -158,19 +158,14 @@ test("move a linked subtree, reorder siblings and undo without changing file pat
   await expect(btn("GitHub Actions 캔버스")).toHaveCount(0);
   await btn(parent + " 펼치기").click();
   await btn(title + " 페이지 메뉴").click();
-  await expect(
-    tree
-      .getByLabel("이동할 상위 페이지")
-      .locator("option")
-      .filter({ hasText: "GitHub Actions 캔버스" }),
-  ).toHaveCount(0);
+  await expect(tree.getByRole("group",{name:title+" 작업"}).getByRole("button")).toHaveText(["이름 변경","휴지통으로 이동"]);
   await page.keyboard.press("Escape");
   await btn("페이지 이동 실행 취소").click();
   await expect(btn(parent + " 접기")).toHaveCount(0);
   const titles = () => tree.locator(".note-item").allTextContents();
   const order = await titles();
-  await btn(title + " 페이지 메뉴").click();
-  await tree.getByRole("button", { name: "위로", exact: true }).click();
+  const previous = btn(order[order.indexOf(title)-1]);
+  await btn(title).dragTo(previous,{targetPosition:{x:20,y:2}});
   await expect
     .poll(async () => (await titles()).indexOf(title))
     .toBeLessThan(order.indexOf(title));
@@ -192,12 +187,12 @@ test("named folders persist with child folders and pages", async ({ page }) => {
   await button("개인 보관함 새 폴더").click();
   await page.getByLabel("폴더 이름", { exact: true }).fill("업무");
   await button("저장").click();
-  await button("업무 페이지 메뉴").click();
+  await button("업무 추가 옵션").click();
   await button("하위 페이지 추가").click();
   await page.getByLabel("하위 페이지 유형").selectOption("folder");
   await page.getByLabel("폴더 이름", { exact: true }).fill("설계");
   await button("저장").click();
-  await button("설계 페이지 메뉴").click();
+  await button("설계 추가 옵션").click();
   await button("하위 페이지 추가").click();
   await page.getByLabel("하위 페이지 유형").selectOption("sheet");
   await page.getByLabel("페이지 이름").fill("비용표");
@@ -212,4 +207,23 @@ test("named folders persist with child folders and pages", async ({ page }) => {
   await button("업무 접기").click();
   await expect(button("구성도")).toHaveCount(0);
   await expect(button("비용표")).toHaveCount(0);
+});
+
+test("folder shortcut keeps creating independent sessions after reopening the workspace", async ({page}) => {
+  await page.goto("/");
+  const btn = (name:string) => page.getByRole("button",{name,exact:true});
+  await btn("개인 보관함 새 폴더").click();
+  await page.getByLabel("폴더 이름",{exact:true}).fill("개발");
+  await btn("저장").click();
+  await expect(btn("개발 새 노트")).toHaveCount(1);
+  await btn("개발 추가 옵션").click();
+  await page.getByLabel("+ 기본 동작",{exact:true}).selectOption("xcode");
+  await page.reload();
+  await btn("개발 새 xcode 세션").click();
+  await expect(btn("새 xcode 세션")).toBeVisible();
+  await btn("개발 새 xcode 세션").click();
+  await expect(btn("새 xcode 세션 2")).toBeVisible();
+  await btn("개발 접기").click();
+  await expect(btn("새 xcode 세션")).toHaveCount(0);
+  await expect(btn("새 xcode 세션 2")).toHaveCount(0);
 });

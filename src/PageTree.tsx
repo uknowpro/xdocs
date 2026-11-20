@@ -122,12 +122,14 @@ export default function PageTree({
   onMove,
   onRename,
   onTrash,
-  onFolderNote,
+  onQuickCreate,
+  workspaceKey,
 }: {
   notes: Note[];
   active: string;
   readonly: boolean;
-  onFolderNote: (parent?: string, directory?: string) => void;
+  workspaceKey: string;
+  onQuickCreate: (kind:"note"|"xcode",parent?: string, directory?: string) => void;
   onTrash: (name: string, notes: Note[], folder: boolean) => void;
   onRename: (note: Note) => void;
   onOpen: (id: string) => void;
@@ -138,6 +140,22 @@ export default function PageTree({
   const [closed, setClosed] = useState<Set<string>>(() => new Set());
   const limit = 100;
   const [menu, setMenu] = useState("");
+  const preferenceKey = "xdocs.folderQuickCreate." + workspaceKey;
+  const [sessionFolders,setSessionFolders] = useState<Set<string>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(preferenceKey) || "[]");
+      return new Set(Array.isArray(saved) ? saved.filter(k => typeof k === "string") : []);
+    } catch { return new Set(); }
+  });
+  function configureFolder(key:string, sessions:boolean) {
+    const next = new Set(sessionFolders);
+    if (sessions) next.add(key); else next.delete(key);
+    try {
+      localStorage.setItem(preferenceKey,JSON.stringify([...next]));
+      setSessionFolders(next);
+      setMoving("");
+    } catch { setMessage("폴더 기본 동작을 저장할 수 없습니다."); }
+  }
   const activePath = useMemo(() => {
     const chain = [];
     for (let n = pages.get(active)?.parent; n && n !== root; n = n.parent)
@@ -146,6 +164,7 @@ export default function PageTree({
   }, [pages, root, active]);
   useEffect(() => {
     setMenu("");
+    setMoving("");
     setClosed((prev) => {
       const next = new Set(prev);
       for (const key of JSON.parse(activePath)) next.delete(key);
@@ -254,11 +273,11 @@ export default function PageTree({
       dest.children.filter((n) => n.page && n !== source).length,
     );
   }
-  function step(source: Entry, delta: number) {
-    const parent = source.parent!,
-      siblings = parent.children.filter((n) => n.page),
-      index = siblings.indexOf(source) + delta;
-    if (index >= 0 && index < siblings.length) place(source, parent, index);
+  function togglePopup(button:HTMLButtonElement,key:string) {
+    const rect = button.getBoundingClientRect();
+    setPosition({left:Math.max(4,Math.min(innerWidth-204,rect.right-192)),top:Math.max(4,Math.min(innerHeight-125,rect.bottom+2))});
+    setMenu("");
+    setMoving(moving === key ? "" : key);
   }
   return (
     <nav className="note-list page-tree" aria-label="보관함 페이지">
@@ -268,6 +287,7 @@ export default function PageTree({
           const n = e.page,
             open = !closed.has(e.key),
             folder = !n || isFolderPage(n),
+            quickLabel = sessionFolders.has(e.key) ? "새 xcode 세션" : "새 노트",
             Icon = folder ? Folder : icons[pageKind(n!)] || FileText;
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
@@ -393,21 +413,7 @@ export default function PageTree({
                     title="페이지 메뉴"
                     aria-label={e.name + " 페이지 메뉴"}
                     aria-expanded={moving === e.key}
-                    onClick={(event) => {
-                      const rect = event.currentTarget.getBoundingClientRect();
-                      setPosition({
-                        left: Math.max(
-                          4,
-                          Math.min(innerWidth - 212, rect.right - 190),
-                        ),
-                        top: Math.max(
-                          4,
-                          Math.min(innerHeight - 250, rect.bottom + 2),
-                        ),
-                      });
-                      setMenu("");
-                      setMoving(moving === e.key ? "" : e.key);
-                    }}
+                    onClick={event => togglePopup(event.currentTarget,e.key)}
                   >
                     <MoreHorizontal size={15} />
                   </button>
@@ -415,20 +421,23 @@ export default function PageTree({
                 {!readonly && n?.role !== "reader" && (
                   <button
                     className="page-add"
-                    title={folder ? "새 노트" : "하위 페이지 추가"}
+                    title={folder ? quickLabel : "하위 페이지 추가"}
                     aria-label={
-                      e.name + (folder ? " 새 노트" : " 하위 페이지 추가")
+                      e.name + (folder ? " " + quickLabel : " 하위 페이지 추가")
                     }
                     onClick={() => {
                       setMoving("");
                       if (folder)
-                        onFolderNote(n?.id, n ? undefined : e.key.slice(3));
+                        onQuickCreate(sessionFolders.has(e.key) ? "xcode" : "note", n?.id, n ? undefined : e.key.slice(3));
                       else if (n) setMenu(menu === n.id ? "" : n.id);
                     }}
                   >
                     <Plus size={14} />
                   </button>
                 )}
+                {folder && !readonly && n?.role !== "reader" && <button className="page-add"
+                  title="폴더 추가 옵션" aria-label={e.name+" 추가 옵션"} aria-expanded={moving === "options:"+e.key}
+                  onClick={event => togglePopup(event.currentTarget,"options:"+e.key)}><ChevronDown size={12}/></button>}
               </div>
               {moving === e.key && (
                 <div
@@ -458,55 +467,6 @@ export default function PageTree({
                       {folder ? "폴더 이름 변경" : "이름 변경"}
                     </button>
                   )}
-                  {n && (
-                    <button
-                      onClick={() => {
-                        setMoving("");
-                        setMenu(n.id);
-                      }}
-                    >
-                      하위 페이지 추가
-                    </button>
-                  )}
-                  {n && (
-                    <select
-                      aria-label="이동할 상위 페이지"
-                      value=""
-                      onChange={(ev) => {
-                        const dest =
-                          ev.target.value === "@"
-                            ? root
-                            : pages.get(ev.target.value);
-                        if (dest) append(e, dest);
-                      }}
-                    >
-                      <option value="">다른 페이지 아래로 이동</option>
-                      <option value="@">보관함 최상위</option>
-                      {Array.from(pages.values())
-                        .filter((t) => allowed(e, t))
-                        .map((t) => (
-                          <option key={t.key} value={t.page!.id}>
-                            {t.name}
-                          </option>
-                        ))}
-                    </select>
-                  )}
-                  {n && (
-                    <div>
-                      <button
-                        disabled={e.parent?.children.find((t) => t.page) === e}
-                        onClick={() => step(e, -1)}
-                      >
-                        위로
-                      </button>
-                      <button
-                        disabled={e.parent?.children.at(-1) === e}
-                        onClick={() => step(e, 1)}
-                      >
-                        아래로
-                      </button>
-                    </div>
-                  )}
                   <button
                     onClick={() => {
                       setMoving("");
@@ -524,6 +484,16 @@ export default function PageTree({
                   </button>
                 </div>
               )}
+              {moving === "options:"+e.key && <div className="page-popup" style={position} role="group" aria-label="폴더 추가 옵션"
+                onKeyDown={event => {if (event.key === "Escape") {setMoving(""); event.currentTarget.previousElementSibling?.querySelector<HTMLButtonElement>('[title="폴더 추가 옵션"]')?.focus();}}}>
+                <label>+ 기본 동작
+                  <select autoFocus aria-label="+ 기본 동작" value={sessionFolders.has(e.key) ? "xcode" : "note"}
+                    onChange={event => configureFolder(e.key,event.target.value === "xcode")}>
+                    <option value="note">새 노트</option><option value="xcode">새 xcode 세션</option>
+                  </select>
+                </label>
+                {n && <button onClick={() => {setMoving("");setMenu(n.id);}}>하위 페이지 추가</button>}
+              </div>}
               {n && menu === n.id && (
                 <select
                   autoFocus

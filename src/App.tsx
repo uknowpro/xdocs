@@ -662,10 +662,10 @@ export default function App() {
     update(saved);
     return true;
   }
-  async function createPage(kind: PageKind, parent?: string, name?: string) {
+  async function createPage(kind: PageKind, parent?: string, name?: string, directory?:string) {
     if (kind === "folder") return nameFolder(parent);
     if (kind === "sheet") return createSheets(parent, name);
-    if (kind === "note") return createNote(parent, name);
+    if (kind === "note") return createNote(parent, name, directory);
     if (!(await flush())) return;
     if (kind === "architecture") {
       architectureParent.current = parent;
@@ -694,6 +694,7 @@ export default function App() {
               : encodeWorkflow(blankFlow(kind))) +
             "\n",
         ),
+        directory,
       );
       setWorkspace(await api.refresh());
       select(n);
@@ -1208,7 +1209,8 @@ export default function App() {
           </details>
         )}
         <PageTree
-          onFolderNote={(id, dir) => void createNote(id, "새 노트", dir)}
+          workspaceKey={workspace?.root || ""}
+          onQuickCreate={(kind,id,dir) => void createPage(kind,id,undefined,dir)}
           onTrash={(name, items, folder) =>
             void trashPages(name, items, folder)
           }
