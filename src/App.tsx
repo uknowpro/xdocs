@@ -147,6 +147,8 @@ export default function App() {
     "saved" | "pending" | "saving" | "error"
   >("saved");
   const [error, setError] = useState("");
+  const [sheetFailures, setSheetFailures] = useState<{id:string; name:string; reason:string}[]>([]);
+  useEffect(() => setSheetFailures([]), [workspace?.root]);
   const [notice, setNotice] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -760,10 +762,10 @@ export default function App() {
       setEdit(false);
     });
   }
-  async function importSheets(directory = false) {
+  async function importSheets(directory = false, retryId?: string) {
     if (!(await flush())) return;
     await action(async () => {
-      const result = directory
+      const result = retryId ? await api.retrySheetFile?.(retryId) : directory
         ? await api.importSheetDirectory?.()
         : await api.importSpreadsheet?.();
       if (result) {
@@ -773,7 +775,13 @@ export default function App() {
           setView("note");
           setEdit(false);
         }
-        setNotice(result.warnings.join(" ") || "시트를 가져왔습니다.");
+        if (retryId) setSheetFailures(items => items.filter(item => item.id !== retryId));
+        const warnings = [...result.warnings];
+        if ("failed" in result && Array.isArray(result.failed)) {
+          setSheetFailures(result.failed);
+          if (result.failed.length) warnings.push(result.failed.length + "개 실패 · 새로 만들기에서 파일별로 다시 가져올 수 있습니다.");
+        }
+        setNotice(warnings.join(" ") || "시트를 가져왔습니다.");
       }
     });
   }
@@ -1118,6 +1126,14 @@ export default function App() {
               Excel·CSV 폴더 가져오기
             </button>
           )}
+          {sheetFailures.length > 0 && <details>
+            <summary>가져오기 실패 ({sheetFailures.length})</summary>
+            {sheetFailures.map(item => <button key={item.id} className="nav-item"
+              title={item.reason} disabled={readonly || busy}
+              onClick={() => void importSheets(false, item.id)}>
+              {item.name} 다시 가져오기
+            </button>)}
+          </details>}
           {api.importSpreadsheet && (
             <button
               className="nav-item"

@@ -138,7 +138,8 @@ export interface NoteAPI {
   importInfrastructure?(): Promise<
     import("./InfrastructureDocument").InfrastructureSnapshot | null
   >;
-  importSheetDirectory?(): Promise<{ note?: Note; warnings: string[] } | null>;
+  retrySheetFile?(id: string): Promise<{ note: Note; warnings: string[] } | null>;
+  importSheetDirectory?(): Promise<{ note?: Note; warnings: string[]; failed: {id:string; name:string; reason:string}[] } | null>;
   importSpreadsheet?(): Promise<{ note: Note; warnings: string[] } | null>;
   openAttachment?(relative: string): Promise<void>;
   collaborationStart?(id: string): Promise<CollaborationPacket>;

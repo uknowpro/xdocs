@@ -123,6 +123,7 @@ export default function SheetTable({
       label = String.fromCharCode(65 + ((n - 1) % 26)) + label;
     return label;
   };
+  const editing = useRef<HTMLTextAreaElement | null>(null);
   const pointer = useRef<number | null>(null);
   function extendSelection(e: React.PointerEvent<HTMLTableElement>) {
     const cell = document
@@ -133,6 +134,11 @@ export default function SheetTable({
     const r = Number(cell.dataset.row),
       c = Number(cell.dataset.column);
     setEnd((prev) => (prev[0] === r && prev[1] === c ? prev : [r, c]));
+  }
+  function changePage(next: number) {
+    setPage(next);
+    setAnchor([next * 100, 0]);
+    setEnd([next * 100, 0]);
   }
   function renderRow(r: number, header = false) {
     const Cell = header ? "th" : "td";
@@ -153,16 +159,36 @@ export default function SheetTable({
               aria-label={`${sheet.name} ${letter(c)}${r + 1}`}
               value={sheet.rows[r]?.[c] || ""}
               readOnly={readonly}
+              onDoubleClick={e => { editing.current = e.currentTarget; }}
+              onBlur={() => { editing.current = null; }}
               onKeyDown={(e) => {
-                if (
-                  e.altKey ||
-                  !["Tab", "ArrowDown", "ArrowUp"].includes(e.key)
-                )
+                if (e.key === "F2") {
+                  e.preventDefault();
+                  editing.current = e.currentTarget;
+                  setAnchor([r, c]);
+                  setEnd([r, c]);
                   return;
+                }
+                if (editing.current === e.currentTarget) {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    editing.current = null;
+                    e.currentTarget.setSelectionRange(e.currentTarget.selectionEnd, e.currentTarget.selectionEnd);
+                    return;
+                  }
+                  if (e.key !== "Tab") return;
+                  editing.current = null;
+                }
+                const extend = e.shiftKey && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key);
+                if (e.altKey || e.ctrlKey || e.metaKey ||
+                    (!extend && !["Tab", "ArrowDown", "ArrowUp"].includes(e.key))) return;
                 e.preventDefault();
                 let nr = r,
                   nc = c;
-                if (e.key === "Tab") {
+                if (extend) {
+                  nr = end[0] + Number(e.key === "ArrowDown") - Number(e.key === "ArrowUp");
+                  nc = Math.max(0, Math.min(columns - 1, end[1] + Number(e.key === "ArrowRight") - Number(e.key === "ArrowLeft")));
+                } else if (e.key === "Tab") {
                   nc += e.shiftKey ? -1 : 1;
                   if (nc >= columns) {
                     nc = 0;
@@ -174,7 +200,7 @@ export default function SheetTable({
                   }
                 } else nr += e.key === "ArrowDown" ? 1 : -1;
                 nr = Math.max(0, Math.min(rowCount - 1, nr));
-                setAnchor([nr, nc]);
+                if (!extend) setAnchor([nr, nc]);
                 setEnd([nr, nc]);
                 setPage(Math.floor(nr / 100));
                 const book = e.currentTarget.closest(".sheet-book");
@@ -309,10 +335,15 @@ export default function SheetTable({
         className="sheet-scroll"
         onCopy={(e) => {
           e.preventDefault();
-          e.clipboardData.setData("text/plain", toTSV(selection()));
+          const input = e.target;
+          const text = minR === maxR && minC === maxC && input instanceof HTMLTextAreaElement &&
+            input.selectionStart !== input.selectionEnd
+            ? input.value.slice(input.selectionStart, input.selectionEnd)
+            : toTSV(selection());
+          e.clipboardData.setData("text/plain", text);
         }}
         onPaste={(e) => {
-          if (readonly) return;
+          if (readonly || editing.current === e.target) return;
           e.preventDefault();
           paste(e.clipboardData.getData("text/plain"));
         }}
@@ -322,7 +353,8 @@ export default function SheetTable({
           aria-label={sheet.name}
           onPointerDown={(e) => {
             const cell = (e.target as Element).closest("textarea");
-            if (!cell || e.button !== 0) return;
+            if (!cell || e.button !== 0 || (editing.current === cell && !e.shiftKey)) return;
+            editing.current = null;
             const pos: [number, number] = [
               Number(cell.dataset.row),
               Number(cell.dataset.column),
@@ -397,7 +429,7 @@ export default function SheetTable({
           <button
             aria-label="이전 100행"
             disabled={!page}
-            onClick={() => setPage(page - 1)}
+            onClick={() => changePage(page - 1)}
           >
             <ChevronLeft size={16} />
           </button>
@@ -407,7 +439,7 @@ export default function SheetTable({
           <button
             aria-label="다음 100행"
             disabled={(page + 1) * 100 >= rowCount}
-            onClick={() => setPage(page + 1)}
+            onClick={() => changePage(page + 1)}
           >
             <ChevronRight size={16} />
           </button>

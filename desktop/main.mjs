@@ -40,6 +40,7 @@ import {
 } from "electron";
 import { folderBody, withParent } from "../shared/page-parent.mjs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readFile, writeFile, mkdir, readdir, realpath, mkdtemp, rm } from "node:fs/promises";
 import { VaultClient } from "./vault-client.mjs";
@@ -536,6 +537,20 @@ app.whenReady().then(async () => {
     if (result.canceled) return null;
     return importSheetFiles(store, result.filePaths);
   });
+  const pendingSheetFiles = new Map();
+  register("sheet:retry", async (id) => {
+    const item = pendingSheetFiles.get(id);
+    if (!item || item.store !== mustVault()) throw Error("이 워크스페이스에서 다시 가져올 파일이 없습니다.");
+    if (item.running) throw Error("이미 가져오는 중입니다.");
+    item.running = true;
+    try {
+      const result = await item.retry();
+      if (result) pendingSheetFiles.delete(id);
+      return result;
+    } finally {
+      item.running = false;
+    }
+  });
   register("sheet:directory", async () => {
     const store = mustVault();
     const choice = await dialog.showOpenDialog(window, {
@@ -543,7 +558,9 @@ app.whenReady().then(async () => {
       properties: ["openDirectory"],
     });
     if (choice.canceled || !choice.filePaths.length) return null;
-    const root = choice.filePaths[0];
+    const root = await realpath(choice.filePaths[0]);
+    pendingSheetFiles.clear();
+    const failed = [];
     const folders = new Map();
     const warnings = [];
     let count = 0,
@@ -573,20 +590,21 @@ app.whenReady().then(async () => {
             !entry.name.startsWith("~$") &&
             /\.(xlsx|xlsm|xlsb|xls|csv|tsv|txt)$/i.test(entry.name)
           ) {
-            const result = await importSheetFiles(
-              store,
-              [file],
-              await folder(dir),
-            );
-            if (result) {
+            const label = path.relative(root, file);
+            async function readFilePage(interactive) {
+              if (await realpath(file) !== file) throw Error("파일 경로가 변경되었습니다.");
+              return importSheetFiles(store, [file], await folder(dir), interactive);
+            }
+            try {
+              const result = await readFilePage(false);
               first ??= result.note;
               count++;
-              warnings.push(
-                ...result.warnings.map(
-                  (w) => path.relative(root, file) + " · " + w,
-                ),
-              );
-            } else warnings.push(path.relative(root, file) + " · 건너뜀");
+              warnings.push(...result.warnings.map(w => label + " · " + w));
+            } catch (error) {
+              const id = randomUUID();
+              pendingSheetFiles.set(id, {store, retry: () => readFilePage(true)});
+              failed.push({id, name: label, reason: error.message});
+            }
           }
         } catch (error) {
           warnings.push(path.relative(root, file) + " · " + error.message);
@@ -596,10 +614,11 @@ app.whenReady().then(async () => {
     await visit(root);
     return {
       note: first,
+      failed,
       warnings: [count + "개 파일을 페이지로 가져왔습니다.", ...warnings],
     };
   });
-  async function importSheetFiles(store, paths, parent) {
+  async function importSheetFiles(store, paths, parent, interactive = true) {
     const sheets = [],
       warnings = [];
     for (const file of paths) {
@@ -608,6 +627,7 @@ app.whenReady().then(async () => {
         sheets.push(...data.workbook.sheets);
         warnings.push(...data.warnings);
       } catch (error) {
+        if (!interactive) throw error;
         const answer = await dialog.showMessageBox(window, {
           type: "info",
           message: path.basename(file) + " 파일을 직접 읽을 수 없습니다.",

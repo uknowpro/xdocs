@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   analyzerNotices: () => ipcRenderer.invoke("analyzer:notices"),
   analyzeDirectory: request => ipcRenderer.invoke("analyzer:directory",request),
   importInfrastructure: () => ipcRenderer.invoke("infra:import"),
+  retrySheetFile: id => ipcRenderer.invoke("sheet:retry", id),
   importSheetDirectory: () => ipcRenderer.invoke("sheet:directory"),
   builderResources:request=>ipcRenderer.invoke("builder:resources",request),
   xcodeAttachment:data=>ipcRenderer.invoke("xcode:attachment",data),

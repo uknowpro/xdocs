@@ -91,6 +91,8 @@ try {
   const directory = path.join(temp, "팀 자료");
   const nested = path.join(directory, "회계");
   await mkdir(nested, { recursive: true });
+  const broken = path.join(nested, "미완성.xlsx");
+  await writeFile(broken, await readFile(protectedFile));
   await b.xlsx.writeFile(path.join(nested, "결산.xlsx"));
   await writeFile(path.join(directory, "월별.tsv"), "월\t매출\n1월\t1200");
   await app.evaluate(({ dialog }, dir) => {
@@ -117,6 +119,15 @@ try {
       "<!-- xdocs:parent=" + byTitle["팀 자료"].id + " -->",
     ),
   );
+  await page.getByRole("button", {name:"새로 만들기", exact:true}).click();
+  await page.getByText("가져오기 실패 (1)", {exact:true}).click();
+  await b.xlsx.writeFile(broken);
+  await page.getByRole("button", {name:/미완성.xlsx 다시 가져오기/}).click();
+  await expect(page.getByRole("button", {name:"미완성", exact:true})).toBeVisible();
+  await expect(page.getByRole("tab", {name:"예산"})).toBeVisible();
+  const retried = await page.evaluate(() => window.xdocs.refresh());
+  assert.equal(retried.notes.filter(n => n.title === "결산").length, 1);
+  assert.ok(retried.notes.find(n => n.title === "미완성").body.startsWith("<!-- xdocs:parent=" + byTitle["회계"].id + " -->"));
   const csv = dirPath => path.join(dirPath,"고객.csv");
   await writeFile(csv(temp),'업체,메모\r\n가나다,"서울, 본사"\r\n');
   await app.evaluate(({dialog},file)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[file]});},csv(temp));
@@ -144,6 +155,22 @@ try {
     return window.xdocs.readNote(vault.notes.find(n => n.title === "고객").id);
   });
   assert.match(sheetNote.body,/"firstRowHeader":true/);
+  await cell.click();
+  await cell.press("F2");
+  await cell.press("Home");
+  await cell.press("Shift+ArrowRight");
+  await cell.press("Shift+ArrowRight");
+  const copyKey = process.platform === "darwin" ? "Meta+c" : "Control+c";
+  await page.keyboard.press(copyKey);
+  assert.equal(await app.evaluate(({clipboard}) => clipboard.readText()), "서울");
+  await cell.press("Escape");
+  await cell.press("Shift+ArrowLeft");
+  await page.keyboard.press("Shift+ArrowUp");
+  await expect(page.locator(".sheet-grid .selected")).toHaveCount(4);
+  await page.keyboard.press(copyKey);
+  assert.equal((await app.evaluate(({clipboard}) => clipboard.readText())).replaceAll("\r\n","\n"), "업체\t메모\n가나다\t서울, 본사");
+  await page.keyboard.press("Shift+ArrowDown");
+  await expect(page.locator(".sheet-grid .selected")).toHaveCount(2);
   await header.uncheck();
   await expect(page.locator(".sheet-grid thead th").nth(1)).toHaveText("A");
   await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("1");
@@ -165,6 +192,11 @@ try {
   await expect.poll(visibleCorner).toBe(true);
   await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("2");
   assert.equal(await readFile(csv(temp),"utf8"),'업체,메모\r\n가나다,"서울, 본사"\r\n');
+  for (let i=0;i<10;i++) await page.getByRole("button",{name:"10행 추가"}).click();
+  await page.getByRole("button",{name:"다음 100행"}).click();
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("101");
+  await expect(first).toHaveValue("업체");
+  await expect.poll(visibleCorner).toBe(true);
   console.log(
     "PASS Electron sheet import: native picker, tabs, values, local save, source unchanged, protected file attached without extraction",
   );
