@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.15
+
+- Browse 56 reviewed architecture templates across AWS, Azure, GCP and multi-cloud designs. Check required Terraform inputs and deployment prerequisites before creating a page.
+- Open a template card’s featured connection to highlight both resources and their enclosing boundaries. Follow the connection to its Terraform property and choose a source line when several locations match.
+- Review the previous and new placement targets alongside the Terraform diff. Undo restores the diagram and code together.
+- Trace Terraform plan instances into local modules and inspect overlapping subnet ranges. Round-trip checks cover reviewed references, module paths and Terraform source contents across the catalog.
+
 ## 0.5.14
 
 - Preview reusable architecture components before inserting them. Edit names, IPv4 CIDRs and external connections, detect overlapping subnets in the same AWS, Azure or GCP network, and undo the insertion in one step.
