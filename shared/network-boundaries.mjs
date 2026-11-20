@@ -328,6 +328,9 @@ export function boundarySVG(
         "</g>",
     )
     .join("");
+  // Preserve headers where cross-boundary references pass through nested boxes.
+  const headerMask = model.presentation?.resources === false ? "" : boxes.map(b =>
+    `<rect x="${b.x + 6}" y="${b.y + 5}" width="${b.w - 12}" height="32" fill="black"/>`).join("");
   const nodes = boxes
     .map((b) => {
       const x = b.x,
@@ -547,7 +550,7 @@ export function boundarySVG(
     nodes +
     annotationLines +
     (arrows
-      ? '<defs><marker id="scope-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#246782"/></marker></defs><g pointer-events="none">' +
+      ? '<defs><marker id="scope-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#246782"/></marker><mask id="scope-header-mask" maskUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="white"/>' + headerMask + '</mask></defs><g mask="url(#scope-header-mask)" pointer-events="none">' +
         arrows +
         "</g>"
       : "") +

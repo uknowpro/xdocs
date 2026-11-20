@@ -210,6 +210,8 @@ test("Seoul case opens both AZs and selects the NAT declaration", async ({page})
 });
 
 for(const [provider,title,address] of [
+  ["AWS","EFS 백업 · 계정 간 복사와 복원 검증","aws_backup_vault.archive"],
+  ["GCP","배치 병행 이전 · 금액 대조와 결과 선택","google_bigquery_data_transfer_config.compare"],
   ["AWS","멀티계정 랜딩존 · 조직 감사 로그 분리","aws_cloudtrail.organization"],
   ["Azure","리전 장애 전환 · 한국과 일본의 이중 웹 서비스","azurerm_linux_web_app.recovery"],
   ["멀티클라우드","하이브리드 지점망 · 이중 라우터와 AWS·GCP","google_compute_router_peer.west"],
@@ -226,4 +228,41 @@ for(const [provider,title,address] of [
   await resource.click();await expect(page.getByLabel("컴포넌트 표시 이름")).toHaveValue(address);
   await expect(page.getByLabel("Terraform 코드")).toContainText(address.split(".")[0]);
   if(provider==="멀티클라우드")await diagram.screenshot({path:"test-results/branch-routing.png"});
+});
+
+test("Azure egress path opens the source declaration for every hop",async({page})=>{
+  await page.goto("/");
+  const button=(name:string)=>page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("IaCD 아키텍처").click();
+  await page.getByLabel("공급자",{exact:true}).selectOption("Azure");
+  await button("허브·스포크 NAT와 방화벽").click();
+  await button("템플릿으로 시작").click();
+  const steps=page.getByRole("navigation",{name:"스포크 송신 경로"}).getByRole("button");
+  for(const [i,field] of ["subnet-private","route_table_id","next_hop_in_ip_address","firewall_policy_id","afwp-","destination_ports"].entries()){
+    await steps.nth(i).click();
+    await expect(page.getByLabel("선택한 Terraform 선언")).toContainText(field);
+  }
+});
+
+test("every catalog preview loads offline, exposes its reviewed path and fits the card",async({page})=>{
+  test.setTimeout(90000);
+  await page.goto("/");
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/,route=>route.abort());
+  const btn=(name:string)=>page.getByRole("button",{name,exact:true});
+  await btn("새로 만들기").click();
+  await btn("IaCD 아키텍처").click();
+  for(const [provider,count] of [["AWS",17],["Azure",19],["GCP",17],["멀티클라우드",3]] as const){
+    await page.getByLabel("공급자",{exact:true}).selectOption(provider);
+    const cards=page.getByRole("group",{name:"설계 템플릿"}).getByRole("button");
+    await expect(cards).toHaveCount(count);
+    for(const card of await cards.all()){
+      await card.scrollIntoViewIfNeeded();
+      await expect(card.locator(".thumbnail-reference")).toContainText(" → ");
+      await expect.poll(()=>card.locator("img").evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0);
+      expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+    }
+  }
+  await btn("구성도 확대 미리보기").click();await btn("원본 크기 보기").click();
+  await expect(page.getByRole("button",{name:"배율 보기"})).toHaveAttribute("aria-pressed","true");
 });

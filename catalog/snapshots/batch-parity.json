@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "title": "GCP · 배치 병행 이전 · 금액 대조와 결과 선택",
+  "settings": {
+    "aws_region": "ap-northeast-2",
+    "azure_subscription": "",
+    "gcp_project": "",
+    "gcp_region": "asia-northeast3"
+  },
+  "nodes": [
+    {
+      "id": "n_import_0",
+      "kind": "google_bigquery_data_transfer_config",
+      "label": "google_bigquery_data_transfer_config.compare",
+      "x": 60,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 74,
+      "address": "google_bigquery_data_transfer_config.compare",
+      "references": [
+        "google_project_iam_member.jobs",
+        "google_bigquery_dataset_iam_member.writer",
+        "google_bigquery_dataset.batch",
+        "google_bigquery_table.input",
+        "google_bigquery_routine.legacy",
+        "google_bigquery_routine.candidate",
+        "google_bigquery_table.published",
+        "google_bigquery_table.audit",
+        "google_service_account.runner"
+      ]
+    },
+    {
+      "id": "n_import_1",
+      "kind": "google_bigquery_dataset",
+      "label": "google_bigquery_dataset.batch",
+      "x": 300,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 8,
+      "address": "google_bigquery_dataset.batch",
+      "references": []
+    },
+    {
+      "id": "n_import_2",
+      "kind": "google_bigquery_dataset_iam_member",
+      "label": "google_bigquery_dataset_iam_member.writer",
+      "x": 540,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 69,
+      "address": "google_bigquery_dataset_iam_member.writer",
+      "references": [
+        "google_bigquery_dataset.batch",
+        "google_service_account.runner"
+      ]
+    },
+    {
+      "id": "n_import_3",
+      "kind": "google_bigquery_routine",
+      "label": "google_bigquery_routine.candidate",
+      "x": 780,
+      "y": 60,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 50,
+      "address": "google_bigquery_routine.candidate",
+      "references": [
+        "google_bigquery_dataset.batch"
+      ]
+    },
+    {
+      "id": "n_import_4",
+      "kind": "google_bigquery_routine",
+      "label": "google_bigquery_routine.legacy",
+      "x": 60,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 39,
+      "address": "google_bigquery_routine.legacy",
+      "references": [
+        "google_bigquery_dataset.batch"
+      ]
+    },
+    {
+      "id": "n_import_5",
+      "kind": "google_bigquery_table",
+      "label": "google_bigquery_table.audit",
+      "x": 300,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 30,
+      "address": "google_bigquery_table.audit",
+      "references": [
+        "google_bigquery_dataset.batch"
+      ]
+    },
+    {
+      "id": "n_import_6",
+      "kind": "google_bigquery_table",
+      "label": "google_bigquery_table.input",
+      "x": 540,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 12,
+      "address": "google_bigquery_table.input",
+      "references": [
+        "google_bigquery_dataset.batch"
+      ]
+    },
+    {
+      "id": "n_import_7",
+      "kind": "google_bigquery_table",
+      "label": "google_bigquery_table.published",
+      "x": 780,
+      "y": 200,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 21,
+      "address": "google_bigquery_table.published",
+      "references": [
+        "google_bigquery_dataset.batch"
+      ]
+    },
+    {
+      "id": "n_import_8",
+      "kind": "google_project_iam_member",
+      "label": "google_project_iam_member.jobs",
+      "x": 60,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 64,
+      "address": "google_project_iam_member.jobs",
+      "references": [
+        "google_service_account.runner"
+      ]
+    },
+    {
+      "id": "n_import_9",
+      "kind": "google_service_account",
+      "label": "google_service_account.runner",
+      "x": 300,
+      "y": 340,
+      "props": {},
+      "original": {},
+      "imported": true,
+      "sourceFile": "main.tf",
+      "sourceLine": 61,
+      "address": "google_service_account.runner",
+      "references": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "main.tf",
+      "content": "terraform {\n  required_providers {\n    google = { source = \"hashicorp/google\", version = \"~> 7.0\" }\n  }\n}\nvariable \"project_id\" { type = string }\nprovider \"google\" { project = var.project_id }\nresource \"google_bigquery_dataset\" \"batch\" {\n  dataset_id = \"batch_parity\"\n  location   = \"US\"\n}\nresource \"google_bigquery_table\" \"input\" {\n  dataset_id = google_bigquery_dataset.batch.dataset_id\n  table_id   = \"orders\"\n  schema = jsonencode([\n    { name = \"business_date\", type = \"DATE\", mode = \"REQUIRED\" },\n    { name = \"order_id\", type = \"STRING\", mode = \"REQUIRED\" },\n    { name = \"amount\", type = \"NUMERIC\", mode = \"REQUIRED\" }\n  ])\n}\nresource \"google_bigquery_table\" \"published\" {\n  dataset_id = google_bigquery_dataset.batch.dataset_id\n  table_id   = \"published_totals\"\n  schema = jsonencode([\n    { name = \"business_date\", type = \"DATE\", mode = \"REQUIRED\" },\n    { name = \"order_id\", type = \"STRING\", mode = \"REQUIRED\" },\n    { name = \"cents\", type = \"NUMERIC\", mode = \"REQUIRED\" }\n  ])\n}\nresource \"google_bigquery_table\" \"audit\" {\n  dataset_id = google_bigquery_dataset.batch.dataset_id\n  table_id   = \"cutover_decisions\"\n  schema = jsonencode([\n    { name = \"run_time\", type = \"TIMESTAMP\", mode = \"REQUIRED\" },\n    { name = \"chosen\", type = \"STRING\", mode = \"REQUIRED\" },\n    { name = \"difference_count\", type = \"INTEGER\", mode = \"REQUIRED\" }\n  ])\n}\nresource \"google_bigquery_routine\" \"legacy\" {\n  dataset_id   = google_bigquery_dataset.batch.dataset_id\n  routine_id   = \"legacy_cents\"\n  routine_type = \"SCALAR_FUNCTION\"\n  language     = \"SQL\"\n  arguments {\n    name      = \"amount\"\n    data_type = jsonencode({ typeKind = \"NUMERIC\" })\n  }\n  definition_body = \"ROUND(amount * 100)\"\n}\nresource \"google_bigquery_routine\" \"candidate\" {\n  dataset_id   = google_bigquery_dataset.batch.dataset_id\n  routine_id   = \"candidate_cents\"\n  routine_type = \"SCALAR_FUNCTION\"\n  language     = \"SQL\"\n  arguments {\n    name      = \"amount\"\n    data_type = jsonencode({ typeKind = \"NUMERIC\" })\n  }\n  definition_body = \"ROUND(amount * 100, 0, 'ROUND_HALF_EVEN')\"\n}\nresource \"google_service_account\" \"runner\" {\n  account_id = \"batch-parity-runner\"\n}\nresource \"google_project_iam_member\" \"jobs\" {\n  project = var.project_id\n  role    = \"roles/bigquery.jobUser\"\n  member  = \"serviceAccount:${google_service_account.runner.email}\"\n}\nresource \"google_bigquery_dataset_iam_member\" \"writer\" {\n  dataset_id = google_bigquery_dataset.batch.dataset_id\n  role       = \"roles/bigquery.dataEditor\"\n  member     = \"serviceAccount:${google_service_account.runner.email}\"\n}\nresource \"google_bigquery_data_transfer_config\" \"compare\" {\n  display_name         = \"Compare and publish daily order totals\"\n  data_source_id       = \"scheduled_query\"\n  location             = google_bigquery_dataset.batch.location\n  schedule             = \"every day 02:00\"\n  service_account_name = google_service_account.runner.email\n  depends_on           = [google_project_iam_member.jobs, google_bigquery_dataset_iam_member.writer]\n  params = {\n    query = <<-SQL\n      DECLARE batch_day DATE DEFAULT DATE_SUB(DATE(@run_time), INTERVAL 1 DAY);\n      DECLARE differences INT64;\n      CREATE TEMP TABLE frozen AS\n        SELECT order_id, amount FROM `${google_bigquery_table.input.dataset_id}.${google_bigquery_table.input.table_id}` WHERE business_date = batch_day;\n      ASSERT (SELECT COUNT(*) FROM frozen) > 0 AS 'Input is empty';\n      CREATE TEMP TABLE baseline AS\n        SELECT order_id, SUM(`${google_bigquery_routine.legacy.dataset_id}.${google_bigquery_routine.legacy.routine_id}`(amount)) AS cents FROM frozen GROUP BY order_id;\n      CREATE TEMP TABLE trial AS\n        SELECT order_id, SUM(`${google_bigquery_routine.candidate.dataset_id}.${google_bigquery_routine.candidate.routine_id}`(amount)) AS cents FROM frozen GROUP BY order_id;\n      SET differences = (SELECT COUNT(*) FROM baseline b FULL OUTER JOIN trial t USING(order_id)\n        WHERE b.cents IS DISTINCT FROM t.cents);\n      BEGIN TRANSACTION;\n      DELETE FROM `${google_bigquery_table.published.dataset_id}.${google_bigquery_table.published.table_id}` WHERE business_date = batch_day;\n      INSERT INTO `${google_bigquery_table.published.dataset_id}.${google_bigquery_table.published.table_id}` (business_date,order_id,cents)\n        SELECT batch_day,order_id,cents FROM trial WHERE differences = 0\n        UNION ALL SELECT batch_day,order_id,cents FROM baseline WHERE differences > 0;\n      DELETE FROM `${google_bigquery_table.audit.dataset_id}.${google_bigquery_table.audit.table_id}` WHERE run_time = @run_time;\n      INSERT INTO `${google_bigquery_table.audit.dataset_id}.${google_bigquery_table.audit.table_id}`\n        VALUES (@run_time, IF(differences = 0,'candidate','legacy'), differences);\n      COMMIT TRANSACTION;\n    SQL\n  }\n}\n",
+      "preservedDeclarations": [
+        "provider.google",
+        "terraform",
+        "variable.project_id"
+      ]
+    }
+  ],
+  "warnings": [
+    "원본 Terraform 설정을 그대로 보관합니다. 변수 기본값·문자열·주석에 비밀정보가 포함되어 있다면 가져오기 전에 제거하세요.",
+    "count/for_each는 리소스 선언 하나로 표시합니다. 로컬·원격 모듈은 내부를 실행하거나 펼치지 않습니다."
+  ],
+  "caseStudyId": "batch-parity",
+  "review": {
+    "operations": "BigQuery와 Data Transfer API를 활성화하고 실행 계정을 지정할 권한을 준비한다. 전일 날짜의 입력 테이블에 1.005와 1.00을 각각 단독 주문으로 넣어 두 경로를 확인한다. 빈 입력은 게시 전에 중단한다.",
+    "security": "예약 쿼리 서비스 계정의 프로젝트 작업 실행 권한과 데이터셋 쓰기 범위를 확인한다.",
+    "cost": "고정 입력을 만든 뒤 두 집계 결과를 대조한다. 처리 바이트와 쿼리 실행 시간을 관찰한다.",
+    "reliability": "같은 실행 시각의 재시도는 해당 날짜의 결과와 결정 기록을 트랜잭션으로 교체한다."
+  }
+}

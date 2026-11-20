@@ -1,0 +1,386 @@
+{
+  "aws-public-alb-private-api-python-terraform": [
+    [
+      "aws_lb_listener.front_end",
+      "aws_lb_target_group.test"
+    ]
+  ],
+  "aws-apigw-http-api-waf-cloudfront-python-terraform": [
+    [
+      "aws_cloudfront_distribution.http_api_distribution",
+      "aws_apigatewayv2_api.http_api"
+    ]
+  ],
+  "aws-lambda-ddb-tenant-isolation-python-terraform": [
+    [
+      "aws_iam_role_policy.isolated_dynamodb_policy",
+      "aws_dynamodb_table.isolated_counter_table"
+    ]
+  ],
+  "aws-apigw-rest-vpclink-pvt-alb-terraform": [
+    [
+      "null_resource.vpclink_integration",
+      "aws_apigatewayv2_vpc_link.vpclink"
+    ]
+  ],
+  "aws-sfn-emrserverless-terraform-templates": [
+    [
+      "aws_sfn_state_machine.sfn_state_machine",
+      "aws_emrserverless_application.emr_serverless"
+    ]
+  ],
+  "aws-lambda-aurora-serverless-python-terraform": [
+    [
+      "aws_rds_cluster.aurora_cluster",
+      "aws_db_subnet_group.aurora_subnet_group"
+    ]
+  ],
+  "aws-apigw-websocket-api-sqs-lambda-python-terraform": [
+    [
+      "aws_apigatewayv2_integration.demo_integration",
+      "aws_iam_role.apigwy_websocket_sqs_role"
+    ]
+  ],
+  "aws-apigw-http-api-lambda-rds-proxy-python-terraform-vpc-rds-setup": [
+    [
+      "aws_db_proxy_target.db_cluster",
+      "aws_rds_cluster.aurora_mysql"
+    ]
+  ],
+  "aws-s3-trigger-lambda-glue-workflow-python-terraform": [
+    [
+      "aws_s3_bucket_notification.aws-lambda-trigger",
+      "aws_lambda_function.first_glue_job_trigger_glue_workflow"
+    ]
+  ],
+  "aws-apigw-lambda-durable-tenant-isolation-callback-nodejs-terraform": [
+    [
+      "aws_api_gateway_integration.workflow_integration",
+      "aws_api_gateway_method.workflow_post"
+    ]
+  ],
+  "aws-ecs-efs-integration-bash-terraform": [
+    [
+      "aws_ecs_task_definition.aws_ecs_task_definition_efs_updater",
+      "aws_ecr_repository.aws_ecr_repository_efs_updater"
+    ]
+  ],
+  "aws-cloudmap-fargate-terraform": [
+    [
+      "aws_ecs_service.demo_service",
+      "aws_service_discovery_service.cloud_map_service"
+    ]
+  ],
+  "aws-vpc-lattice-lambda-python-terraform": [
+    [
+      "aws_vpclattice_target_group_attachment.primary_tg_attachment",
+      "aws_lambda_function.vl_function_primary"
+    ]
+  ],
+  "azure-quickstart-301-machine-learning-hub-spoke-secure": [
+    [
+      "azurerm_private_endpoint.mlw_ple",
+      "azurerm_machine_learning_workspace.default"
+    ]
+  ],
+  "azure-quickstart-101-azure-virtual-desktop-anf": [
+    [
+      "azurerm_netapp_volume.NetApp_Vol",
+      "azurerm_subnet.netapp_subnet"
+    ]
+  ],
+  "azure-quickstart-201-private-link-sql-database": [
+    [
+      "azurerm_private_endpoint.my_terraform_endpoint",
+      "azurerm_mssql_server.server"
+    ]
+  ],
+  "azure-quickstart-201-synapse-secure": [
+    [
+      "azurerm_synapse_workspace.default",
+      "azurerm_storage_data_lake_gen2_filesystem.default"
+    ]
+  ],
+  "azure-quickstart-201-azfw-with-secure-hub": [
+    [
+      "azurerm_firewall.fw",
+      "azurerm_virtual_hub.azfw_vwan_hub"
+    ]
+  ],
+  "azure-quickstart-301-nat-gateway-hub-spoke-firewall": [
+    [
+      "azurerm_route_table.spoke",
+      "azurerm_firewall.main"
+    ],
+    [
+      "azurerm_subnet_route_table_association.spoke",
+      "azurerm_virtual_network.spoke"
+    ],
+    [
+      "azurerm_subnet_route_table_association.spoke",
+      "azurerm_route_table.spoke"
+    ],
+    [
+      "azurerm_firewall.main",
+      "azurerm_firewall_policy.main"
+    ],
+    [
+      "azurerm_firewall_policy_rule_collection_group.main",
+      "azurerm_firewall_policy.main"
+    ]
+  ],
+  "azure-quickstart-301-aks-enterprise": [
+    [
+      "azurerm_kubernetes_cluster.default",
+      "azurerm_subnet.aks"
+    ]
+  ],
+  "azure-quickstart-301-hub-spoke": [
+    [
+      "azurerm_subnet_route_table_association.hub-gateway-rt-hub-vnet-gateway-subnet",
+      "azurerm_route_table.hub-gateway-rt"
+    ]
+  ],
+  "azure-quickstart-202-machine-learning-moderately-secure-existing-vnet": [
+    [
+      "azurerm_machine_learning_compute_cluster.compute",
+      "data.azurerm_subnet.training"
+    ]
+  ],
+  "azure-quickstart-101-virtual-network-manager-create-management-group-scope": [
+    [
+      "azurerm_network_manager_connectivity_configuration.connectivity_config",
+      "azurerm_network_manager_network_group.network_group"
+    ]
+  ],
+  "azure-quickstart-201-ddos-protection-azfw": [
+    [
+      "azurerm_firewall.main",
+      "azurerm_firewall_policy_rule_collection_group.application"
+    ]
+  ],
+  "azure-quickstart-101-front-door-premium-storage-blobs-private-link": [
+    [
+      "azurerm_cdn_frontdoor_origin.my_blob_container_origin",
+      "azurerm_storage_account.my_storage_account"
+    ]
+  ],
+  "azure-quickstart-201-private-link-iothub-builtin-endpoint": [
+    [
+      "azurerm_private_endpoint.dps",
+      "azurerm_iothub_dps.dps"
+    ]
+  ],
+  "azure-quickstart-201-iot-hub-with-device-provisioning-service": [
+    [
+      "azurerm_iothub_dps.dps",
+      "azurerm_iothub_shared_access_policy.hub_access_policy"
+    ]
+  ],
+  "azure-quickstart-101-virtual-network-manager-create-mesh": [
+    [
+      "azurerm_network_manager_connectivity_configuration.connectivity_config",
+      "azurerm_network_manager_network_group.network_group"
+    ]
+  ],
+  "azure-quickstart-101-aks-automatic-private-custom-network": [
+    [
+      "azurerm_kubernetes_automatic_cluster.aks_automatic",
+      "azurerm_subnet.api_server"
+    ]
+  ],
+  "gcp-lb-shared-vpc-https-ilb-with-mig-backend-cross-reference-example": [
+    [
+      "google_compute_region_backend_service.default",
+      "google_compute_instance_group_manager.default"
+    ]
+  ],
+  "gcp-eventarc-use-cmek-advanced": [
+    [
+      "google_eventarc_google_api_source.default",
+      "google_kms_crypto_key.default"
+    ]
+  ],
+  "gcp-gke-quickstart-multitenant": [
+    [
+      "google_container_cluster.default",
+      "google_gke_hub_namespace.default"
+    ]
+  ],
+  "gcp-composer-triggering-dags-with-functions-and-pubsub": [
+    [
+      "google_storage_bucket_object.composer_dags_source",
+      "google_composer_environment.new_composer_env"
+    ]
+  ],
+  "gcp-run-multiple-regions": [
+    [
+      "google_compute_backend_service.lb_default",
+      "google_compute_region_network_endpoint_group.lb_default"
+    ]
+  ],
+  "gcp-network-connectivity-interconnect-ha-vpn-over-interconnect-10gb-attach": [
+    [
+      "google_compute_vpn_tunnel.tunnel_1",
+      "google_compute_ha_vpn_gateway.vpngw_1"
+    ]
+  ],
+  "gcp-lb-cross-reg-int-app-lb-mig-backend": [
+    [
+      "google_compute_backend_service.default",
+      "google_compute_region_instance_group_manager.mig_a"
+    ]
+  ],
+  "gcp-compute-packet-mirroring-full": [
+    [
+      "google_compute_packet_mirroring.default",
+      "google_compute_forwarding_rule.default"
+    ]
+  ],
+  "gcp-vpn-ha-vpn-gateway-gcp-to-gcp": [
+    [
+      "google_compute_vpn_tunnel.tunnel1",
+      "google_compute_ha_vpn_gateway.ha_gateway2"
+    ]
+  ],
+  "gcp-cloud-sql-postgres-instance-psa-psc": [
+    [
+      "google_compute_forwarding_rule.default",
+      "google_sql_database_instance.default"
+    ]
+  ],
+  "gcp-compute-ha-controller-multi-nic-static-ip": [
+    [
+      "google_compute_address.ipv4_nic0_zone1",
+      "google_compute_subnetwork.subnet_0"
+    ]
+  ],
+  "gcp-gke-standard-regional-gemma-tgi": [
+    [
+      "google_container_node_pool.default",
+      "google_container_cluster.default"
+    ]
+  ],
+  "gcp-network-management-vpcflowlogs-vpn-tunnel-full": [
+    [
+      "google_network_management_vpc_flow_logs_config.vpc_flow_logs_config",
+      "google_compute_vpn_tunnel.tunnel"
+    ]
+  ],
+  "gcp-vertex-ai-index-endpoint-deploy-vpc": [
+    [
+      "google_vertex_ai_index_endpoint.default",
+      "google_service_networking_connection.default"
+    ]
+  ],
+  "gcp-network-security-intercept-project-consumer": [
+    [
+      "google_compute_network_firewall_policy_association.default",
+      "google_compute_network.consumer_network"
+    ]
+  ],
+  "gcp-aws-ha-vpn": [
+    [
+      "aws_customer_gateway.customer_gateway_1",
+      "google_compute_ha_vpn_gateway.target_gateway"
+    ]
+  ],
+  "gcp-azure-ha-vpn": [
+    [
+      "azurerm_local_network_gateway.gcp_gw1",
+      "google_compute_ha_vpn_gateway.target_gateway"
+    ]
+  ],
+  "seoul-zonal-egress": [
+    [
+      "aws_route.egress_a",
+      "aws_nat_gateway.egress_a"
+    ]
+  ],
+  "eks-platform-operations": [
+    [
+      "aws_eks_node_group.workers",
+      "aws_subnet.private_a"
+    ]
+  ],
+  "azure-isolated-spokes": [
+    [
+      "azurerm_virtual_network_peering.orders_to_hub",
+      "azurerm_virtual_network.orders"
+    ]
+  ],
+  "gcp-regional-shared-egress": [
+    [
+      "google_compute_router_nat.seoul",
+      "google_compute_router.seoul"
+    ]
+  ],
+  "organization-audit": [
+    [
+      "aws_cloudtrail.organization",
+      "aws_s3_bucket.audit"
+    ]
+  ],
+  "regional-app-dr": [
+    [
+      "azurerm_traffic_manager_azure_endpoint.primary",
+      "azurerm_linux_web_app.primary"
+    ]
+  ],
+  "dual-cloud-branches": [
+    [
+      "aws_vpn_connection.east",
+      "aws_customer_gateway.east"
+    ]
+  ],
+  "efs-backup-copy": [
+    [
+      "aws_backup_plan.orders",
+      "aws_backup_vault.archive"
+    ],
+    [
+      "aws_backup_selection.orders",
+      "aws_backup_plan.orders"
+    ],
+    [
+      "aws_backup_vault.archive",
+      "aws_kms_key.archive"
+    ],
+    [
+      "aws_backup_vault_policy.receive",
+      "aws_backup_vault.archive"
+    ]
+  ],
+  "batch-parity": [
+    [
+      "google_bigquery_data_transfer_config.compare",
+      "google_bigquery_routine.candidate"
+    ],
+    [
+      "google_bigquery_data_transfer_config.compare",
+      "google_bigquery_routine.legacy"
+    ],
+    [
+      "google_bigquery_data_transfer_config.compare",
+      "google_bigquery_table.input"
+    ],
+    [
+      "google_bigquery_data_transfer_config.compare",
+      "google_bigquery_table.published"
+    ],
+    [
+      "google_bigquery_data_transfer_config.compare",
+      "google_bigquery_table.audit"
+    ]
+  ],
+  "azure-private-data-estate": [
+    [
+      "intakestore",
+      "intake-network"
+    ],
+    [
+      "intake-network",
+      "intake-rg"
+    ]
+  ]
+}

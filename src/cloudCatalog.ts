@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import {firewallCase} from "../shared/azure-firewall-path.mjs";
 import studies from "../catalog/case-studies.json";
 import sources from "../catalog/sources.json";
 import {
@@ -30,5 +31,7 @@ export async function openCloudTemplate(
   id: string,
 ): Promise<ArchitectureModel> {
   const load = snapshots["../catalog/snapshots/" + id + ".json"];
-  return load ? structuredClone(await load()) : fromCatalog(id);
+  const model = load ? structuredClone(await load()) : fromCatalog(id);
+  if (id === firewallCase) model.caseStudyId = id;
+  return model;
 }

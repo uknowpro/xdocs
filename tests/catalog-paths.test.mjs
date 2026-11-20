@@ -1,0 +1,112 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import {
+  architectureCatalog,
+  fromCatalog,
+} from "../shared/architecture-catalog.mjs";
+import { architectureEdges } from "../shared/architecture.mjs";
+import { parseTerraformFiles } from "../desktop/architecture-reader.mjs";
+const read = (name) =>
+  readFile(new URL("../catalog/" + name, import.meta.url), "utf8");
+const paths = JSON.parse(await read("reviewed-paths.json"));
+const catalog = [
+  ...JSON.parse(await read("case-studies.json")),
+  ...JSON.parse(await read("sources.json")),
+  ...architectureCatalog,
+];
+function check(id, model) {
+  const byId = new Map(model.nodes.map((n) => [n.id, n.address || n.label]));
+  const edges = architectureEdges(model).map((e) => [
+    byId.get(e.source),
+    byId.get(e.target),
+  ]);
+  for (const [source, target] of paths[id]) {
+    assert.ok(
+      edges.some(([a, b]) => a === source && b === target),
+      id + " missing " + source + " → " + target,
+    );
+  }
+}
+test("every gallery card has a reviewed dependency in its shipped diagram", async () => {
+  assert.deepEqual(Object.keys(paths).sort(), catalog.map((t) => t.id).sort());
+  for (const t of catalog) {
+    const m = architectureCatalog.some((a) => a.id === t.id)
+      ? fromCatalog(t.id)
+      : JSON.parse(await read("snapshots/" + t.id + ".json"));
+    assert.ok(paths[t.id].length, t.id);
+    check(t.id, m);
+  }
+});
+for (const [id, from, to] of [
+  [
+    "efs-backup-copy",
+    "destination_vault_arn = aws_backup_vault.archive.arn",
+    "destination_vault_arn = var.other_vault",
+  ],
+  [
+    "azure-quickstart-301-nat-gateway-hub-spoke-firewall",
+    "azurerm_firewall.main.ip_configuration[0].private_ip_address",
+    "var.other_hop",
+  ],
+  [
+    "batch-parity",
+    "google_bigquery_routine.candidate",
+    "google_bigquery_routine.legacy",
+  ],
+])
+  test(
+    id + " reports the missing dependency if its source is changed",
+    async () => {
+      const snap = JSON.parse(await read("snapshots/" + id + ".json"));
+      check(id, await parseTerraformFiles(snap.sources));
+      const modified = snap.sources.map((f) => ({
+        ...f,
+        content: f.content.replaceAll(from, to),
+      }));
+      assert.ok(modified.some((f, i) => f.content !== snap.sources[i].content));
+      const model = await parseTerraformFiles(modified);
+      assert.throws(() => check(id, model), new RegExp(id + " missing "));
+    },
+  );
+
+test("batch cutover uses the candidate only for equivalent grouped results", async () => {
+  const { DatabaseSync } = await import("node:sqlite");
+  const { parse } = await import("@cdktn/hcl2json");
+  const source = await read("enterprise/batch-parity/main.tf");
+  const parsed = await parse("main.tf", source);
+  const sql =
+    parsed.resource.google_bigquery_data_transfer_config.compare[0].params
+      .query;
+  // Execute the dialect-neutral comparison and publication SELECT from the shipped script.
+  const comparison = sql.match(
+    /SET differences = \((SELECT COUNT\(\*\) FROM baseline[^;]+)\);/,
+  )[1];
+  const publication = sql
+    .match(/(SELECT batch_day,order_id,cents FROM trial[^;]+);/)[1]
+    .replaceAll("batch_day", "$day")
+    .replaceAll("differences", "$diff");
+  for (const [trial, wantDifferences] of [
+    [100, 0],
+    [101, 1],
+    [null, 1],
+  ]) {
+    const db = new DatabaseSync(":memory:");
+    try {
+      db.exec(
+        "CREATE TABLE baseline(order_id TEXT,cents INTEGER); CREATE TABLE trial(order_id TEXT,cents INTEGER); INSERT INTO baseline VALUES ('order',100)",
+      );
+      if (trial !== null)
+        db.prepare("INSERT INTO trial VALUES ('order',?)").run(trial);
+      const [count] = Object.values(db.prepare(comparison).get());
+      assert.equal(count, wantDifferences);
+      const rows = db
+        .prepare(publication)
+        .all({ day: "2026-01-01", diff: count });
+      assert.equal(rows.length, 1);
+      assert.equal(rows[0].cents, 100);
+    } finally {
+      db.close();
+    }
+  }
+});

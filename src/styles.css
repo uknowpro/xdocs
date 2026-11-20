@@ -2744,6 +2744,7 @@ textarea {
 .template-card strong { font-size: 13px; overflow-wrap: anywhere; }
 .template-card small { font-size: 11px; color: var(--muted); }
 .template-thumbnail { width: 100%; height: 120px; grid-template: minmax(0, 1fr) / minmax(0, 1fr); background: white; border: 1px solid var(--line); border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
+.thumbnail-reference { font: 12px/1.4 system-ui, sans-serif; overflow-wrap:anywhere; color:var(--ink); }
 .template-thumbnail img { width: 100%; height: 100%; object-fit: contain; }
 
 .template-thumbnail { position: relative; }
@@ -2927,3 +2928,6 @@ textarea {
 @media(min-width:1101px) {
   .document-layout:not(.sheet-layout) .context { position:sticky;top:0;align-self:start;max-height:85dvh;overflow:auto; }
 }
+
+.firewall-path { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:8px 0; }
+.firewall-path button[aria-pressed="true"] { border-color:var(--ink); }

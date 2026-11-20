@@ -1,3 +1,4 @@
+import {firewallCase,firewallDiagram} from "./azure-firewall-path.mjs";
 import {enterpriseCases} from "./enterprise-case-layouts.mjs";
 import {regionalCases} from "./regional-case-layouts.mjs";
 // Coordinates are in the reference design's view box. A resource address resolves
@@ -138,6 +139,7 @@ const retail = [
 const layouts = {
   ...regionalCases,
   ...enterpriseCases,
+  [firewallCase]:firewallDiagram,
   "seoul-zonal-egress": {
     boxes: seoul,
     links: [
@@ -251,7 +253,7 @@ export function caseDiagram(model, selected = "", planLabels = {}) {
     Object.hasOwn(layouts, model.caseStudyId) && layouts[model.caseStudyId];
   if (!spec) return "";
   const nodes = new Map(model.nodes.map((n) => [n.address, n]));
-  const boxes = spec.boxes.filter(([key]) => key === "frame" || nodes.has(key));
+  const boxes = spec.boxes.filter(([key]) => key === "frame" || key.startsWith("op:") || key.startsWith("step:") || nodes.has(key));
   const byKey = new Map(boxes.map((b) => [b[0], b]));
   const text = (x, y, label, size) =>
     `<text x="${x}" y="${y}" font-family="system-ui,sans-serif" font-size="${size}" fill="#243445">${esc(label)}</text>`;
@@ -269,7 +271,7 @@ export function caseDiagram(model, selected = "", planLabels = {}) {
     const glyph = symbol
       ? `<g transform="translate(${x + 8} ${y + (frame ? 6 : 11)}) scale(.74)"><rect width="24" height="24" rx="4" fill="${symbol[2]}"/><path d="${symbol[1]}" fill="none" stroke="white" stroke-width="1.6"/></g>`
       : "";
-    return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), (node && planLabels[node.id] ? planLabels[node.id]+" · " : "")+label, frame ? 14 : 12)}</g>`;
+    return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" || key.startsWith("op:") ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), (node && planLabels[node.id] ? planLabels[node.id]+" · " : "")+label, frame ? 14 : 12)}</g>`;
   });
   const lines = spec.links.map(([source, target, label, planned]) => {
     const a = byKey.get(source),
@@ -293,7 +295,7 @@ export function caseDiagram(model, selected = "", planLabels = {}) {
       const lane = bottom ? Math.max(start, end) + 12 : Math.min(start, end) - 11;
       return `<g pointer-events="none"><path d="M${ax} ${start} V${lane} H${bx} V${end}" fill="none" stroke="#49586e" marker-end="url(#case-arrow)"/>${text((ax + bx) / 2 - 24, lane - 4, label, 10)}</g>`;
     }
-    return `<g pointer-events="none"><path d="M${x1} ${y1} ${horiz ? "H" + mx + " V" + y2 : "V" + my + " H" + x2} L${x2} ${y2}" fill="none" stroke="#49586e" ${planned ? 'stroke-dasharray="4 3"' : ""} marker-end="url(#case-arrow)"/><text x="${mx}" y="${my - 5}" text-anchor="middle" font-size="10" font-family="monospace" fill="#364559" stroke="white" stroke-width="3" paint-order="stroke">${esc(label)}</text></g>`;
+    return `<g pointer-events="none"><path d="M${x1} ${y1} ${horiz ? "H" + mx + " V" + y2 : "V" + my + " H" + x2} L${x2} ${y2}" fill="none" stroke="#49586e" ${planned ? 'stroke-dasharray="4 3"' : ""} marker-end="url(#case-arrow)"/><text x="${horiz ? mx : mx + 8}" y="${horiz ? my - 5 : my + 3}" text-anchor="${horiz ? "middle" : "start"}" font-size="10" font-family="monospace" fill="#364559" stroke="white" stroke-width="3" paint-order="stroke">${esc(label)}</text></g>`;
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${spec.boxes[0][4] + 16} ${spec.boxes[0][5] + 24}"><defs><marker id="case-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10" fill="#49586e"/></marker></defs>${rects.join("")}${lines.join("")}</svg>`;
 }

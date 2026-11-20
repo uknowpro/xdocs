@@ -29,6 +29,43 @@ function lanes(title, sections, links) {
   return { boxes, links };
 }
 export const enterpriseCases = {
+  "efs-backup-copy": lanes("AWS Backup · EFS cross-account recovery", [
+    {label:"Workload account · daily backup",items:[
+      ["aws_efs_file_system.orders","Orders EFS"],["aws_backup_selection.orders","Protected resource selection"],
+      ["aws_backup_plan.orders","Daily plan · copy action"],["aws_backup_vault.source","Primary vault · 14 days"],
+      ["aws_iam_role.backup","Backup service role"],["aws_iam_role_policy.copy","Copy permissions"]]},
+    {label:"Archive account · recovery points",items:[
+      ["data.aws_caller_identity.archive","Archive identity"],["aws_backup_vault_policy.receive","Allow copy into vault"],
+      ["aws_backup_vault.archive","Archive vault · 35 days"],["aws_kms_key.archive","Archive KMS key"]]},
+    {label:"Archive account · operator drill",items:[
+      ["op:verify","③ Mount in isolation · compare checksums"],["op:restore","② Restore into a new EFS file system"],
+      ["op:select","① Select completed recovery point"]]},
+  ],[
+    ["aws_backup_selection.orders","aws_efs_file_system.orders","protect"],
+    ["aws_backup_selection.orders","aws_backup_plan.orders","plan"],
+    ["aws_backup_plan.orders","aws_backup_vault.source","backup"],
+    ["aws_backup_plan.orders","aws_backup_vault.archive","copy"],
+    ["aws_backup_vault.archive","aws_kms_key.archive","encrypt"],
+    ["aws_backup_vault.archive","op:select","manual",true],["op:select","op:restore","restore",true],["op:restore","op:verify","validate",true],
+  ]),
+  "batch-parity": lanes("BigQuery · parallel batch validation", [
+    {label:"Same business day · frozen input",items:[
+      ["google_bigquery_dataset.batch","Batch dataset"],["google_bigquery_table.input","Order amounts"],
+      ["google_service_account.runner","Scheduled query identity"],["google_project_iam_member.jobs","Job execution"],["google_bigquery_dataset_iam_member.writer","Dataset access"]]},
+    {label:"Scheduled SQL · compare both results",items:[
+      ["google_bigquery_routine.legacy","Legacy rounding"],["google_bigquery_data_transfer_config.compare","Freeze → aggregate → compare"],["google_bigquery_routine.candidate","Candidate rounding"]]},
+    {label:"Atomic publication · one transaction",items:[
+      ["step:match","Match → publish candidate"],["google_bigquery_table.published","Published daily totals"],
+      ["step:difference","Mismatch → keep legacy"],["google_bigquery_table.audit","Decision + mismatch count"]]},
+  ],[
+    ["google_bigquery_table.input","google_bigquery_data_transfer_config.compare","frozen input"],
+    ["google_bigquery_data_transfer_config.compare","google_bigquery_routine.legacy","baseline"],
+    ["google_bigquery_data_transfer_config.compare","google_bigquery_routine.candidate","trial"],
+    ["google_bigquery_data_transfer_config.compare","step:match","equal"],
+    ["google_bigquery_data_transfer_config.compare","step:difference","different"],
+    ["step:match","google_bigquery_table.published","candidate"],["step:difference","google_bigquery_table.published","legacy"],
+    ["google_bigquery_data_transfer_config.compare","google_bigquery_table.audit","record decision"],
+  ]),
   "organization-audit": lanes(
     "AWS Organizations · Seoul",
     [

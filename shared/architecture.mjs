@@ -1478,7 +1478,7 @@ export function architectureConnection(a, b) {
     bend = Math.max(30, Math.abs(by - ay) / 2);
   return `M${ax},${ay} C${ax},${ay + sign * bend} ${bx},${by - sign * bend} ${bx},${by}`;
 }
-export function architectureSVG(m) {
+export function architectureSVG(m, references = architectureEdges(m)) {
   const escape = (v) =>
     String(v)
       .replaceAll("&", "&amp;")
@@ -1487,7 +1487,7 @@ export function architectureSVG(m) {
       .replaceAll('"', "&quot;");
   const width = Math.max(800, ...m.nodes.map((n) => n.x + 240)),
     height = Math.max(400, ...m.nodes.map((n) => n.y + 140));
-  const lines = architectureEdges(m)
+  const lines = references
     .map((e) => {
       const a = m.nodes.find((n) => n.id === e.source),
         b = m.nodes.find((n) => n.id === e.target);

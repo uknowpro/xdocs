@@ -173,5 +173,52 @@
       "google_compute_subnetwork",
       "google_compute_vpn_tunnel"
     ]
+  },
+  {
+    "id": "efs-backup-copy",
+    "provider": "AWS",
+    "name": "EFS 백업 · 계정 간 복사와 복원 검증",
+    "study": "운영 계정의 EFS를 매일 백업하고 보관 계정 Vault로 복사한다. 점선은 운영자가 실행하는 복원 훈련이다.",
+    "caseStudy": true,
+    "review": {
+      "operations": "동일 Organizations에서 교차 계정 백업을 활성화하고 보관 계정 배포 역할을 지정한다. 복사가 완료된 복구 지점을 골라 보관 계정의 복원 역할로 새 EFS에 복원한 뒤, 격리된 마운트 대상에서 샘플 체크섬을 비교하고 훈련 자원을 정리한다.",
+      "security": "보관 Vault 정책, 복사 역할과 고객 관리 키 권한을 확인한다.",
+      "cost": "원본은 14일, 보관 사본은 35일 보존한다. 복원 훈련의 임시 저장소 비용을 포함한다.",
+      "reliability": "복사 완료 시각과 마지막 정상 파일을 확인하고 복원 소요 시간을 기록한다."
+    },
+    "kinds": [
+      "aws_backup_plan",
+      "aws_backup_selection",
+      "aws_backup_vault",
+      "aws_backup_vault_policy",
+      "aws_caller_identity",
+      "aws_efs_file_system",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_iam_role_policy_attachment",
+      "aws_kms_key"
+    ]
+  },
+  {
+    "id": "batch-parity",
+    "provider": "GCP",
+    "name": "배치 병행 이전 · 금액 대조와 결과 선택",
+    "study": "같은 영업일 주문을 한 번 읽어 두 반올림 방식의 주문별 합계를 비교한다. 일치하면 후보 결과, 차이가 있으면 기존 결과를 게시한다.",
+    "caseStudy": true,
+    "review": {
+      "operations": "BigQuery와 Data Transfer API를 활성화하고 실행 계정을 지정할 권한을 준비한다. 전일 날짜의 입력 테이블에 1.005와 1.00을 각각 단독 주문으로 넣어 두 경로를 확인한다. 빈 입력은 게시 전에 중단한다.",
+      "security": "예약 쿼리 서비스 계정의 프로젝트 작업 실행 권한과 데이터셋 쓰기 범위를 확인한다.",
+      "cost": "고정 입력을 만든 뒤 두 집계 결과를 대조한다. 처리 바이트와 쿼리 실행 시간을 관찰한다.",
+      "reliability": "같은 실행 시각의 재시도는 해당 날짜의 결과와 결정 기록을 트랜잭션으로 교체한다."
+    },
+    "kinds": [
+      "google_bigquery_data_transfer_config",
+      "google_bigquery_dataset",
+      "google_bigquery_dataset_iam_member",
+      "google_bigquery_routine",
+      "google_bigquery_table",
+      "google_project_iam_member",
+      "google_service_account"
+    ]
   }
 ]

@@ -54,6 +54,7 @@ export default function TemplatePreview({
   template: (typeof cloudTemplates)[number];
 }) {
   const [model, setModel] = useState<ArchitectureModel>();
+  const [native, setNative] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -71,7 +72,10 @@ export default function TemplatePreview({
   }, [template.id]);
   const boundaries = model?.nodes.filter((n) => containerKinds.has(n.kind));
   const scope = useMemo(() => model && scopeFacts(model), [model]);
-  const diagram = useMemo(() => model && templateDiagram(model), [model]);
+  const diagram = useMemo(
+    () => model && templateDiagram(model, template.id),
+    [model, template.id],
+  );
   return (
     <div className="catalog-large-preview">
       <label>
@@ -82,11 +86,27 @@ export default function TemplatePreview({
           max="4"
           step=".5"
           value={zoom}
-          onChange={(e) => setZoom(Number(e.target.value))}
+          onChange={(e) => {
+            setNative(false);
+            setZoom(Number(e.target.value));
+          }}
         />
       </label>
+      <button
+        type="button"
+        aria-pressed={native}
+        onClick={() => setNative(!native)}
+      >
+        {native ? "배율 보기" : "원본 크기 보기"}
+      </button>
       <div className="catalog-preview-scroll">
-        <div style={{ width: zoom * 100 + "%", height: zoom * 100 + "%" }}>
+        <div
+          style={
+            native && diagram
+              ? { width: diagram.width, height: diagram.height }
+              : { width: zoom * 100 + "%", height: zoom * 100 + "%" }
+          }
+        >
           {diagram && (
             <img
               className="enlarged-diagram"

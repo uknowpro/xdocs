@@ -1,3 +1,4 @@
+import {firewallCase,firewallSteps} from "../shared/azure-firewall-path.mjs";
 import {caseDiagram} from "../shared/case-diagrams.mjs";
 import type {Note} from "./types";
 import DesignFragments from "./DesignFragments";
@@ -550,13 +551,12 @@ export default function ArchitectureDocument({
                     ":" +
                     n.sourceLine +
                     " · " +
-                    (
-                      result.files[livePath]?.split("\n")[n.sourceLine - 1] ||
-                      ""
-                    ).trim()
+                    (model.caseStudyId === firewallCase
+                      ? result.files[livePath].split("\n").slice(n.sourceLine - 1).join("\n").match(/^[^]*?^\}[ \t]*$/m)?.[0]
+                      : result.files[livePath]?.split("\n")[n.sourceLine - 1])
                   : n.sourceFile,
               })),
-      [result.files, livePath, scopedNodes],
+      [result.files, livePath, scopedNodes, model.caseStudyId],
     );
   const parameters = useMemo(() => {
     if (!livePath?.endsWith(".tf.json")) return [];
@@ -1078,7 +1078,17 @@ export default function ArchitectureDocument({
               if (event.key==="Enter" || event.key===" ") { event.preventDefault(); (event.target as Element).dispatchEvent(new MouseEvent("click",{bubbles:true})); }
             }}>
               <div dangerouslySetInnerHTML={{__html:caseDiagram(model,selected,planLabels)}}/>
-              <p>실선은 구성 참조, 점선 화살표는 운영 시 연결할 경로입니다. 리소스를 선택하면 속성과 원본 코드를 볼 수 있습니다.</p>
+              {model.caseStudyId === firewallCase && <nav aria-label="스포크 송신 경로" className="firewall-path">
+                {firewallSteps.map(([address,label]) => {
+                  const target=model.nodes.find(n=>n.address===address);
+                  return target && <button key={address} aria-pressed={selected===target.id} onClick={()=>{
+                    openDetail(target.id);
+                    if(viewer.current) viewer.current.open=true;
+                    requestAnimationFrame(()=>{if(resourceCode.current){resourceCode.current.open=true;resourceCode.current.querySelector<HTMLElement>("pre")?.focus();}});
+                  }}>{label}</button>;
+                })}
+              </nav>}
+              <p>실선은 구성에 정의한 경로이고 점선 화살표는 운영자가 수행할 단계입니다. 리소스를 선택하면 속성과 원본 코드를 볼 수 있습니다.</p>
             </div> : boundary && model.nodes.length > 0 ? (
               <>
                 <p className="boundary-hint">
