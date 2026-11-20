@@ -61,7 +61,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-http-api-waf-cloudfront/python/terraform"
+    "directory": "apigw-http-api-waf-cloudfront/python/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-lambda-ddb-tenant-isolation-python-terraform",
@@ -89,7 +90,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "lambda-ddb-tenant-isolation/python/terraform"
+    "directory": "lambda-ddb-tenant-isolation/python/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-apigw-rest-vpclink-pvt-alb-terraform",
@@ -117,7 +119,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-rest-vpclink-pvt-alb/terraform"
+    "directory": "apigw-rest-vpclink-pvt-alb/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-sfn-emrserverless-terraform-templates",
@@ -197,7 +200,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-websocket-api-sqs-lambda/python/terraform"
+    "directory": "apigw-websocket-api-sqs-lambda/python/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-apigw-http-api-lambda-rds-proxy-python-terraform-vpc-rds-setup",
@@ -257,7 +261,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "s3-trigger-lambda-glue-workflow/python/terraform"
+    "directory": "s3-trigger-lambda-glue-workflow/python/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-apigw-lambda-durable-tenant-isolation-callback-nodejs-terraform",
@@ -282,7 +287,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "apigw-lambda-durable-tenant-isolation-callback/nodejs/terraform"
+    "directory": "apigw-lambda-durable-tenant-isolation-callback/nodejs/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-ecs-efs-integration-bash-terraform",
@@ -307,7 +313,8 @@
     ],
     "repo": "aws-samples/serverless-patterns",
     "revision": "28cfe4292fd906b1f36caf150ae6d9d056a9b5af",
-    "directory": "ecs-efs-integration/bash/terraform"
+    "directory": "ecs-efs-integration/bash/terraform",
+    "cardOnly": true
   },
   {
     "id": "aws-vpc-lattice-lambda-python-terraform",
@@ -824,7 +831,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "eventarc/use_cmek/advanced"
+    "directory": "eventarc/use_cmek/advanced",
+    "cardOnly": true
   },
   {
     "id": "gcp-gke-quickstart-multitenant",
@@ -847,7 +855,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "gke/quickstart/multitenant"
+    "directory": "gke/quickstart/multitenant",
+    "cardOnly": true
   },
   {
     "id": "gcp-composer-triggering-dags-with-functions-and-pubsub",
@@ -892,7 +901,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "run/multiple_regions"
+    "directory": "run/multiple_regions",
+    "cardOnly": true
   },
   {
     "id": "gcp-network-connectivity-interconnect-ha-vpn-over-interconnect-10gb-attach",
@@ -991,7 +1001,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "cloud_sql/postgres_instance_psa_psc"
+    "directory": "cloud_sql/postgres_instance_psa_psc",
+    "cardOnly": true
   },
   {
     "id": "gcp-compute-ha-controller-multi-nic-static-ip",
@@ -1025,7 +1036,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "gke/standard/regional/gemma-tgi"
+    "directory": "gke/standard/regional/gemma-tgi",
+    "cardOnly": true
   },
   {
     "id": "gcp-network-management-vpcflowlogs-vpn-tunnel-full",
@@ -1043,7 +1055,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "network_management/vpcflowlogs/vpn_tunnel_full"
+    "directory": "network_management/vpcflowlogs/vpn_tunnel_full",
+    "cardOnly": true
   },
   {
     "id": "gcp-vertex-ai-index-endpoint-deploy-vpc",
@@ -1063,7 +1076,8 @@
     ],
     "repo": "terraform-google-modules/terraform-docs-samples",
     "revision": "044aade264f9207e204d4e600d2e3a494a1a5d6e",
-    "directory": "vertex_ai/index_endpoint_deploy_vpc"
+    "directory": "vertex_ai/index_endpoint_deploy_vpc",
+    "cardOnly": true
   },
   {
     "id": "gcp-network-security-intercept-project-consumer",
@@ -1105,7 +1119,8 @@
     ],
     "repo": "GoogleCloudPlatform/professional-services",
     "revision": "587120aa12c7017e1bf481f97e356b3628747691",
-    "directory": "tools/gcp-aws-ha-vpn"
+    "directory": "tools/gcp-aws-ha-vpn",
+    "cardOnly": true
   },
   {
     "id": "gcp-azure-ha-vpn",

@@ -106,14 +106,14 @@ Ubuntu와 GitHub Actions의 macOS·Windows에서 기본 실행 검사를 통과�
 
 자신과 회사의 내부 업무를 위한 사용·수정·파생물 제작을 허용합니다. 외부 배포에는 별도 허가가 필요합니다.
 
-IaCD에는 **AWS 16종, Azure 19종, GCP 17종, 멀티클라우드 3종을 합쳐 총 55종**의 오프라인 IaCD 템플릿이 있습니다. 카드에서 주요 참조를 확인하고, EFS 계정 간 복원·Azure 방화벽 라우팅·BigQuery 배치 전환 사례를 도면에서 따라갈 수 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
+IaCD에는 **AWS 9종, Azure 19종, GCP 10종, 멀티클라우드 2종을 합쳐 총 40종**의 오프라인 IaCD 템플릿이 있습니다. 카드에서 주요 참조를 확인하고, EFS 계정 간 복원·Azure 방화벽 라우팅·BigQuery 배치 전환 사례를 도면에서 따라갈 수 있습니다. **Builder**는 시트·노트의 업무 하네스를 조합해 근거가 있는 결과 노트를 만듭니다. 데스크톱에서 호환 모델과 MCP 자료를 연결하고, 요청 실패 시 저장된 대체 모델로 재시도하거나 JSON 응답의 근거 누락을 확인할 수 있습니다. IaCD의 WAF 검토에서는 두 버전의 terraform-docs JSON을 열어 모듈 입출력 변경을 비교합니다. [Builder 사용법](docs/brainboard-builder.md)
 
 <details>
 <summary>Builder와 IaCD 템플릿 화면</summary>
 
 ![셀 주소를 포함하는 시트 검토 하네스](docs/images/builder.png)
 
-![AWS–GCP·Azure–GCP VPN 사례 비교](docs/images/architecture-catalog.png)
+![하이브리드 지점망과 Azure–GCP VPN 구성도](docs/images/architecture-catalog.png)
 
 ![Azure 방화벽 다음 홉 속성을 강조한 Terraform 뷰어](docs/images/terraform-reference.png)
 

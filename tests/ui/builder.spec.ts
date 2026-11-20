@@ -65,7 +65,6 @@ test("packaged multi-cloud VPN case opens without network access", async ({ page
   await page
     .getByRole("button", { name: "IaCD 아키텍처", exact: true })
     .click();
-  await page.getByRole("button", { name: "Terraform 원본", exact: true }).click();
   await page.getByLabel("공급자",{exact:true}).selectOption("멀티클라우드");
   await expect.poll(() => page.locator(".template-thumbnail img").evaluateAll(
     images => images.filter(i => (i as HTMLImageElement).naturalWidth > 0).length
@@ -74,14 +73,14 @@ test("packaged multi-cloud VPN case opens without network access", async ({ page
   await page
     .getByRole("dialog")
     .screenshot({ path: "test-results/architecture-catalog.png" });
-  await page.getByRole("button",{name:"AWS ↔ GCP · HA VPN과 BGP",exact:true}).click();
+  await page.getByRole("button",{name:"Azure ↔ GCP · 이중 VPN 게이트웨이",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await expect(page.getByLabel("아키텍처 제목")).toHaveValue(
-    "멀티클라우드 · AWS ↔ GCP · HA VPN과 BGP",
+    "멀티클라우드 · Azure ↔ GCP · 이중 VPN 게이트웨이",
   );
-  await page.getByLabel("Terraform 파일").selectOption("terraform/aws_vpn.tf");
+  await page.getByLabel("Terraform 파일").selectOption("terraform/azure.tf");
   await expect(page.getByLabel("Terraform 코드")).toContainText(
-    "aws_vpn_connection",
+    "azurerm_virtual_network_gateway_connection",
   );
 });
 test("a named harness copy keeps its rules and clears the original note input", async ({
@@ -139,6 +138,8 @@ test("retired AWS templates are absent from gallery search", async ({ page }) =>
   const search = page.getByLabel("템플릿 검색");
   await search.fill("결제 서비스 · 격리 복구 리허설");
   await expect(page.getByRole("button", {name:"템플릿으로 시작"})).toBeDisabled();
+  await search.fill("aws-ecs-efs-integration-bash-terraform");
+  await expect(page.locator(".template-card")).toHaveCount(0);
   await search.fill("Fargate 서비스 검색");
   await expect(page.getByRole("button", {name:"템플릿으로 시작"})).toBeDisabled();
   await expect(page.locator(".template-card")).toHaveCount(0);
@@ -246,7 +247,7 @@ test("every catalog preview loads offline, exposes its reviewed path and fits th
   const btn=(name:string)=>page.getByRole("button",{name,exact:true});
   await btn("새로 만들기").click();
   await btn("IaCD 아키텍처").click();
-  for(const [provider,count] of [["AWS",16],["Azure",19],["GCP",17],["멀티클라우드",3]] as const){
+  for(const [provider,count] of [["AWS",9],["Azure",19],["GCP",10],["멀티클라우드",2]] as const){
     await page.getByLabel("공급자",{exact:true}).selectOption(provider);
     const cards=page.getByRole("group",{name:"설계 템플릿"}).locator(".template-card");
     await expect(cards).toHaveCount(count);
@@ -296,17 +297,17 @@ test("follow the Azure firewall route from a card into its Terraform property", 
   await expect(mark).toHaveCount(0);
 });
 
-test("a GCP connection offers both source locations before jumping", async ({page}) => {
+test("an Azure connection offers both source locations before jumping", async ({page}) => {
   await page.goto("/");
   const button = (name:string) => page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
   await button("IaCD 아키텍처").click();
-  await page.getByLabel("공급자",{exact:true}).selectOption("GCP");
-  await page.getByLabel("템플릿 검색").fill("gcp-run-multiple-regions");
+  await page.getByLabel("공급자",{exact:true}).selectOption("Azure");
+  await page.getByLabel("템플릿 검색").fill("azure-quickstart-101-front-door-premium-storage-blobs-private-link");
   await page.locator(".thumbnail-reference").click();
   await button("Terraform 속성 보기").click();
-  await expect(button("backend.group · main.tf:59")).toBeVisible();
-  await button("backend.group · main.tf:63").click();
-  await expect(page.locator(".reference-location")).toHaveText("main.tf:63 · backend.group");
-  await expect(page.getByLabel("Terraform 코드").locator("mark")).toContainText("group");
+  await expect(button("host_name · front-door.tf:48")).toBeVisible();
+  await button("origin_host_header · front-door.tf:51").click();
+  await expect(page.locator(".reference-location")).toHaveText("front-door.tf:51 · origin_host_header");
+  await expect(page.getByLabel("Terraform 코드").locator("mark")).toContainText("origin_host_header");
 });

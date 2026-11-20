@@ -1,3 +1,6 @@
+import { caseDiagram } from "../shared/case-diagrams.mjs";
+import { boundaryLayout } from "../shared/network-boundaries.mjs";
+import { firewallCase } from "../shared/azure-firewall-path.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -35,6 +38,8 @@ test("every gallery card has a reviewed dependency in its shipped diagram", asyn
       ? fromCatalog(t.id)
       : JSON.parse(await read("snapshots/" + t.id + ".json"));
     assert.ok(paths[t.id].length, t.id);
+    if (t.id === firewallCase) m.caseStudyId = t.id;
+    assert.equal(Boolean(t.cardOnly), !caseDiagram(m) && boundaryLayout(m).parents.size === 0, t.id + " gallery visibility");
     check(t.id, m);
   }
 });

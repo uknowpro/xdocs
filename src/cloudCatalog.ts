@@ -25,7 +25,7 @@ type CloudTemplate = {
 export const cloudTemplates: CloudTemplate[] = [
   ...studies,
   ...architectureCatalog,
-  ...sources,
+  ...sources.filter(template => !template.cardOnly),
 ];
 export async function openCloudTemplate(
   id: string,
