@@ -254,9 +254,14 @@
     "inputs": [],
     "sites": [
       {
-        "file": "hub-nva.tf",
-        "line": 131,
-        "property": "route_table_id"
+        "file": "spoke1.tf",
+        "line": 47,
+        "property": "depends_on"
+      },
+      {
+        "file": "spoke1.tf",
+        "line": 41,
+        "property": "remote_virtual_network_id"
       }
     ]
   },

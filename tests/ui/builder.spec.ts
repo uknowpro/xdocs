@@ -311,3 +311,28 @@ test("an Azure connection offers both source locations before jumping", async ({
   await expect(page.locator(".reference-location")).toHaveText("front-door.tf:51 · origin_host_header");
   await expect(page.getByLabel("Terraform 코드").locator("mark")).toContainText("origin_host_header");
 });
+
+for (const [provider, title, label, address, field] of [
+  ["GCP", "Interconnect 위의 HA VPN", "Tunnel 4", "google_compute_vpn_tunnel.tunnel_4", "peer_external_gateway_interface"],
+  ["Azure", "격리형 ML 허브·스포크 플랫폼", "Workspace PE", "azurerm_private_endpoint.mlw_ple", "private_connection_resource_id"],
+  ["Azure", "허브·스포크 네트워크 분리", "Management NIC", "azurerm_network_interface.spoke1-nic", "subnet_id"],
+]) test(title + " shows the source-backed topology in the gallery and editor", async ({page}) => {
+  await page.setViewportSize({width:1600,height:1000});
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, route => route.abort());
+  await page.goto("/");
+  const button = (name:string) => page.getByRole("button", {name, exact:true});
+  await button("새로 만들기").click();
+  await button("IaCD 아키텍처").click();
+  await page.getByLabel("공급자",{exact:true}).selectOption(provider);
+  await button(title).click();
+  const preview = page.locator(".template-card").filter({has:button(title)}).locator("img");
+  await expect.poll(() => preview.evaluate((img:HTMLImageElement) => img.naturalWidth / img.naturalHeight)).toBeGreaterThan(2);
+  await button("템플릿으로 시작").click();
+  const diagram = page.locator(".case-blueprint");
+  await diagram.getByRole("button", {name:label, exact:true}).first().click();
+  const code = page.getByLabel("선택한 Terraform 선언");
+  await expect(code).toBeVisible();
+  const [kind, name] = address.split(".");
+  await expect(code).toContainText('resource "'+kind+'" "'+name+'"');
+  await expect(code).toContainText(field);
+});

@@ -1,3 +1,4 @@
+import {networkCases} from "./network-case-layouts.mjs";
 import {firewallCase,firewallDiagram} from "./azure-firewall-path.mjs";
 import {enterpriseCases} from "./enterprise-case-layouts.mjs";
 import {regionalCases} from "./regional-case-layouts.mjs";
@@ -137,6 +138,7 @@ const retail = [
   ],
 ];
 const layouts = {
+  ...networkCases,
   ...regionalCases,
   ...enterpriseCases,
   [firewallCase]:firewallDiagram,

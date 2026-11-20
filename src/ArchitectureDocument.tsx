@@ -1,3 +1,4 @@
+import {networkCases} from "../shared/network-case-layouts.mjs";
 import {firewallCase,firewallSteps} from "../shared/azure-firewall-path.mjs";
 import {caseDiagram} from "../shared/case-diagrams.mjs";
 import type {Note} from "./types";
@@ -591,7 +592,7 @@ export default function ArchitectureDocument({
                     ":" +
                     n.sourceLine +
                     " · " +
-                    (model.caseStudyId === firewallCase
+                    ((model.caseStudyId === firewallCase || Object.hasOwn(networkCases, model.caseStudyId || ""))
                       ? result.files[livePath].split("\n").slice(n.sourceLine - 1).join("\n").match(/^[^]*?^\}[ \t]*$/m)?.[0]
                       : result.files[livePath]?.split("\n")[n.sourceLine - 1])
                   : n.sourceFile,
@@ -1122,7 +1123,13 @@ export default function ArchitectureDocument({
             </div>
             {caseView && model.caseStudyId ? <div className={fitBoundary ? "case-blueprint" : "case-blueprint case-enlarged"} onClick={event => {
               const id=(event.target as Element).closest("[data-resource]")?.getAttribute("data-resource");
-              const n=model.nodes.find(n=>n.id===id); if(n) select(n);
+              const n=model.nodes.find(n=>n.id===id);
+              if (!n) return;
+              select(n);
+              if (!connecting && n.sourceFile && Object.hasOwn(networkCases, model.caseStudyId || "")) {
+                if (viewer.current) viewer.current.open = true;
+                if (resourceCode.current) resourceCode.current.open = true;
+              }
             }} onKeyDown={event => {
               if (event.key==="Enter" || event.key===" ") { event.preventDefault(); (event.target as Element).dispatchEvent(new MouseEvent("click",{bubbles:true})); }
             }}>

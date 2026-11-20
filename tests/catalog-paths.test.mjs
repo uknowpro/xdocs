@@ -1,3 +1,4 @@
+import {networkCases} from "../shared/network-case-layouts.mjs";
 import { caseDiagram } from "../shared/case-diagrams.mjs";
 import { boundaryLayout } from "../shared/network-boundaries.mjs";
 import { firewallCase } from "../shared/azure-firewall-path.mjs";
@@ -155,5 +156,20 @@ test("catalog exports retain reviewed addresses, module files, inputs and source
       inspection[id],
       id + " catalog inspection needs regeneration",
     );
+  }
+});
+
+test("network case drawings resolve every node, arrow and gallery reference against Terraform", async () => {
+  for (const [id, spec] of Object.entries(networkCases)) {
+    const model = JSON.parse(await read("snapshots/" + id + ".json"));
+    const nodes = new Map(model.nodes.map(n => [n.address, n]));
+    for (const [key] of spec.boxes) {
+      if (key === "frame") continue;
+      const node = nodes.get(key);
+      assert.ok(node?.sourceFile && node.sourceLine, key);
+    }
+    for (const [a,b] of spec.links) assert.ok(nodes.get(a).references.includes(b), a+" → "+b);
+    const [source,target] = paths[id][0];
+    assert.ok(spec.links.some(([a,b]) => a === source && b === target), id);
   }
 });

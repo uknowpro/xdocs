@@ -131,6 +131,10 @@
   ],
   "azure-quickstart-301-hub-spoke": [
     [
+      "azurerm_virtual_network_peering.spoke1-hub-peer",
+      "azurerm_virtual_network.hub-vnet"
+    ],
+    [
       "azurerm_subnet_route_table_association.hub-gateway-rt-hub-vnet-gateway-subnet",
       "azurerm_route_table.hub-gateway-rt"
     ]
