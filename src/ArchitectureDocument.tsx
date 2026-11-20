@@ -6,6 +6,8 @@ import PlanReview, {type PlanRows} from "./PlanReview";
 import {planNode,planModuleTarget} from "../shared/plan-review.mjs";
 import ArchitectureImpact from "./ArchitectureImpact";
 import TemplatePreview from "./TemplatePreview";
+import catalogInspection from "../catalog/inspection.json";
+import reviewedPaths from "../catalog/reviewed-paths.json";
 import TemplateThumbnail from "./TemplateThumbnail";
 import ModuleContractReview from "./ModuleContractReview";
 import { terraformDeclarations } from "../shared/architecture-catalog.mjs";
@@ -166,7 +168,7 @@ export function ArchitectureStart({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (m: ArchitectureModel) => Promise<void>;
+  onCreate: (m: ArchitectureModel, focusTemplate?: string) => Promise<void>;
 }) {
   const [preview, setPreview] = useState<ArchitectureModel | null>(null),
     [accepted, setAccepted] = useState(false),
@@ -199,12 +201,12 @@ export function ArchitectureStart({
         )),
   );
   const chosen = matches.find((t) => t.id === templateId) || matches[0];
-  async function openChosen() {
-    if (!chosen) return;
+  async function openChosen(id = chosen?.id, focus = false) {
+    if (!id || busy) return;
     setBusy(true);
     setError("");
     try {
-      await onCreate(await openCloudTemplate(chosen.id));
+      await onCreate(await openCloudTemplate(id), focus ? id : undefined);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -341,18 +343,28 @@ export function ArchitectureStart({
           {matches.length > 0 && (
             <div className="template-gallery" role="group" aria-label="설계 템플릿">
               {matches.map(t => (
-                <button key={t.id} type="button" className="template-card"
+                <div key={t.id} className="template-card">
+                <button type="button" className="template-select"
                   aria-label={t.name} aria-pressed={chosen?.id === t.id}
                   onClick={() => setTemplateId(t.id)}>
                   <TemplateThumbnail id={t.id} />
                   <strong>{t.name}</strong>
                   <small>{t.provider} · {templateMode(t)}</small>
                 </button>
+                <button className="thumbnail-reference" onClick={() => void openChosen(t.id,true)}>참조 열기 · {reviewedPaths[t.id as keyof typeof reviewedPaths][0].join(" → ")}</button>
+                </div>
               ))}
             </div>
           )}
           {chosen && <>
             <p className="catalog-study">{chosen.study}</p>
+            <details><summary>필수 입력과 준비 사항</summary>
+              <p>기본값 없는 루트 변수 · {catalogInspection[chosen.id as keyof typeof catalogInspection].inputs.join(", ") || "없음"}</p>
+              {chosen.review?.operations && <p>{chosen.review.operations}</p>}
+              {chosen.id === "efs-backup-copy" && <p>AWS Organizations에서 계정 간 백업을 활성화하고 대상 계정 역할, 백업 볼트 및 KMS 키 권한을 확인하세요.</p>}
+              {chosen.id === "batch-parity" && <p>대상 프로젝트에서 BigQuery와 BigQuery Data Transfer API를 활성화하고 예약 쿼리 실행 권한을 확인하세요.</p>}
+              {!chosen.review?.operations && <p>{chosen.provider} 배포 계정의 인증, 리전, 리소스 생성 권한을 확인하세요.</p>}
+            </details>
             <button type="button" className="button" aria-expanded={previewId === chosen.id}
               onClick={() => setPreviewId(previewId === chosen.id ? "" : chosen.id)}>구성도 확대 미리보기</button>
             {previewId === chosen.id && <TemplatePreview key={chosen.id} template={chosen}/>}
@@ -429,21 +441,32 @@ export function ArchitectureStart({
 }
 export default function ArchitectureDocument({
   model,
+  focusTemplate,
   notes,saveFragment,saveReview,
   onChange,
   readonly = false,
 }: {
+  focusTemplate?: string;
   saveReview:(text:string)=>Promise<void>;
   notes:Note[]; saveFragment:(name:string,body:string)=>Promise<void>;
   model: ArchitectureModel;
   onChange: (m: ArchitectureModel) => void;
   readonly?: boolean;
 }) {
-  const [selected, setSelected] = useState(model.nodes[0]?.id || ""),
+  const [entry] = useState(() => {
+    const key = focusTemplate as keyof typeof reviewedPaths;
+    if (!Object.hasOwn(reviewedPaths, key)) return;
+    const [a,b] = reviewedPaths[key][0].map(address => model.nodes.find(n => (n.address || n.label) === address));
+    if (a && b) return {source:a.id, target:b.id, sites:catalogInspection[key].sites, label:reviewedPaths[key][0].join(" → ")};
+  });
+  const [pathFocus,setPathFocus] = useState(Boolean(entry));
+  const [sitesOpen,setSitesOpen] = useState(false);
+  const [site,setSite] = useState<{file:string;line:number;property:string}>();
+  const [selected, setSelected] = useState(entry?.source || model.nodes[0]?.id || ""),
     [group, setGroup] = useState("전체"),
     [zoom, setZoom] = useState(1),
     [boundary, setBoundary] = useState(true),
-    [caseView, setCaseView] = useState(Boolean(model.caseStudyId)),
+    [caseView, setCaseView] = useState(Boolean(model.caseStudyId) && !entry),
     [fitBoundary, setFitBoundary] = useState(true),
     [tab, setTab] = useState(model.drawing ? "drawing" : "canvas"),
     [format, setFormat] = useState("all"),
@@ -506,8 +529,9 @@ export default function ArchitectureDocument({
     : terraformFiles[0];
   const [focusRelated, setFocusRelated] = useState(false);
   const neighbours = edges.filter(edge => edge.source === selected || edge.target === selected);
-  const focusIds = new Set([selected, ...neighbours.flatMap(edge => [edge.source, edge.target])]);
-  if (focusRelated && node) {
+  const focused = pathFocus && entry && selected === entry.source && edges.some(e => e.source === entry.source && e.target === entry.target) ? entry : undefined;
+  const focusIds = new Set(focused ? [focused.source, focused.target] : [selected, ...neighbours.flatMap(edge => [edge.source, edge.target])]);
+  if ((focused || focusRelated) && node) {
     const { parents } = boundaryLayout(model);
     for (const id of focusIds) {
       const parent = parents.get(id);
@@ -515,11 +539,27 @@ export default function ArchitectureDocument({
     }
   }
   const focusAttributes = ["data-scope", "data-boundary", "data-free-id", "data-resource"];
-  const mutedSelector = focusRelated && node
+  const mutedSelector = (focused || focusRelated) && node
     ? model.nodes.filter(n => !focusIds.has(n.id)).flatMap(n =>
         focusAttributes.map(attr => `.arch-workspace [${attr}="${CSS.escape(n.id)}"]`)).join(",")
     : "";
   const openingModel = useRef(model);
+  const targetNode = focused && model.nodes.find(n => n.id === focused.target);
+  const targetAddress = targetNode && (targetNode.address || (targetNode.kind.startsWith("avm_") ? "module" : targetNode.kind) + "." + targetNode.id);
+  const sites = focused?.sites.filter(s => {
+    const current = result.files["terraform/" + s.file];
+    const original = openingModel.current.sources.find(f => f.name === s.file);
+    return (!original || current === original.content) && targetAddress && current?.split("\n")[s.line-1]?.includes(targetAddress);
+  }) || [];
+  function jumpToSite(s: typeof sites[number]) {
+    setSite(s); setLiveFile("terraform/" + s.file); setCompareFile(false);
+    if (viewer.current) viewer.current.open = true;
+    requestAnimationFrame(() => viewer.current?.querySelector("mark")?.scrollIntoView({block:"nearest"}));
+  }
+  function showSites() {
+    setSitesOpen(true);
+    if (sites.length === 1) jumpToSite(sites[0]);
+  }
   const [compareFile, setCompareFile] = useState(false);
   const [impactOpen,setImpactOpen] = useState(false);
   const initialFiles = useMemo(() => compareFile || impactOpen ? generateArchitecture(openingModel.current, "terraform").files : {}, [compareFile,impactOpen]);
@@ -830,9 +870,13 @@ export default function ArchitectureDocument({
     setDetail("closed");
     focusNode(selected);
   }
+  const [lastPlacement,setLastPlacement] = useState<{before:ArchitectureModel;after:ArchitectureModel;id:string}>();
   function place(child: ArchitectureNode, parent: ArchitectureNode) {
     try {
-      change(reassignPlacement(model, child, parent));
+      const next = reassignPlacement(model, child, parent);
+      change(next);
+      setLastPlacement({before:model,after:next,id:child.id});
+      setImpactOpen(true);
       setSelected(child.id);
     } catch (e) {
       setError(String(e));
@@ -1047,6 +1091,11 @@ export default function ArchitectureDocument({
           <div className="arch-workspace">
             {mutedSelector && <style>{mutedSelector + "{opacity:0.25}"}</style>}
             <div className="arch-canvas-tools">
+              {focused && <div className="focused-reference">
+                <strong>{focused.label}</strong><button onClick={showSites}>Terraform 속성 보기</button>
+                <button onClick={() => {setPathFocus(false);setSitesOpen(false);setSite(undefined);}}>전체 도면 보기</button>
+                {sitesOpen && sites.length !== 1 && <div>{sites.length ? sites.map((s,i) => <button key={i} onClick={() => jumpToSite(s)}>{s.property} · {s.file}:{s.line}</button>) : "현재 파일에서 이 참조의 원본 위치를 확인할 수 없습니다."}</div>}
+              </div>}
               <button type="button" disabled={!node} aria-pressed={focusRelated} onClick={() => setFocusRelated(!focusRelated)}>연결 집중 보기</button>
               <div className="segmented">
                 {model.caseStudyId && <button aria-pressed={caseView} className={caseView ? "selected" : ""} onClick={() => setCaseView(true)}>사례 구성도</button>}
@@ -1096,7 +1145,7 @@ export default function ArchitectureDocument({
                     ? "연결할 대상 컴포넌트를 선택하세요."
                     : "항목을 선택해 속성을 편집하거나 상위 경계의 제목으로 끌어 소속을 변경하세요."}
                 </p>
-                <NetworkLayout planLabels={planLabels} focusRelated={focusRelated}
+                <NetworkLayout focused={focused} onReference={showSites} planLabels={planLabels} focusRelated={focusRelated}
                   fit={fitBoundary}
                   model={displayModel}
                   selected={selected}
@@ -1732,7 +1781,7 @@ export default function ArchitectureDocument({
             </details>)}</details>}
           <details className="arch-review-issues" open={impactOpen} onToggle={event => setImpactOpen(event.currentTarget.open)}>
             <summary>변경 영향</summary>
-            {impactOpen && <ArchitectureImpact before={openingModel.current} after={model} original={initialFiles}
+            {impactOpen && <ArchitectureImpact placement={lastPlacement} before={openingModel.current} after={model} original={initialFiles}
               files={result.files} errors={result.errors} onNode={openDetail} onFile={path => {
                 setLiveFile(path); setCompareFile(true);
                 if (viewer.current) { viewer.current.open = true; viewer.current.scrollIntoView({block:"nearest"}); }
@@ -1816,6 +1865,8 @@ export default function ArchitectureDocument({
                 {terraformFiles.filter(path => path !== livePath && path.endsWith("/zz_xdocs_override.tf.json")).map(path =>
                   <button key={path} onClick={() => setLiveFile(path)}>변경 오버라이드 보기</button>)}
               </div>
+              {!compareFile && focused && site && sites.some(s => s.file === site.file && s.line === site.line) && livePath === "terraform/" + site.file &&
+                <div className="reference-location">{site.file}:{site.line} · {site.property}</div>}
               {compareFile ? <div aria-label="페이지를 열었을 때와 비교">
                 {!fileChanges ? <p>파일이 커서 변경 줄 비교 시간을 초과했습니다.</p> :
                   fileChanges.some(part => part.added || part.removed) ?
@@ -1823,7 +1874,7 @@ export default function ArchitectureDocument({
                       <span key={i} className={part.added ? "live-added" : "live-removed"}>{part.value.replace(/^./gm, line => (part.added ? "+ " : "− ") + line)}</span>)}</pre>
                     : <p>페이지를 열었을 때와 같습니다.</p>}
               </div> : <pre aria-label="Terraform 코드">
-                <code>{result.files[livePath]}</code>
+                <code>{site && focused && sites.some(s => s.file === site.file && s.line === site.line) && livePath === "terraform/" + site.file ? result.files[livePath].split("\n").map((line,i,lines) => <span key={i}>{i+1 === site.line ? <mark title={site.property}>{line}</mark> : line}{i < lines.length-1 ? "\n" : ""}</span>) : result.files[livePath]}</code>
               </pre>}
             </>
           )}

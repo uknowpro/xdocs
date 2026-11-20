@@ -12,6 +12,8 @@ import type {
 } from "./ArchitectureDocument";
 type View = NonNullable<ArchitectureModel["presentation"]>;
 type Props = {
+  focused?: {source:string;target:string};
+  onReference: () => void;
   planLabels:Record<string,string>;
   focusRelated: boolean;
   fit: boolean;
@@ -24,6 +26,7 @@ type Props = {
 };
 export default function NetworkLayout({
   model,
+  focused, onReference,
   planLabels,
   focusRelated,
   fit,
@@ -52,11 +55,12 @@ export default function NetworkLayout({
   const view = model.presentation || {},
     node = model.nodes.find((n) => n.id === selected);
   const updateView = onView;
-  const refs = focusRelated || (view.refs ?? false),
+  const refs = Boolean(focused) || focusRelated || (view.refs ?? false),
     all = refs ? architectureEdges(model) : [];
   const { representatives } = boundaryLayout({ ...model, presentation: view });
   const edges = all.filter(
     (e) =>
+      (!focused || (e.source === focused.source && e.target === focused.target)) &&
       (representatives.get(e.source) === selected ||
         representatives.get(e.target) === selected) &&
       representatives.get(e.source) !== representatives.get(e.target),
@@ -117,7 +121,7 @@ export default function NetworkLayout({
             <input
               type="checkbox"
               checked={key === "refs" ? refs : view[key] ?? defaultValue}
-              disabled={key === "refs" && focusRelated}
+              disabled={key === "refs" && (Boolean(focused) || focusRelated)}
               onChange={(e) => updateView({ ...view, [key]: e.target.checked })}
             />
             {label}
@@ -141,7 +145,7 @@ export default function NetworkLayout({
         )}
       </div>
       <div
-        className="network-sheet"
+        className={focused ? "network-sheet reference-focused" : "network-sheet"}
         aria-label="클라우드 경계 도면"
         onKeyDown={(e) => {
           if (e.key === "Escape") {
@@ -156,6 +160,7 @@ export default function NetworkLayout({
             }
           }
         }}
+        onClick={e => {if (focused && (e.target as Element).closest("[data-reference]")) onReference();}}
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           const el = e.target as Element,

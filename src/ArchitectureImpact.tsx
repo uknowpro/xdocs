@@ -1,11 +1,21 @@
+import { diffLines } from "diff";
+import { placementFields } from "../shared/network-boundaries.mjs";
 import { useMemo, useState } from "react";
-import { architectureEdges } from "../shared/architecture.mjs";
+import {
+  architectureEdges,
+  generateArchitecture,
+} from "../shared/architecture.mjs";
 import type {
   ArchitectureModel,
   ArchitectureNode,
 } from "./ArchitectureDocument";
 
 type Props = {
+  placement?: {
+    before: ArchitectureModel;
+    after: ArchitectureModel;
+    id: string;
+  };
   before: ArchitectureModel;
   after: ArchitectureModel;
   original: Record<string, string>;
@@ -28,6 +38,7 @@ function definition(n: ArchitectureNode) {
 
 export default function ArchitectureImpact({
   before,
+  placement,
   after,
   original,
   files,
@@ -61,6 +72,35 @@ export default function ArchitectureImpact({
       .filter((edge) => !oldKeys.has(edgeKey(edge)))
       .map((edge) => ({ edge, state: "연결" })),
   ];
+  const move = useMemo(() => {
+    if (!placement) return;
+    const old = placement.before.nodes.find((n) => n.id === placement.id);
+    const next = placement.after.nodes.find((n) => n.id === placement.id);
+    const current = after.nodes.find((n) => n.id === placement.id);
+    if (!old || !next || !current) return;
+    const field = (placementFields as Record<string, string[]>)[next.kind]?.[0];
+    const target = (n: ArchitectureNode) => n.scopeAddress || n.props[field];
+    if (target(current) !== target(next) || target(old) === target(next))
+      return;
+    const label = (model: ArchitectureModel, key: string) =>
+      model.nodes.find((n) => n.id === key)?.label || key;
+    const original = generateArchitecture(placement.before, "terraform").files;
+    const updated = generateArchitecture(placement.after, "terraform").files;
+    const paths = Object.keys({ ...original, ...updated }).filter(
+      (p) => /\.tf(?:\.json)?$/.test(p) && original[p] !== updated[p],
+    );
+    return {
+      label: next.address || next.label,
+      from: label(placement.before, target(old)),
+      to: label(placement.after, target(next)),
+      files: paths.map((path) => ({
+        path,
+        changes: diffLines(original[path] || "", updated[path] || "", {
+          timeout: 150,
+        }),
+      })),
+    };
+  }, [placement, after]);
   const dependents = new Set(
     [...oldEdges, ...newEdges]
       .filter((edge) => changed.has(edge.target) && !changed.has(edge.source))
@@ -100,6 +140,39 @@ export default function ArchitectureImpact({
   }
   return (
     <div className="impact-body">
+      {move && (
+        <section aria-label="배치 변경과 Terraform 차이">
+          <p>
+            {move.label} · <del>{move.from}</del> → <ins>{move.to}</ins>
+          </p>
+          {move.files.map(({ path, changes }) => {
+            return (
+              <div key={path}>
+                <small>{path}</small>
+                {changes ? (
+                  <pre>
+                    {changes
+                      .filter((c) => c.added || c.removed)
+                      .map((c, i) => (
+                        <span
+                          key={i}
+                          className={c.added ? "live-added" : "live-removed"}
+                        >
+                          {c.value.replace(
+                            /^./gm,
+                            (char) => (c.added ? "+ " : "− ") + char,
+                          )}
+                        </span>
+                      ))}
+                  </pre>
+                ) : (
+                  <p>파일이 커서 변경 줄 비교 시간을 초과했습니다.</p>
+                )}
+              </div>
+            );
+          })}
+        </section>
+      )}
       {changed.size > 0 && (
         <>
           <strong>직접 수정한 리소스</strong>

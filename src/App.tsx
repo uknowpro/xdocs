@@ -126,6 +126,7 @@ export default function App() {
   const [edit, setEdit] = useState(false);
   const [preferredEditor, setEditorMode] = useState<"source" | "blocks">("blocks");
   const editorMode = /^---\s*$|<\/?[a-zA-Z]|!\[|^\[\^/m.test(body) ? "source" : preferredEditor;
+  const [catalogFocus,setCatalogFocus] = useState<{id:string;template:string}>();
   const [architectureStart, setArchitectureStart] = useState(false);
   const [infrastructureStart, setInfrastructureStart] = useState(false);
   const [permissions, setPermissions] = useState(false);
@@ -1649,6 +1650,7 @@ export default function App() {
                 />
               ) : architectureData ? (
                 <ArchitectureDocument
+                  focusTemplate={catalogFocus?.id === active ? catalogFocus?.template : undefined}
                   key={JSON.stringify([workspace?.root, active])}
                   notes={notes}
                   saveReview={async (text) => {
@@ -1942,7 +1944,7 @@ export default function App() {
       {architectureStart && (
         <ArchitectureStart
           onClose={() => setArchitectureStart(false)}
-          onCreate={async (source) => {
+          onCreate={async (source, focusTemplate) => {
             const model = architectureName.current
               ? { ...source, title: architectureName.current }
               : source;
@@ -1954,6 +1956,7 @@ export default function App() {
                 "# " + model.title + "\n\n" + encodeArchitecture(model) + "\n",
               ),
             );
+            setCatalogFocus(focusTemplate ? {id:n.id,template:focusTemplate} : undefined);
             setWorkspace(await api.refresh());
             select(n);
             setView("note");

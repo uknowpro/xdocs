@@ -80,9 +80,6 @@ export default function TemplateThumbnail({ id }: { id: string }) {
           <span className="template-layout-label">영역형</span>
         )}
       </span>
-      {preview?.reference && (
-        <span className="thumbnail-reference">참조 · {preview.reference}</span>
-      )}
     </>
   );
 }

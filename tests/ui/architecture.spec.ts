@@ -215,14 +215,17 @@ test("selected references and generated IaC reflect the same subnet move", async
       exact: true,
     });
   await ec2.dragTo(sub);
-  await page.getByText("변경 영향",{exact:true}).click();
+  const move = page.getByLabel("배치 변경과 Terraform 차이");
+  await expect(move.locator("ins")).toHaveText("Destination subnet");
+  await expect(move.locator("pre")).toContainText("subnet_id");
   const impact = page.locator(".impact-body");
   await expect(impact).toContainText("참조 변경");
   await expect(impact).toContainText("연결 · Application EC2 → Destination subnet");
   await impact.getByRole("button",{name:"terraform/main.tf.json",exact:true}).click();
-  await expect(page.locator(".live-added").filter({hasText:"subnet_id"})).toHaveCount(1);
+  await expect(page.locator(".terraform-live .live-added").filter({hasText:"subnet_id"})).toHaveCount(1);
   await page.getByRole("button",{name:"아키텍처 실행 취소"}).click();
   await expect(impact).not.toContainText("연결 · Application EC2 → Destination subnet");
+  await expect(move).toHaveCount(0);
   await ec2.dragTo(sub);
   await page.getByLabel("선택 리소스 참조선").check();
   await expect(page.locator("[data-reference]")).toHaveCount(1);

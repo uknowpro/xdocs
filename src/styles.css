@@ -2931,3 +2931,14 @@ textarea {
 
 .firewall-path { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:8px 0; }
 .firewall-path button[aria-pressed="true"] { border-color:var(--ink); }
+
+.template-select {display:grid; gap:6px; padding:0; text-align:start; border:0; background:transparent; color:inherit;}
+.template-card:has(.template-select[aria-pressed="true"]) {border-color:var(--ink);}
+.template-card .thumbnail-reference {text-align:start; padding:5px 0; background:transparent; border:0; text-decoration:underline; text-underline-offset:3px;}
+.focused-reference {display:flex; flex-wrap:wrap; gap:8px; align-items:center; overflow-wrap:anywhere;}
+.terraform-live mark {background:#ffdc88; color:#231b08;}
+
+.reference-focused [data-reference] {pointer-events:stroke; cursor:pointer; stroke-width:3; vector-effect:non-scaling-stroke;}
+
+.reference-location {position:sticky; top:0; z-index:1; padding:6px 0; background:var(--bg); font-weight:600; overflow-wrap:anywhere;}
+.terraform-live pre:has(mark) {white-space:pre-wrap; overflow-wrap:anywhere;}

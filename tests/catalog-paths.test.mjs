@@ -110,3 +110,45 @@ test("batch cutover uses the candidate only for equivalent grouped results", asy
     }
   }
 });
+
+test("catalog exports retain reviewed addresses, module files, inputs and source locations on round trip", async () => {
+  const { addressOf, catalogModel, inspect, terraformSources } =
+    await import("../scripts/catalog-inspection.mjs");
+  const inspection = JSON.parse(await read("inspection.json"));
+  for (const { id } of catalog) {
+    const model = await catalogModel(id);
+    const files = terraformSources(model);
+    const imported = await parseTerraformFiles(files);
+    const after = terraformSources(imported);
+    const byFile = (list) => new Map(list.map((f) => [f.name, f.content]));
+    assert.deepEqual(
+      byFile(after),
+      byFile(files),
+      id + " re-exported source files",
+    );
+    for (const f of model.sources)
+      assert.equal(byFile(after).get(f.name), f.content, id + " " + f.name);
+    const beforeNodes = new Map(
+      model.nodes.map((n) => [n.address || n.label, addressOf(n)]),
+    );
+    const afterNodes = new Map(imported.nodes.map((n) => [n.id, n.address]));
+    const edges = architectureEdges(imported).map((e) => [
+      afterNodes.get(e.source),
+      afterNodes.get(e.target),
+    ]);
+    for (const pair of paths[id]) {
+      const [a, b] = pair.map((key) => beforeNodes.get(key));
+      assert.ok(
+        a && b && edges.some(([x, y]) => x === a && y === b),
+        id + " round trip missing " + a + " → " + b,
+      );
+    }
+    const inspected = await inspect(id, model);
+    assert.ok(inspected.sites.length, id + " source location missing");
+    assert.deepEqual(
+      inspected,
+      inspection[id],
+      id + " catalog inspection needs regeneration",
+    );
+  }
+});

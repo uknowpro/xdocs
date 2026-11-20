@@ -1,0 +1,698 @@
+{
+  "aws-public-alb-private-api-python-terraform": {
+    "inputs": [
+      "custom_domain_name_prefix",
+      "domain_name",
+      "region"
+    ],
+    "sites": [
+      {
+        "file": "alb.tf",
+        "line": 41,
+        "property": "default_action.target_group_arn"
+      }
+    ]
+  },
+  "aws-apigw-http-api-waf-cloudfront-python-terraform": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "cloudfront.tf",
+        "line": 5,
+        "property": "origin.domain_name"
+      }
+    ]
+  },
+  "aws-lambda-ddb-tenant-isolation-python-terraform": {
+    "inputs": [
+      "aws_region",
+      "prefix"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 464,
+        "property": "policy"
+      }
+    ]
+  },
+  "aws-apigw-rest-vpclink-pvt-alb-terraform": {
+    "inputs": [
+      "private_subnets",
+      "vpc_cidr",
+      "vpc_id"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 338,
+        "property": "depends_on"
+      },
+      {
+        "file": "main.tf",
+        "line": 330,
+        "property": "provisioner.local-exec.command"
+      },
+      {
+        "file": "main.tf",
+        "line": 317,
+        "property": "triggers.vpc_link_id"
+      }
+    ]
+  },
+  "aws-sfn-emrserverless-terraform-templates": {
+    "inputs": [
+      "app",
+      "jar_name",
+      "stage_name"
+    ],
+    "sites": [
+      {
+        "file": "stepfunctions.tf",
+        "line": 21,
+        "property": "definition"
+      },
+      {
+        "file": "stepfunctions.tf",
+        "line": 23,
+        "property": "definition"
+      },
+      {
+        "file": "stepfunctions.tf",
+        "line": 40,
+        "property": "definition"
+      }
+    ]
+  },
+  "aws-lambda-aurora-serverless-python-terraform": {
+    "inputs": [
+      "db_password"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 184,
+        "property": "db_subnet_group_name"
+      }
+    ]
+  },
+  "aws-apigw-websocket-api-sqs-lambda-python-terraform": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 60,
+        "property": "credentials_arn"
+      },
+      {
+        "file": "main.tf",
+        "line": 74,
+        "property": "depends_on"
+      }
+    ]
+  },
+  "aws-apigw-http-api-lambda-rds-proxy-python-terraform-vpc-rds-setup": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 319,
+        "property": "db_cluster_identifier"
+      },
+      {
+        "file": "main.tf",
+        "line": 322,
+        "property": "depends_on"
+      }
+    ]
+  },
+  "aws-s3-trigger-lambda-glue-workflow-python-terraform": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 27,
+        "property": "lambda_function.lambda_function_arn"
+      }
+    ]
+  },
+  "aws-apigw-lambda-durable-tenant-isolation-callback-nodejs-terraform": {
+    "inputs": [
+      "aws_region"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 157,
+        "property": "http_method"
+      }
+    ]
+  },
+  "aws-ecs-efs-integration-bash-terraform": {
+    "inputs": [
+      "aws_subnets",
+      "aws_vpc_id"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 217,
+        "property": "container_definitions"
+      }
+    ]
+  },
+  "aws-cloudmap-fargate-terraform": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 160,
+        "property": "service_registries.registry_arn"
+      }
+    ]
+  },
+  "aws-vpc-lattice-lambda-python-terraform": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 151,
+        "property": "target.id"
+      }
+    ]
+  },
+  "azure-quickstart-301-machine-learning-hub-spoke-secure": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "workspace.tf",
+        "line": 189,
+        "property": "private_service_connection.private_connection_resource_id"
+      }
+    ]
+  },
+  "azure-quickstart-101-azure-virtual-desktop-anf": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "netappstorage.tf",
+        "line": 62,
+        "property": "subnet_id"
+      }
+    ]
+  },
+  "azure-quickstart-201-private-link-sql-database": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 202,
+        "property": "private_service_connection.private_connection_resource_id"
+      }
+    ]
+  },
+  "azure-quickstart-201-synapse-secure": {
+    "inputs": [
+      "aad_login",
+      "jumphost_password",
+      "jumphost_username",
+      "name",
+      "synadmin_password",
+      "synadmin_username"
+    ],
+    "sites": [
+      {
+        "file": "synapse_workspace.tf",
+        "line": 5,
+        "property": "storage_data_lake_gen2_filesystem_id"
+      }
+    ]
+  },
+  "azure-quickstart-201-azfw-with-secure-hub": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 89,
+        "property": "virtual_hub.virtual_hub_id"
+      }
+    ]
+  },
+  "azure-quickstart-301-nat-gateway-hub-spoke-firewall": {
+    "inputs": [
+      "admin_ssh_key"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 59,
+        "property": "route.next_hop_in_ip_address"
+      }
+    ]
+  },
+  "azure-quickstart-301-aks-enterprise": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "aks.tf",
+        "line": 14,
+        "property": "agent_pool_profile.vnet_subnet_id"
+      }
+    ]
+  },
+  "azure-quickstart-301-hub-spoke": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "hub-nva.tf",
+        "line": 131,
+        "property": "route_table_id"
+      }
+    ]
+  },
+  "azure-quickstart-202-machine-learning-moderately-secure-existing-vnet": {
+    "inputs": [
+      "aks_subnet_name",
+      "ml_subnet_name",
+      "privatelink_api_azureml_ms_resource_id",
+      "privatelink_azurecr_io_resource_id",
+      "privatelink_blob_core_windows_net_resource_id",
+      "privatelink_file_core_windows_net_resource_id",
+      "privatelink_notebooks_azure_net_resource_id",
+      "privatelink_vaultcore_azure_net_resource_id",
+      "training_subnet_name",
+      "vnet_name",
+      "vnet_resource_group_name"
+    ],
+    "sites": [
+      {
+        "file": "compute.tf",
+        "line": 29,
+        "property": "subnet_resource_id"
+      }
+    ]
+  },
+  "azure-quickstart-101-virtual-network-manager-create-management-group-scope": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 162,
+        "property": "applies_to_group.network_group_id"
+      }
+    ]
+  },
+  "azure-quickstart-201-ddos-protection-azfw": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 250,
+        "property": "depends_on"
+      }
+    ]
+  },
+  "azure-quickstart-101-front-door-premium-storage-blobs-private-link": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "front-door.tf",
+        "line": 48,
+        "property": "host_name"
+      },
+      {
+        "file": "front-door.tf",
+        "line": 51,
+        "property": "origin_host_header"
+      },
+      {
+        "file": "front-door.tf",
+        "line": 57,
+        "property": "private_link.private_link_target_id"
+      }
+    ]
+  },
+  "azure-quickstart-201-private-link-iothub-builtin-endpoint": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "network.tf",
+        "line": 81,
+        "property": "private_service_connection.private_connection_resource_id"
+      }
+    ]
+  },
+  "azure-quickstart-201-iot-hub-with-device-provisioning-service": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 160,
+        "property": "linked_hub.connection_string"
+      }
+    ]
+  },
+  "azure-quickstart-101-virtual-network-manager-create-mesh": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 126,
+        "property": "applies_to_group.network_group_id"
+      }
+    ]
+  },
+  "azure-quickstart-101-aks-automatic-private-custom-network": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 91,
+        "property": "api_server_access.subnet_id"
+      }
+    ]
+  },
+  "gcp-lb-shared-vpc-https-ilb-with-mig-backend-cross-reference-example": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 230,
+        "property": "backend.group"
+      }
+    ]
+  },
+  "gcp-eventarc-use-cmek-advanced": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 136,
+        "property": "crypto_key_name"
+      }
+    ]
+  },
+  "gcp-gke-quickstart-multitenant": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 114,
+        "property": "depends_on"
+      }
+    ]
+  },
+  "gcp-composer-triggering-dags-with-functions-and-pubsub": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 223,
+        "property": "bucket"
+      }
+    ]
+  },
+  "gcp-run-multiple-regions": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 59,
+        "property": "backend.group"
+      },
+      {
+        "file": "main.tf",
+        "line": 63,
+        "property": "backend.group"
+      }
+    ]
+  },
+  "gcp-network-connectivity-interconnect-ha-vpn-over-interconnect-10gb-attach": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 250,
+        "property": "vpn_gateway"
+      }
+    ]
+  },
+  "gcp-lb-cross-reg-int-app-lb-mig-backend": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 132,
+        "property": "backend.group"
+      }
+    ]
+  },
+  "gcp-compute-packet-mirroring-full": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 62,
+        "property": "collector_ilb.url"
+      }
+    ]
+  },
+  "gcp-vpn-ha-vpn-gateway-gcp-to-gcp": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 92,
+        "property": "peer_gcp_gateway"
+      }
+    ]
+  },
+  "gcp-cloud-sql-postgres-instance-psa-psc": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 85,
+        "property": "name"
+      }
+    ]
+  },
+  "gcp-compute-ha-controller-multi-nic-static-ip": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 57,
+        "property": "subnetwork"
+      }
+    ]
+  },
+  "gcp-gke-standard-regional-gemma-tgi": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 40,
+        "property": "cluster"
+      }
+    ]
+  },
+  "gcp-network-management-vpcflowlogs-vpn-tunnel-full": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 22,
+        "property": "vpn_tunnel"
+      }
+    ]
+  },
+  "gcp-vertex-ai-index-endpoint-deploy-vpc": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 36,
+        "property": "depends_on"
+      }
+    ]
+  },
+  "gcp-network-security-intercept-project-consumer": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 117,
+        "property": "attachment_target"
+      }
+    ]
+  },
+  "gcp-aws-ha-vpn": {
+    "inputs": [
+      "aws_region",
+      "aws_vpc_id",
+      "gcp_network",
+      "gcp_project_id",
+      "gcp_region"
+    ],
+    "sites": [
+      {
+        "file": "aws_vpn.tf",
+        "line": 27,
+        "property": "ip_address"
+      }
+    ]
+  },
+  "gcp-azure-ha-vpn": {
+    "inputs": [
+      "azure_region",
+      "azure_resource_group",
+      "azure_subscription_id",
+      "azure_vnet_name",
+      "gcp_project_id",
+      "gcp_region",
+      "gcp_router_name",
+      "gcp_vpc_name",
+      "shared_secret"
+    ],
+    "sites": [
+      {
+        "file": "azure.tf",
+        "line": 98,
+        "property": "gateway_address"
+      }
+    ]
+  },
+  "seoul-zonal-egress": {
+    "inputs": [],
+    "sites": [
+      {
+        "file": "seoul-zonal-egress.tf.json",
+        "line": 49,
+        "property": "nat_gateway_id"
+      }
+    ]
+  },
+  "eks-platform-operations": {
+    "inputs": [
+      "cluster_role_arn",
+      "dashboards_chart_version",
+      "dashboards_values_yaml",
+      "gateway_chart_version",
+      "gateway_values_yaml",
+      "logs_chart_version",
+      "logs_values_yaml",
+      "metrics_chart_version",
+      "metrics_values_yaml",
+      "worker_role_arn"
+    ],
+    "sites": [
+      {
+        "file": "eks-platform-operations.tf.json",
+        "line": 242,
+        "property": "subnet_ids"
+      }
+    ]
+  },
+  "azure-isolated-spokes": {
+    "inputs": [
+      "subscription_id"
+    ],
+    "sites": [
+      {
+        "file": "azure-isolated-spokes.tf.json",
+        "line": 94,
+        "property": "virtual_network_name"
+      }
+    ]
+  },
+  "gcp-regional-shared-egress": {
+    "inputs": [
+      "host_project",
+      "service_project"
+    ],
+    "sites": [
+      {
+        "file": "gcp-regional-shared-egress.tf.json",
+        "line": 74,
+        "property": "router"
+      }
+    ]
+  },
+  "organization-audit": {
+    "inputs": [
+      "archive_bucket",
+      "archive_role_arn",
+      "workload_role_arn"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 63,
+        "property": "s3_bucket_name"
+      }
+    ]
+  },
+  "regional-app-dr": {
+    "inputs": [
+      "name_prefix"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 57,
+        "property": "target_resource_id"
+      }
+    ]
+  },
+  "dual-cloud-branches": {
+    "inputs": [
+      "branch_public_ips",
+      "gcp_project",
+      "google_tunnel_secrets"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 72,
+        "property": "customer_gateway_id"
+      }
+    ]
+  },
+  "efs-backup-copy": {
+    "inputs": [
+      "archive_role_arn"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 71,
+        "property": "rule.copy_action.destination_vault_arn"
+      }
+    ]
+  },
+  "batch-parity": {
+    "inputs": [
+      "project_id"
+    ],
+    "sites": [
+      {
+        "file": "main.tf",
+        "line": 91,
+        "property": "params.query"
+      }
+    ]
+  },
+  "azure-private-data-estate": {
+    "inputs": [
+      "azure_subscription_id"
+    ],
+    "sites": [
+      {
+        "file": "main.tf.json",
+        "line": 113,
+        "property": "private_endpoints.blob.subnet_resource_id"
+      }
+    ]
+  }
+}

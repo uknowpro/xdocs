@@ -38,11 +38,11 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
     .click();
   await page.getByLabel("공급자", { exact: true }).selectOption("Azure");
   await page.getByRole("button", { name: "컴포넌트 편집", exact: true }).click();
-  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(1);
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).locator(".template-card")).toHaveCount(1);
   await page.getByLabel("템플릿 검색").fill("no-matching-template");
   await expect(page.getByRole("button", { name: "템플릿으로 시작" })).toBeDisabled();
   await page.getByRole("button", { name: "검색 조건 초기화" }).click();
-  await expect(page.getByRole("group", {name:"설계 템플릿"}).getByRole("button")).toHaveCount(19);
+  await expect(page.getByRole("group", {name:"설계 템플릿"}).locator(".template-card")).toHaveCount(19);
   await page.getByRole("button",{name:"AVM · 사업부별 사설 데이터 구역",exact:true}).click();
   await page.getByRole("button", { name: "템플릿으로 시작" }).click();
   await page.getByRole("button", { name: "Terraform 선언 보기" }).click();
@@ -254,7 +254,7 @@ test("every catalog preview loads offline, exposes its reviewed path and fits th
   await btn("IaCD 아키텍처").click();
   for(const [provider,count] of [["AWS",17],["Azure",19],["GCP",17],["멀티클라우드",3]] as const){
     await page.getByLabel("공급자",{exact:true}).selectOption(provider);
-    const cards=page.getByRole("group",{name:"설계 템플릿"}).getByRole("button");
+    const cards=page.getByRole("group",{name:"설계 템플릿"}).locator(".template-card");
     await expect(cards).toHaveCount(count);
     for(const card of await cards.all()){
       await card.scrollIntoViewIfNeeded();
@@ -265,4 +265,54 @@ test("every catalog preview loads offline, exposes its reviewed path and fits th
   }
   await btn("구성도 확대 미리보기").click();await btn("원본 크기 보기").click();
   await expect(page.getByRole("button",{name:"배율 보기"})).toHaveAttribute("aria-pressed","true");
+});
+
+test("follow the Azure firewall route from a card into its Terraform property", async ({page}) => {
+  await page.setViewportSize({width:1500,height:950});
+  await page.goto("/");
+  const button = (name:string) => page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("IaCD 아키텍처").click();
+  await page.getByLabel("공급자",{exact:true}).selectOption("Azure");
+  await page.getByLabel("템플릿 검색").fill("301-nat-gateway");
+  await page.getByText("필수 입력과 준비 사항",{exact:true}).click();
+  await expect(page.getByText(/기본값 없는 루트 변수/)).toContainText("admin_ssh_key");
+  await page.locator(".thumbnail-reference").click();
+  await expect(page.locator(".focused-reference")).toContainText("azurerm_firewall.main");
+  const edge = page.locator(".network-layout [data-reference]").first();
+  await expect(edge).toBeVisible();
+  await edge.scrollIntoViewIfNeeded();
+  const point = await edge.evaluate(element => {
+    const path = element as unknown as SVGPathElement;
+    for (let i=1;i<100;i++) {
+      const p = path.getPointAtLength(path.getTotalLength()*i/100).matrixTransform(path.getScreenCTM()!);
+      if (document.elementFromPoint(p.x,p.y) === path) return {x:p.x,y:p.y};
+    }
+    throw Error("The visible connection has no clickable point");
+  });
+  await page.mouse.click(point.x,point.y);
+  const mark = page.getByLabel("Terraform 코드").locator("mark");
+  await expect(mark).toContainText("next_hop_in_ip_address");
+  await page.getByLabel("Terraform 코드").evaluate(el => {
+    const line = el.querySelector("mark")!;
+    el.scrollTop += line.getBoundingClientRect().top - el.getBoundingClientRect().top - el.clientHeight / 2;
+  });
+  await page.screenshot({path:"test-results/terraform-reference.png"});
+  await button("전체 도면 보기").click();
+  await expect(mark).toHaveCount(0);
+});
+
+test("a GCP connection offers both source locations before jumping", async ({page}) => {
+  await page.goto("/");
+  const button = (name:string) => page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("IaCD 아키텍처").click();
+  await page.getByLabel("공급자",{exact:true}).selectOption("GCP");
+  await page.getByLabel("템플릿 검색").fill("gcp-run-multiple-regions");
+  await page.locator(".thumbnail-reference").click();
+  await button("Terraform 속성 보기").click();
+  await expect(button("backend.group · main.tf:59")).toBeVisible();
+  await button("backend.group · main.tf:63").click();
+  await expect(page.locator(".reference-location")).toHaveText("main.tf:63 · backend.group");
+  await expect(page.getByLabel("Terraform 코드").locator("mark")).toContainText("group");
 });
