@@ -1610,6 +1610,17 @@ export default function App() {
                       select(saved);
                     else setNotice(saved.title + " · xcode 응답 저장 완료");
                   }}
+                  folders={notes.filter(isFolderPage).map(n=>({id:n.id,title:n.title}))}
+                  defaultFolder={notes.find(n=>n.id===body.match(parentHeader)?.[1] && isFolderPage(n))?.id || "@"}
+                  savePage={async(index,kind,title,parent)=>{
+                    if(readonly || !(await flush())) throw Error("페이지를 먼저 저장해 주세요.");
+                    const turn=xcode.turns[index];
+                    const content=kind==="note"
+                      ? (turn.answers.at(-1)?.text || "")+"\n\n[["+active+"|원래 대화]]"
+                      : packXcode({...xcode,harness:turn.execution?.configuration || xcode.harness,turns:xcode.turns.slice(0,index+1)});
+                    const created=await api.create(title,withParent(parent,"# "+title+"\n\n"+content+"\n"));
+                    update(created);select(created);setView("note");setEdit(false);
+                  }}
                   session={xcode}
                   readonly={readonly}
                   change={(next) =>

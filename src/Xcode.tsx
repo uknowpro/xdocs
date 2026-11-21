@@ -7,7 +7,7 @@ import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
 import WordSelection from "./WordSelection";
 import ProjectInputs from "./ProjectInputs";
 import {
-  loadCheckpoint,
+  fileKey, loadCheckpoint,
   saveCheckpoint,
   saveProgress,
   clearCheckpoint,
@@ -47,21 +47,11 @@ import {
   type Turn,
 } from "./xcode-session";
 
-const draftKeys = new WeakMap<InputFile, string>();
-function fileKey(file: InputFile) {
-  let key = draftKeys.get(file);
-  if (!key) {
-    key = crypto.randomUUID();
-    draftKeys.set(file, key);
-  }
-  return key;
-}
-
 async function userMessage(prompt: string, files: InputFile[]) {
   const content: unknown[] = [{ type: "text", text: prompt }];
   for (const f of files) {
     if ("text" in f) {
-      content.push({ type: "text", text: f.name + "\n" + f.text });
+      content.push({ type: "text", text: f.name + "\n" + f.text + (f.sources?.length ? "\n근거를 인용할 때 [파일명#시트!셀] 또는 [파일명#문단 번호] 형식을 사용하세요. 예: ["+f.name+"#"+f.sources[0].place+"]" : "") });
       continue;
     }
     const a = await api.readAttachment!(f.path);
@@ -105,7 +95,7 @@ export default function Xcode({
   scope,
   page,
   prepare,
-  finish,
+  finish, folders, defaultFolder, savePage,
   change,
   readonly,
 }: {
@@ -115,6 +105,9 @@ export default function Xcode({
   page: string;
   prepare: () => Promise<boolean>;
   finish: (t: Turn) => Promise<void>;
+  folders:{id:string;title:string}[];
+  defaultFolder:string;
+  savePage:(index:number,kind:"note"|"branch",title:string,parent:string)=>Promise<void>;
   change: (s: Session) => void;
   readonly: boolean;
 }) {
@@ -374,6 +367,7 @@ export default function Xcode({
       ]).size,
     [prompt, s.harness, s.turns, files, omitted],
   );
+  const [repair,setRepair]=useState<{id:string;skip:string[];files:number[]}|null>(null);
   const visibleQueue = waiting.filter(item => item.id !== run.activeItem);
   const interrupted = !busy && (run.snapshot().failedInput || recovery);
   const interruptedId = interrupted ? interrupted.id : undefined;
@@ -431,7 +425,7 @@ export default function Xcode({
     run.patch({prompt:draft.prompt===text ? "" : draft.prompt,
       files:draft.files.filter(file=>!attached.includes(file))});
   }
-  async function submit() {
+  async function submit(immediate=false) {
     if (!api.xcodeChat || readonly || importing || run.submitting || !queueReady) return;
     if (!run.snapshot().busy && !run.snapshot().waiting.length) { void send(); return; }
     if (!run.activeItem) run.patch({queuePaused:true});
@@ -440,7 +434,12 @@ export default function Xcode({
       templates:selectedFiles.map(f=>templateFiles.get(f)),omitted:[...omitted],endpoint:s.endpoint,model:s.model};
     run.submitting=true;
     try {
-      await run.updateWaiting(items=>[...items,item]);
+      const activeId=run.id;
+      await run.updateWaiting(items=>immediate ? [item,...items] : [...items,item]);
+      if (immediate && activeId && run.id===activeId) {
+        run.steering=activeId;
+        run.cancel();
+      }
       consumeInput(prompt,selectedFiles);
     } catch(e) {setError("대기 메시지를 저장하지 못했습니다. "+String(e));}
     finally {run.submitting=false;}
@@ -842,18 +841,34 @@ export default function Xcode({
         run.patch({ pending: null, preview: "" });
       }
     } catch (e) {
-      run.patch({queuePaused:true,failedInput:continuation ? undefined : item || {
-        id,prompt,files:selectedFiles,templates:selectedFiles.map(f=>templateFiles.get(f)),
-        omitted:[...excluded],model:s.model,endpoint:s.endpoint
-      }});
-      if (!continuation && !item && !saved && !run.snapshot().prompt && !run.snapshot().files.length)
-        run.patch({prompt,files:selectedFiles});
-      setError(
-        run.id === id
-          ? String(e).replace("[XCODE_RETRY] ", "")
-          : "요청을 중지했습니다.",
-      );
+      if (run.steering===id) {
+        run.steering="";
+        const snap=run.snapshot();
+        const partial=snap.preview;
+        const partialTurn:Turn={runId:id,prompt,files:selectedFiles,execution,
+          answers:[...(checkpoint?.answers || []),{stage:"사용자가 이어서 요청",text:partial || "응답 수신 전 중단됨"}]};
+        try {
+          if(!continuation) await finish(partialTurn);
+          if(local) await clearCheckpoint(checkpointKey);
+          await run.updateWaiting(items=>items.filter(entry=>entry.id!==id));
+          continuation=continuation || {...s,turns:[...s.turns,partialTurn]};
+          run.patch({queuePaused:false,failedInput:undefined,pending:null,preview:"",error:""});
+        } catch(saveError) {run.patch({queuePaused:true,error:String(saveError)});}
+      } else {
+        run.patch({queuePaused:true,failedInput:continuation ? undefined : item || {
+          id,prompt,files:selectedFiles,templates:selectedFiles.map(f=>templateFiles.get(f)),
+          omitted:[...excluded],model:s.model,endpoint:s.endpoint
+        }});
+        if (!continuation && !item && !saved && !run.snapshot().prompt && !run.snapshot().files.length)
+          run.patch({prompt,files:selectedFiles});
+        setError(
+          run.id === id
+            ? String(e).replace("[XCODE_RETRY] ", "")
+            : "요청을 중지했습니다.",
+        );
+      }
     } finally {
+      if(run.steering===id) run.steering="";
       run.patch({outcome:mounted.current || run.id!==id ? "" : run.snapshot().error ? "failed" : "complete"});
       off?.();
       await run.settled();
@@ -1360,6 +1375,8 @@ export default function Xcode({
       </div>}
       <div className="chat-workbench" ref={workbench}>
         <ChatTimeline
+          folders={folders} defaultFolder={defaultFolder} savePage={savePage}
+          onQuote={text=>{setPrompt([prompt,text.split("\n").map(line=>"> "+line).join("\n")+"\n\n"].filter(Boolean).join("\n\n"));composerRef.current?.focus();}}
           reading={run.reading}
           turns={s.turns}
           preview={preview}
@@ -1403,6 +1420,28 @@ export default function Xcode({
             void resumeQueue().catch(e=>run.patch({queuePaused:true,error:String(e)}));
           }}>대기열 재개</button>}
         </details>}
+        {interrupted && /context|입력.{0,8}한도|토큰.{0,8}(한도|초과)|413|32MB|too (large|long)|maximum.{0,12}length|이전 대화 수/i.test(error) &&
+          <details className="input-repair" onToggle={e=>{if(e.currentTarget.open && repair?.id!==interrupted.id)
+            setRepair({id:interrupted.id,skip:[...(run.snapshot().failedInput?.omitted || [])],files:[]});}}>
+            <summary>전송 범위 줄이기</summary>
+            {repair?.id===interrupted.id && <>
+              {candidates.map((t,i)=>{const key="turn:"+(start+i);return <label key={key}><input type="checkbox" checked={!repair.skip.includes(key)}
+                onChange={e=>setRepair({...repair,skip:e.target.checked?repair.skip.filter(k=>k!==key):[...repair.skip,key]})}/>{t.prompt.slice(0,70)}</label>;})}
+              {interrupted.files.map((f,i)=><label key={i}><input type="checkbox" checked={!repair.files.includes(i)}
+                onChange={e=>setRepair({...repair,files:e.target.checked?repair.files.filter(k=>k!==i):[...repair.files,i]})}/>{f.name}</label>)}
+              <button disabled={readonly || (!interrupted.prompt.trim() && repair.files.length===interrupted.files.length)} onClick={()=>{
+                const original=waiting.find(q=>q.id===interrupted.id) || run.snapshot().failedInput;
+                const item:QueuedPrompt={id:interrupted.id,prompt:interrupted.prompt,files:interrupted.files.filter((_,i)=>!repair.files.includes(i)),
+                  templates:interrupted.files.map((f,i)=>original?.templates[i] || templateFiles.get(f)).filter((_,i)=>!repair.files.includes(i)),
+                  omitted:repair.skip,endpoint:original?.endpoint || interrupted.endpoint,model:original?.model || interrupted.model};
+                if(targetChanged(item)){setError("먼저 저장 당시 모델과 서버 주소를 선택하세요.");return;}
+                void run.updateWaiting(items=>[item,...items.filter(q=>q.id!==item.id)]).then(async()=>{
+                  if(local) await clearCheckpoint(checkpointKey);setRecovery(undefined);setRepair(null);
+                  await send(undefined,item);
+                }).catch(e=>setError(String(e)));
+              }}>선택한 범위로 재시도</button>
+            </>}
+          </details>}
         <div className="chat-composer">
           {draftError && <small className="chat-keys" role="alert">{draftError}</small>}
           <textarea
@@ -1453,6 +1492,9 @@ export default function Xcode({
             )}
           <div className="chat-options">
           <div className="chat-toolbar">
+            {busy && (prompt.trim() || selectedFiles.length>0) && <details><summary>전송 옵션</summary>
+              <button disabled={readonly || importing} onClick={()=>void submit(true)}>지금 이어서 요청</button>
+            </details>}
             <button
               className="chat-attach"
               aria-label="파일 첨부"

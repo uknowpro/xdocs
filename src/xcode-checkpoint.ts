@@ -99,3 +99,22 @@ export const readComposerDraft = (key:string) =>
   transact<string | undefined>("readonly",store=>store.get(key+"/draft"));
 export const writeComposerDraft = (key:string, prompt:string) =>
   transact("readwrite",store=>store.put(prompt,key+"/draft"));
+
+const draftKeys = new WeakMap<InputFile, string>();
+export function fileKey(file: InputFile) {
+  let key = draftKeys.get(file);
+  if (!key) {
+    key = crypto.randomUUID();
+    draftKeys.set(file, key);
+  }
+  return key;
+}
+
+type DraftInputs = {
+  files: InputFile[]; keys:string[]; templates:(File | undefined)[];
+  omitted:string[]; form?: File;
+};
+export const restoreFileKey=(file:InputFile,key:string)=>draftKeys.set(file,key);
+export const readDraftInputs=(key:string)=>transact<DraftInputs|undefined>("readonly",s=>s.get(key+"/inputs"));
+export const writeDraftInputs=(key:string,data:DraftInputs)=>data.files.length || data.form || data.omitted.length
+  ? transact("readwrite",s=>s.put(data,key+"/inputs")) : transact("readwrite",s=>s.delete(key+"/inputs"));

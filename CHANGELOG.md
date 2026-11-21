@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.26
+
+- Preserve unsent attachments across restarts. Queue, reorder or redirect follow-ups while keeping received text. Retry a smaller request after a model context limit.
+- Search questions and answers, quote a selection, branch a conversation, or save an answer to a linked workspace note.
+- Inspect cited Excel cells and Word paragraphs in the imported snapshot. Keep your reading position while new answers arrive.
+- Exercise session recovery, concurrent queues and compact chat controls in desktop integration tests.
+
 ## 0.5.25
 
 - Right-click a sheet cell or row number to delete that row. Right-click inside a multi-row selection to delete all selected data rows. The menu stays inside the window and preserves the designated header row.

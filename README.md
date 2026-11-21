@@ -4,7 +4,7 @@
 
 A local-first desktop workspace for linked notes, spreadsheets and infrastructure diagrams. Keep Markdown files in your own folder and search them through a SQLite index. You can work offline without an account.
 
-[Download the v0.5.25 development prerelease](https://github.com/uknowpro/xdocs/releases/tag/v0.5.25) for Ubuntu, macOS or Windows. Installers are unsigned and the macOS build is unnotarized.
+[Download the v0.5.26 development prerelease](https://github.com/uknowpro/xdocs/releases/tag/v0.5.26) for Ubuntu, macOS or Windows. Installers are unsigned and the macOS build is unnotarized.
 
 ![A local xcode session reviewing a two-zone network](docs/images/xcode-chat.png)
 
@@ -13,7 +13,7 @@ A local-first desktop workspace for linked notes, spreadsheets and infrastructur
 - **Notes and sheets.** Edit blocks or Markdown, follow backlinks, search the graph and restore revisions. Import Excel, CSV or TSV individually or by folder. Each workbook becomes a page with sheet tabs. Drag to extend a selection across the viewport and copy it as TSV. [Sheet guide](docs/sheets.md)
 - **xinfra.** Browse 35 offline designs across AWS, Azure, GCP and multi-cloud. Search for a resource by Terraform address, fit a boundary to the viewport, inspect its declaration and step between changed files. Export supported components to Terraform, CloudFormation, Helm and Kubernetes manifests. [Canvas guide](docs/iacd.md)
 - **Infrastructure and automation.** Inventory Terraform/OpenTofu, Kubernetes or Compose, inspect dependencies and record operating notes. Open local source files alongside the inventory. GitHub Actions, Jenkins, Ansible and CloudFormation canvases remember the cursor and scroll position when switching between blocks and the full source. [Infrastructure](docs/infrastructure.md) · [Automation](docs/automation-canvas-review.md)
-- **xcode and Harness.** Configure a Chat Completions URL, model ID and optional token, or import session settings as JSON. Run concurrent sessions, attach documents and apply role-based harnesses. Review values before saving a filled Word or Excel copy. Large forms and multi-step harnesses can be collapsed in groups. [Sessions](docs/xcode.md) · [Builder](docs/brainboard-builder.md)
+- **xcode and Harness.** Configure a Chat Completions URL, model ID and optional token, or import session settings as JSON. Run concurrent sessions, attach documents and apply role-based harnesses. Review values before saving a filled Word or Excel copy. Keep attachment drafts, queue or redirect follow-ups, search and branch conversations, and save answers as linked notes. [Sessions](docs/xcode.md) · [Builder](docs/brainboard-builder.md)
 - **Analyzer.** Run bundled netspector, kubewiser and Helm locally. Review network paths by evidence file, revisit a selected path after a scan and compare Kubernetes upgrade findings. [Analyzer guide](docs/analyzer.md)
 - **Team workspaces.** Connect an organization server for SSO, offline sync, collaborative editing and document permissions. Compare conflicting versions and choose whether to preserve a local copy. [Server setup](docs/server.md)
 

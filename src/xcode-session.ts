@@ -172,7 +172,7 @@ export type Harness = {
   historyTurns?: number;
   skills: { name: string; instruction: string }[];
 };
-export type InputFile = { name: string; text: string } | Attachment;
+export type InputFile = { name: string; text: string; sources?:{place:string;start:number;length:number}[] } | Attachment;
 export type Turn = {
   runId?: string;
   prompt: string;
@@ -300,6 +300,7 @@ export function validHarness(h: Harness) {
 export async function documentInput(f: File): Promise<InputFile> {
   if (f.size > 8 * 1024 * 1024) throw Error("문서는 8MB 이하로 선택하세요.");
   let text: string;
+  const sources:{place:string;start:number;length:number}[]=[];
   const isOpenDocument = /\.(odt|ott|odp|otp)$/i.test(f.name);
   const isHwpx = /\.hwpx$/i.test(f.name);
   if (isOpenDocument || isHwpx || /\.(docx|dotx|pptx|potx|xlsx|xltx)$/i.test(f.name)) {
@@ -360,21 +361,30 @@ export async function documentInput(f: File): Promise<InputFile> {
           parts.push(node.textContent || "");
         }
       } else if (name.startsWith("xl/")) {
-        parts.push(
-          sheetNames.get(name) || name,
-          ...Array.from(doc.getElementsByTagName("row"), (row) =>
-            Array.from(row.getElementsByTagName("c"), (c) => {
-              const v = c.getElementsByTagName("v")[0]?.textContent || "";
-              return (
-                (c.getAttribute("r") || "") +
-                "=" +
-                (c.getAttribute("t") === "s"
-                  ? strings[Number(v)] || ""
-                  : v || c.textContent)
-              );
-            }).join("\t"),
-          ),
-        );
+        const sheet=sheetNames.get(name) || name;
+        parts.push(sheet);
+        let offset=parts.join("\n").length+1;
+        for (const row of doc.getElementsByTagName("row")) {
+          const cells:string[]=[];
+          for(const cell of row.getElementsByTagName("c")) {
+            const address=cell.getAttribute("r") || "";
+            const raw=cell.getElementsByTagName("v")[0]?.textContent || "";
+            const value=cell.getAttribute("t")==="s" ? strings[Number(raw)] || "" : raw || cell.textContent || "";
+            const entry=address+"="+value;
+            if(address && value) sources.push({place:sheet+"!"+address,start:offset+address.length+1,length:value.length});
+            cells.push(entry); offset+=entry.length+1;
+          }
+          parts.push(cells.join("\t"));if(!cells.length) offset++;
+        }
+      } else if(name==="word/document.xml") {
+        parts.push(name);let offset=parts.join("\n").length+1,number=0;
+        for(const p of doc.getElementsByTagNameNS("*","p")) {
+          const value=Array.from(p.getElementsByTagNameNS("*","t"),n=>n.textContent).join("");
+          const label="문단 "+(++number);
+          const line=label+" · "+value;
+          if(value) sources.push({place:label,start:offset+label.length+3,length:value.length});
+          parts.push(line);offset+=line.length+1;
+        }
       } else
         parts.push(
           name,
@@ -396,5 +406,5 @@ export async function documentInput(f: File): Promise<InputFile> {
   }
   if (!text.trim() || text.length > 160000)
     throw Error("문서 텍스트는 비어 있지 않고 16만 자 이하여야 합니다.");
-  return { name: f.name, text };
+  return { name: f.name, text, ...(sources.length ? {sources} : {}) };
 }

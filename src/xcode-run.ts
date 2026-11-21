@@ -1,6 +1,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { InputFile } from "./xcode-session";
 import {readQueueCounts,readComposerDraft,writeComposerDraft,readWaiting, writeWaiting, type QueuedPrompt} from "./xcode-checkpoint";
+import {fileKey,restoreFileKey,readDraftInputs,writeDraftInputs} from "./xcode-checkpoint";
+import {inspectForm,templateFiles} from "./office-form";
 import { api } from "./api";
 
 // A running session belongs to its workspace page, independently of the visible page.
@@ -31,12 +33,25 @@ function createRun(scope: string, page: string) {
   let writes:Promise<void> = Promise.resolve();
   let draftRevision=0;
   let draftWrite:Promise<unknown>=Promise.resolve();
+  let inputsRevision=0;
+  let inputsWrite:Promise<unknown>=Promise.resolve();
   let loading:Promise<void> | undefined;
   const record = {
     submitting:false,
+    steering:"",
     activeItem:"",
     loadWaiting() {
-      return loading ??= Promise.all([readWaiting(queueKey),readComposerDraft(queueKey)]).then(([items,draft])=>{
+      return loading ??= Promise.all([readWaiting(queueKey),readComposerDraft(queueKey),readDraftInputs(queueKey)]).then(async([items,draft,inputs])=>{
+        if (inputs && !inputsRevision) {
+          const form=inputs.form ? await inspectForm(inputs.form) : undefined;
+          if (!inputsRevision) {
+            inputs.files.forEach((f,i)=>{
+              if(inputs.keys[i]) restoreFileKey(f,inputs.keys[i]);
+              if(inputs.templates[i]) templateFiles.set(f,inputs.templates[i]!);
+            });
+            state={...state,files:inputs.files,omitted:inputs.omitted,form};
+          }
+        }
         if (!draftRevision && draft!==undefined) {
           state={...state,prompt:draft};
           if (!draft) {try {localStorage.removeItem(draftKey);} catch {}}
@@ -55,7 +70,7 @@ function createRun(scope: string, page: string) {
       return operation;
     },
     settled:()=>writes,
-    draftSaved:()=>draftWrite,
+    draftSaved:()=>Promise.all([draftWrite,inputsWrite]),
     scope,
     page,
     reading: {top:0, follow:true},
@@ -72,6 +87,17 @@ function createRun(scope: string, page: string) {
       };
     },
     patch(next: Partial<typeof state>) {
+      if (next.files || next.omitted || "form" in next) {
+        const current={...state,...next};
+        const revision=++inputsRevision;
+        inputsWrite=inputsWrite.catch(()=>{}).then(()=>{
+          if(revision!==inputsRevision) return;
+          return writeDraftInputs(queueKey,{files:current.files,keys:current.files.map(fileKey),
+            templates:current.files.map(f=>templateFiles.get(f)),omitted:current.omitted,
+            form:current.form ? new File([new Uint8Array(current.form.bytes)],current.form.name) : undefined});
+        });
+        void inputsWrite.catch(()=>record.patch({draftError:"첨부 초안을 저장하지 못했습니다."}));
+      }
       if (next.prompt !== undefined) {
         const value=next.prompt;
         const revision=++draftRevision;

@@ -3230,3 +3230,16 @@ textarea {
 .queue-recovery {padding:6px 0;font-size:.85rem;}
 .queue-recovery span {flex:1;min-width:4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .chat-waiting .queue-target {order:1;width:100%;display:grid;justify-items:start;gap:3px;overflow-wrap:anywhere;}
+.chat-transcript {display:flex;flex-direction:column;}
+.chat-transcript .chat-scroll {flex:1;min-height:0;height:auto;overflow-anchor:none;}
+.chat-find {display:flex;justify-content:flex-end;align-items:center;gap:4px;flex-wrap:wrap;}
+.chat-find input {min-width:6em;max-width:14em;}
+.chat-find button {padding:3px 6px;}
+.chat-turn[data-found="0"] .chat-question,.chat-turn[data-found="1"] > .chat-answer {outline:2px solid var(--muted);outline-offset:2px;}
+.xcode .chat-result-actions {flex-wrap:wrap;}
+.chat-answer-menu[open],.answer-save {display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.answer-save input,.answer-save select {min-width:0;max-width:100%;}
+.input-repair,.queue-recovery {max-height:22dvh;overflow:auto;}
+.input-repair label {display:flex;align-items:center;gap:6px;}
+.answer-source {font-size:.85rem;overflow-wrap:anywhere;}
+.xcode .answer-source pre {max-height:14rem;overflow:auto;white-space:pre-wrap;}
