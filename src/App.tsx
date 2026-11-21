@@ -1064,7 +1064,7 @@ export default function App() {
             }}
           >
             <Workflow size={16} />
-            IaCD 아키텍처
+            xinfra 아키텍처 캔버스
           </button>
           <button
             className="nav-item"

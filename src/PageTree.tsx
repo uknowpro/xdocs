@@ -542,7 +542,7 @@ export default function PageTree({
                   <option value="xcode">xcode 세션</option>
                   <option value="analyzer">Analyzer</option>
                   <option value="builder">Harness</option>
-                  <option value="architecture">IaCD 아키텍처</option>
+                  <option value="architecture">xinfra 아키텍처 캔버스</option>
                   {Object.entries(templates).map(([k, t]) => (
                     <option key={k} value={k}>
                       {t.label}

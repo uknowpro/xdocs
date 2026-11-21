@@ -65,7 +65,7 @@ test("narrow screens can navigate, read code and reach dialog controls", async (
   await open.click();
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "IaCD 아키텍처", exact: true })
+    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
     .click();
   await fitsWidth(page, ".dialog");
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
@@ -99,7 +99,7 @@ for (const width of [390, 780, 1440]) {
       );
     }
     for (const [entry, section, actions] of [
-      ["IaCD 아키텍처", ".architecture-start", ".arch-start-options"],
+      ["xinfra 아키텍처 캔버스", ".architecture-start", ".arch-start-options"],
       ["인프라 문서", ".infrastructure-start", ".infra-actions"],
     ]) {
       await openFromMenu(entry);
@@ -160,7 +160,7 @@ test("compact navigation leaves ten complete rows visible on a 1366px laptop", a
   await expect(create).toBeInViewport();
   await expect(page.getByRole("button", {name:"환경 설정"})).toBeInViewport();
   await create.click();
-  await expect(page.getByRole("button", {name:"IaCD 아키텍처"})).toBeInViewport();
+  await expect(page.getByRole("button", {name:"xinfra 아키텍처 캔버스"})).toBeInViewport();
   await page.keyboard.press("Escape");
   await expect(create).toBeFocused();
   await page.getByRole("button", {name:"워크스페이스 전환"}).click();

@@ -41,7 +41,7 @@ import {
   Link2,
   ZoomIn,
   ZoomOut,
-  LayoutGrid,
+  PanelLeft, PanelRight, LayoutGrid,
   Code2,
   ShieldCheck,
   X,
@@ -244,10 +244,10 @@ export function ArchitectureStart({
       <section
         className="dialog architecture-start"
         role="dialog"
-        aria-label="IaCD 아키텍처 만들기"
+        aria-label="xinfra 아키텍처 캔버스 만들기"
       >
         <header>
-          <h2>IaCD · 아키텍처 설계</h2>
+          <h2>xinfra · 아키텍처 설계</h2>
           <button aria-label="아키텍처 만들기 닫기" onClick={onClose}>
             <X size={18} />
           </button>
@@ -464,6 +464,10 @@ export default function ArchitectureDocument({
   const [sitesOpen,setSitesOpen] = useState(false);
   const [site,setSite] = useState<{file:string;line:number;property:string}>();
   const [selected, setSelected] = useState(entry?.source || model.nodes[0]?.id || ""),
+    [paletteOpen,setPaletteOpen] = useState(true),
+    [railOpen,setRailOpen] = useState(true),
+    [codeOnly,setCodeOnly] = useState(false),
+    [paletteQuery,setPaletteQuery] = useState(""),
     [group, setGroup] = useState("전체"),
     [zoom, setZoom] = useState(1),
     [boundary, setBoundary] = useState(true),
@@ -717,6 +721,7 @@ export default function ArchitectureDocument({
     } else {
       if (n.sourceFile) setLiveFile("terraform/" + n.sourceFile);
       setSelected(n.id);
+      setRailOpen(true);
       setDetail("open");
     }
   }
@@ -826,6 +831,8 @@ export default function ArchitectureDocument({
     });
     setConnecting(false);
     setSelected(id);
+    setCodeOnly(false);
+    setRailOpen(true);
     setDetail("open");
     requestAnimationFrame(() => {
       section.current
@@ -901,12 +908,12 @@ export default function ArchitectureDocument({
       ref={section}
       data-search-scope
       className="architecture-document"
-      aria-label="IaCD 아키텍처 편집기"
+      aria-label="xinfra 아키텍처 캔버스 편집기"
     >
       <div className="arch-header">
         <div>
           <span className="eyebrow">
-            INFRASTRUCTURE AS CODE & DOCUMENTATION
+            xinfra
           </span>
           <input
             aria-label="아키텍처 제목"
@@ -949,6 +956,10 @@ export default function ArchitectureDocument({
           ))}
         </div>
         <div className="arch-tools">
+          {tab === "canvas" && <>
+            <button aria-expanded={paletteOpen} aria-label="리소스 팔레트" title="리소스 팔레트" onClick={()=>setPaletteOpen(!paletteOpen)}><PanelLeft size={16}/></button>
+            <button aria-expanded={railOpen} aria-label="Terraform·속성 패널" title="Terraform·속성 패널" onClick={()=>setRailOpen(!railOpen)}><PanelRight size={16}/></button>
+          </>}
           <button
             title="실행 취소"
             aria-label="아키텍처 실행 취소"
@@ -1046,8 +1057,8 @@ export default function ArchitectureDocument({
         </div>
       )}
       {tab === "canvas" && (
-        <div className={"arch-editor inspector-" + detail}>
-          <aside className="arch-palette">
+        <div className={"arch-editor inspector-" + detail} data-palette={paletteOpen} data-rail={railOpen}>
+          <aside className="arch-palette" hidden={!paletteOpen}>
             <strong>컴포넌트</strong>
             <select
               aria-label="컴포넌트 공급자"
@@ -1061,8 +1072,10 @@ export default function ArchitectureDocument({
                 <option key={g}>{g}</option>
               ))}
             </select>
+            <input className="palette-search" type="search" aria-label="추가할 리소스 검색" placeholder="리소스 검색" value={paletteQuery} onChange={e=>setPaletteQuery(e.target.value)}/>
             {Object.entries(COMPONENTS)
-              .filter(([, c]) => group === "전체" || c.group === group)
+              .filter(([kind, c]) => (group === "전체" || c.group === group) &&
+                (kind+" "+c.label+" "+c.group).toLowerCase().includes(paletteQuery.trim().toLowerCase()))
               .map(([kind, c]) => {
                 const Icon = icon(kind);
                 return (
@@ -1421,7 +1434,7 @@ export default function ArchitectureDocument({
               </>
             )}
           </div>
-          <div className="arch-review-rail">
+          <div className="arch-review-rail" hidden={!railOpen} data-code-only={codeOnly}>
           <aside
             className="arch-properties"
             onKeyDown={(e) => {
@@ -1864,6 +1877,7 @@ export default function ArchitectureDocument({
                 </details>
               )}
               <div className="live-file-actions">
+                <button type="button" aria-pressed={codeOnly} onClick={()=>setCodeOnly(!codeOnly)}>{codeOnly ? "속성 함께 보기" : "코드 크게 보기"}</button>
                 <button type="button" onClick={async () => {
                   try { await navigator.clipboard.writeText(result.files[livePath]); setStatus("현재 파일을 복사했습니다."); }
                   catch { setStatus("클립보드에 접근할 수 없습니다."); }

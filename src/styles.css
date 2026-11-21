@@ -3050,3 +3050,26 @@ textarea {
 .sheet-grid .sheet-axis {width:100%;min-height:24px;}
 .sheet-grid .sheet-column-select {float:right;padding:2px 5px;}
 .sheet-grid th:has(.sheet-column-select) textarea {width:calc(100% - 25px);}
+
+.arch-editor > [hidden] {display:none;}
+.arch-palette .palette-search {box-sizing:border-box; width:100%; min-width:0; margin:0 0 10px; padding:7px 8px; border:1px solid var(--line); border-radius:5px; background:var(--bg); color:var(--ink);}
+.arch-tools button[aria-expanded=true] {background:var(--active);color:var(--ink);}
+.arch-workspace {background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:16px 16px;}
+.arch-canvas-tools {background:var(--bg);}
+.terraform-live pre[aria-label="Terraform 코드"] {padding:12px; line-height:1.55; background:#202328; color:#edf0f3; border-radius:5px; tab-size:2;}
+@media(min-width:1051px) {
+  .arch-editor,.arch-editor.inspector-closed {grid-template-columns:var(--palette-width,clamp(132px,12vw,184px)) minmax(0,1fr) var(--rail-width,clamp(255px,24vw,440px));}
+  .arch-editor[data-palette=false] {--palette-width:0px;}
+  .arch-editor[data-rail=false] {--rail-width:0px;}
+  .arch-editor > .arch-workspace {grid-column:2;}
+  .arch-editor > .arch-review-rail {grid-column:3; overflow-y:auto;}
+  .arch-review-rail .terraform-live {order:-1; flex-shrink:0;}
+  .arch-review-rail .terraform-live[open] {flex:1 0 52%; min-height:185px;}
+  .terraform-live pre[aria-label="Terraform 코드"] {max-height:none;}
+}
+@media(min-width:601px) and (max-width:1050px) {
+  .arch-editor[data-palette=false] {grid-template-columns:minmax(0,1fr);}
+}
+
+.arch-review-rail[data-code-only=true] > :not(.terraform-live) {display:none;}
+.arch-review-rail[data-code-only=true] .terraform-live[open] {flex:1 1 auto;}

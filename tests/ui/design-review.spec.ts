@@ -6,7 +6,7 @@ test("local plan marks the canvas, masks both values, and keeps unmatched resour
   await page.goto("/");
   const btn = (name: string) => page.getByRole("button", { name, exact: true });
   await btn("새로 만들기").click();
-  await btn("IaCD 아키텍처").click();
+  await btn("xinfra 아키텍처 캔버스").click();
   await btn("멀티클라우드 예제").click();
   const id = await btn("컴포넌트 Application EC2").getAttribute("data-scope");
   await page.getByText("Terraform plan 검토", { exact: true }).click();
@@ -53,7 +53,7 @@ test("a workspace fragment can be reused in a new canvas, with fresh internal re
   await page.goto("/");
   const btn = (name: string) => page.getByRole("button", { name, exact: true });
   await btn("새로 만들기").click();
-  await btn("IaCD 아키텍처").click();
+  await btn("xinfra 아키텍처 캔버스").click();
   await btn("멀티클라우드 예제").click();
   await btn("컴포넌트 VPC").click();
   const old = await btn("컴포넌트 VPC").getAttribute("data-scope");
@@ -62,7 +62,7 @@ test("a workspace fragment can be reused in a new canvas, with fresh internal re
   await page.getByRole("button", { name: /선택 영역 저장/ }).click();
   await expect(page.getByText("워크스페이스에 저장했습니다.")).toBeVisible();
   await btn("새로 만들기").click();
-  await btn("IaCD 아키텍처").click();
+  await btn("xinfra 아키텍처 캔버스").click();
   await page
     .getByRole("button", { name: /빈 캔버스/ })
     .first()
@@ -85,7 +85,7 @@ test("subnet preview validates edits, cancels without mutation and undoes insert
   const button = (name: string) =>
     page.getByRole("button", { name, exact: true });
   await button("새로 만들기").click();
-  await button("IaCD 아키텍처").click();
+  await button("xinfra 아키텍처 캔버스").click();
   await button("멀티클라우드 예제").click();
   const subnet = button("컴포넌트 Subnet");
   const id = await button("컴포넌트 VPC").getAttribute("data-scope");
@@ -137,7 +137,7 @@ test("filter ten plan instances and save only the replacement to a linked block 
   const button = (name: string) =>
     page.getByRole("button", { name, exact: true });
   await button("새로 만들기").click();
-  await button("IaCD 아키텍처").click();
+  await button("xinfra 아키텍처 캔버스").click();
   await button("멀티클라우드 예제").click();
   await page.getByText("Terraform plan 검토", { exact: true }).click();
   const changes = Array.from({ length: 10 }, (_, i) => ({

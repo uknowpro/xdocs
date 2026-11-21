@@ -30,7 +30,7 @@ export function canvasPreview(note: Note, title: string) {
         drawing = arch.drawing ? drawingSVG(arch.drawing) : boundarySVG(arch);
         caption = arch.drawing
           ? "AWS 드로잉 · 서비스 " + arch.drawing.items.length
-          : "IaCD · 컴포넌트 " + arch.nodes.length;
+          : "xinfra · 컴포넌트 " + arch.nodes.length;
       } else {
         const flow = decodeWorkflow(note.body);
         if (flow) {
