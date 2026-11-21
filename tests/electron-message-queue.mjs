@@ -45,7 +45,7 @@ const count=n=>expect.poll(()=>requests.length).toBe(n);
 async function openQueue(){
   const list=page.locator(".chat-waiting");
   await expect(list).toBeVisible();
-  if(!await list.evaluate(el=>el.open)) await list.locator("summary").click();
+  if(!await list.evaluate(el=>el.open)) await list.locator(":scope > summary").click();
   return list;
 }
 try{

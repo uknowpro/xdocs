@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.27
+
+- Attach workspace notes, sheet ranges and xinfra resources. Inspect citations alongside the answer, open the original sheet range or resource, and compare the sent snapshot with its current source.
+- Apply a selected part of an answer to one or more notes. Review and select the edits, track them by session, and preview an undo.
+- Expand verified Word and Excel evidence per field and filter missing or conflicting evidence.
+- Review queued execution settings and choose the harness saved at enqueue time or the current session harness.
+
 ## 0.5.26
 
 - Preserve unsent attachments across restarts. Queue, reorder or redirect follow-ups while keeping received text. Retry a smaller request after a model context limit.

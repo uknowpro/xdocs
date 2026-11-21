@@ -1,27 +1,42 @@
 import { useEffect, useRef, useState } from "react";
+import {resolveCitation} from "./AnswerSources";
+import type {InputFile} from "./xcode-session";
 import { api } from "./api";
 import { formInstruction, inspectForm } from "./office-form";
 
 type Form = Awaited<ReturnType<typeof inspectForm>>;
 export default function OfficeForm({
   form, setForm, review, disabled,
-  answer,
+  answer,answerFiles,
   prepare,
   close,
 }: {
   form?: Form;
   setForm: (value?: Form) => void;
-  review?: {text:string;id:string};
+  review?: {text:string;id:string;files?:InputFile[]};
   close: () => void;
   disabled: boolean;
   answer: string;
+  answerFiles:InputFile[];
   prepare: (text: string) => void;
 }) {
   const [draft, setDraft] = useState("{}"),
     [notice, setNotice] = useState(""),
     [working, setWorking] = useState(false);
   const generation = useRef(0);
-  const [sources, setSources] = useState<Record<string, string>>({});
+  const [sources, setSources] = useState<Record<string, string[]>>({});
+  const [reviewFiles,setReviewFiles]=useState<InputFile[]>([]);
+  const [issuesOnly,setIssuesOnly]=useState(false);
+  const citations=(id:string)=> (sources[id] || []).flatMap(ref=>{
+    const label=ref.trim().replace(/^\[|\]$/g,"").replace(/\s+·\s+/,"#");
+    return resolveCitation(reviewFiles,label) || [];
+  });
+  const verified=(id:string)=>citations(id).length>0;
+  function evidence(id:string){
+    const hits=citations(id);
+    return hits.length ? <details><summary>{hits.map(hit=>hit.label.replace("#"," · ")).join(" · ")}</summary>
+      {hits.map(hit=><pre key={hit.label}>{hit.value}</pre>)}</details> : sources[id]?.length?<small>{sources[id].join(" · ")}{sources[id][0]!=="직접 입력"?" · 근거 확인 필요":""}</small>:<small>연결된 근거 없음</small>;
+  }
   const [values, setValues] = useState<
     Record<string, string | number | boolean>
   >({});
@@ -48,8 +63,8 @@ export default function OfficeForm({
   useEffect(() => {
     setValues({}); setSources({}); setConflicts({}); setAccepted([]); setDraft("{}"); setNotice("");
   }, [form]);
-  useEffect(() => { if (review && form) applyAnswer(review.text); }, [review, form]);
-  function applyAnswer(text: string) {
+  useEffect(() => { if (review && form) applyAnswer(review.text,review.files || []); }, [review, form]);
+  function applyAnswer(text: string,files=answerFiles) {
     try {
       const block =
         text.match(/```(?:json)?\s*\n([\s\S]*?)\n```/i)?.[1] ?? text;
@@ -70,19 +85,21 @@ export default function OfficeForm({
         }
         setValues(next);
       }
-      setSources(
-        Object.fromEntries(
-          Object.entries(data.sources || {}).filter(
-            (entry): entry is [string, string] => typeof entry[1] === "string",
-          ),
-        ),
-      );
+      setReviewFiles(files);setIssuesOnly(false);
+      setSources(Object.fromEntries(Object.entries(data.sources || {}).flatMap(([id,refs])=>{
+        const list=(Array.isArray(refs)?refs:[refs]).filter((v):v is string=>typeof v==="string");
+        return list.length?[[id,[...new Set(list)]]]:[];
+      })));
       setNotice("제안 값과 출처를 확인하세요.");
     } catch {
       setNotice(
         "답변의 JSON을 읽을 수 없습니다. 작성 요청을 다시 보내거나 값을 직접 입력하세요.",
       );
     }
+  }
+  let advancedKeys:string[]=[];
+  if(form?.advanced){
+    try{advancedKeys=Object.keys(JSON.parse(draft));}catch{ /* The JSON editor reports invalid input on save. */ }
   }
   async function save() {
     if (!form) return;
@@ -139,6 +156,7 @@ export default function OfficeForm({
                 최근 답변으로 채우기
               </button>
             </div>
+            <label className="office-source-filter"><input type="checkbox" checked={issuesOnly} onChange={e=>setIssuesOnly(e.target.checked)}/>근거 누락·충돌만 보기</label>
             {form.advanced ? (
               <>
                 <label>
@@ -153,17 +171,14 @@ export default function OfficeForm({
                   사용합니다.
                 </small>
                 {Object.entries(conflicts).map(([id, value]) => <small key={id}>{id} · 근거 충돌 · {value}</small>)}
-                {Object.entries(sources).map(([id, source]) => (
-                  <small key={id}>
-                    {id} · {source}
-                  </small>
-                ))}
+                {[...new Set([...Object.keys(sources),...Object.keys(conflicts),...advancedKeys])].filter(id=>!issuesOnly || conflicts[id] || !verified(id)).map(id=>
+                  <div key={id}><small>{id}</small>{evidence(id)}</div>)}
               </>
             ) : (
               <div>
                 {Array.from({length:Math.ceil(form.fields.length/8)},(_,group)=>{
-                  const inputs = form.fields.slice(group*8,group*8+8).map(({ id, label }) => (
-                  <label key={id}>
+                  const inputs = form.fields.slice(group*8,group*8+8).filter(({id})=>!issuesOnly || conflicts[id] || values[id]===undefined || !verified(id)).map(({ id, label }) => (
+                  <div key={id} className="office-source-field"><label>
                     {label}
                     {id.includes("#blank") && <input type="checkbox" aria-label={label+" 밑줄 사용"} checked={accepted.includes(id)} onChange={e => setAccepted(prev => e.target.checked ? [...prev,id] : prev.filter(k=>k!==id))}/>}
                     {id !== label && <small>{id}</small>}
@@ -180,16 +195,16 @@ export default function OfficeForm({
                               ? Number(raw)
                               : raw,
                         });
-                        setSources({ ...sources, [id]: "직접 입력" });
+                        setSources({ ...sources, [id]: ["직접 입력"] });
                       }}
                     />
                     {conflicts[id] && <small>근거 충돌 · {conflicts[id]}</small>}
                     {values[id] === undefined && <small>값 누락</small>}
-                    {sources[id] && <small>{sources[id]}</small>}
-                  </label>
+                  </label>{evidence(id)}</div>
                   ));
+                  if(!inputs.length) return null;
                   const fields=<div key={group} className="form-fields">{inputs}</div>;
-                  return form.fields.length<=8 ? fields : <details key={group} open={group===0}>
+                  return form.fields.length<=8 ? fields : <details key={group} open={issuesOnly || group===0}>
                     <summary>양식 항목 {group*8+1}–{Math.min(group*8+8,form.fields.length)}</summary>{fields}
                   </details>;
                 })}

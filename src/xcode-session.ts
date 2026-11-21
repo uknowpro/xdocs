@@ -172,8 +172,9 @@ export type Harness = {
   historyTurns?: number;
   skills: { name: string; instruction: string }[];
 };
-export type InputFile = { name: string; text: string; sources?:{place:string;start:number;length:number}[] } | Attachment;
+export type InputFile = { name: string; text: string; workspace?:import("./workspace-input").WorkspaceOrigin; sources?:{place:string;start:number;length:number}[] } | Attachment;
 export type Turn = {
+  sourceHistory?:[number,number][];
   runId?: string;
   prompt: string;
   files: InputFile[];

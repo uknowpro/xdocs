@@ -3243,3 +3243,27 @@ textarea {
 .input-repair label {display:flex;align-items:center;gap:6px;}
 .answer-source {font-size:.85rem;overflow-wrap:anywhere;}
 .xcode .answer-source pre {max-height:14rem;overflow:auto;white-space:pre-wrap;}
+.material-dialog {box-sizing:border-box;width:min(40rem,94vw);max-height:85dvh;overflow:auto;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px;}
+.material-dialog[open],.queue-harness[open] {display:grid;gap:8px;}
+.material-dialog::backdrop {background:#0005;}
+.material-dialog header,.material-dialog footer,.source-panel header {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.material-dialog :is(input,select) {min-width:0;max-width:100%;}
+.material-dialog pre,.material-diff {max-height:40dvh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;}
+.material-diff pre {margin:0;max-height:none;}
+.material-diff [data-kind=add],.source-panel [data-cited=true] {background:var(--active);font-weight:600;}
+.material-diff [data-kind=remove] {text-decoration:line-through;}
+.chat-transcript.has-source {display:grid;grid-template-columns:minmax(0,1fr) minmax(13rem,35%);grid-template-rows:auto minmax(0,1fr);}
+.has-source .chat-scroll {grid-column:1;grid-row:2;height:100%;}
+.source-panel {grid-column:2;grid-row:1 / 3;border-inline-start:1px solid var(--line);overflow:auto;padding:8px;overflow-wrap:anywhere;}
+.source-panel td,.source-panel th {padding:4px;border:1px solid var(--line);vertical-align:top;}
+.source-panel table {border-collapse:collapse;}
+.source-panel section {padding:5px;}
+.has-source .chat-find {grid-column:1;grid-row:1;}
+@media(max-width:800px){.chat-transcript.has-source {grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) minmax(0,40%);}.source-panel{grid-column:1;grid-row:3;border-top:1px solid var(--line);}}
+.source-return {align-self:flex-start;margin:6px 12px 0;}
+.application-row,.application-proposal label,.office-source-filter {display:flex;align-items:center;gap:8px;}
+.application-row {justify-content:space-between;}
+.application-proposal,.application-row {border-bottom:1px solid var(--line);padding-block:6px;}
+.material-dialog textarea {width:100%;min-height:5rem;max-height:20dvh;}
+.office-source-field {display:grid;align-content:start;gap:5px;min-width:0;}
+.office-source-field pre {max-height:10rem;overflow:auto;white-space:pre-wrap;}

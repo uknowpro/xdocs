@@ -27,7 +27,7 @@ function createRun(scope: string, page: string) {
     omitted: [] as string[],
     files: [] as InputFile[],
     form: undefined as import("./office-form").OfficeTemplate | undefined,
-    formReview: undefined as {text:string; id:string} | undefined,
+    formReview: undefined as {text:string; id:string;files?:InputFile[]} | undefined,
   };
   const queueKey = JSON.stringify([scope,page]);
   let writes:Promise<void> = Promise.resolve();

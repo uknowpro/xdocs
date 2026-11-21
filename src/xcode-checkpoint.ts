@@ -1,6 +1,7 @@
 import type { Harness, InputFile, Turn } from "./xcode-session";
 
 export type Checkpoint = {
+  sourceHistory?:Turn["sourceHistory"];
   id: string;
   endpoint: string;
   model: string;
@@ -59,6 +60,8 @@ export const clearCheckpoint = (key: string) =>
   });
 
 export type QueuedPrompt = {
+  harness?:Harness;
+  useCurrentHarness?:boolean;
   id: string;
   prompt: string;
   files: InputFile[];
@@ -118,3 +121,17 @@ export const restoreFileKey=(file:InputFile,key:string)=>draftKeys.set(file,key)
 export const readDraftInputs=(key:string)=>transact<DraftInputs|undefined>("readonly",s=>s.get(key+"/inputs"));
 export const writeDraftInputs=(key:string,data:DraftInputs)=>data.files.length || data.form || data.omitted.length
   ? transact("readwrite",s=>s.put(data,key+"/inputs")) : transact("readwrite",s=>s.delete(key+"/inputs"));
+
+export type NoteApplication = {
+  id:string; turn:number; title:string; page:string; date:string;
+  before:string; after:string; state:"pending"|"applied"|"undone";
+};
+const applicationPrefix=(session:string)=>session+"/note-application/";
+export const saveNoteApplication=(session:string,record:NoteApplication)=>
+  transact("readwrite",store=>store.put(record,applicationPrefix(session)+record.id));
+export const removeNoteApplication=(session:string,id:string)=>
+  transact("readwrite",store=>store.delete(applicationPrefix(session)+id));
+export const readNoteApplications=(session:string)=>{
+  const prefix=applicationPrefix(session);
+  return transact<NoteApplication[]>("readonly",store=>store.getAll(IDBKeyRange.bound(prefix,prefix+"\uffff")));
+};

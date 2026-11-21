@@ -8,7 +8,7 @@ export type OfficeTemplate = Awaited<ReturnType<typeof inspectForm>>;
 export const templateFiles = new WeakMap<object, File>();
 export function formInstruction(form: OfficeTemplate) {
   const schema = form.advanced ? form.excerpt : JSON.stringify(form.fields);
-  return form.name + " 양식을 첨부 근거로 채우세요. 최종 답변은 JSON 객체로 반환하세요. values는 필드별 값, sources는 파일명과 시트·셀 또는 문단 위치, conflicts는 상충하는 필드별 근거 설명입니다. 누락·충돌 값은 생략하세요. 반복 행은 배열로 반환하세요. 양식 필드: " + schema;
+  return form.name + " 양식을 첨부 근거로 채우세요. 최종 답변은 JSON 객체로 반환하세요. values는 필드별 값, sources는 필드마다 파일명#시트!셀 또는 파일명#문단 번호 형식의 문자열이나 배열, conflicts는 상충하는 필드별 근거 설명입니다. 누락·충돌 값은 생략하세요. 반복 행은 배열로 반환하세요. 양식 필드: " + schema;
 }
 export type FormField = { id: string; label: string };
 export async function inspectForm(file: File) {

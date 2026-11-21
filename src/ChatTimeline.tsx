@@ -1,4 +1,6 @@
-import AnswerSources from "./AnswerSources";
+import {noteBlocks,type WorkspaceOrigin,type TextInput} from "./workspace-input";
+import type {Note} from "./types";
+import AnswerSources,{SourcePanel,type Citation} from "./AnswerSources";
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, Check, Copy, History, Terminal, Search, MoreHorizontal } from "lucide-react";
 import { marked } from "marked";
@@ -66,7 +68,7 @@ export default function ChatTimeline({
   busy,
   error,
   readonly,
-  applyHarness, onQuote, folders, defaultFolder, savePage,
+  applyHarness, onQuote, applyAnswer,reviewInput,openOriginal,openHistory,workspacePages, folders, defaultFolder, savePage,
 }: {
   reading: { top:number; follow:boolean };
   turns: Turn[];
@@ -78,6 +80,11 @@ export default function ChatTimeline({
   readonly: boolean;
   applyHarness: (h: Harness) => void;
   onQuote:(text:string)=>void;
+  applyAnswer:(text:string,index:number)=>void;
+  openHistory:()=>void;
+  openOriginal:(origin:WorkspaceOrigin,cited?:string)=>void;
+  reviewInput:(f:TextInput)=>void;
+  workspacePages:Note[];
   folders:{id:string;title:string}[];
   defaultFolder:string;
   savePage:(index:number,kind:"note"|"branch",title:string,parent:string)=>Promise<void>;
@@ -100,7 +107,7 @@ export default function ChatTimeline({
       view.current.scrollTop = view.current.scrollHeight;
   }, [turns.length, preview, phase, pending, error]);
   const [finding,setFinding]=useState(false), [query,setQuery]=useState(""), [match,setMatch]=useState(0);
-  const [quote,setQuote]=useState<{index:number;text:string}>();
+  const [quote,setQuote]=useState<{index:number;text:string;markdown?:string}>();
   const [saving,setSaving]=useState<{index:number;kind:"note"|"branch";title:string;parent:string}>();
   const [savingBusy,setSavingBusy]=useState(false);
   const savedPosition=useRef({top:0,follow:true});
@@ -141,9 +148,10 @@ export default function ChatTimeline({
     if(!follow.current && (turns.length>previousLength.current || preview)) setUnread(true);
     previousLength.current=turns.length;
   },[turns.length,preview]);
+  const [source,setSource]=useState<Citation>();
   const pendingVisible = pending && turns.length <= pending.index;
   return (
-    <div className="chat-transcript">
+    <div className={"chat-transcript"+(source?" has-source":"")}>
       {turns.length>0 && <div className="chat-find">
         {finding ? <>
           <input ref={findInput} aria-label="세션 대화 검색" placeholder="질문·답변 검색" value={query} onChange={e=>{setQuery(e.target.value);setMatch(0);}}
@@ -182,12 +190,19 @@ export default function ChatTimeline({
             <article className="chat-turn" data-turn={i} data-found={finding && results[match]?.index===i ? results[match].part : undefined} key={t.runId || i}
               onMouseUp={()=>{const sel=window.getSelection();const answer=sel?.anchorNode?.parentElement?.closest(".chat-answer");
                 if(sel?.toString().trim() && answer?.contains(sel.focusNode) && answer.closest("article")?.dataset.turn===String(i))
-                  setQuote({index:i,text:sel.toString()});
+                  {
+                  const range=sel.getRangeAt(0);
+                  const blocks=Array.from(answer.children).filter(el=>range.intersectsNode(el));
+                  const exact=blocks.length===1 && blocks[0].textContent!.trim()===sel.toString().trim();
+                  const markdown=exact ? noteBlocks(last?.text||"")[Array.from(answer.children).indexOf(blocks[0])]?.text : undefined;
+                  setQuote({index:i,text:sel.toString(),markdown});
+                }
               }}>
 
               <Question prompt={t.prompt} files={t.files.map((f) => f.name)} />
+              {t.files.map((f,j)=>"workspace" in f && f.workspace && <button disabled={readonly} className="material-origin" key={j} onClick={()=>reviewInput(f)}>{f.name} · {workspacePages.find(n=>n.id===f.workspace!.page)?.revision!==f.workspace.revision?"원본 변경됨":"이 사본으로 재질문"}</button>)}
               {last && <Answer text={last.text} />}
-              {last && last.text.includes("#") && <AnswerSources text={last.text} files={turns.slice(0,i+1).flatMap(turn=>turn.files)}/>}
+              {last && last.text.includes("#") && <AnswerSources inspect={setSource} text={last.text} files={t.sourceHistory ? [...t.sourceHistory.flatMap(([ti,fi])=>turns[ti]?.files[fi] || []),...t.files] : turns.slice(0,i+1).flatMap(turn=>turn.files)}/>}
               <div className="chat-result-actions">
                 {last && (
                   <button
@@ -208,7 +223,12 @@ export default function ChatTimeline({
                   </button>
                 )}
                 {quote?.index===i && <button disabled={readonly} onClick={()=>{onQuote(quote.text);setQuote(undefined);}}>인용해 질문</button>}
+                {quote?.index===i && <button disabled={readonly} onClick={()=>applyAnswer(quote.markdown || quote.text,i)}>선택한 부분 반영</button>}
                 {last && <details className="chat-answer-menu"><summary className="chat-action-icon" aria-label="답변 메뉴" title="답변 메뉴"><MoreHorizontal size={13}/></summary>
+                  <button disabled={readonly} onClick={e=>{e.currentTarget.closest("details")!.open=false;applyAnswer(last.text,i);}}>기존 노트에 반영</button>
+                  <button onClick={e=>{e.currentTarget.closest("details")!.open=false;openHistory();}}>노트 반영 이력</button>
+                  {t.files.filter((f):f is TextInput=>"workspace" in f && Boolean(f.workspace)).map((file,j)=>
+                    <button key={j} onClick={()=>openOriginal(file.workspace!)}>{file.name} 원본 열기</button>)}
                   {(["note","branch"] as const).map(kind=><button key={kind} disabled={readonly} onClick={e=>{
                     e.currentTarget.closest("details")!.open=false;
                     setSaving({index:i,kind,title:t.prompt.split("\n")[0].slice(0,60) || "답변",parent:defaultFolder});
@@ -285,6 +305,7 @@ export default function ChatTimeline({
         {error && <p role="alert">{error}</p>}
         {copyError && <p role="alert">{copyError}</p>}
       </div>
+      {source && <SourcePanel hit={source} close={()=>setSource(undefined)} openOriginal={source.file.workspace?()=>openOriginal(source.file.workspace!,source.place):undefined}/>}
       {away && (
         <button
           className="chat-latest"

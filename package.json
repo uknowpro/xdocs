@@ -1,6 +1,6 @@
 {
   "name": "xdocs",
-  "version": "0.5.26",
+  "version": "0.5.27",
   "private": true,
   "description": "Local-first connected notes for desktop",
   "author": "uknowpro",
@@ -33,7 +33,7 @@
     "test:architecture:fixtures": "node tests/architecture-fixtures.mjs",
     "prestart": "node scripts/prepare-analyzers.mjs",
     "test:analyzer": "node tests/electron-analyzer.mjs",
-    "test:xcode": "node tests/electron-xcode.mjs && node tests/electron-recovery.mjs && node tests/electron-office-form.mjs && node tests/electron-message-queue.mjs && node tests/electron-conversation.mjs"
+    "test:xcode": "node tests/electron-xcode.mjs && node tests/electron-recovery.mjs && node tests/electron-office-form.mjs && node tests/electron-message-queue.mjs && node tests/electron-conversation.mjs && node tests/electron-workspace-material.mjs"
   },
   "dependencies": {
     "@cdktn/hcl2json": "^0.25.0",

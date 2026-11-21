@@ -30,7 +30,7 @@ import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
 import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
-import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Cloud,
@@ -449,12 +449,13 @@ export function ArchitectureStart({
 }
 export default function ArchitectureDocument({
   model,
-  focusTemplate,
+  focusTemplate,focusResource,
   notes,saveFragment,saveReview,
   onChange,
   readonly = false,
 }: {
   focusTemplate?: string;
+  focusResource?:string;
   saveReview:(text:string)=>Promise<void>;
   notes:Note[]; saveFragment:(name:string,body:string)=>Promise<void>;
   model: ArchitectureModel;
@@ -917,6 +918,11 @@ export default function ArchitectureDocument({
       el?.scrollIntoView({ block: "center", inline: "center", container:"nearest" } as ScrollIntoViewOptions);
     });
   }
+  useEffect(()=>{
+    if(focusResource && model.nodes.some(node=>node.id===focusResource)){
+      openDetail(focusResource);focusNode(focusResource);
+    }
+  },[focusResource]);
   function openDetail(id: string, source = model, preservePanel = false) {
     if (caseView && !section.current?.querySelector(`.case-blueprint [data-resource="${CSS.escape(id)}"]`)) {
       setCaseView(false);

@@ -1,6 +1,7 @@
 import { pageKind } from "../shared/page-kind.mjs";
 import {sessionStatus,sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
 import Xcode from "./Xcode";
+import {coordinates,workbook as readWorkbook,architecture as readArchitecture,type WorkspaceOrigin} from "./workspace-input";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
 import Analyzer from "./Analyzer";
@@ -574,6 +575,7 @@ export default function App() {
     const timer = setTimeout(() => setNotice(""), 4500);
     return () => clearTimeout(timer);
   }, [notice]);
+  const [sourceJump,setSourceJump]=useState<{origin:WorkspaceOrigin;session:string;scope:string}>();
   const navigate = async (id: string) => {
     if (!(await flush())) return;
     select(
@@ -1305,6 +1307,7 @@ export default function App() {
             );})}
           </nav>
         )}
+        {sourceJump?.scope===workspace?.root && sourceJump?.origin.page===active && <button className="source-return" onClick={()=>void navigate(sourceJump.session).then(()=>setSourceJump(undefined))}>대화로 돌아가기</button>}
         <div className="toolbar">
           <div className="breadcrumb">
             <span>{shared ? "조직 보관함" : "개인 보관함"}</span>
@@ -1610,6 +1613,35 @@ export default function App() {
                       select(saved);
                     else setNotice(saved.title + " · xcode 응답 저장 완료");
                   }}
+                  access={{notes,open:async(origin,cited)=>{
+                    if(!(await flush())) throw Error("현재 세션을 저장할 수 없습니다.");
+                    const n=api.readNote ? await api.readNote(origin.page) : notes.find(entry=>entry.id===origin.page);
+                    if(!n || pageKind(n)!==origin.selection.kind) throw Error("해당 원본 페이지를 찾을 수 없습니다.");
+                    let selection=origin.selection;
+                    if(selection.kind==="sheets"){
+                      const sheet=readWorkbook(n)?.sheets.find(s=>s.id===(origin.selection.kind==="sheets"?origin.selection.sheet:""));
+                      const range=cited?.match(/!([A-Z]+\d+(?::[A-Z]+\d+)?)$/)?.[1] || selection.range;
+                      if(!sheet || !range.split(":").every(cell=>{
+                        const point=coordinates(cell);return point && point[1]<=sheet.rows.length && point[0]<=Math.max(0,...sheet.rows.map(row=>row.length));
+                      })) throw Error("원본의 시트 또는 셀 범위가 변경되었습니다.");
+                      selection={...selection,range};
+                    }
+                    if(selection.kind==="architecture" && !readArchitecture(n)?.nodes.some(node=>node.id===(origin.selection.kind==="architecture"?origin.selection.resource:"")))
+                      throw Error("원본에서 선택했던 리소스를 찾을 수 없습니다.");
+                    setSourceJump({origin:{...origin,selection},session:active,scope:workspace!.root});
+                    select(n);setView("note");setEdit(false);
+                    if(n.revision!==origin.revision) setNotice("최신 원본을 열었습니다.");
+                  },read:async id=>{
+                    const n=api.readNote?await api.readNote(id):(await api.refresh()).notes.find(entry=>entry.id===id);
+                    if(!n) throw Error("페이지를 찾을 수 없습니다.");
+                    if(notes.find(entry=>entry.id===id)?.revision!==n.revision) update(n);
+                    return n;
+                  },save:async(n,body)=>{
+                    if(readonly || n.role==="reader" || pageKind(n)!=="note") throw Error("편집 가능한 노트를 선택하세요.");
+                    const fresh=api.readNote?await api.readNote(n.id):(await api.refresh()).notes.find(entry=>entry.id===n.id);
+                    if(!fresh || fresh.revision!==n.revision) throw Error("원본이 변경되었습니다. 다시 불러온 뒤 확인하세요.");
+                    update(await api.save({id:n.id,revision:n.revision,body}));
+                  }}}
                   folders={notes.filter(isFolderPage).map(n=>({id:n.id,title:n.title}))}
                   defaultFolder={notes.find(n=>n.id===body.match(parentHeader)?.[1] && isFolderPage(n))?.id || "@"}
                   savePage={async(index,kind,title,parent)=>{
@@ -1699,6 +1731,7 @@ export default function App() {
                 />
               ) : architectureData ? (
                 <ArchitectureDocument
+                  focusResource={sourceJump?.origin.page===active && sourceJump.origin.selection.kind==="architecture"?sourceJump.origin.selection.resource:undefined}
                   focusTemplate={catalogFocus?.id === active ? catalogFocus?.template : undefined}
                   key={JSON.stringify([workspace?.root, active])}
                   notes={notes}
@@ -1758,6 +1791,7 @@ export default function App() {
               ) : sheetData ? (
                 <SheetTable
                   key={active}
+                  focusRange={sourceJump?.origin.page===active && sourceJump.origin.selection.kind==="sheets"?sourceJump.origin.selection:undefined}
                   workbook={sheetData}
                   readonly={readonly}
                   onChange={(book) =>

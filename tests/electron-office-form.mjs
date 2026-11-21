@@ -49,7 +49,13 @@ try {
   const panel=page.locator(".office-form");
   await expect(panel.locator('input[value="730"]')).toBeVisible();
   await expect(panel.locator('input[value="Kim"]')).toBeVisible();
-  await expect(panel).toContainText("Budget!D12");
+  const field=panel.locator(".office-source-field").filter({has:panel.locator('input[value="730"]')});
+  await field.getByText("budget.xlsx · Budget!D12",{exact:true}).click();
+  await expect(field.locator("pre")).toHaveText("730");
+  await panel.getByLabel("근거 누락·충돌만 보기").check();
+  await expect(panel.locator('input[value="730"]')).toHaveCount(0);
+  await expect(panel).toContainText("연결된 근거 없음");
+  await panel.getByLabel("근거 누락·충돌만 보기").uncheck();
   assert.match(JSON.stringify(packets.at(-1)), /Budget.*D12=730/s);
   const saved=path.join(root,"copy.docx");
   await app.evaluate(({BrowserWindow},dest)=>{

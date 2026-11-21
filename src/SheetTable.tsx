@@ -1,3 +1,4 @@
+import {coordinates} from "./workspace-input";
 import { usePaneHeight } from "./usePaneHeight";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Plus, Copy, Search, X, ChevronLeft, ChevronRight, FileText, Trash2 } from "lucide-react";
@@ -17,12 +18,13 @@ export interface SheetBook {
   }[];
 }
 export default function SheetTable({
-  workbook,
+  workbook,focusRange,
   onChange,
   onNote,
   readonly = false,
 }: {
   workbook: SheetBook;
+  focusRange?:{sheet:string;range:string};
   onChange: (book: SheetBook) => void;
   onNote: (title: string, body: string) => void;
   readonly?: boolean;
@@ -220,6 +222,19 @@ export default function SheetTable({
       if (focus) cell?.focus({preventScroll:true});
     });
   }
+  useLayoutEffect(()=>{
+    if(!focusRange) return;
+    const target=workbook.sheets.find(s=>s.id===focusRange.sheet);
+    const [first,last]=focusRange.range.toUpperCase().split(":");
+    const start=coordinates(first), finish=coordinates(last||first);
+    if(!target || !start || !finish)return;
+    setActive(target.id);
+    setPage(Math.floor(Math.max(0,start[1]-1-Number(Boolean(target.firstRowHeader)))/100));
+    setAnchor([start[1]-1,start[0]-1]);setEnd([finish[1]-1,finish[0]-1]);
+    const frame=requestAnimationFrame(()=>viewport.current?.querySelector(
+      `textarea[data-row="${start[1]-1}"][data-column="${start[0]-1}"]`)?.scrollIntoView({block:"nearest",inline:"nearest"}));
+    return ()=>cancelAnimationFrame(frame);
+  },[focusRange]);
   function stepMatch(step:number) {
     if (!matches.length) return;
     const next=hit<0 ? (step>0 ? 0 : matches.length-1) : (hit+step+matches.length)%matches.length;

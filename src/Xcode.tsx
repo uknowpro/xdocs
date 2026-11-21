@@ -1,3 +1,5 @@
+import WorkspaceMaterial,{type MaterialAction} from "./WorkspaceMaterial";
+import type {WorkspaceAccess} from "./workspace-input";
 import { usePaneHeight } from "./usePaneHeight";
 import {formInstruction, inspectForm, templateFiles} from "./office-form";
 import OfficeForm from "./OfficeForm";
@@ -7,7 +9,7 @@ import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
 import WordSelection from "./WordSelection";
 import ProjectInputs from "./ProjectInputs";
 import {
-  fileKey, loadCheckpoint,
+  fileKey, restoreFileKey, loadCheckpoint,
   saveCheckpoint,
   saveProgress,
   clearCheckpoint,
@@ -95,7 +97,7 @@ export default function Xcode({
   scope,
   page,
   prepare,
-  finish, folders, defaultFolder, savePage,
+  finish, folders, defaultFolder, savePage, access,
   change,
   readonly,
 }: {
@@ -105,12 +107,15 @@ export default function Xcode({
   page: string;
   prepare: () => Promise<boolean>;
   finish: (t: Turn) => Promise<void>;
+  access:WorkspaceAccess;
   folders:{id:string;title:string}[];
   defaultFolder:string;
   savePage:(index:number,kind:"note"|"branch",title:string,parent:string)=>Promise<void>;
   change: (s: Session) => void;
   readonly: boolean;
 }) {
+  const [material,setMaterial]=useState<MaterialAction>();
+  const mention=useRef<{start:number;end:number}|undefined>(undefined);
   const run = sessionRun(scope, page);
   const { pending, busy, preview, phase, error, prompt, files, omitted, draftError, waiting, queuePaused, queueReady } =
     useSyncExternalStore(run.subscribe, run.snapshot);
@@ -382,11 +387,16 @@ export default function Xcode({
       return next;
     });
   }
+  function checkpointMatches(item:QueuedPrompt,saved:Checkpoint){
+    const h=item.useCurrentHarness || !item.harness?s.harness:item.harness;
+    const skills=h.skills.filter((k,i)=>!item.omitted.includes("skill:"+i+":"+k.name));
+    return JSON.stringify({...h,skills})===JSON.stringify(saved.harness);
+  }
   async function retryInterrupted() {
     if (!interrupted || readonly || run.snapshot().busy) return;
     const item = waiting.find(entry => entry.id === interrupted.id) || run.snapshot().failedInput;
     if (item && targetChanged(item)) {setError("먼저 이 메시지의 모델과 서버 주소를 확인하세요.");return;}
-    const saved = recovery?.id === interrupted.id && recovery.model === s.model && recovery.endpoint === s.endpoint && (!item || item.prompt === recovery.prompt) ? recovery : undefined;
+    const saved = recovery?.id === interrupted.id && recovery.model === s.model && recovery.endpoint === s.endpoint && (!item || (item.prompt === recovery.prompt && checkpointMatches(item,recovery))) ? recovery : undefined;
     if (saved || item) await send(saved,item);
     else if (recovery) await send(recovery);
   }
@@ -416,7 +426,7 @@ export default function Xcode({
     const saved=local ? await loadCheckpoint(checkpointKey) : undefined;
     if (run.snapshot().busy || run.snapshot().waiting[0]?.id!==queued.id) return;
     run.patch({queuePaused:false});
-    if (saved?.id===queued.id && saved.prompt===queued.prompt && saved.model===queued.model && saved.endpoint===queued.endpoint && !s.turns.some(t=>t.runId===queued.id))
+    if (saved?.id===queued.id && saved.prompt===queued.prompt && saved.model===queued.model && saved.endpoint===queued.endpoint && checkpointMatches(queued,saved) && !s.turns.some(t=>t.runId===queued.id))
       await send(saved,queued);
     else await drain(s);
   }
@@ -431,7 +441,7 @@ export default function Xcode({
     if (!run.activeItem) run.patch({queuePaused:true});
     if (!prompt.trim() && !selectedFiles.length) return;
     const item:QueuedPrompt={id:crypto.randomUUID(),prompt,files:selectedFiles,
-      templates:selectedFiles.map(f=>templateFiles.get(f)),omitted:[...omitted],endpoint:s.endpoint,model:s.model};
+      templates:selectedFiles.map(f=>templateFiles.get(f)),omitted:[...omitted],endpoint:s.endpoint,model:s.model,harness:structuredClone(s.harness)};
     run.submitting=true;
     try {
       const activeId=run.id;
@@ -468,11 +478,17 @@ export default function Xcode({
       selectedFiles: initialFiles,
       execution: initialExecution,
     } = currentInput;
-    const s = saved ? { ...session, harness: saved.harness } : context || session;
+    const base=context || session;
+    const harness=saved?.harness || (!item?.useCurrentHarness && item?.harness) || currentConnection.current.session.harness;
+    const s={...base,harness};
     const excluded=item?.omitted || omitted;
     const selected=(key:string)=>!excluded.includes(key);
     const start=Math.max(0,s.turns.length-(s.harness.historyTurns??s.turns.length));
     const candidates=s.turns.slice(start);
+    const sourceHistory=saved ? saved.sourceHistory : candidates.flatMap((turn,i)=>
+      selected("turn:"+(start+i)) ? turn.files.flatMap((file,j)=>
+        "sources" in file && file.sources?.length && selected("prior:"+(start+i)+":"+j) ? [[start+i,j] as [number,number]] : []) : []);
+
     const selectedSkills=s.harness.skills.filter((k,i)=>selected("skill:"+i+":"+k.name));
     const prompt = saved?.prompt ?? item?.prompt ?? initialPrompt,
       selectedFiles = saved?.files ?? item?.files ?? initialFiles;
@@ -612,6 +628,7 @@ export default function Xcode({
           ];
       if (local) {
         checkpoint = {
+          sourceHistory,
           id: saved?.id ?? id,
           endpoint: s.endpoint,
           model: s.model,
@@ -784,13 +801,13 @@ export default function Xcode({
         ...s,
         turns: [
           ...s.turns,
-          { prompt, files: selectedFiles, answers, execution },
+          { prompt, files: selectedFiles, answers, execution,sourceHistory },
         ],
       };
       if (new Blob([JSON.stringify(next)]).size > 4800000)
         throw Error("세션 저장 한도에 도달했습니다. 새 세션으로 이어가세요.");
       await finish({
-        runId: checkpoint?.id ?? id,
+        runId: checkpoint?.id ?? id, sourceHistory,
         prompt,
         files: selectedFiles,
         answers,
@@ -801,13 +818,16 @@ export default function Xcode({
         await clearCheckpoint(checkpointKey);
         setRecovery(undefined);
       }
-      if (form && answers.length) run.patch({formReview:{id,text:answers[answers.length-1].text}});
-      continuation=next;
+      if (form && answers.length) run.patch({formReview:{id,text:answers[answers.length-1].text,
+        files:[...(sourceHistory || []).flatMap(([ti,fi])=>s.turns[ti]?.files[fi] || []),...evidence]}});
+      continuation={...base,turns:next.turns};
       if (run.snapshot().waiting.some(q=>q.id===id))
         await run.updateWaiting(items=>items.filter(q=>q.id!==id));
       if (saved && run.snapshot().prompt===saved.prompt) consumeInput(saved.prompt,saved.files);
 
       run.patch({ pending: null, preview: "" });
+      const repeatSources=sourceHistory && [...sourceHistory,...selectedFiles.flatMap((f,j)=>
+        "sources" in f && f.sources?.length ? [[s.turns.length,j] as [number,number]]:[])];
       let completed = s.turns.length + 1;
       messages.pop(); // No next harness stage after the final answer.
       while (run.id === id && run.enabled && s.repeatCompleted && !run.snapshot().waiting.length) {
@@ -826,6 +846,7 @@ export default function Xcode({
         await finish({
           execution,
           prompt: "계속해주세요",
+          sourceHistory:repeatSources,
           files: [],
           answers: [
             {
@@ -835,7 +856,7 @@ export default function Xcode({
             },
           ],
         });
-        continuation.turns.push({prompt:"계속해주세요",files:[],execution,answers:[{stage:"자동 이어쓰기",...result}]});
+        continuation.turns.push({prompt:"계속해주세요",sourceHistory:repeatSources,files:[],execution,answers:[{stage:"자동 이어쓰기",...result}]});
         completed++;
         messages.push({ role: "assistant", content: result.text });
         run.patch({ pending: null, preview: "" });
@@ -845,7 +866,7 @@ export default function Xcode({
         run.steering="";
         const snap=run.snapshot();
         const partial=snap.preview;
-        const partialTurn:Turn={runId:id,prompt,files:selectedFiles,execution,
+        const partialTurn:Turn={runId:id,sourceHistory,prompt,files:selectedFiles,execution,
           answers:[...(checkpoint?.answers || []),{stage:"사용자가 이어서 요청",text:partial || "응답 수신 전 중단됨"}]};
         try {
           if(!continuation) await finish(partialTurn);
@@ -1367,7 +1388,8 @@ export default function Xcode({
           <small aria-live="polite">{settingsSave === "failed" ? "세션 설정을 저장하지 못했습니다. 다시 시도하세요." : ""}</small>
         </div>
       </div>
-      <div hidden={documentPanel !== "form"}><OfficeForm form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
+      <div hidden={documentPanel !== "form"}><OfficeForm form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""}
+        answerFiles={[...(s.turns.at(-1)?.sourceHistory || []).flatMap(([ti,fi])=>s.turns[ti]?.files[fi] || []),...(s.turns.at(-1)?.files || [])]} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
       {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
         <WordSelection close={()=>setDocumentPanel(null)} disabled={busy || readonly}
           answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
@@ -1375,6 +1397,10 @@ export default function Xcode({
       </div>}
       <div className="chat-workbench" ref={workbench}>
         <ChatTimeline
+          workspacePages={access.notes} applyAnswer={(answer,turn)=>setMaterial({kind:"apply",answer,turn})}
+          openHistory={()=>setMaterial({kind:"history"})}
+          openOriginal={(origin,cited)=>void access.open(origin,cited).catch(e=>setError(String(e)))}
+          reviewInput={file=>setMaterial({kind:"compare",file})}
           folders={folders} defaultFolder={defaultFolder} savePage={savePage}
           onQuote={text=>{setPrompt([prompt,text.split("\n").map(line=>"> "+line).join("\n")+"\n\n"].filter(Boolean).join("\n\n"));composerRef.current?.focus();}}
           reading={run.reading}
@@ -1392,12 +1418,35 @@ export default function Xcode({
           <button disabled={readonly} onClick={()=>void retryInterrupted().catch(e=>setError(String(e)))}>이 메시지 재시도</button>
           <button disabled={readonly} onClick={()=>void skipInterrupted().catch(e=>setError(String(e)))}>{visibleQueue.some(q=>q.id!==interrupted.id) ? "건너뛰고 다음 전송" : "건너뛰기"}</button>
         </div>}
+        {material && <WorkspaceMaterial sessionKey={checkpointKey} access={access} action={material} close={()=>{setMaterial(undefined);mention.current=undefined;}} attach={(file,original)=>{
+          const draft=run.snapshot();
+          const index=original?draft.files.indexOf(original):-1;
+          const history:string[]=[];
+          if(original && index>=0) restoreFileKey(file,fileKey(original));
+          if(original?.workspace) s.turns.forEach((turn,i)=>turn.files.forEach((f,j)=>{
+            if("workspace" in f && f.workspace?.page===original.workspace!.page &&
+               JSON.stringify(f.workspace.selection)===JSON.stringify(original.workspace!.selection)) history.push("prior:"+i+":"+j);
+          }));
+          const token=mention.current;
+          run.patch({files:index<0?[...draft.files,file]:draft.files.map((f,i)=>i===index?file:f),
+            omitted:[...new Set([...draft.omitted,...history])],
+            ...(token && draft.prompt.slice(token.start,token.end)==="@"?{prompt:draft.prompt.slice(0,token.start)+draft.prompt.slice(token.end)}:{})});
+          requestAnimationFrame(()=>composerRef.current?.focus());
+        }}/>}
         {visibleQueue.length > 0 && <details className="chat-waiting">
           <summary>대기 메시지 {visibleQueue.length}개</summary>
           {visibleQueue.map((q,index)=><div key={q.id}>
             {editingItem===q.id ? <textarea aria-label="대기 메시지 수정" value={editedPrompt} onChange={e=>setEditedPrompt(e.target.value)}/>
               : <span>{q.prompt}</span>}
             {q.files.length>0 && <small>{q.files.map(f=>f.name).join(" · ")}</small>}
+            <details className="queue-harness"><summary>실행 설정</summary>
+              <small>{q.model}</small><label>하네스 <select disabled={readonly} aria-label="대기 메시지 하네스" value={q.harness && !q.useCurrentHarness?"saved":"current"} onChange={e=>{
+                const current=e.target.value==="current";
+                void run.updateWaiting(items=>items.map(i=>i.id===q.id && i.id!==run.activeItem?
+                  {...i,harness:i.harness || structuredClone(s.harness),useCurrentHarness:current}:i)).catch(err=>setError(String(err)));
+              }}><option value="saved">{q.harness?"등록 시 설정":"현재 구성 고정"}</option><option value="current">실행 시 세션 설정</option></select></label>
+              {(()=>{const h=q.useCurrentHarness || !q.harness?s.harness:q.harness;return <><strong>{h.name} · {h.jobRole || "역할 미지정"}</strong><ol>{h.stages.map((stage,i)=><li key={i}>{stage}</li>)}</ol></>;})()}
+            </details>
             {targetChanged(q) && <div className="queue-target">
               <span>등록 당시 {q.model} · {q.endpoint}</span>
               <span>현재 설정 {s.model} · {s.endpoint}</span>
@@ -1433,7 +1482,7 @@ export default function Xcode({
                 const original=waiting.find(q=>q.id===interrupted.id) || run.snapshot().failedInput;
                 const item:QueuedPrompt={id:interrupted.id,prompt:interrupted.prompt,files:interrupted.files.filter((_,i)=>!repair.files.includes(i)),
                   templates:interrupted.files.map((f,i)=>original?.templates[i] || templateFiles.get(f)).filter((_,i)=>!repair.files.includes(i)),
-                  omitted:repair.skip,endpoint:original?.endpoint || interrupted.endpoint,model:original?.model || interrupted.model};
+                  harness:original?.harness,useCurrentHarness:original?.useCurrentHarness,omitted:repair.skip,endpoint:original?.endpoint || interrupted.endpoint,model:original?.model || interrupted.model};
                 if(targetChanged(item)){setError("먼저 저장 당시 모델과 서버 주소를 선택하세요.");return;}
                 void run.updateWaiting(items=>[item,...items.filter(q=>q.id!==item.id)]).then(async()=>{
                   if(local) await clearCheckpoint(checkpointKey);setRecovery(undefined);setRepair(null);
@@ -1451,7 +1500,13 @@ export default function Xcode({
             rows={2}
             disabled={readonly}
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={e=>{
+              const value=e.target.value,end=e.target.selectionStart;
+              setPrompt(value);
+              if(value.length===prompt.length+1 && /(?:^|\s)@$/.test(value.slice(0,end))){
+                mention.current={start:end-1,end};setMaterial({kind:"attach"});
+              }
+            }}
             onKeyDown={(e) => {
               if (
                 e.key !== "Enter" ||
@@ -1505,6 +1560,7 @@ export default function Xcode({
               <Paperclip size={16} />
             </button>
             <div id="xcode-attachment-menu" popover="auto" ref={attachmentMenu} className="chat-attachment-menu">
+              <button disabled={readonly} onClick={()=>{attachmentMenu.current?.hidePopover();setMaterial({kind:"attach"});}}>워크스페이스 페이지</button>
               <button disabled={readonly || importing} onClick={() => {
                 attachmentMenu.current?.hidePopover();
                 attachmentPicker.current?.click();
@@ -1583,6 +1639,7 @@ export default function Xcode({
           {files.length > 0 && (
             <div className="chat-files">
               {" "}
+              {files.map((f,i)=> "workspace" in f && f.workspace && <button key={"review"+i} disabled={readonly} onClick={()=>setMaterial({kind:"compare",file:f})}>{f.name} · {access.notes.find(n=>n.id===f.workspace!.page)?.revision!==f.workspace.revision?"원본 변경됨":"버전 비교"}</button>)}
               {files.map((f, i) => (
                 <button
                   key={i}
