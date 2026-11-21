@@ -1,19 +1,22 @@
 import { _electron, expect } from "@playwright/test";
+import { once } from "node:events";
+import { execFileSync } from "node:child_process";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-const root=await mkdtemp(path.join(tmpdir(),"xdocs-message-queue-"));
+const mode=process.argv[2];
+const root=process.argv[3] || await mkdtemp(path.join(tmpdir(),"xdocs-message-queue-"));
 const data=path.join(root,"profile"), vault=path.join(root,"vault");
-await mkdir(data);await mkdir(vault);
+await mkdir(data,{recursive:true});await mkdir(vault,{recursive:true});
 await writeFile(path.join(data,"workspace.json"),JSON.stringify({root:vault}));
 const requests=[];
 const server=createServer(async(req,res)=>{
   let body="";
   for await (const chunk of req) body+=chunk;
-  requests.push({messages:JSON.parse(body).messages,res});
+  requests.push({messages:JSON.parse(body).messages,model:JSON.parse(body).model,res});
 });
 await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
 const endpoint="http://127.0.0.1:"+server.address().port+"/v1/chat/completions";
@@ -46,40 +49,69 @@ async function openQueue(){
   return list;
 }
 try{
-  await launch();await create();await submit("first-A");await count(1);
+  await launch();
+  if(mode==="seed"){
+    await create();await submit("upgrade question");await count(1);finish(0,"upgrade answer");
+    await expect(page.locator(".chat-answer")).toContainText("upgrade answer");
+    await input().fill("upgrade draft");
+  } else {
+  if(mode==="verify"){
+    if(!await input().count()) await page.locator(".page-tree").getByRole("button",{name:"새 xcode 세션",exact:true}).click();
+    await expect(input()).toHaveValue("upgrade draft");
+    await expect(page.locator(".chat-answer")).toContainText("upgrade answer");
+  }
+  await create();await submit("first-A");await count(1);
   await page.getByLabel("파일 첨부 선택").setInputFiles({name:"A.txt",mimeType:"text/plain",buffer:Buffer.from("isolated-A")});
   await submit("queued-A");let list=await openQueue();
   await list.getByRole("button",{name:"수정",exact:true}).click();
   await page.getByLabel("대기 메시지 수정").fill("edited-A");
   await btn("수정 저장").click();await expect(list).toContainText("edited-A");
   await submit("cancel-this");await expect(list).toContainText("cancel-this");
+  const cancelRow=list.locator(":scope > div").filter({hasText:"cancel-this"});
+  await cancelRow.getByRole("button",{name:"위로 이동"}).click();
+  await expect(list.locator(":scope > div").first()).toContainText("cancel-this");
+  await expect(page.locator(".page-tree .session-queue-count").first()).toContainText("대기 2개");
   await list.locator(":scope > div").filter({hasText:"cancel-this"}).getByRole("button",{name:"취소"}).click();
   await expect(list).not.toContainText("cancel-this");
   await input().fill("unfinished-A");
   await create();await submit("first-B");await count(2);
+  await page.getByLabel("파일 첨부 선택").setInputFiles({name:"B.txt",mimeType:"text/plain",buffer:Buffer.from("recovered attachment B")});
   await submit("queued-B");await openQueue();
   finish(0,"answer-A");await count(3);
   const third=JSON.stringify(requests[2].messages);
   assert.match(third,/edited-A/);assert.match(third,/answer-A/);assert.match(third,/isolated-A/);
   assert.doesNotMatch(third,/first-B|cancel-this/);finish(2,"completed-A");
   requests[1].res.writeHead(429);requests[1].res.end("usage_limit_exceeded");
-  await expect(btn("대기열 재개")).toBeVisible();await count(3);
-  await app.close();await launch();
+  await expect(btn("이 메시지 재시도")).toBeVisible();await count(3);
+  await btn("이 메시지 재시도").click();await count(4);
+  assert.match(JSON.stringify(requests[3].messages),/first-B/);
+  const child=app.process(), exited=once(child,"exit");
+  if(process.platform==="win32") execFileSync("taskkill",["/F","/T","/PID",String(child.pid)]);
+  else child.kill("SIGKILL");
+  await exited;await launch();
   const tree=page.locator(".page-tree");
-  await tree.getByRole("button",{name:"새 xcode 세션",exact:true}).click();
+  await tree.getByRole("button",{name:mode==="verify"?"새 xcode 세션 2":"새 xcode 세션",exact:true}).click();
   await expect(input()).toHaveValue("unfinished-A");
   await expect(page.locator(".chat-answer").last()).toContainText("completed-A");
-  await tree.getByRole("button",{name:"새 xcode 세션 2",exact:true}).click();
-  await openQueue();await count(3);
-  await btn("대기열 재개").click();await count(4);
-  assert.match(JSON.stringify(requests[3].messages),/queued-B/);
-  assert.doesNotMatch(JSON.stringify(requests[3].messages),/edited-A|isolated-A/);
+  await tree.getByRole("button",{name:mode==="verify"?"새 xcode 세션 3":"새 xcode 세션 2",exact:true}).click();
+  await openQueue();await count(4);
+  if(await btn("세션 설정 펼치기").isVisible()) await btn("세션 설정 펼치기").click();
+  await page.getByLabel("모델명",{exact:true}).fill("replacement-model");await btn("설정 저장").click();
+  await expect(page.locator(".queue-target")).toContainText("replacement-model");
+  await btn("이 메시지에 현재 설정 적용").click();
+  await expect(page.locator(".queue-target")).toHaveCount(0);
+  await btn("건너뛰고 다음 전송").click();await count(5);
+  assert.match(JSON.stringify(requests[4].messages),/queued-B/);
+  assert.match(JSON.stringify(requests[4].messages),/recovered attachment B/);
+  assert.equal(requests[4].model,"replacement-model");
+  assert.doesNotMatch(JSON.stringify(requests[4].messages),/edited-A|isolated-A/);
   await submit("after-stop");await openQueue();await btn("중지").click();
-  await expect(btn("대기열 재개")).toBeVisible();
-  await count(4);
+  await expect(btn("건너뛰고 다음 전송")).toBeVisible();
+  await count(5);
   console.log("PASS session queues: edit, cancel, attachments, background history, draft, quota pause, restart and stop");
+  }
 }finally{
   if(app) await app.close().catch(()=>{});
   server.closeAllConnections();server.close();
-  await rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:150});
+  if(!mode) await rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:150});
 }

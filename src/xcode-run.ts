@@ -1,6 +1,6 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { InputFile } from "./xcode-session";
-import {readComposerDraft,writeComposerDraft,readWaiting, writeWaiting, type QueuedPrompt} from "./xcode-checkpoint";
+import {readQueueCounts,readComposerDraft,writeComposerDraft,readWaiting, writeWaiting, type QueuedPrompt} from "./xcode-checkpoint";
 import { api } from "./api";
 
 // A running session belongs to its workspace page, independently of the visible page.
@@ -10,6 +10,7 @@ function createRun(scope: string, page: string) {
   try { savedPrompt = localStorage.getItem(draftKey) || ""; } catch {}
   const listeners = new Set<() => void>();
   let state = {
+    failedInput: undefined as QueuedPrompt | undefined,
     waiting: [] as QueuedPrompt[],
     queuePaused: true,
     queueReady: false,
@@ -84,7 +85,7 @@ function createRun(scope: string, page: string) {
           next.draftError = "";
         } catch { next.draftError = "초안을 기기에 저장하지 못했습니다."; }
       }
-      const changed =
+      const changed = next.waiting !== undefined || next.queuePaused !== undefined ||
         (next.outcome!==undefined && next.outcome!==state.outcome) ||
         (next.busy !== undefined && next.busy !== state.busy) ||
         (next.phase !== undefined && next.phase !== state.phase);
@@ -111,25 +112,43 @@ function subscribeActivity(cb: () => void) {
     activity.delete(cb);
   };
 }
-export function sessionStatus(activity?: {phase:string; outcome:string; busy:boolean}) {
-  if (!activity) return {state:"idle", label:"대기 중인 요청 없음"};
-  if (!activity.busy && activity.outcome === "complete") return {state:"complete", label:"새 답변 도착"};
-  if (!activity.busy && activity.outcome === "failed") return {state:"failed", label:"요청 실패"};
+export type SessionActivity = {
+  page:string; phase:string; outcome:string; busy:boolean; queued:number;
+};
+export function sessionStatus(activity?: SessionActivity) {
+  const count = activity?.queued ?? 0;
+  const badge = count ? (activity?.busy ? "응답 중" : "일시정지") + " · 대기 " + count + "개" : "";
+  if (!activity) return {state:"idle", label:"대기 중인 요청 없음", badge};
+  if (!activity.busy && count) return {state:"waiting", label:badge, badge};
+  if (!activity.busy && activity.outcome === "complete") return {state:"complete", label:"새 답변 도착", badge};
+  if (!activity.busy && activity.outcome === "failed") return {state:"failed", label:"요청 실패", badge};
   const waiting = /대기열|초 후/.test(activity.phase);
-  return {state:waiting ? "waiting" : "running", label:activity.phase || "요청 준비 중"};
+  return {state:waiting ? "waiting" : "running", label:[activity.phase || "요청 준비 중",badge].filter(Boolean).join(" · "), badge};
 }
-export function useSessionActivity(
-  scope?: string,
-): { page: string; phase: string; outcome:string; busy:boolean }[] {
-  return JSON.parse(
-    useSyncExternalStore(subscribeActivity, () =>
-      JSON.stringify(
-        [...runs.values()]
-          .filter((r) => r.scope === scope && (r.snapshot().busy||r.snapshot().outcome))
-          .map((r) => ({ page: r.page, phase: r.snapshot().phase, outcome:r.snapshot().outcome, busy:r.snapshot().busy })),
-      ),
-    ),
-  );
+export function useSessionActivity(scope?: string): SessionActivity[] {
+  const [restored,setRestored]=useState<{scope:string; counts:Map<string,number>}>();
+  useEffect(()=>{
+    let current=true;
+    if (scope) void readQueueCounts(scope).then(counts=>{
+      if (current) setRestored({scope,counts});
+    }).catch(()=>{});
+    return ()=>{current=false;};
+  },[scope]);
+  const live:SessionActivity[]=JSON.parse(useSyncExternalStore(subscribeActivity, () => JSON.stringify(
+    [...runs.values()].filter(run => run.scope === scope).flatMap(run => {
+      const {busy, phase, outcome, waiting} = run.snapshot();
+      const queued = waiting.length - Number(busy && waiting.some(item => item.id === run.activeItem));
+      return busy || outcome || queued ? [{page:run.page, busy, phase, outcome, queued}] : [];
+    })
+  )));
+  if (restored && restored.scope===scope) {
+    for (const [page,queued] of restored.counts) {
+      const run=runs.get(JSON.stringify([scope,page]));
+      if (queued && !run?.snapshot().queueReady && !live.some(item=>item.page===page))
+        live.push({page,queued,phase:"",outcome:"",busy:false});
+    }
+  }
+  return live;
 }
 export function sessionRun(scope: string, page: string) {
   const key = JSON.stringify([scope, page]);

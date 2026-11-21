@@ -1286,7 +1286,7 @@ export default function App() {
         {sessionTabs.length > 1 && (
           <nav className="session-tabs" aria-label="xcode 세션 전환">
             {sessionTabs.map((n, i) => {
-              const {state,label} = sessionStatus(activity.find(item => item.page === n.id));
+              const {state,label,badge} = sessionStatus(activity.find(item => item.page === n.id));
               return (
               <button
                 key={n.id}
@@ -1300,6 +1300,7 @@ export default function App() {
                 {sessionTabs.some((t) => t !== n && t.title === n.title)
                   ? " · " + (i + 1)
                   : ""}
+                {badge && <small className="session-queue-count" aria-hidden="true">{badge}</small>}
               </button>
             );})}
           </nav>

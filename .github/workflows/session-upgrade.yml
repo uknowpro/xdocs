@@ -1,0 +1,47 @@
+name: Windows session upgrade
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Xcode.tsx'
+      - 'src/xcode-*.ts'
+      - 'tests/electron-message-queue.mjs'
+      - '.github/workflows/session-upgrade.yml'
+jobs:
+  upgrade:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/checkout@v4
+        with:
+          ref: 42c830729fc629064147d7a8c5d6061bda132eb4
+          path: previous
+      - name: Build and install each version against the same session profile
+        shell: pwsh
+        run: |
+          $fixture = Join-Path $env:RUNNER_TEMP 'session-upgrade'
+          $install = Join-Path $env:RUNNER_TEMP 'xdocs-install'
+          $env:XDOCS_EXECUTABLE = Join-Path $install 'xdocs.exe'
+          foreach ($mode in @('seed','verify')) {
+            if ($mode -eq 'seed') { Push-Location previous }
+            try {
+              if ($mode -eq 'seed') {
+                npm ci
+                if ($LASTEXITCODE) { exit $LASTEXITCODE }
+              }
+              npm run dist -- --publish never
+              if ($LASTEXITCODE) { exit $LASTEXITCODE }
+              $setup = (Get-ChildItem 'release/*.exe' | Select-Object -First 1).FullName
+              $process = Start-Process $setup -ArgumentList "/S /D=$install" -PassThru -Wait
+              if ($process.ExitCode) { throw "Installer failed $($process.ExitCode)" }
+            } finally { if ($mode -eq 'seed') { Pop-Location } }
+            node tests/electron-message-queue.mjs $mode $fixture
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }

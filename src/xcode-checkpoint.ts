@@ -72,8 +72,28 @@ export type QueuedPrompt = {
 export const readWaiting = (key:string) =>
   transact<QueuedPrompt[] | undefined>("readonly",store=>store.get(key+"/waiting"));
 export const writeWaiting = (key:string, items:QueuedPrompt[]) =>
-  items.length ? transact("readwrite",store=>store.put(items,key+"/waiting"))
-    : transact("readwrite",store=>store.delete(key+"/waiting"));
+  items.length ? transact("readwrite",store=>{
+    store.put(items.length,key+"/count");
+    return store.put(items,key+"/waiting");
+  }) : transact("readwrite",store=>{
+    store.delete(key+"/count");
+    return store.delete(key+"/waiting");
+  });
+
+export async function readQueueCounts(scope:string) {
+  const prefix=JSON.stringify([scope]).slice(0,-1)+",";
+  const keys=await transact("readonly",store=>store.getAllKeys(IDBKeyRange.bound(prefix,prefix+"\uffff")));
+  const counts=new Map<string,number>();
+  for (const entry of keys) {
+    if (typeof entry!=="string" || !entry.endsWith("/waiting")) continue;
+    const key=entry.slice(0,-"/waiting".length);
+    const [,page]=JSON.parse(key);
+    // Existing queues from before count metadata was introduced are read once.
+    const count=await transact<number | undefined>("readonly",store=>store.get(key+"/count"));
+    counts.set(page,count ?? (await readWaiting(key))?.length ?? 0);
+  }
+  return counts;
+}
 
 export const readComposerDraft = (key:string) =>
   transact<string | undefined>("readonly",store=>store.get(key+"/draft"));

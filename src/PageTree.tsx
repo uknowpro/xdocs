@@ -1,4 +1,4 @@
-import {sessionStatus} from "./xcode-run";
+import {sessionStatus,type SessionActivity} from "./xcode-run";
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
   ChevronDown,
@@ -137,7 +137,7 @@ export default function PageTree({
   active: string;
   readonly: boolean;
   workspaceKey: string;
-  runningPages: { page: string; phase: string; outcome:string; busy:boolean }[];
+  runningPages: SessionActivity[];
   onQuickCreate: (kind:"note"|"xcode",parent?: string, directory?: string) => void;
   onTrash: (name: string, notes: Note[], folder: boolean) => void;
   onRename: (note: Note) => void;
@@ -320,7 +320,7 @@ export default function PageTree({
             kind = folder ? "folder" : pageKind(n!),
             Icon = icons[kind] || FileText;
           const activity = n && phases.get(n.id);
-          const {state:status, label:statusLabel} = sessionStatus(activity || undefined);
+          const {state:status, label:statusLabel,badge} = sessionStatus(activity || undefined);
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
               <div
@@ -443,6 +443,7 @@ export default function PageTree({
                 >
                   <Icon size={15} />
                   <span>{e.name}</span>
+                  {kind === "xcode" && badge && <small className="session-queue-count" aria-hidden="true">{badge}</small>}
                   {kind === "xcode" && (
                     <i className="session-state-dot" data-state={status} title={statusLabel} aria-hidden="true" />
                   )}

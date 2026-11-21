@@ -374,14 +374,46 @@ export default function Xcode({
       ]).size,
     [prompt, s.harness, s.turns, files, omitted],
   );
+  const visibleQueue = waiting.filter(item => item.id !== run.activeItem);
+  const interrupted = !busy && (run.snapshot().failedInput || recovery);
+  const interruptedId = interrupted ? interrupted.id : undefined;
+  const targetChanged = (item:QueuedPrompt) => item.model !== s.model || item.endpoint !== s.endpoint;
+  async function moveWaiting(id:string, direction:number) {
+    await run.updateWaiting(items => {
+      const index = items.findIndex(item => item.id === id);
+      const other = index + direction;
+      if (!items[index] || !items[other] || [items[index].id,items[other].id].some(key => key === run.activeItem || key === interruptedId)) return items;
+      const next = [...items];
+      [next[index],next[other]] = [next[other],next[index]];
+      return next;
+    });
+  }
+  async function retryInterrupted() {
+    if (!interrupted || readonly || run.snapshot().busy) return;
+    const item = waiting.find(entry => entry.id === interrupted.id) || run.snapshot().failedInput;
+    if (item && targetChanged(item)) {setError("먼저 이 메시지의 모델과 서버 주소를 확인하세요.");return;}
+    const saved = recovery?.id === interrupted.id && recovery.model === s.model && recovery.endpoint === s.endpoint && (!item || item.prompt === recovery.prompt) ? recovery : undefined;
+    if (saved || item) await send(saved,item);
+    else if (recovery) await send(recovery);
+  }
+  async function skipInterrupted() {
+    if (!interrupted || readonly || run.snapshot().busy || run.submitting) return;
+    run.submitting=true;
+    try {
+      await removeWaiting(interrupted.id);
+      run.patch({failedInput:undefined,error:"",pending:null,preview:""});
+    } finally {run.submitting=false;}
+    await resumeQueue();
+  }
   const currentInput = { s, prompt, selectedFiles, execution };
   async function removeWaiting(id:string) {
     if (run.activeItem===id) return;
-    if (local && !run.snapshot().busy && recovery?.id===id) {
+    if (local && !run.snapshot().busy && (recovery?.id===id || run.snapshot().failedInput?.id===id)) {
       await clearCheckpoint(checkpointKey);
       setRecovery(undefined);
     }
     await run.updateWaiting(items=>items.filter(i=>i.id!==id || run.activeItem===id));
+    if (run.snapshot().failedInput?.id===id) run.patch({failedInput:undefined});
   }
   async function resumeQueue() {
     if (readonly || run.snapshot().busy) return;
@@ -390,7 +422,7 @@ export default function Xcode({
     const saved=local ? await loadCheckpoint(checkpointKey) : undefined;
     if (run.snapshot().busy || run.snapshot().waiting[0]?.id!==queued.id) return;
     run.patch({queuePaused:false});
-    if (saved?.id===queued.id && saved.prompt===queued.prompt && !s.turns.some(t=>t.runId===queued.id))
+    if (saved?.id===queued.id && saved.prompt===queued.prompt && saved.model===queued.model && saved.endpoint===queued.endpoint && !s.turns.some(t=>t.runId===queued.id))
       await send(saved,queued);
     else await drain(s);
   }
@@ -470,7 +502,7 @@ export default function Xcode({
     if (!item && !saved) consumeInput(prompt,selectedFiles);
     let continuation:Session|undefined;
     run.id = id;
-    run.patch({outcome:"",queuePaused:false});
+    run.patch({outcome:"",queuePaused:false,failedInput:undefined});
     run.enabled = s.autoRetry === true;
     run.patch({
       pending: {
@@ -505,12 +537,12 @@ export default function Xcode({
         throw Error("빈 단계에 지침을 입력하세요.");
       if (!(await api.xcodeAuthorize?.(s.endpoint)))
         throw Error("모델 서버 전송을 취소했습니다.");
-      if (run.id !== id) return;
+      if (run.id !== id) throw Error("요청을 중지했습니다.");
       const history: unknown[] = [];
       let historyBytes = 0;
       for (const [i, t] of (saved ? [] : candidates).entries()) {
         if (!selected("turn:" + (start + i))) continue;
-        if (run.id !== id) return;
+        if (run.id !== id) throw Error("요청을 중지했습니다.");
         const prior = await userMessage(
           t.prompt,
           t.files.filter((_, j) => selected("prior:" + (start + i) + ":" + j)),
@@ -774,7 +806,7 @@ export default function Xcode({
       continuation=next;
       if (run.snapshot().waiting.some(q=>q.id===id))
         await run.updateWaiting(items=>items.filter(q=>q.id!==id));
-      if (saved && !item && run.snapshot().prompt===saved.prompt) consumeInput(saved.prompt,saved.files);
+      if (saved && run.snapshot().prompt===saved.prompt) consumeInput(saved.prompt,saved.files);
 
       run.patch({ pending: null, preview: "" });
       let completed = s.turns.length + 1;
@@ -810,7 +842,10 @@ export default function Xcode({
         run.patch({ pending: null, preview: "" });
       }
     } catch (e) {
-      run.patch({queuePaused:true});
+      run.patch({queuePaused:true,failedInput:continuation ? undefined : item || {
+        id,prompt,files:selectedFiles,templates:selectedFiles.map(f=>templateFiles.get(f)),
+        omitted:[...excluded],model:s.model,endpoint:s.endpoint
+      }});
       if (!continuation && !item && !saved && !run.snapshot().prompt && !run.snapshot().files.length)
         run.patch({prompt,files:selectedFiles});
       setError(
@@ -868,7 +903,7 @@ export default function Xcode({
           {showSettings ? "세션 설정 접기" : "세션 설정 펼치기"}
         </button>
       </header>
-      {local && recovery && !busy && !waiting.some(q=>q.id===recovery.id) && (
+      {local && recovery && !busy && !run.snapshot().failedInput && !waiting.length && (
         <fieldset disabled={readonly}>
           <legend>중단된 실행 복구</legend>
           <p>
@@ -1335,20 +1370,36 @@ export default function Xcode({
           readonly={readonly}
           applyHarness={(h) => config({ harness: h })}
         />
-        {waiting.some(q=>q.id!==run.activeItem) && <details className="chat-waiting">
-          <summary>대기 메시지 {waiting.filter(q=>q.id!==run.activeItem).length}개</summary>
-          {waiting.filter(q=>q.id!==run.activeItem).map(q=><div key={q.id}>
+        {interrupted && (waiting.length > 0 || run.snapshot().failedInput) && <div className="queue-recovery">
+          <strong>중단된 메시지</strong><span>{interrupted.prompt}</span>
+          <button disabled={readonly} onClick={()=>void retryInterrupted().catch(e=>setError(String(e)))}>이 메시지 재시도</button>
+          <button disabled={readonly} onClick={()=>void skipInterrupted().catch(e=>setError(String(e)))}>{visibleQueue.some(q=>q.id!==interrupted.id) ? "건너뛰고 다음 전송" : "건너뛰기"}</button>
+        </div>}
+        {visibleQueue.length > 0 && <details className="chat-waiting">
+          <summary>대기 메시지 {visibleQueue.length}개</summary>
+          {visibleQueue.map((q,index)=><div key={q.id}>
             {editingItem===q.id ? <textarea aria-label="대기 메시지 수정" value={editedPrompt} onChange={e=>setEditedPrompt(e.target.value)}/>
               : <span>{q.prompt}</span>}
             {q.files.length>0 && <small>{q.files.map(f=>f.name).join(" · ")}</small>}
+            {targetChanged(q) && <div className="queue-target">
+              <span>등록 당시 {q.model} · {q.endpoint}</span>
+              <span>현재 설정 {s.model} · {s.endpoint}</span>
+              <button disabled={readonly || busy} onClick={()=>void run.updateWaiting(items=>items.map(i=>
+                i.id===q.id && i.id!==run.activeItem ? {...i,model:s.model,endpoint:s.endpoint} : i
+              )).catch(e=>setError(String(e)))}>이 메시지에 현재 설정 적용</button>
+            </div>}
+            {visibleQueue.length > 1 && <>
+              <button aria-label="위로 이동" disabled={readonly || !index || q.id===interruptedId || visibleQueue[index-1]?.id===interruptedId} onClick={()=>void moveWaiting(q.id,-1).catch(e=>setError(String(e)))}>↑</button>
+              <button aria-label="아래로 이동" disabled={readonly || index===visibleQueue.length-1 || q.id===interruptedId || visibleQueue[index+1]?.id===interruptedId} onClick={()=>void moveWaiting(q.id,1).catch(e=>setError(String(e)))}>↓</button>
+            </>}
             <button disabled={readonly || (editingItem===q.id && !editedPrompt.trim() && !q.files.length)} onClick={()=>{
               if(editingItem!==q.id){setEditingItem(q.id);setEditedPrompt(q.prompt);return;}
               void run.updateWaiting(items=>items.map(i=>i.id===q.id && run.activeItem!==q.id ? {...i,prompt:editedPrompt}:i))
                 .then(()=>setEditingItem("")).catch(e=>setError(String(e)));
             }}>{editingItem===q.id ? "수정 저장" : "수정"}</button>
-            <button disabled={readonly} onClick={()=>void removeWaiting(q.id).catch(e=>setError(String(e)))}>취소</button>
+            <button disabled={readonly || q.id===interruptedId} onClick={()=>void removeWaiting(q.id).catch(e=>setError(String(e)))}>취소</button>
           </div>)}
-          {!busy && queuePaused && <button disabled={readonly} onClick={()=>{
+          {!busy && !interrupted && queuePaused && <button disabled={readonly} onClick={()=>{
             void resumeQueue().catch(e=>run.patch({queuePaused:true,error:String(e)}));
           }}>대기열 재개</button>}
         </details>}

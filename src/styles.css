@@ -3225,3 +3225,8 @@ textarea {
 .chat-waiting small {overflow-wrap:anywhere;}
 .xcode .chat-composer:has(.chat-stop) {grid-template-columns:minmax(0,1fr) auto auto;}
 .xcode .chat-composer > .chat-stop {grid-row:1;grid-column:3;align-self:end;margin:0;min-height:34px;}
+.session-queue-count {flex:none;font-size:10px;color:var(--muted);white-space:nowrap;}
+.queue-recovery,.chat-waiting > div {display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.queue-recovery {padding:6px 0;font-size:.85rem;}
+.queue-recovery span {flex:1;min-width:4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat-waiting .queue-target {order:1;width:100%;display:grid;justify-items:start;gap:3px;overflow-wrap:anywhere;}
