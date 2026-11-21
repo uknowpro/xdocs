@@ -423,3 +423,30 @@ test("cloud schema fields, subnet reference and minimap work at laptop size", as
   await expect(page.getByLabel("리소스 미니맵")).toBeVisible();
   await expect(page.getByLabel("Terraform 코드").locator("[data-declaration]")).toHaveCount(2);
 });
+
+test("Seoul two-zone drawing fits both dimensions and its title remains readable",async({page})=>{
+  await page.setViewportSize({width:2048,height:1050});
+  await page.goto("/");
+  const button=(name:string)=>page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("xinfra 캔버스").click();
+  await button("서울 리전 · 이중 AZ 프라이빗 이그레스").click();
+  await button("템플릿으로 시작").click();
+  await button("리소스 팔레트").click();
+  await button("Terraform·속성 패널").click();
+  await button("확대 보기").click();
+  await button("전체 맞춤").click();
+  for(const [width,height] of [[2048,1120],[1366,768],[1366,1000],[780,900]]){
+    await page.setViewportSize({width,height});
+    await expect.poll(()=>page.locator(".arch-workspace").evaluate(el=>{
+      const main=el.closest(".main")!;
+      return Math.abs(main.getBoundingClientRect().bottom-el.getBoundingClientRect().bottom-main.scrollTop-8);
+    })).toBeLessThan(2);
+    await expect.poll(()=>page.locator(".case-blueprint").evaluate(el=>{
+      const diagram=el.querySelector("svg")!.getBoundingClientRect(),box=el.getBoundingClientRect();
+      return diagram.height>50 && diagram.bottom<=box.bottom+1 && diagram.right<=box.right+1 && el.scrollHeight<=el.clientHeight+1;
+    })).toBe(true);
+    const title=page.getByLabel("아키텍처 제목");
+    expect(await title.evaluate(el=>el.scrollHeight<=el.clientHeight+1 && el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  }
+});

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Copy, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import {
   parseDelimited,
@@ -128,15 +128,67 @@ export default function SheetTable({
   };
   const editing = useRef<HTMLTextAreaElement | null>(null);
   const pointer = useRef<number | null>(null);
-  function extendSelection(e: React.PointerEvent<HTMLTableElement>) {
-    const cell = document
-      .elementFromPoint(e.clientX, e.clientY)
-      ?.closest("td,th")
-      ?.querySelector("textarea");
-    if (!cell || !e.currentTarget.contains(cell)) return;
-    const r = Number(cell.dataset.row),
-      c = Number(cell.dataset.column);
-    setEnd((prev) => (prev[0] === r && prev[1] === c ? prev : [r, c]));
+  const viewport = useRef<HTMLDivElement>(null);
+  const frame = useRef<number | null>(null);
+  const position = useRef<{x:number; y:number} | null>(null);
+
+  function stopDrag() {
+    pointer.current = null;
+    position.current = null;
+    if (frame.current !== null) cancelAnimationFrame(frame.current);
+    frame.current = null;
+  }
+  useEffect(() => {
+    window.addEventListener("blur", stopDrag);
+    return () => { window.removeEventListener("blur", stopDrag); stopDrag(); };
+  }, [sheet.id, page]);
+
+  function updateDrag(scroll: boolean) {
+    const el = viewport.current;
+    if (!el || pointer.current === null || !position.current) return;
+    const rect = el.getBoundingClientRect();
+    const left = Math.max(0, rect.left + el.clientLeft);
+    const top = Math.max(0, rect.top + el.clientTop);
+    const right = Math.min(innerWidth, rect.left + el.clientLeft + el.clientWidth);
+    const bottom = Math.min(innerHeight, rect.top + el.clientTop + el.clientHeight);
+    if (right <= left || bottom <= top) return;
+    const { x, y } = position.current;
+    function step(value: number, low: number, high: number) {
+      const band = Math.min(40, (high - low) / 3);
+      if (value < low + band) return -Math.ceil(18 * Math.min(1, (low + band - value) / band));
+      if (value > high - band) return Math.ceil(18 * Math.min(1, (value - high + band) / band));
+      return 0;
+    }
+    const dx = step(x, left, right), dy = step(y, top, bottom);
+    if (scroll) el.scrollBy(dx, dy);
+    const hitX = Math.max(left + 1, Math.min(x, right - 1));
+    const header = el.querySelector("thead th");
+    const topCell = header && (el.scrollTop > 0 || !sheet.firstRowHeader)
+      ? Math.max(top, header.getBoundingClientRect().bottom) : top;
+    const hitY = Math.min(bottom - 1, Math.max(topCell + 1, y));
+    const table = el.querySelector("table");
+    if (table) {
+      const rows = table.tBodies[0].rows;
+      const headerHit = sheet.firstRowHeader && header && hitY < header.getBoundingClientRect().bottom;
+      const row = headerHit ? table.tHead?.rows[0] :
+        Array.from(rows).find(tr => tr.getBoundingClientRect().bottom > hitY) || rows[rows.length - 1];
+      if (row) {
+        // A rounded corner or an overlay scrollbar can cover the cell under the pointer.
+        const cells = row.cells;
+        const column = Array.from(cells).findIndex(td => td.getBoundingClientRect().right > hitX);
+        const cell = cells[column < 0 ? cells.length - 1 : Math.max(1, column)]?.querySelector("textarea");
+        if (cell) {
+          const r = Number(cell.dataset.row), c = Number(cell.dataset.column);
+          setEnd(prev => prev[0] === r && prev[1] === c ? prev : [r,c]);
+        }
+      }
+    }
+    const canMove = (dx < 0 && el.scrollLeft > 0) || (dx > 0 && el.scrollLeft + el.clientWidth < el.scrollWidth)
+      || (dy < 0 && el.scrollTop > 0) || (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight);
+    if (canMove && frame.current === null) frame.current = requestAnimationFrame(() => {
+      frame.current = null;
+      updateDrag(true);
+    });
   }
   function changePage(next: number) {
     setPage(next);
@@ -350,6 +402,7 @@ export default function SheetTable({
       </div>
       <div
         className="sheet-scroll"
+        ref={viewport}
         onCopy={(e) => {
           e.preventDefault();
           const input = e.target;
@@ -386,18 +439,19 @@ export default function SheetTable({
           }}
           onPointerMove={(e) => {
             if (pointer.current !== e.pointerId || !(e.buttons & 1)) return;
-            extendSelection(e);
+            position.current = {x:e.clientX,y:e.clientY};
+            updateDrag(false);
           }}
-          onLostPointerCapture={() => {
-            pointer.current = null;
-          }}
+          onLostPointerCapture={stopDrag}
           onPointerUp={(e) => {
-            if (pointer.current === e.pointerId) extendSelection(e);
-            pointer.current = null;
+            if (pointer.current !== e.pointerId) return;
+            if (position.current) {
+              position.current = {x:e.clientX,y:e.clientY};
+              updateDrag(false);
+            }
+            stopDrag();
           }}
-          onPointerCancel={() => {
-            pointer.current = null;
-          }}
+          onPointerCancel={stopDrag}
         >
           <thead>
             {sheet.firstRowHeader ? renderRow(0, true) : (

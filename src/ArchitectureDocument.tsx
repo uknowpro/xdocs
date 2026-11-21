@@ -30,7 +30,7 @@ import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
 import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
-import { Fragment, useMemo, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Cloud,
@@ -797,6 +797,31 @@ export default function ArchitectureDocument({
     }
   }
   const section = useRef<HTMLElement>(null);
+  const workspacePane = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const pane = workspacePane.current;
+    const main = pane?.closest<HTMLElement>(".main");
+    if (!pane || !main) return;
+
+    function resize() {
+      if (!pane || !main) return;
+      const top = pane.getBoundingClientRect().top + main.scrollTop;
+      const remaining = Math.floor(main.getBoundingClientRect().bottom - top - 8);
+      pane.style.setProperty("--canvas-height", Math.max(220, remaining) + "px");
+    }
+
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(main);
+    // Headers, toolbars and the stacked mobile palette can wrap independently.
+    for (let node: Element | null = pane; node && node !== main; node = node.parentElement) {
+      for (let sibling = node.previousElementSibling; sibling; sibling = sibling.previousElementSibling) {
+        observer.observe(sibling);
+      }
+    }
+    return () => observer.disconnect();
+  }, [tab]);
+
   const [detail, setDetail] = useState<"auto" | "open" | "closed">("auto");
   const [navigationView, setNavigationView] =
     useState<ArchitectureModel["presentation"]>();
@@ -969,11 +994,13 @@ export default function ArchitectureDocument({
     >
       <header className="arch-command-row">
         <div className="arch-header">
-          <input
+          <textarea
+            rows={1}
+            onKeyDown={e=>{if(e.key==="Enter" && !e.nativeEvent.isComposing)e.preventDefault();}}
             aria-label="아키텍처 제목"
             value={model.title}
             readOnly={readonly}
-            onChange={(e) => change({ ...model, title: e.target.value })}
+            onChange={(e) => change({ ...model, title: e.target.value.replace(/[\r\n]+/g," ") })}
           />
         <span className="arch-count">
           {tab === "drawing"
@@ -1163,7 +1190,7 @@ export default function ArchitectureDocument({
 
             {matches.length > paletteLimit && <button onClick={() => setPaletteLimit(limit => limit + 50)}>더 보기 ({paletteLimit}/{matches.length})</button>}
           </aside>
-          <div className="arch-workspace">
+          <div className="arch-workspace" ref={workspacePane}>
             {mutedSelector && <style>{mutedSelector + "{opacity:0.25}"}</style>}
             <div className="arch-canvas-tools">
               {focused && <div className="focused-reference">

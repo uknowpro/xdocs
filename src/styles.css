@@ -2124,7 +2124,7 @@ textarea {
   gap: 15px;
   margin-bottom: 20px;
 }
-.arch-header input {
+.arch-header textarea {
   display: block;
   border: 0;
   background: transparent;
@@ -2162,7 +2162,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
   overflow: hidden;
-  height: 660px;
+  align-content: start;
 }
 .arch-palette,
 .arch-properties {
@@ -2220,6 +2220,7 @@ textarea {
   margin-bottom: 10px;
 }
 .arch-workspace {
+  height: var(--canvas-height, 60dvh);
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -2486,9 +2487,6 @@ textarea {
   .arch-editor {
     height: auto;
   }
-  .arch-workspace {
-    height: 520px;
-  }
   .arch-palette {
     max-height: 490px;
   }
@@ -2619,7 +2617,6 @@ textarea {
   .arch-palette > button { width: auto; }
   .arch-code { grid-template-columns: minmax(0, 1fr); }
   .arch-code nav { max-height: 24dvh; }
-  .arch-workspace { height: max(460px, 70dvh); }
   .aws-inspector { grid-template-columns: minmax(0, 1fr); }
   .infra-heading, .infra-detail header, .infra-summary > div { flex-wrap: wrap; }
   .infra-summary { gap: 5px; }
@@ -3104,8 +3101,26 @@ textarea {
   .sheet-layout .document > .infrastructure-document { padding-top:0; }
   .arch-command-row { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; }
   .arch-command-row .arch-header { flex:1 1 16rem; min-width:0; gap:8px; margin:0; }
-  .arch-command-row .arch-header input { margin:0; font-size:clamp(17px,1.6vw,22px); }
+  .arch-command-row .arch-header textarea { margin:0; font-size:clamp(17px,1.6vw,22px); }
   .arch-command-row .arch-toolbar { flex:1 1 auto; margin:0; gap:4px 8px; }
   .arch-command-row .arch-tools { gap:4px; margin-left:auto; }
   .architecture-document > .canvas-findbar { margin-block:6px; }
+}
+
+.arch-command-row .arch-header textarea {
+  field-sizing:content; flex:1; resize:none; line-height:1.3; padding:2px 0;
+  overflow-wrap:anywhere; font-family:inherit;
+}
+.case-blueprint:not(.case-enlarged) { flex:1; min-height:0; display:flex; flex-direction:column; }
+.case-blueprint:not(.case-enlarged) > div:first-child { flex:1; min-height:0; }
+.case-blueprint:not(.case-enlarged) > div:first-child > svg { width:100%; height:100%; }
+.case-blueprint > :is(nav,p) { flex:none; }
+
+.document-layout.sheet-layout:has(.arch-editor) .document { padding-bottom:6px; }
+.architecture-document:has(.arch-editor) { margin-bottom:0; }
+@media (min-width:601px) {
+  .arch-editor > :is(.arch-palette,.arch-review-rail) { contain:size; }
+}
+@media (max-width:1050px) {
+  .arch-editor > .arch-review-rail { contain:none; }
 }
