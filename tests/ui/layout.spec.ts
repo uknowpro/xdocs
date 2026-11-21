@@ -119,7 +119,7 @@ for (const width of [390, 780, 1440]) {
       await page.locator(section + " header button").click();
     }
     await openFromMenu("새 시트 테이블");
-    expect(await gapAbove(".sheet-toolbar + p")).toBeGreaterThanOrEqual(8);
+    expect(await gapAbove(".sheet-toolbar + .sheet-grid-settings")).toBeGreaterThanOrEqual(8);
     await openFromMenu("Harness 만들기");
     const actions = page.locator(".stage-actions").first();
     await expect(actions).toBeVisible();
