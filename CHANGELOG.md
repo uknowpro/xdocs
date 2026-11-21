@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.23
+
+- Search offline AWS, Azure and Google Cloud component palettes and edit Terraform arguments using provider-schema forms. Connect resources, inspect regional boundaries and navigate between canvas nodes and Terraform declarations.
+- Review provider version changes, validate exported projects with a local Terraform or OpenTofu installation, and see validation results for five enterprise architecture templates.
+
 ## 0.5.22
 
 - Fill an attached Word template or confirm a local template path in chat. Review proposed values, source locations, missing fields and conflicts before saving a separate copy. Plain-text Word controls and optional underscore fields are supported.
