@@ -87,6 +87,7 @@ import {
   Loader2,
   Moon,
   Network,
+  Waypoints,
   ChevronsLeft,
   ChevronsRight,
   Plus,
@@ -1376,7 +1377,7 @@ export default function App() {
               className={view === "graph" ? "active" : ""}
               onClick={() => setView("graph")}
             >
-              <Network size={15} />
+              <Waypoints size={15} aria-hidden="true" />
               연결 탐색<span>{outgoing.length + backlinks.length}</span>
             </button>
             <div className="view-tools">
