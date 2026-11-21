@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.22
+
+- Fill an attached Word template or confirm a local template path in chat. Review proposed values, source locations, missing fields and conflicts before saving a separate copy. Plain-text Word controls and optional underscore fields are supported.
+- Select and extend entire sheet rows and columns with Shift, then copy as tab-separated values.
+- Explore Azure secured virtual hubs, cross-region Google Cloud backends and VPC-to-VPC HA VPN using offline diagrams linked to Terraform. Card layout and declaration navigation are covered by regression tests.
+
 ## 0.5.21
 
 - Explore seven redesigned Azure and GCP architecture templates offline and jump from a diagram resource to its Terraform declaration.

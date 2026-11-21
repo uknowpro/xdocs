@@ -305,12 +305,12 @@ export async function documentInput(f: File): Promise<InputFile> {
   if (isOpenDocument || isHwpx || /\.(docx|dotx|pptx|potx|xlsx|xltx)$/i.test(f.name)) {
     const partPattern = isOpenDocument ? /^content\.xml$/ :
       isHwpx ? /^Contents\/section\d+\.xml$/ :
-      /^(word\/document|ppt\/slides\/slide\d+|xl\/sharedStrings|xl\/worksheets\/sheet\d+)\.xml$/;
+      /^(word\/document|ppt\/slides\/slide\d+|xl\/workbook|xl\/sharedStrings|xl\/worksheets\/sheet\d+)\.xml$/;
     const parts: string[] = [];
     let bytes = 0;
     const zip = unzipSync(new Uint8Array(await f.arrayBuffer()), {
       filter: (e) => {
-        if (!partPattern.test(e.name)) return false;
+        if (!partPattern.test(e.name) && e.name !== "xl/_rels/workbook.xml.rels") return false;
         bytes += e.originalSize;
         if (bytes > 16 * 1024 * 1024)
           throw Error("문서의 압축 해제 범위가 너무 큽니다.");
@@ -325,10 +325,18 @@ export async function documentInput(f: File): Promise<InputFile> {
           (e) => e.textContent || "",
         )
       : [];
+    const sheetNames = new Map<string,string>();
+    if (zip["xl/workbook.xml"] && zip["xl/_rels/workbook.xml.rels"]) {
+      const rels = Array.from(xml("xl/_rels/workbook.xml.rels").getElementsByTagNameNS("*","Relationship"));
+      for (const sheet of xml("xl/workbook.xml").getElementsByTagNameNS("*","sheet")) {
+        const rel = rels.find(r=>r.getAttribute("Id") === sheet.getAttribute("r:id"));
+        if (rel) sheetNames.set(new URL(rel.getAttribute("Target")!, "https://local/xl/workbook.xml").pathname.slice(1), sheet.getAttribute("name") || "");
+      }
+    }
     for (const name of Object.keys(zip).sort((a, b) =>
       a.localeCompare(b, "en", { numeric: true }),
     )) {
-      if (name === "xl/sharedStrings.xml") continue;
+      if (["xl/sharedStrings.xml","xl/workbook.xml","xl/_rels/workbook.xml.rels"].includes(name)) continue;
       const doc = xml(name);
       if (doc.getElementsByTagName("parsererror").length)
         throw Error("문서 XML을 읽을 수 없습니다.");
@@ -353,7 +361,7 @@ export async function documentInput(f: File): Promise<InputFile> {
         }
       } else if (name.startsWith("xl/")) {
         parts.push(
-          name,
+          sheetNames.get(name) || name,
           ...Array.from(doc.getElementsByTagName("row"), (row) =>
             Array.from(row.getElementsByTagName("c"), (c) => {
               const v = c.getElementsByTagName("v")[0]?.textContent || "";

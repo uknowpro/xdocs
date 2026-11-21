@@ -15,6 +15,8 @@ function createRun(scope: string, page: string) {
     prompt: "",
     omitted: [] as string[],
     files: [] as InputFile[],
+    form: undefined as import("./office-form").OfficeTemplate | undefined,
+    formReview: undefined as {text:string; id:string} | undefined,
   };
   const record = {
     scope,

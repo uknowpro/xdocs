@@ -1,3 +1,4 @@
+import {formInstruction, inspectForm, templateFiles} from "./office-form";
 import OfficeForm from "./OfficeForm";
 import SessionSettingsJson from "./SessionSettingsJson";
 import ChatTimeline from "./ChatTimeline";
@@ -165,7 +166,7 @@ export default function Xcode({
   const setError = (error: string) => run.patch({ error });
   const formHarness = ["Word 양식 작성안", "Excel 양식 입력안"].includes(s.harness.name);
   const [documentPanel, setDocumentPanel] = useState<"form" | "word" | null>(formHarness ? "form" : null);
-  useEffect(() => setDocumentPanel(formHarness ? "form" : null), [formHarness, s.harness.name]);
+  useEffect(() => setDocumentPanel(formHarness || run.snapshot().formReview ? "form" : null), [formHarness, s.harness.name]);
   const attachmentMenu = useRef<HTMLDivElement>(null);
   const attachmentPicker = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(
@@ -268,7 +269,11 @@ export default function Xcode({
               bytes: new Uint8Array(await file.arrayBuffer()),
             }),
           );
-        } else next.push(await documentInput(file));
+        } else {
+          const input = await documentInput(file);
+          if (/\.docx$/i.test(file.name)) templateFiles.set(input,file);
+          next.push(input);
+        }
       }
       setFiles((v) => [...v, ...next]);
     } catch (e) {
@@ -451,9 +456,36 @@ export default function Xcode({
           content: t.answers.at(-1)?.text || "",
         });
       }
+      const formRequest = /채워|채우|작성해|작성하|기입|입력해|fill|populate|complete/i.test(prompt)
+        || (/양식|서식|템플릿|template|form/i.test(prompt) && !/요약|번역|summari[sz]e|translate/i.test(prompt));
+      let form = !saved && documentPanel === "form" && (formRequest || !run.snapshot().formReview)
+        ? run.snapshot().form : undefined;
+      let evidence = selectedFiles;
+      if (!saved && formRequest) {
+        const pathMatch = prompt.match(/(?:^|[\s"'`(])((?:[A-Za-z]:[\\/]|\/)[^"`'\r\n]*?\.docx)\b/i);
+        const candidates = selectedFiles.filter(f => templateFiles.has(f));
+        const named = candidates.filter(f => prompt.includes(f.name));
+        const likely = candidates.filter(f => /양식|서식|템플릿|template|form/i.test(f.name));
+        if (pathMatch) {
+          if (!api.chooseWordForm) throw Error("로컬 경로는 데스크톱에서 선택하거나 파일을 첨부하세요.");
+          const chosen = await api.chooseWordForm(pathMatch[1]);
+          if (!chosen) throw Error("양식 선택을 취소했습니다.");
+          form = await inspectForm(new File([new Uint8Array(chosen.bytes)], chosen.name));
+        } else if (candidates.length && (!form || named.length || likely.length)) {
+          const namedTemplates = named.filter(file=>likely.includes(file));
+          const pool = namedTemplates.length ? namedTemplates : named.length ? named : likely.length ? likely : candidates;
+          if (pool.length !== 1) throw Error("양식으로 쓸 Word 파일명을 메시지에 적어 주세요.");
+          form = await inspectForm(templateFiles.get(pool[0])!);
+          evidence = selectedFiles.filter(f => f !== pool[0]);
+        }
+      }
+      if (form) {
+        run.patch({form,formReview:undefined});
+        setDocumentPanel("form");
+      }
       const user = saved
         ? { content: "" }
-        : await userMessage(prompt, selectedFiles);
+        : await userMessage(form ? prompt+"\n\n"+formInstruction(form) : prompt, evidence);
       const answers: Turn["answers"] = [...(saved?.answers || [])];
       const messages: unknown[] = saved
         ? [...saved.messages]
@@ -668,6 +700,7 @@ export default function Xcode({
         await clearCheckpoint(checkpointKey);
         setRecovery(undefined);
       }
+      if (form && answers.length) run.patch({formReview:{id,text:answers[answers.length-1].text}});
       setFiles(files.filter((f) => !selected(fileKey(f))));
       run.patch({
         omitted: files.filter((f) => !selected(fileKey(f))).map(fileKey),
@@ -1205,7 +1238,7 @@ export default function Xcode({
           <small aria-live="polite">{settingsSave === "failed" ? "세션 설정을 저장하지 못했습니다. 다시 시도하세요." : ""}</small>
         </div>
       </div>
-      <div hidden={documentPanel !== "form"}><OfficeForm close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
+      <div hidden={documentPanel !== "form"}><OfficeForm form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
       {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
         <WordSelection close={()=>setDocumentPanel(null)} disabled={busy || readonly}
           answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}

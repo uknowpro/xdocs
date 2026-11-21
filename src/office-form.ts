@@ -4,6 +4,12 @@ const children = (el: Document | Element, name: string) =>
   Array.from(el.getElementsByTagNameNS("*", name));
 const marker = /\{\{\s*([\p{L}_][\p{L}\d_]*)\s*\}\}/gu;
 type Scalar = string | number | boolean;
+export type OfficeTemplate = Awaited<ReturnType<typeof inspectForm>>;
+export const templateFiles = new WeakMap<object, File>();
+export function formInstruction(form: OfficeTemplate) {
+  const schema = form.advanced ? form.excerpt : JSON.stringify(form.fields);
+  return form.name + " 양식을 첨부 근거로 채우세요. 최종 답변은 JSON 객체로 반환하세요. values는 필드별 값, sources는 파일명과 시트·셀 또는 문단 위치, conflicts는 상충하는 필드별 근거 설명입니다. 누락·충돌 값은 생략하세요. 반복 행은 배열로 반환하세요. 양식 필드: " + schema;
+}
 export type FormField = { id: string; label: string };
 export async function inspectForm(file: File) {
   if (file.size > 8 * 1024 * 1024) throw Error("8MB 이하 양식을 선택하세요.");
@@ -50,18 +56,32 @@ export async function inspectForm(file: File) {
         /^word\/(document|header\d+|footer\d+)\.xml$/.test(p),
       )) {
         const doc = xml(path);
-        for (const p of children(doc, "p")) {
+        for (const [i, control] of children(doc, "sdt").entries()) {
+          const pr = children(control, "sdtPr")[0];
+          const content = children(control, "sdtContent")[0];
+          if (!pr || !content || !children(pr, "text").length || children(pr, "lock").length || children(pr, "dataBinding").length) continue;
+          const labelNode = children(pr, "alias")[0] || children(pr, "tag")[0];
+          const label = labelNode?.getAttributeNS(pr.namespaceURI, "val") || "텍스트 입력란 " + (i+1);
+          const value = field(path+"#control"+i, label);
+          const runs = children(content, "t");
+          if (write && value !== undefined && runs.length) {
+            runs.forEach((run, index) => { run.textContent = index ? "" : String(value); });
+            children(pr, "showingPlcHdr")[0]?.remove();
+          }
+        }
+        for (const [paragraphIndex, p] of children(doc, "p").entries()) {
           const nodes = children(p, "t").filter(
             (n) =>
-              n.closest("p, w\\:p") === p ||
-              n.parentElement?.parentElement === p,
+              !n.closest("sdt, w\\:sdt") && (n.closest("p, w\\:p") === p || n.parentElement?.parentElement === p),
           );
           const original = nodes.map((n) => n.textContent || "");
           const text = original.join("");
           if (!write && text.trim()) descriptions.push(text);
           if (/{[%#]|{{/.test(text.replace(marker, ""))) advanced = true;
-          for (const match of [...text.matchAll(marker)].reverse()) {
-            const val = field(match[1], match[1]);
+          const spans = [...text.matchAll(marker), ...text.matchAll(/_{3,}/g)].sort((a,b) => b.index! - a.index!);
+          for (const match of spans) {
+            const id = match[1] || path+"#blank"+paragraphIndex+"-"+match.index;
+            const val = field(id, match[1] || text.slice(Math.max(0,match.index!-48), match.index).trim() || "밑줄 입력 후보");
             if (!write || val === undefined) continue;
             let offset = 0;
             original.forEach((s, i) => {

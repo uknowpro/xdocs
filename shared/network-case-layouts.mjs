@@ -1,3 +1,4 @@
+import {routingCases} from "./routing-case-layouts.mjs";
 import {serviceCases} from "./service-case-layouts.mjs";
 // Representative Terraform references. Frames group resources without creating dependencies.
 const gcp = "google_compute_";
@@ -80,6 +81,7 @@ const hub = {
 };
 export const networkCases = {
   ...serviceCases,
+  ...routingCases,
   "gcp-network-connectivity-interconnect-ha-vpn-over-interconnect-10gb-attach": vpn,
   "azure-quickstart-301-machine-learning-hub-spoke-secure": ml,
   "azure-quickstart-301-hub-spoke": hub,

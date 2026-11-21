@@ -3045,3 +3045,8 @@ textarea {
 .xcode .chat-advanced > details {margin:8px 0;}
 .xcode .chat-advanced .harness-preview {padding:8px 12px;border-inline-start:2px solid var(--line);}
 .xcode .session-settings-save {justify-content:flex-end;}
+
+.sheet-grid .sheet-axis,.sheet-grid .sheet-column-select {background:transparent;border:0;color:inherit;cursor:pointer;font:inherit;}
+.sheet-grid .sheet-axis {width:100%;min-height:24px;}
+.sheet-grid .sheet-column-select {float:right;padding:2px 5px;}
+.sheet-grid th:has(.sheet-column-select) textarea {width:calc(100% - 25px);}

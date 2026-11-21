@@ -140,11 +140,22 @@ export default function SheetTable({
     setAnchor([next * 100, 0]);
     setEnd([next * 100, 0]);
   }
+  const axisAnchor = useRef<{axis:"row"|"column"; index:number} | null>(null);
+  function selectAxis(axis:"row"|"column", index:number, extend:boolean) {
+    const first = extend && axisAnchor.current?.axis === axis ? axisAnchor.current.index : index;
+    axisAnchor.current = {axis,index:first};
+    setAnchor(axis === "row" ? [first,0] : [0,first]);
+    setEnd(axis === "row" ? [index,columns-1] : [rowCount-1,index]);
+  }
+  function axisButton(axis:"row"|"column", index:number, label:string) {
+    return <button type="button" className="sheet-axis" aria-label={label+(axis==="row"?"행 선택":"열 선택")}
+      onClick={e=>selectAxis(axis,index,e.shiftKey)}>{label}</button>;
+  }
   function renderRow(r: number, header = false) {
     const Cell = header ? "th" : "td";
     return (
       <tr key={r}>
-        {header ? <th aria-hidden="true" /> : <th scope="row">{r + 1}</th>}
+        {header ? <th aria-hidden="true" /> : <th scope="row">{axisButton("row",r,String(r+1))}</th>}
         {Array.from({ length: columns }, (_, c) => (
           <Cell
             scope={header ? "col" : undefined}
@@ -153,6 +164,7 @@ export default function SheetTable({
               r >= minR && r <= maxR && c >= minC && c <= maxC ? "selected" : ""
             }
           >
+            {header && <button type="button" className="sheet-column-select" aria-label={letter(c)+"열 선택"} onClick={e=>selectAxis("column",c,e.shiftKey)}>▾</button>}
             <textarea
               rows={1}
               data-multiline={sheet.rows[r]?.[c]?.includes("\n") || undefined}
@@ -359,6 +371,7 @@ export default function SheetTable({
               Number(cell.dataset.row),
               Number(cell.dataset.column),
             ];
+            axisAnchor.current = null;
             if (!e.shiftKey) setAnchor(pos);
             setEnd(pos);
             if (e.pointerType === "mouse") {
@@ -386,7 +399,7 @@ export default function SheetTable({
             <tr>
               <th></th>
               {Array.from({ length: columns }, (_, c) => (
-                <th key={c}>{letter(c)}</th>
+                <th key={c}>{axisButton("column",c,letter(c))}</th>
               ))}
             </tr>
             )}

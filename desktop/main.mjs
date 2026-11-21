@@ -42,7 +42,7 @@ import { folderBody, withParent } from "../shared/page-parent.mjs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { readFile, writeFile, mkdir, readdir, realpath, mkdtemp, rm } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir, stat, realpath, mkdtemp, rm } from "node:fs/promises";
 import { VaultClient } from "./vault-client.mjs";
 import { watch } from "chokidar";
 import TurndownService from "turndown";
@@ -458,6 +458,15 @@ app.whenReady().then(async () => {
       detail:"이 기기의 Python 3로 앱 전용 환경을 만들고 PyPI에서 docxtpl 0.20.2와 의존성을 다운로드합니다. 설치 위치: "+root
     });
     return result.response===1;
+  });
+  register("word:choose-form", async suggested => {
+    if (typeof suggested !== "string" || !path.isAbsolute(suggested) || !/\.docx$/i.test(suggested)) throw Error("Word 양식 경로를 확인하세요.");
+    const choice = await dialog.showOpenDialog(window,{title:"이 Word 양식을 사용하시겠습니까?",defaultPath:suggested,properties:["openFile"],filters:[{name:"Word",extensions:["docx"]}]});
+    if (choice.canceled || !choice.filePaths.length) return null;
+    const file = choice.filePaths[0];
+    const info = await stat(file);
+    if (!info.isFile() || !/\.docx$/i.test(file) || info.size > 8*1024*1024) throw Error("8MB 이하 Word 양식을 선택하세요.");
+    return {name:path.basename(file),bytes:await readFile(file)};
   });
   register("word:render-template",renderDocx);
   register("word:capture",async () => {

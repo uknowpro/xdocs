@@ -313,6 +313,9 @@ test("an Azure connection offers both source locations before jumping", async ({
 });
 
 for (const [provider, title, label, address, field] of [
+  ["Azure", "보안 가상 허브와 중앙 방화벽", "Azure Firewall", "azurerm_firewall.fw", "firewall_policy_id"],
+  ["GCP", "교차 리전 내부 애플리케이션 서비스", "Backend service", "google_compute_backend_service.default", "mig_b"],
+  ["GCP", "분리 VPC 간 HA VPN", "IF 0 · Tunnel 1", "google_compute_vpn_tunnel.tunnel1", "peer_gcp_gateway"],
   ["Azure", "가상 데스크톱과 NetApp 사용자 프로필", "Profile volume · 100 GiB", "azurerm_netapp_volume.NetApp_Vol", "protocols"],
   ["Azure", "격리형 Synapse 분석 워크스페이스", "Synapse Dev PE", "azurerm_private_endpoint.pe_dev", "private_connection_resource_id"],
   ["GCP", "공유 VPC·교차 프로젝트 HTTPS 백엔드", "URL map", "google_compute_region_url_map.default", "default_service"],
@@ -331,6 +334,24 @@ for (const [provider, title, label, address, field] of [
   await button(title).click();
   const preview = page.locator(".template-card").filter({has:button(title)}).locator("img");
   await expect.poll(() => preview.evaluate((img:HTMLImageElement) => img.naturalWidth / img.naturalHeight)).toBeGreaterThan(2);
+  const fits = await preview.evaluate(async (img:HTMLImageElement) => {
+    const width = img.clientWidth;
+    const svg = new DOMParser().parseFromString(decodeURIComponent(img.src.slice(img.src.indexOf(",")+1)), "image/svg+xml").documentElement;
+    const host = document.createElement("div");
+    host.style.cssText = "position:fixed;left:-10000px;top:0;width:"+width+"px";
+    document.body.append(host);
+    host.append(document.importNode(svg,true));
+    try {
+      const rendered = host.querySelector("svg")!;
+      return width > 0 && rendered.getBoundingClientRect().height <= width &&
+        Array.from(rendered.querySelectorAll("g[data-resource]")).every(g=>{
+          const label = g.querySelector("text")!.getBoundingClientRect();
+          const box = g.querySelector("rect")!.getBoundingClientRect();
+          return label.right <= box.right + 1 && label.left >= box.left - 1;
+        });
+    } finally { host.remove(); }
+  });
+  expect(fits).toBe(true);
   await button("템플릿으로 시작").click();
   const diagram = page.locator(".case-blueprint");
   await diagram.getByRole("button", {name:label, exact:true}).first().click();

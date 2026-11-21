@@ -175,6 +175,13 @@ try {
   await expect(page.locator(".sheet-grid thead th").nth(1)).toHaveText("A");
   await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("1");
   assert.equal(await first.evaluate(el => el.closest("td") !== null),true);
+  await page.getByRole("button",{name:"A열 선택",exact:true}).click();
+  await page.getByRole("button",{name:"B열 선택",exact:true}).click({modifiers:["Shift"]});
+  await expect(page.locator(".sheet-grid .selected")).toHaveCount(20);
+  await page.getByRole("button",{name:"1행 선택",exact:true}).click();
+  await page.getByRole("button",{name:"2행 선택",exact:true}).click({modifiers:["Shift"]});
+  await page.keyboard.press(copyKey);
+  assert.match(await app.evaluate(({clipboard})=>clipboard.readText()), /업체\t메모/);
   const scroll = page.locator(".sheet-scroll");
   await scroll.evaluate(el => { el.style.maxHeight = "52px"; el.scrollTop = el.scrollHeight; });
   await expect.poll(() => scroll.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
