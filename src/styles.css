@@ -3176,3 +3176,17 @@ textarea {
 
 .infra-source {display:grid;gap:8px;margin-block:12px;min-width:0;}
 .infra-source textarea {height:clamp(12rem,45dvh,32rem);width:100%;font-family:monospace;color:var(--ink);background:var(--surface);}
+
+.sheet-row-menu {
+  position:fixed; inset:auto; margin:0; padding:4px;
+  background:var(--bg); color:var(--ink); border:1px solid var(--line);
+  border-radius:8px; box-shadow:0 4px 18px #0002;
+}
+.sheet-row-menu button {
+  display:flex; align-items:center; gap:8px; width:100%; padding:6px 10px;
+  background:transparent; border:0; border-radius:4px; color:inherit; text-align:start;
+}
+.sheet-row-menu button:is(:hover,:focus-visible) {background:var(--hover);}
+.main .builder-panel.xcode {max-width:none; width:100%; padding-inline:0;}
+.xcode .chat-workbench {width:min(100%,56rem); margin-inline:auto;}
+.xcode .chat-header > span {min-width:0;}

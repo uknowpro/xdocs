@@ -1,6 +1,6 @@
 import { usePaneHeight } from "./usePaneHeight";
-import { useEffect, useRef, useState } from "react";
-import { Plus, Copy, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Plus, Copy, ChevronLeft, ChevronRight, FileText, Trash2 } from "lucide-react";
 import {
   parseDelimited,
   toTSV,
@@ -37,7 +37,7 @@ export default function SheetTable({
   const columns = Math.max(4, ...sheet.rows.map((r) => r.length)),
     rowCount = Math.max(1, sheet.rows.length);
   const headerRows = sheet.firstRowHeader ? 1 : 0;
-  const dataRowCount = rowCount - headerRows;
+  const dataRowCount = Math.max(0, sheet.rows.length - headerRows);
   const firstDataIndex = page * 100 + headerRows;
   const minR = Math.min(anchor[0], end[0]),
     maxR = Math.max(anchor[0], end[0]),
@@ -204,6 +204,38 @@ export default function SheetTable({
     setAnchor(axis === "row" ? [first,0] : [0,first]);
     setEnd(axis === "row" ? [index,columns-1] : [rowCount-1,index]);
   }
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [rowMenu, setRowMenu] = useState<{
+    row: number; first: number; last: number; x: number; y: number;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!rowMenu || !menu) return;
+    menu.showPopover();
+    const place = (point: number, size: number, limit: number) =>
+      Math.max(4, Math.min(point + 2, limit - size - 4));
+    menu.style.left = place(rowMenu.x, menu.offsetWidth, innerWidth) + "px";
+    menu.style.top = place(rowMenu.y, menu.offsetHeight, innerHeight) + "px";
+    menu.querySelector("button")?.focus({preventScroll:true});
+    const close = () => menu.hidePopover();
+    window.addEventListener("resize", close);
+    return () => { window.removeEventListener("resize", close); close(); };
+  }, [rowMenu]);
+
+  function deleteRows(first: number, last: number) {
+    if (readonly || first < headerRows || last >= sheet.rows.length) return;
+    const rows = sheet.rows.filter((_, index) => index < first || index > last);
+    commit({...workbook, sheets: workbook.sheets.map(s => s.id === sheet.id ? {...s, rows} : s)});
+    const row = Math.max(0, Math.min(first, rows.length - 1));
+    const column = Math.min(minC, Math.max(4, ...rows.map(r => r.length)) - 1);
+    setPage(Math.floor(Math.max(0, row - headerRows) / 100));
+    setAnchor([row, column]);
+    setEnd([row, column]);
+    axisAnchor.current = null;
+    setRowMenu(null);
+    requestAnimationFrame(() => viewport.current?.querySelector<HTMLTextAreaElement>(
+      `textarea[data-row="${row}"][data-column="${column}"]`)?.focus());
+  }
   function axisButton(axis:"row"|"column", index:number, label:string) {
     return <button type="button" className="sheet-axis" aria-label={label+(axis==="row"?"행 선택":"열 선택")}
       onClick={e=>selectAxis(axis,index,e.shiftKey)}>{label}</button>;
@@ -211,7 +243,24 @@ export default function SheetTable({
   function renderRow(r: number, header = false) {
     const Cell = header ? "th" : "td";
     return (
-      <tr key={r}>
+      <tr key={r} onContextMenu={e => {
+        if (readonly || header || r >= sheet.rows.length) return;
+        const cell = (e.target as Element).closest("td,th") as HTMLTableCellElement | null;
+        if (!cell) return;
+        e.preventDefault();
+        stopDrag();
+        const column = cell.cellIndex - 1;
+        const inside = r >= minR && r <= maxR && (column < 0 || (column >= minC && column <= maxC));
+        if (!inside) {
+          if (column < 0) selectAxis("row", r, false);
+          else { axisAnchor.current = null; setAnchor([r,column]); setEnd([r,column]); }
+        }
+        const bounds = cell.getBoundingClientRect();
+        const keyboard = e.clientX === 0 && e.clientY === 0;
+        setRowMenu({row:r, first:inside ? Math.max(headerRows,minR) : r,
+          last:inside ? Math.min(maxR,sheet.rows.length - 1) : r,
+          x:keyboard ? bounds.left : e.clientX, y:keyboard ? bounds.bottom : e.clientY});
+      }}>
         {header ? <th aria-hidden="true" /> : <th scope="row">{axisButton("row",r,String(r + 1 - headerRows))}</th>}
         {Array.from({ length: columns }, (_, c) => (
           <Cell
@@ -473,6 +522,18 @@ export default function SheetTable({
           </tbody>
         </table>
       </div>
+      {!readonly && rowMenu && <div ref={menuRef} popover="auto" className="sheet-row-menu"
+        aria-label="행 작업" role="group" onToggle={e => {
+          if (!e.currentTarget.matches(":popover-open")) setRowMenu(null);
+        }}>
+        <button type="button" onClick={() => deleteRows(rowMenu.row, rowMenu.row)}>
+          <Trash2 size={14}/> {rowMenu.row + 1 - headerRows}행 삭제
+        </button>
+        {rowMenu.last > rowMenu.first && <button type="button"
+          onClick={() => deleteRows(rowMenu.first, rowMenu.last)}>
+          <Trash2 size={14}/> 선택한 {rowMenu.last - rowMenu.first + 1}개 행 삭제
+        </button>}
+      </div>}
       <div className="sheet-footer">
         <div className="sheet-tabs" role="tablist" aria-label="워크시트">
           {workbook.sheets.map((s) => (
@@ -505,7 +566,7 @@ export default function SheetTable({
             <ChevronLeft size={16} />
           </button>
           <span>
-            {page * 100 + 1}–{Math.min(dataRowCount, (page + 1) * 100)}
+            {dataRowCount ? `${page * 100 + 1}–${Math.min(dataRowCount, (page + 1) * 100)}` : "0행"}
           </span>
           <button
             aria-label="다음 100행"

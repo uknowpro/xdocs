@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.25
+
+- Right-click a sheet cell or row number to delete that row. Right-click inside a multi-row selection to delete all selected data rows. The menu stays inside the window and preserves the designated header row.
+- The xcode session title, model name and settings use the available page width. The conversation and message composer stay centered.
+
 ## 0.5.24
 
 - Make sheets and chat use the available window height. Keep input and send controls visible with attachments, and focus invalid session JSON settings.

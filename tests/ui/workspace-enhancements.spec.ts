@@ -99,3 +99,45 @@ test("Analyzer groups shared source files and restores a path after reordering",
   await expect(page.locator("#network-path-0 summary")).toBeFocused();
   await expect(page.locator("#network-path-0")).toContainText("two");
 });
+
+test("sheet row menu deletes the selected data rows or just the clicked row",async({page})=>{
+  await page.goto("/");
+  await page.getByRole("button",{name:"새로 만들기",exact:true}).click();
+  await page.getByRole("button",{name:"새 시트 테이블",exact:true}).click();
+  const cell=(r:number)=>page.getByLabel("시트 1 A"+r,{exact:true});
+  for(const [i,value] of ["header","one","two","three","four"].entries()) await cell(i+1).fill(value);
+  await page.getByLabel("첫 행을 헤더로 사용").check();
+  await cell(2).click(); await cell(3).click({modifiers:["Shift"]});
+  await cell(3).click({button:"right"});
+  await expect(page.getByRole("button",{name:"2행 삭제",exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"선택한 2개 행 삭제"}).click();
+  await expect(cell(1)).toHaveValue("header");
+  await expect(cell(2)).toHaveValue("three");
+  await page.getByRole("button",{name:"1행 선택",exact:true}).click({button:"right"});
+  await cell(3).dispatchEvent("contextmenu",{clientX:1279,clientY:719});
+  await expect(page.getByRole("group",{name:"행 작업"})).toBeInViewport({ratio:1});
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("group",{name:"행 작업"})).toBeHidden();
+  await cell(2).click({button:"right"});
+  await page.getByRole("button",{name:"1행 삭제",exact:true}).click();
+  await expect(cell(2)).toHaveValue("four");
+});
+
+test("wide xcode header uses the page while chat stays centered",async({page})=>{
+  await page.setViewportSize({width:1920,height:1080});
+  await page.goto("/");
+  await page.getByRole("button",{name:"새로 만들기",exact:true}).click();
+  await page.getByRole("button",{name:"xcode 세션 만들기",exact:true}).click();
+  const header=await page.locator(".chat-header").boundingBox();
+  const composer=await page.locator(".chat-composer").boundingBox();
+  expect(header!.width-composer!.width).toBeGreaterThan(200);
+  expect(Math.abs(header!.x+header!.width/2-composer!.x-composer!.width/2)).toBeLessThan(2);
+  for (const width of [911,390]) {
+    await page.setViewportSize({width,height:600});
+    await expect(page.locator(".chat-header h2")).toBeInViewport({ratio:1});
+    await expect(page.locator(".chat-settings-toggle")).toBeInViewport({ratio:1});
+    const box=await page.locator(".chat-composer").boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x+box!.width).toBeLessThanOrEqual(width);
+  }
+});
