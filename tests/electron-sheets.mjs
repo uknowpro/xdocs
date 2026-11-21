@@ -141,7 +141,10 @@ try {
   await header.check();
   await expect(page.locator(".sheet-grid thead tr")).toHaveCount(1);
   await expect(page.locator(".sheet-grid thead th").first()).toBeEmpty();
-  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("2");
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("1");
+  await page.getByRole("button",{name:"1행 선택",exact:true}).click();
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+  assert.equal((await app.evaluate(({clipboard})=>clipboard.readText())).trimEnd(),"가나다\t서울, 본사");
   const first = page.getByRole("textbox",{name:"고객 A1",exact:true});
   assert.equal(await first.evaluate(el => el.closest("th")?.scope),"col");
   await cell.dragTo(first);
@@ -197,7 +200,7 @@ try {
   await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
   await expect.poll(() => scroll.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
   await expect.poll(visibleCorner).toBe(true);
-  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("2");
+  await expect(page.locator(".sheet-grid tbody th").first()).toHaveText("1");
   assert.equal(await readFile(csv(temp),"utf8"),'업체,메모\r\n가나다,"서울, 본사"\r\n');
   for (let i=0;i<10;i++) await page.getByRole("button",{name:"10행 추가"}).click();
   await page.getByRole("button",{name:"다음 100행"}).click();

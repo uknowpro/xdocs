@@ -35,6 +35,9 @@ export default function SheetTable({
     workbook.sheets.find((s) => s.id === active) || workbook.sheets[0];
   const columns = Math.max(4, ...sheet.rows.map((r) => r.length)),
     rowCount = Math.max(10, sheet.rows.length);
+  const headerRows = sheet.firstRowHeader ? 1 : 0;
+  const dataRowCount = rowCount - headerRows;
+  const firstDataIndex = page * 100 + headerRows;
   const minR = Math.min(anchor[0], end[0]),
     maxR = Math.max(anchor[0], end[0]),
     minC = Math.min(anchor[1], end[1]),
@@ -137,8 +140,8 @@ export default function SheetTable({
   }
   function changePage(next: number) {
     setPage(next);
-    setAnchor([next * 100, 0]);
-    setEnd([next * 100, 0]);
+    setAnchor([next * 100 + headerRows, 0]);
+    setEnd([next * 100 + headerRows, 0]);
   }
   const axisAnchor = useRef<{axis:"row"|"column"; index:number} | null>(null);
   function selectAxis(axis:"row"|"column", index:number, extend:boolean) {
@@ -155,7 +158,7 @@ export default function SheetTable({
     const Cell = header ? "th" : "td";
     return (
       <tr key={r}>
-        {header ? <th aria-hidden="true" /> : <th scope="row">{axisButton("row",r,String(r+1))}</th>}
+        {header ? <th aria-hidden="true" /> : <th scope="row">{axisButton("row",r,String(r + 1 - headerRows))}</th>}
         {Array.from({ length: columns }, (_, c) => (
           <Cell
             scope={header ? "col" : undefined}
@@ -214,7 +217,7 @@ export default function SheetTable({
                 nr = Math.max(0, Math.min(rowCount - 1, nr));
                 if (!extend) setAnchor([nr, nc]);
                 setEnd([nr, nc]);
-                setPage(Math.floor(nr / 100));
+                setPage(Math.floor(Math.max(0, nr - headerRows) / 100));
                 const book = e.currentTarget.closest(".sheet-book");
                 requestAnimationFrame(() =>
                   book
@@ -329,16 +332,18 @@ export default function SheetTable({
             type="checkbox"
             checked={Boolean(sheet.firstRowHeader)}
             disabled={readonly}
-            onChange={(e) =>
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setPage(Math.min(page, Math.floor((rowCount - Number(checked) - 1) / 100)));
               commit({
                 ...workbook,
                 sheets: workbook.sheets.map((s) =>
                   s.id === sheet.id
-                    ? { ...s, firstRowHeader: e.target.checked }
+                    ? { ...s, firstRowHeader: checked }
                     : s,
                 ),
-              })
-            }
+              });
+            }}
           />
           첫 행을 헤더로 사용
         </label>
@@ -406,11 +411,8 @@ export default function SheetTable({
           </thead>
           <tbody>
             {Array.from(
-              { length: Math.min(100, Math.max(0, rowCount - page * 100)) },
-              (_, offset) => {
-                const r = page * 100 + offset;
-                return sheet.firstRowHeader && r === 0 ? null : renderRow(r);
-              },
+              { length: Math.min(100, Math.max(0, rowCount - firstDataIndex)) },
+              (_, offset) => renderRow(firstDataIndex + offset),
             )}
           </tbody>
         </table>
@@ -447,11 +449,11 @@ export default function SheetTable({
             <ChevronLeft size={16} />
           </button>
           <span>
-            {page * 100 + 1}–{Math.min(rowCount, (page + 1) * 100)}
+            {page * 100 + 1}–{Math.min(dataRowCount, (page + 1) * 100)}
           </span>
           <button
             aria-label="다음 100행"
-            disabled={(page + 1) * 100 >= rowCount}
+            disabled={(page + 1) * 100 >= dataRowCount}
             onClick={() => changePage(page + 1)}
           >
             <ChevronRight size={16} />
