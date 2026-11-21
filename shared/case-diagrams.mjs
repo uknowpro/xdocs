@@ -250,7 +250,7 @@ const esc = (value) =>
         "'": "&apos;",
       })[c],
   );
-export function caseDiagram(model, selected = "", planLabels = {}) {
+export function caseDiagram(model, selected = "", planLabels = {}, magnify = false) {
   const spec =
     Object.hasOwn(layouts, model.caseStudyId) && layouts[model.caseStudyId];
   if (!spec) return "";
@@ -275,10 +275,25 @@ export function caseDiagram(model, selected = "", planLabels = {}) {
       : "";
     return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" || key.startsWith("op:") ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), (node && planLabels[node.id] ? planLabels[node.id]+" · " : "")+label, frame ? 14 : 12)}</g>`;
   });
+  const occupied = boxes.map(([, ,x,y,w,h])=>[x,y,w,h>75?25:h]);
+  function edgeLabel(x,y,label) {
+    const w = label.length*6+6;
+    for (const dy of [0,-14,14,-28,28,-42,42]) {
+      for (const dx of [0,-36,36,-72,72]) {
+        const left=Math.max(4,Math.min(spec.boxes[0][4]-w,x+dx-w/2)), top=y+dy-11;
+        if (top<0 || top+14>spec.boxes[0][5] || occupied.some(([a,b,c,d])=>left<a+c && left+w>a && top<b+d && top+14>b)) continue;
+        occupied.push([left,top,w,14]);
+        return '<text x="'+(left+3)+'" y="'+(top+11)+'" font-family="monospace" font-size="10" stroke="white" stroke-width="3" paint-order="stroke">'+esc(label)+'</text>';
+      }
+    }
+    return '<title>'+esc(label)+'</title>';
+  }
   const lines = spec.links.map(([source, target, label, planned]) => {
     const a = byKey.get(source),
       b = byKey.get(target);
     if (!a || !b) return "";
+    const active = selected && [source,target].some(key=>nodes.get(key)?.id===selected);
+    const stroke = active ? 'stroke="#0967af" stroke-width="2.4"' : 'stroke="#49586e"';
     const ax = a[2] + a[4] / 2,
       ay = a[3] + a[5] / 2,
       bx = b[2] + b[4] / 2,
@@ -295,9 +310,12 @@ export function caseDiagram(model, selected = "", planLabels = {}) {
       const bottom = label === "nat_gateway_id";
       const start = a[3] + (bottom ? a[5] : 0), end = b[3] + (bottom ? b[5] : 0);
       const lane = bottom ? Math.max(start, end) + 12 : Math.min(start, end) - 11;
-      return `<g pointer-events="none"><path d="M${ax} ${start} V${lane} H${bx} V${end}" fill="none" stroke="#49586e" marker-end="url(#case-arrow)"/>${text((ax + bx) / 2 - 24, lane - 4, label, 10)}</g>`;
+      return `<g pointer-events="none"><path d="M${ax} ${start} V${lane} H${bx} V${end}" fill="none" ${stroke} marker-end="url(#case-arrow)"/>${edgeLabel((ax+bx)/2,lane-4,label)}</g>`;
     }
-    return `<g pointer-events="none"><path d="M${x1} ${y1} ${horiz ? "H" + mx + " V" + y2 : "V" + my + " H" + x2} L${x2} ${y2}" fill="none" stroke="#49586e" ${planned ? 'stroke-dasharray="4 3"' : ""} marker-end="url(#case-arrow)"/><text x="${horiz ? mx : mx + 8}" y="${horiz ? my - 5 : my + 3}" text-anchor="${horiz ? "middle" : "start"}" font-size="10" font-family="monospace" fill="#364559" stroke="white" stroke-width="3" paint-order="stroke">${esc(label)}</text></g>`;
+    return `<g pointer-events="none"><path d="M${x1} ${y1} ${horiz ? "H" + mx + " V" + y2 : "V" + my + " H" + x2} L${x2} ${y2}" fill="none" ${stroke} ${planned ? 'stroke-dasharray="4 3"' : ""} marker-end="url(#case-arrow)"/>${edgeLabel(mx,horiz?my-5:my+3,label)}</g>`;
   });
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${spec.boxes[0][4] + 16} ${spec.boxes[0][5] + 24}"><defs><marker id="case-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10" fill="#49586e"/></marker></defs>${rects.join("")}${lines.join("")}</svg>`;
+  const box = magnify && boxes.find(([key])=>nodes.get(key)?.id===selected);
+  const width=spec.boxes[0][4]+16, height=spec.boxes[0][5]+24;
+  const viewBox = box ? [box[2]-24,box[3]-24,box[4]+48,box[5]+48] : [0,0,width,height];
+  return `<svg xmlns="http://www.w3.org/2000/svg" style="--drawing-width:${width}px" viewBox="${viewBox.join(" ")}"><defs><marker id="case-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10" fill="#49586e"/></marker></defs>${rects.join("")}${lines.join("")}</svg>`;
 }

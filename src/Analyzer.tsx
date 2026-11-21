@@ -1,5 +1,5 @@
 import { AnalyzerEvidence } from "./AnalyzerEvidence";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "./api";
 import { analyzerReport, analyzerMarkdown } from "../shared/analyzer.mjs";
 type Report = ReturnType<typeof analyzerReport>;
@@ -11,9 +11,11 @@ function NetworkPath({
   local: boolean;
 }) {
   const [edge, setEdge] = useState<number | null>(null);
+  const matched = edge === null ? [] : path.edgeEvidence[edge-1] || [];
+  const evidence = matched.length ? matched : path.evidence.map((_,i)=>i);
   return (
     <>
-      <ol className="analyzer-path">
+      <ol className="analyzer-path" data-inferred={/inferred|candidate|unresolved|partial/.test(path.status)}>
         {path.nodes.map((node, index) => (
           <li key={index}>
             {index > 0 &&
@@ -36,12 +38,12 @@ function NetworkPath({
           </li>
         ))}
       </ol>
-      {edge !== null && <small>선택한 연결이 포함된 경로의 근거</small>}
-      {path.evidence.map((e, j) => (
+      {edge !== null && <small>{matched.length ? "선택한 연결의 근거" : "이 경로의 근거"}</small>}
+      {evidence.map((j,i) => (
         <AnalyzerEvidence
           key={String(edge) + ":" + j}
-          initiallyOpen={edge !== null && j === 0}
-          evidence={e}
+          initiallyOpen={edge !== null && i === 0}
+          evidence={path.evidence[j]}
           source={local ? path.sources[j] : undefined}
         />
       ))}
@@ -70,6 +72,13 @@ export default function Analyzer({
     [findingLimit, setFindingLimit] = useState(100);
   const [previous,setPrevious]=useState<Report|null>(null);
   const [localScan, setLocalScan] = useState(false);
+  const pathsByEvidence = useMemo(() => {
+    const index = new Map<string,number[]>();
+    result?.paths.forEach((path,i)=>new Set<string>(path.evidence).forEach(key=>{
+      if (key) index.set(key,[...(index.get(key)||[]),i]);
+    }));
+    return index;
+  },[result]);
   async function load(fn: () => Promise<unknown>, local = false) {
     setBusy(true);
     setError("");
@@ -211,7 +220,7 @@ export default function Analyzer({
           {result.rules && <p>규칙 {result.rules}</p>}
           {result.steps.length > 0 && <p>{result.steps.join(" → ")}</p>}
           {result.paths.slice(0, pathLimit).map((p, i) => (
-            <details key={i} open>
+            <details key={i} id={"network-path-"+i} open>
               <summary>
                 {p.status} · 경로 {i + 1}
               </summary>
@@ -232,6 +241,13 @@ export default function Analyzer({
             {result.rows.slice(0, findingLimit).map((row, i) => (
               <li key={i}>
                 {row.filter(Boolean).join(" · ")}
+                {pathsByEvidence.get(row[3])?.map(index => <button key={index} type="button" onClick={()=>{
+                  setPathLimit(limit=>Math.max(limit,index+1));
+                  requestAnimationFrame(()=>{
+                    const target=document.getElementById("network-path-"+index) as HTMLDetailsElement | null;
+                    if (target) {target.open=true;target.scrollIntoView({block:"center"});target.querySelector("summary")?.focus({preventScroll:true});}
+                  });
+                }}>경로 {index+1} 보기</button>)}
                 {localScan && result.rowSources[i] && (
                   <AnalyzerEvidence
                     key={result.rowSources[i].session}

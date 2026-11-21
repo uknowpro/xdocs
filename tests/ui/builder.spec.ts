@@ -195,7 +195,7 @@ test("Seoul case opens both AZs and selects the NAT declaration", async ({page})
   await expect(diagram).toContainText("ap-northeast-2c");
   await diagram.getByRole("button",{name:"NAT Gateway",exact:true}).last().click();
   await expect(page.getByLabel("컴포넌트 표시 이름")).toHaveValue(/egress_c/);
-  await page.getByRole("button",{name:"확대 보기",exact:true}).click();
+  await page.getByLabel("도면 배율").selectOption("actual");
   const svg = await diagram.locator("svg").evaluate(el => el.outerHTML);
   const capture = await page.context().newPage();
   await capture.setViewportSize({width:1168,height:600});

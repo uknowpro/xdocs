@@ -128,6 +128,7 @@ export type ArchitectureNode = {
   interfaceEvidence?: string[];
   placementUnknown?: boolean;
   placementValue?: string;
+  locationScope?: string;
 };
 export type ArchitectureModel = {
   version: number;
@@ -348,7 +349,7 @@ export function ArchitectureStart({
                   onClick={() => setTemplateId(t.id)}>
                   <TemplateThumbnail id={t.id} />
                   <strong>{t.name}</strong>
-                  <small>{t.provider} · {templateMode(t)}</small>
+                  <small>{t.study}</small>
                 </button>
                 <button className="thumbnail-reference" onClick={() => void openChosen(t.id,true)}>참조 열기 · {reviewedPaths[t.id as keyof typeof reviewedPaths][0].join(" → ")}</button>
                 </div>
@@ -479,7 +480,7 @@ export default function ArchitectureDocument({
     [zoom, setZoom] = useState(1),
     [boundary, setBoundary] = useState(true),
     [caseView, setCaseView] = useState(Boolean(model.caseStudyId) && !entry),
-    [fitBoundary, setFitBoundary] = useState(true),
+    [viewScale, setViewScale] = useState<"fit" | "actual" | "selection" | "manual">("fit"),
     [tab, setTab] = useState(model.drawing ? "drawing" : "canvas"),
     [format, setFormat] = useState("all"),
     [only, setOnly] = useState(false),
@@ -663,6 +664,10 @@ export default function ArchitectureDocument({
     );
   }, [node, result.files, tab]);
 
+  useLayoutEffect(() => {
+    if (nodeCodePath) setLiveFile(nodeCodePath);
+  },[selected,nodeCodePath]);
+
   function showNodeCode() {
     if (!nodeCodePath || !viewer.current) return;
     setLiveFile(nodeCodePath);
@@ -762,7 +767,6 @@ export default function ArchitectureDocument({
     } else {
       if (n.sourceFile) setLiveFile("terraform/" + n.sourceFile);
       setSelected(n.id);
-      setRailOpen(true);
       setDetail("open");
     }
   }
@@ -870,16 +874,38 @@ export default function ArchitectureDocument({
     Object.values(rules).some((rule) => rule[1] === node.kind)
       ? node
       : undefined;
-  function focusNode(id: string) {
+  const searchEntries = useMemo(() => {
+    const {parents} = boundaryLayout(model);
+    const nodes = new Map(model.nodes.map(n => [n.id,n]));
+    return model.nodes.map(n => {
+      const path: string[] = [];
+      const seen = new Set([n.id]);
+      let parent = parents.get(n.id);
+      while (parent && !seen.has(parent)) {
+        seen.add(parent);
+        const scope = nodes.get(parent);
+        if (!scope) break;
+        path.unshift([scope.locationScope || scope.props.availability_zone || scope.props.region,scope.label].filter(Boolean).join(" / "));
+        parent = parents.get(parent);
+      }
+      const region = n.locationScope || n.props.region || n.props.availability_zone || n.props.location;
+      return {id:n.id,label:n.label,detail:[COMPONENTS[n.kind]?.group,n.props.account_id || n.props.subscription_id || n.props.project,...path,region,n.props.name,n.address || terraformAddress(n),n.kind].filter(Boolean).join(" · ")};
+    });
+  },[model]);
+  function focusNode(id: string, takeFocus = true) {
     requestAnimationFrame(() => {
       const el = section.current?.querySelector<HTMLElement>(
-        `[data-scope="${CSS.escape(id)}"],[data-free-id="${CSS.escape(id)}"]`,
+        `[data-scope="${CSS.escape(id)}"],[data-free-id="${CSS.escape(id)}"],[data-resource="${CSS.escape(id)}"]`,
       );
-      el?.focus({ preventScroll: true });
-      el?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      if (takeFocus) el?.focus({ preventScroll: true });
+      el?.scrollIntoView({ block: "center", inline: "center", container:"nearest" } as ScrollIntoViewOptions);
     });
   }
-  function openDetail(id: string, source = model) {
+  function openDetail(id: string, source = model, preservePanel = false) {
+    if (caseView && !section.current?.querySelector(`.case-blueprint [data-resource="${CSS.escape(id)}"]`)) {
+      setCaseView(false);
+      setBoundary(true);
+    }
     const origin = source.nodes.find((n) => n.id === id)?.sourceFile;
     if (origin) setLiveFile("terraform/" + origin);
     const { parents } = boundaryLayout(source);
@@ -897,16 +923,14 @@ export default function ArchitectureDocument({
     });
     setConnecting(false);
     setSelected(id);
-    setCodeOnly(false);
-    setRailOpen(true);
-    setDetail("open");
+    if (!preservePanel) { setCodeOnly(false); setRailOpen(true); setDetail("open"); }
     requestAnimationFrame(() => {
       section.current
         ?.querySelector<HTMLElement>(
-          `[data-scope="${CSS.escape(id)}"],[data-free-id="${CSS.escape(id)}"]`,
+          `[data-scope="${CSS.escape(id)}"],[data-free-id="${CSS.escape(id)}"],[data-resource="${CSS.escape(id)}"]`,
         )
-        ?.scrollIntoView({ block: "nearest", inline: "nearest" });
-      section.current
+        ?.scrollIntoView({ block: "center", inline: "center", container:"nearest" } as ScrollIntoViewOptions);
+      if (!preservePanel) section.current
         ?.querySelector<HTMLInputElement>(".arch-properties input")
         ?.focus();
     });
@@ -974,6 +998,39 @@ export default function ArchitectureDocument({
   ).map(([id,c])=>({id,label:c.label,detail:c.group+" · "+id})),[providerEntries,catalogService,contextParent?.kind,rules]);
   const width = Math.max(1000, ...model.nodes.map((n) => n.x + 240)),
     height = Math.max(650, ...model.nodes.map((n) => n.y + 150));
+  useLayoutEffect(() => {
+    const pane = viewport.current;
+    if (!pane || viewScale === "manual") return;
+    function resize() {
+      if (!pane) return;
+      const fit = Math.min(pane.clientWidth / width, pane.clientHeight / height);
+      setZoom(viewScale === "fit" ? Math.max(0.01,fit) : viewScale === "selection" ? Math.min(2,pane.clientWidth/230,pane.clientHeight/110) : 1);
+      if (viewScale === "selection" && selected) focusNode(selected,false);
+    }
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(pane);
+    return () => observer.disconnect();
+  },[width,height,tab,caseView,boundary,viewScale,selected]);
+  useLayoutEffect(() => {
+    if (tab !== "canvas" || (viewScale !== "actual" && viewScale !== "manual")) return;
+    const surface = section.current?.querySelector<HTMLElement>(".case-blueprint,.network-sheet,.arch-viewport");
+    if (!surface) return;
+    let width = surface.clientWidth, height = surface.clientHeight;
+    const observer = new ResizeObserver(() => {
+      const nextWidth=surface.clientWidth, nextHeight=surface.clientHeight;
+      surface.scrollBy((width-nextWidth)/2,(height-nextHeight)/2);
+      width=nextWidth;
+      height=nextHeight;
+    });
+    observer.observe(surface);
+    return () => observer.disconnect();
+  },[tab,caseView,boundary,viewScale]);
+  useLayoutEffect(() => {
+    const code = viewer.current?.querySelector<HTMLElement>('pre[aria-label="Terraform 코드"]');
+    const line = code?.querySelector<HTMLElement>('[data-declaration="'+CSS.escape(selected)+'"]');
+    if (code && line) code.scrollTop += line.getBoundingClientRect().top - code.getBoundingClientRect().top - 12;
+  },[livePath,selected,railOpen,compareFile,tab]);
   return (
     <section
       onKeyDownCapture={(e) => {
@@ -1086,22 +1143,7 @@ export default function ArchitectureDocument({
         <div className="canvas-findbar">
           <CanvasSearch
             label="리소스 찾기"
-            entries={model.nodes.map((n) => ({
-              id: n.id,
-              label: n.label,
-              detail: [
-                n.props.name,
-                n.kind,
-                n.address ||
-                  (n.kind.startsWith("k8s_")
-                    ? ""
-                    : (n.kind.startsWith("avm_") ? "module" : n.kind) +
-                      "." +
-                      n.id),
-              ]
-                .filter(Boolean)
-                .join(" · "),
-            }))}
+            entries={searchEntries}
             onChoose={openDetail}
           />
           {node && (
@@ -1216,13 +1258,13 @@ export default function ArchitectureDocument({
                   자유 배치·참조선
                 </button>
               </div>
-              {(boundary || caseView) && (
-                <button onClick={() => setFitBoundary(!fitBoundary)}>
-                  {fitBoundary ? "확대 보기" : "전체 맞춤"}
-                </button>
-              )}
+              <select aria-label="도면 배율" value={viewScale} onChange={e => setViewScale(e.target.value as typeof viewScale)}>
+                <option value="fit">전체 맞춤</option><option value="actual">100%</option>
+                <option value="selection" disabled={!node}>선택 항목 맞춤</option>
+                {viewScale==="manual" && <option value="manual">{Math.round(zoom*100)}%</option>}
+              </select>
             </div>
-            {caseView && model.caseStudyId ? <div className={fitBoundary ? "case-blueprint" : "case-blueprint case-enlarged"} onClick={event => {
+            {caseView && model.caseStudyId ? <div className={viewScale === "actual" || viewScale === "manual" ? "case-blueprint case-enlarged" : "case-blueprint"} onClick={event => {
               const id=(event.target as Element).closest("[data-resource]")?.getAttribute("data-resource");
               const n=model.nodes.find(n=>n.id===id);
               if (!n) return;
@@ -1234,7 +1276,7 @@ export default function ArchitectureDocument({
             }} onKeyDown={event => {
               if (event.key==="Enter" || event.key===" ") { event.preventDefault(); (event.target as Element).dispatchEvent(new MouseEvent("click",{bubbles:true})); }
             }}>
-              <div dangerouslySetInnerHTML={{__html:caseDiagram(model,selected,planLabels)}}/>
+              <div dangerouslySetInnerHTML={{__html:caseDiagram(model,selected,planLabels,viewScale==="selection")}}/>
               {model.caseStudyId === firewallCase && <nav aria-label="스포크 송신 경로" className="firewall-path">
                 {firewallSteps.map(([address,label]) => {
                   const target=model.nodes.find(n=>n.address===address);
@@ -1254,7 +1296,7 @@ export default function ArchitectureDocument({
                     : "항목을 선택해 속성을 편집하거나 상위 경계의 제목으로 끌어 소속을 변경하세요."}
                 </p>
                 <NetworkLayout focused={focused} onReference={showSites} planLabels={planLabels} focusRelated={focusRelated}
-                  fit={fitBoundary}
+                  fit={viewScale==="fit" || viewScale==="selection"} magnify={viewScale==="selection"}
                   model={displayModel}
                   selected={selected}
                   readonly={readonly}
@@ -1273,32 +1315,18 @@ export default function ArchitectureDocument({
                   </span>
                   <button
                     aria-label="아키텍처 축소"
-                    onClick={() => setZoom(Math.max(0.4, zoom - 0.1))}
+                    onClick={() => {setViewScale("manual"); setZoom(Math.max(0.1, zoom - 0.1));}}
                   >
                     <ZoomOut size={15} />
                   </button>
                   <span>{Math.round(zoom * 100)}%</span>
                   <button
                     aria-label="아키텍처 확대"
-                    onClick={() => setZoom(Math.min(1.6, zoom + 0.1))}
+                    onClick={() => {setViewScale("manual"); setZoom(Math.min(2, zoom + 0.1));}}
                   >
                     <ZoomIn size={15} />
                   </button>
-                  <button
-                    onClick={() =>
-                      setZoom(
-                        Math.max(
-                          0.4,
-                          Math.min(
-                            1.6,
-                            (viewport.current?.clientWidth || 900) / width,
-                          ),
-                        ),
-                      )
-                    }
-                  >
-                    맞춤
-                  </button>
+
                   <button
                     disabled={readonly}
                     onClick={() => change(layoutArchitecture(model))}
@@ -1562,7 +1590,7 @@ export default function ArchitectureDocument({
                     onChange={(e) => updateNode({ label: e.target.value })}
                   />
                 </label>
-                <p className="small-text muted">{node.address || node.kind}</p>
+                {node.label !== (node.address || node.kind) && <p className="small-text muted">{node.address || node.kind}</p>}
                 {nodeCodePath && (
                   <button type="button" className="code-jump" onClick={showNodeCode}>
                     Terraform 선언 보기 <span aria-hidden="true">↗</span>
@@ -1948,7 +1976,7 @@ export default function ArchitectureDocument({
                     <select
                       aria-label="Terraform 선언"
                       value={declaration?.id || ""}
-                      onChange={(e) => openDetail(e.target.value)}
+                      onChange={(e) => openDetail(e.target.value,model,true)}
                     >
                       <option value="" disabled>
                         리소스 선택
@@ -2004,8 +2032,8 @@ export default function ArchitectureDocument({
                       <span key={i} className={part.added ? "live-added" : "live-removed"}>{part.value.replace(/^./gm, line => (part.added ? "+ " : "− ") + line)}</span>)}</pre>
                     : <p>페이지를 열었을 때와 같습니다.</p>}
               </div> : <pre aria-label="Terraform 코드">
-                <code>{site && focused && sites.some(s => s.file === site.file && s.line === site.line) && livePath === "terraform/" + site.file ? result.files[livePath].split("\n").map((line,i,lines) => <span key={i}>{i+1 === site.line ? <mark title={site.property}>{line}</mark> : line}{i < lines.length-1 ? "\n" : ""}</span>) : codeLines.map(part=>typeof part==="string"?part:<button type="button" key={part.number} className="declaration-line" data-declaration={part.id}
-                   title="캔버스에서 선언 선택" onClick={()=>{openDetail(part.id);focusNode(part.id);}}>{part.line}</button>)}</code>
+                <code>{site && focused && sites.some(s => s.file === site.file && s.line === site.line) && livePath === "terraform/" + site.file ? result.files[livePath].split("\n").map((line,i,lines) => <span key={i}>{i+1 === site.line ? <mark title={site.property}>{line}</mark> : line}{i < lines.length-1 ? "\n" : ""}</span>) : codeLines.map(part=>typeof part==="string"?part:<button type="button" key={part.number} className="declaration-line" data-declaration={part.id} aria-current={part.id===selected ? "location" : undefined}
+                   title="캔버스에서 선언 선택" onClick={()=>{openDetail(part.id,model,true);focusNode(part.id);}}>{part.line}</button>)}</code>
               </pre>}
             </>
           )}

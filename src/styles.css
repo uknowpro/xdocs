@@ -2174,7 +2174,9 @@ textarea {
   border-right: 1px solid var(--line);
 }
 .arch-palette > strong,
+.arch-properties > header > strong {margin-inline-end:auto;}
 .arch-properties > header {
+  align-items:center; gap:6px;
   font-size: 12px;
   display: flex;
   justify-content: space-between;
@@ -2900,10 +2902,7 @@ textarea {
 @media (min-width:1051px) {
   .arch-editor,.arch-editor.inspector-closed { grid-template-columns:clamp(110px,11vw,160px) minmax(0,1fr) clamp(235px,22vw,380px); }
   .arch-review-rail { min-height:0; display:flex; flex-direction:column; overflow:hidden; border-left:1px solid var(--line); }
-  .arch-review-rail .arch-properties { flex:1 1 45%; min-height:0; overflow:auto; }
   .arch-review-rail .terraform-live { margin:0; border:0; }
-  .arch-review-rail .terraform-live[open] { flex:1 1 50%; min-height:0; overflow:auto; }
-  .arch-review-issues[open] { max-height:30%; overflow:auto; }
 }
 @media (max-width:1050px) {
   .arch-review-rail { grid-column:1 / -1; }
@@ -3068,7 +3067,6 @@ textarea {
   .arch-editor > .arch-workspace {grid-column:2;}
   .arch-editor > .arch-review-rail {grid-column:3; overflow-y:auto;}
   .arch-review-rail .terraform-live {order:-1; flex-shrink:0;}
-  .arch-review-rail .terraform-live[open] {flex:1 0 52%; min-height:185px;}
   .terraform-live pre[aria-label="Terraform 코드"] {max-height:none;}
 }
 @media(min-width:601px) and (max-width:1050px) {
@@ -3076,7 +3074,6 @@ textarea {
 }
 
 .arch-review-rail[data-code-only=true] > :not(.terraform-live) {display:none;}
-.arch-review-rail[data-code-only=true] .terraform-live[open] {flex:1 1 auto;}
 
 .tf-schema-form {display:grid;gap:.55rem;min-width:0;margin:.4rem 0;padding:.5rem;border:1px solid var(--line)}
 .tf-schema-form label,.resource-fields>small {display:grid;gap:.25rem;overflow-wrap:anywhere}
@@ -3124,3 +3121,29 @@ textarea {
 @media (max-width:1050px) {
   .arch-editor > .arch-review-rail { contain:none; }
 }
+
+/* Let short reviews use their content height. The rail owns vertical navigation. */
+@media (min-width:1051px) {
+  .arch-review-rail > *, .arch-review-rail .arch-properties,
+  .arch-review-rail .terraform-live[open], .arch-review-rail[data-code-only=true] .terraform-live[open] {
+    flex:none; min-height:0; max-height:none; overflow:visible;
+  }
+  .arch-review-rail .terraform-live pre {max-height:clamp(9rem,28dvh,23rem);overflow:auto;}
+  .arch-review-rail[data-code-only=true] .terraform-live pre {max-height:none;}
+}
+.arch-review-rail .terraform-live > select {width:100%;height:30px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);padding-inline:6px;}
+.arch-review-rail .terraform-live > p {margin:6px 0;}
+.arch-review-rail .terraform-live {border-bottom:1px solid var(--line);}
+.terraform-live .declaration-line[aria-current=location] {background:#30475a;}
+.arch-canvas-tools:has(select) {height:auto;min-height:36px;flex-wrap:wrap;padding-block:4px;gap:6px;}
+.case-blueprint.case-enlarged svg {width:var(--drawing-width);height:auto;min-width:0;}
+.network-layout:not(.fit) .network-sheet svg {width:var(--drawing-width);min-width:0;}
+.template-select small {line-height:1.45;overflow-wrap:anywhere;}
+.analyzer-path[data-inferred=true] li {border-style:dashed;}
+@media (max-width:600px) {
+  .arch-workspace:has(.network-layout) {min-height: min(520px, 90dvh);}
+  .network-layout {overflow:auto;}
+  .network-sheet {min-height: 180px;}
+}
+.live-file-actions button[aria-pressed=true] {background:var(--active);border-color:var(--muted);color:var(--ink);}
+.live-file-actions button:focus-visible {outline:2px solid currentColor;outline-offset:2px;}

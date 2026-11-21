@@ -61,9 +61,13 @@ export default function IacDiff({
         확인하세요. {errors[0] || before.errors[0]}
       </p>
     );
-  if (!paths.length) return <p>생성된 IaC에 변경이 없습니다.</p>;
+  const preserved = baseline.sources.filter(f => files["terraform/"+f.name] === f.content);
+  const retained = preserved.length ? <details><summary>원문 그대로인 파일 {preserved.length}개</summary>
+    <ul>{preserved.map(f=><li key={f.name}>{f.name}{f.preservedDeclarations?.length ? " · 원문 보존 선언 "+f.preservedDeclarations.length+"개" : ""}</li>)}</ul></details> : null;
+  if (!paths.length) return <><p>생성된 IaC에 변경이 없습니다.</p>{retained}</>;
   return (
     <div className="iac-diff">
+      {retained}
       <label>
         변경 파일{" "}
         <select value={path} onChange={(e) => setChoice(e.target.value)}>

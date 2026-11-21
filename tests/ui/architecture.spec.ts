@@ -434,8 +434,8 @@ test("Seoul two-zone drawing fits both dimensions and its title remains readable
   await button("템플릿으로 시작").click();
   await button("리소스 팔레트").click();
   await button("Terraform·속성 패널").click();
-  await button("확대 보기").click();
-  await button("전체 맞춤").click();
+  await page.getByLabel("도면 배율").selectOption("actual");
+  await page.getByLabel("도면 배율").selectOption("fit");
   for(const [width,height] of [[2048,1120],[1366,768],[1366,1000],[780,900]]){
     await page.setViewportSize({width,height});
     await expect.poll(()=>page.locator(".arch-workspace").evaluate(el=>{
@@ -450,3 +450,41 @@ test("Seoul two-zone drawing fits both dimensions and its title remains readable
     expect(await title.evaluate(el=>el.scrollHeight<=el.clientHeight+1 && el.scrollWidth<=el.clientWidth+1)).toBe(true);
   }
 });
+
+for (const [provider, template] of [
+  ["AWS","서울 리전 · 이중 AZ 프라이빗 이그레스"],
+  ["Azure","보안 가상 허브와 중앙 방화벽"],
+  ["GCP","교차 리전 내부 애플리케이션 서비스"],
+]) {
+  test(provider+" inspector fits short diffs and scaled laptop viewports",async({browser})=>{
+    for (const scale of [1.25,1.5]) {
+      const context=await browser.newContext({deviceScaleFactor:scale,
+        viewport:{width:Math.floor(1920/scale),height:Math.floor(1080/scale)}});
+      try {
+        const page=await context.newPage();
+        await page.goto("http://127.0.0.1:5173/");
+        const button=(name:string)=>page.getByRole("button",{name,exact:true});
+        await button("새로 만들기").click();
+        await button("xinfra 캔버스").click();
+        await page.getByLabel("공급자",{exact:true}).selectOption(provider);
+        await button(template).click();
+        await button("템플릿으로 시작").click();
+        await page.locator(".case-blueprint [data-resource]").first().focus()
+        await page.keyboard.press("Enter");
+        await button("변경 줄 보기").click();
+        const rail=page.locator(".arch-review-rail");
+        await expect(rail).toContainText("페이지를 열었을 때와 같습니다.");
+        const sizes=await rail.evaluate(el=>{
+          const viewer=el.querySelector(".terraform-live")!, properties=el.querySelector(".arch-properties")!;
+          return {slack:viewer.getBoundingClientRect().bottom-viewer.lastElementChild!.getBoundingClientRect().bottom,
+            nested:properties.scrollHeight-properties.clientHeight, overflow:el.scrollWidth-el.clientWidth};
+        });
+        expect(sizes.slack).toBeLessThan(24);
+        expect(sizes.nested).toBeLessThan(2);
+        expect(sizes.overflow).toBeLessThan(2);
+        await page.getByLabel("도면 배율").selectOption("selection");
+        await expect(page.locator(".case-blueprint svg").first()).toBeVisible();
+      } finally { await context.close(); }
+    }
+  });
+}

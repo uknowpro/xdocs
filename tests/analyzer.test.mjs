@@ -86,3 +86,12 @@ test("Helm origins use the rendered document index and keep ambiguous findings u
     readAnalyzerSource({ ...source, file: "../package.json" }),
   );
 });
+
+test("path evidence follows the two endpoints even in a shared manifest", () => {
+  const nodes=["Ingress","Service","Deployment"].map((kind,i)=>({
+    kind,name:"web",file:"app.yaml",reference:"doc"+i,
+  }));
+  const evidence=nodes.map(n=>({file:n.file,reference:n.reference+".spec"}));
+  const report=analyzerReport({connections:[{nodes,evidence,status:"declared"}]});
+  assert.deepEqual(report.paths[0].edgeEvidence,[[0,1],[1,2]]);
+});
