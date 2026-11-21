@@ -49,7 +49,7 @@ try {
   const page = await app.firstWindow();
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Terraform 가져오기", exact: true })
@@ -174,7 +174,7 @@ try {
   }, project);
   const button = (name) => page.getByRole("button", { name, exact: true });
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await button("로컬 모듈 포함 폴더 가져오기").click();
   await expect(page.locator(".infra-preview")).toContainText("module/main.tf");
   await page.locator(".infra-preview").getByRole("checkbox").check();

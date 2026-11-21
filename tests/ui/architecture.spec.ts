@@ -6,7 +6,7 @@ test("IaCD canvas edits, moves, connects, undoes and preserves WAF notes with co
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page
     .getByRole("button", { name: "멀티클라우드 예제", exact: true })
@@ -114,7 +114,7 @@ test("Invalid architecture blocks export until required connection is supplied",
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "빈 캔버스", exact: true }).click();
   await page
@@ -136,7 +136,7 @@ test("dropping a compute instance into another subnet changes membership", async
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
   await page.getByLabel("컴포넌트 공급자").selectOption("AWS");
@@ -174,7 +174,7 @@ test("selected references and generated IaC reflect the same subnet move", async
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
   await page.getByLabel("컴포넌트 공급자").selectOption("AWS");
@@ -249,7 +249,7 @@ test("boundary view edits preserve IaC and collapse nested resources", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
   const resource = (name: string) =>
@@ -289,7 +289,7 @@ test("boundary view edits preserve IaC and collapse nested resources", async ({
 test("WAF compares local module inputs and outputs and clears invalid results", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await page.getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true }).click();
+  await page.getByRole("button", { name: "xinfra 캔버스", exact: true }).click();
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
   await page.getByRole("button", { name: "WAF 검토" }).click();
   await page.getByText("AVM · Terraform 모듈 버전 비교").click();
@@ -311,7 +311,7 @@ test("review a live Terraform edit beside the canvas and follow incoming referen
   await page.goto("/");
   const button = (name: string) => page.getByRole("button", { name, exact: true });
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   const gallery = page.getByRole("group", { name: "설계 템플릿" });
   const total = await gallery.getByRole("button").count();
   await button("구성도 확대 미리보기").click();
@@ -347,7 +347,7 @@ test("xinfra palette search and independent panels preserve the active drawing",
   await page.goto("/");
   const button=(name:string)=>page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await button("서울 리전 · 이중 AZ 프라이빗 이그레스").click();
   await button("템플릿으로 시작").click();
   const search=page.getByRole("searchbox",{name:"추가할 리소스 검색"});
@@ -372,7 +372,7 @@ test("provider palette isolates registry resources and adds a generic Azure comp
   await page.goto("/");
   const button = (name:string) => page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await button("빈 캔버스").click();
   const provider = page.getByLabel("컴포넌트 공급자");
   const query = page.getByRole("searchbox",{name:"추가할 리소스 검색"});
@@ -390,7 +390,7 @@ test("a cloud service outside the snapshot can be drawn under its provider", asy
   await page.goto("/");
   const button = (name:string) => page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await button("빈 캔버스").click();
   await page.getByLabel("컴포넌트 공급자").selectOption("GCP");
   await page.getByLabel("컴포넌트 종류").selectOption("service");
@@ -404,7 +404,7 @@ test("cloud schema fields, subnet reference and minimap work at laptop size", as
   await page.goto("/");
   const button=(name:string)=>page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await button("빈 캔버스").click();
   await page.getByLabel("컴포넌트 공급자").selectOption("AWS");
   const query=page.getByRole("searchbox",{name:"추가할 리소스 검색"});

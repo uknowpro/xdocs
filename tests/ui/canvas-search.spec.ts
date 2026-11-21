@@ -9,7 +9,7 @@ test("keyboard search reveals folded resources and preserves the saved layout", 
   const button = (name: string) =>
     page.getByRole("button", { name, exact: true });
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await button("멀티클라우드 예제").click();
   const ec2 = button("컴포넌트 Application EC2");
   const id = await ec2.getAttribute("data-scope");
@@ -46,7 +46,7 @@ test("context insertion assigns the selected subnet and undoes the entire operat
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
   const subnet = page.getByRole("button", {
@@ -84,7 +84,7 @@ test("AWS search distinguishes vaults by account and selects the matching SVG el
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "AWS 백업 드로잉 예제" }).click();
   const find = page.getByRole("combobox", { name: "AWS 구성요소 찾기" });

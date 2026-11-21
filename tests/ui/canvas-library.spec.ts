@@ -51,7 +51,7 @@ test("AWS account drawings preserve edits and render inside a note", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByRole("button", { name: "AWS 백업 드로잉 예제" }).click();
   const paper = page.getByLabel("AWS 구성도");

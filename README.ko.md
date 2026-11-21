@@ -46,7 +46,7 @@ xinfra의 기본 경계 도면에서 **AWS VPC → Subnet → EC2**, **Azure Res
 </details>
 
 <details>
-<summary>xinfra 아키텍처 캔버스 보기</summary>
+<summary>xinfra 캔버스 보기</summary>
 
 **xinfra → 사례 설계**에서 서울 이중 AZ 이그레스, EKS 사설 운영 플랫폼, 이중 라우터 기반 AWS·GCP 지점망, Azure 허브·스포크, GCP 서울·도쿄 Shared VPC 설계를 열 수 있습니다. 구성도에서 리소스를 선택하면 속성과 Terraform 원본을 확인할 수 있습니다. 점선 화살표는 운영 시 연결할 경로입니다.
 

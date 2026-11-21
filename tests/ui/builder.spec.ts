@@ -34,7 +34,7 @@ test("catalog creates an Azure AVM canvas and exposes the selected module", asyn
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByLabel("공급자", { exact: true }).selectOption("Azure");
   await page.getByRole("button", { name: "컴포넌트 편집", exact: true }).click();
@@ -63,7 +63,7 @@ test("packaged multi-cloud VPN case opens without network access", async ({ page
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, (r) => r.abort());
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await page.getByLabel("공급자",{exact:true}).selectOption("멀티클라우드");
   await expect.poll(() => page.locator(".template-thumbnail img").evaluateAll(
@@ -134,7 +134,7 @@ test("retired AWS templates are absent from gallery search", async ({ page }) =>
   await page.setViewportSize({width:1440,height:1000});
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await page.getByRole("button", {name:"xinfra 아키텍처 캔버스", exact:true}).click();
+  await page.getByRole("button", {name:"xinfra 캔버스", exact:true}).click();
   const search = page.getByLabel("템플릿 검색");
   await search.fill("결제 서비스 · 격리 복구 리허설");
   await expect(page.getByRole("button", {name:"템플릿으로 시작"})).toBeDisabled();
@@ -186,7 +186,7 @@ test("Builder copies a customized step from another page independently", async (
 test("Seoul case opens both AZs and selects the NAT declaration", async ({page}) => {
   await page.goto("/");
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
-  await page.getByRole("button", {name:"xinfra 아키텍처 캔버스",exact:true}).click();
+  await page.getByRole("button", {name:"xinfra 캔버스",exact:true}).click();
   await page.getByRole("button", {name:"사례 설계",exact:true}).click();
   await page.getByRole("button", {name:"서울 리전 · 이중 AZ 프라이빗 이그레스",exact:true}).click();
   await page.getByRole("button", {name:"템플릿으로 시작"}).click();
@@ -215,7 +215,7 @@ for(const [provider,title,address] of [
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/,route=>route.abort());
   await page.goto("/");
   const btn=(name:string)=>page.getByRole("button",{name,exact:true});
-  await btn("새로 만들기").click();await btn("xinfra 아키텍처 캔버스").click();
+  await btn("새로 만들기").click();await btn("xinfra 캔버스").click();
   await page.getByLabel("공급자",{exact:true}).selectOption(provider);
   await btn("사례 설계").click();await btn(title).click();await btn("템플릿으로 시작").click();
   const diagram=page.locator(".case-blueprint");
@@ -229,7 +229,7 @@ test("Azure egress path opens the source declaration for every hop",async({page}
   await page.goto("/");
   const button=(name:string)=>page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await page.getByLabel("공급자",{exact:true}).selectOption("Azure");
   await button("허브·스포크 NAT와 방화벽").click();
   await button("템플릿으로 시작").click();
@@ -246,7 +246,7 @@ test("every catalog preview loads offline, exposes its reviewed path and fits th
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/,route=>route.abort());
   const btn=(name:string)=>page.getByRole("button",{name,exact:true});
   await btn("새로 만들기").click();
-  await btn("xinfra 아키텍처 캔버스").click();
+  await btn("xinfra 캔버스").click();
   for(const [provider,count] of [["AWS",4],["Azure",19],["GCP",10],["멀티클라우드",2]] as const){
     await page.getByLabel("공급자",{exact:true}).selectOption(provider);
     const cards=page.getByRole("group",{name:"설계 템플릿"}).locator(".template-card");
@@ -267,7 +267,7 @@ test("follow the Azure firewall route from a card into its Terraform property", 
   await page.goto("/");
   const button = (name:string) => page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await page.getByLabel("공급자",{exact:true}).selectOption("Azure");
   await page.getByLabel("템플릿 검색").fill("301-nat-gateway");
   await page.getByText("필수 입력과 준비 사항",{exact:true}).click();
@@ -301,7 +301,7 @@ test("an Azure connection offers both source locations before jumping", async ({
   await page.goto("/");
   const button = (name:string) => page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await page.getByLabel("공급자",{exact:true}).selectOption("Azure");
   await page.getByLabel("템플릿 검색").fill("azure-quickstart-101-front-door-premium-storage-blobs-private-link");
   await page.locator(".thumbnail-reference").click();
@@ -329,7 +329,7 @@ for (const [provider, title, label, address, field] of [
   await page.goto("/");
   const button = (name:string) => page.getByRole("button", {name, exact:true});
   await button("새로 만들기").click();
-  await button("xinfra 아키텍처 캔버스").click();
+  await button("xinfra 캔버스").click();
   await page.getByLabel("공급자",{exact:true}).selectOption(provider);
   await button(title).click();
   const preview = page.locator(".template-card").filter({has:button(title)}).locator("img");

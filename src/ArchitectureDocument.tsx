@@ -242,7 +242,7 @@ export function ArchitectureStart({
       <section
         className="dialog architecture-start"
         role="dialog"
-        aria-label="xinfra 아키텍처 캔버스 만들기"
+        aria-label="xinfra 캔버스 만들기"
       >
         <header>
           <h2>xinfra · 아키텍처 설계</h2>
@@ -965,20 +965,16 @@ export default function ArchitectureDocument({
       ref={section}
       data-search-scope
       className="architecture-document"
-      aria-label="xinfra 아키텍처 캔버스 편집기"
+      aria-label="xinfra 캔버스 편집기"
     >
-      <div className="arch-header">
-        <div>
-          <span className="eyebrow">
-            xinfra
-          </span>
+      <header className="arch-command-row">
+        <div className="arch-header">
           <input
             aria-label="아키텍처 제목"
             value={model.title}
             readOnly={readonly}
             onChange={(e) => change({ ...model, title: e.target.value })}
           />
-        </div>
         <span className="arch-count">
           {tab === "drawing"
             ? (model.drawing?.accounts.length ?? 0) +
@@ -1049,6 +1045,7 @@ export default function ArchitectureDocument({
           </button>
         </div>
       </div>
+      </header>
       {error && <p role="alert">{error}</p>}
       {status && <p role="status">{status}</p>}
       {tab === "drawing" && (

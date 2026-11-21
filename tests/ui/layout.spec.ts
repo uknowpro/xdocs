@@ -65,7 +65,7 @@ test("narrow screens can navigate, read code and reach dialog controls", async (
   await open.click();
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page
-    .getByRole("button", { name: "xinfra 아키텍처 캔버스", exact: true })
+    .getByRole("button", { name: "xinfra 캔버스", exact: true })
     .click();
   await fitsWidth(page, ".dialog");
   await page.getByRole("button", { name: "멀티클라우드 예제" }).click();
@@ -99,7 +99,7 @@ for (const width of [390, 780, 1440]) {
       );
     }
     for (const [entry, section, actions] of [
-      ["xinfra 아키텍처 캔버스", ".architecture-start", ".arch-start-options"],
+      ["xinfra 캔버스", ".architecture-start", ".arch-start-options"],
       ["인프라 문서", ".infrastructure-start", ".infra-actions"],
     ]) {
       await openFromMenu(entry);
@@ -160,7 +160,7 @@ test("compact navigation leaves ten complete rows visible on a 1366px laptop", a
   await expect(create).toBeInViewport();
   await expect(page.getByRole("button", {name:"환경 설정"})).toBeInViewport();
   await create.click();
-  await expect(page.getByRole("button", {name:"xinfra 아키텍처 캔버스"})).toBeInViewport();
+  await expect(page.getByRole("button", {name:"xinfra 캔버스"})).toBeInViewport();
   await page.keyboard.press("Escape");
   await expect(create).toBeFocused();
   await page.getByRole("button", {name:"워크스페이스 전환"}).click();
@@ -206,4 +206,20 @@ test("create a folder inline with Enter or cancel with Escape on desktop and mob
     await input.press("Enter");
     await expect(page.getByRole("button",{name:"프로젝트 "+width,exact:true})).toBeVisible();
   }
+});
+
+test("canvas title and design modes share a row and tool pages omit the text footer", async ({page}) => {
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto("/");
+  await expect(page.locator(".document-end")).toContainText("자");
+  await expect(page.locator(".document-end")).not.toContainText("—");
+  const button=(name:string)=>page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("xinfra 캔버스").click();
+  await button("멀티클라우드 예제").click();
+  const title=await page.getByLabel("아키텍처 제목").boundingBox();
+  const mode=await button("설계").boundingBox();
+  expect(Math.abs(title!.y+title!.height/2-mode!.y-mode!.height/2)).toBeLessThan(6);
+  await expect(page.locator(".document-end")).toHaveCount(0);
+  expect(await page.locator(".view-tabs .note-utilities").count()).toBe(1);
 });

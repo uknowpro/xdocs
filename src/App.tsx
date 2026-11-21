@@ -72,6 +72,7 @@ import {
 import {
   FileStack,
   Workflow,
+  Blocks,
   AlignLeft,
   ArrowDownToLine,
   ArrowUpRight,
@@ -874,6 +875,7 @@ export default function App() {
   const nameFieldLabel = naming?.existing
     ? (isFolderPage(naming.existing) ? "폴더 이름 변경" : "페이지 이름 변경")
     : (naming?.kind ? "페이지 이름" : "폴더 이름");
+  const isToolPage = Boolean(sheetData || infraData || architectureData || xcode || analyzer || builder || flow);
   return (
     <div className={`app ${sidebar ? "" : "sidebar-hidden"}`}>
       <header className="titlebar">
@@ -1064,7 +1066,7 @@ export default function App() {
             }}
           >
             <Workflow size={16} />
-            xinfra 아키텍처 캔버스
+            xinfra 캔버스
           </button>
           <button
             className="nav-item"
@@ -1087,7 +1089,7 @@ export default function App() {
             disabled={!workspace || readonly || busy}
             onClick={() => void createPage("builder")}
           >
-            <Workflow size={16} />
+            <Blocks size={16} />
             Harness 만들기
           </button>
           <select
@@ -1378,93 +1380,7 @@ export default function App() {
               연결 탐색<span>{outgoing.length + backlinks.length}</span>
             </button>
             <div className="view-tools">
-              {view === "note" &&
-                activeNote &&
-                !readonly &&
-                !sheetData &&
-                !infraData &&
-                !architectureData &&
-                !xcode &&
-                !analyzer &&
-                !builder &&
-                !flow && (
-                  <button
-                    className="mode-switch"
-                    onClick={() => setEdit((s) => !s)}
-                  >
-                    {edit ? <Eye size={14} /> : <Pencil size={14} />}{" "}
-                    {edit ? "읽기 모드" : "편집하기"}
-                  </button>
-                )}
-            </div>
-          </div>
-        )}
-        {!workspace ? (
-          <section className="welcome">
-            <span className="welcome-symbol">
-              <BookOpen size={38} />
-            </span>
-            <span className="eyebrow">YOUR NOTES. YOUR SPACE.</span>
-            <h1>
-              생각이 머무는
-              <br />
-              나만의 공간.
-            </h1>
-            <p>
-              내 폴더에 기록하고, 노트를 연결하세요.
-              <br />
-              계정 없이, 인터넷 없이 시작할 수 있습니다.
-            </p>
-            <button
-              className="button primary"
-              onClick={openVault}
-              disabled={busy}
-            >
-              <FolderOpen size={16} />
-              보관함 폴더 열기
-            </button>
-            <small>기존 Markdown 폴더 또는 빈 폴더를 선택하세요.</small>
-          </section>
-        ) : view === "graph" ? (
-          <Graph
-            notes={notes}
-            active={active}
-            onOpen={(id) => void navigate(id)}
-          />
-        ) : !activeNote ? (
-          <section className="welcome">
-            <FileText size={35} />
-            <h1>첫 생각을 기록해 보세요.</h1>
-            <p>새 노트를 만들거나 Markdown 파일을 가져오세요.</p>
-            <div className="row">
-              <button
-                className="button primary"
-                onClick={() => void createNote()}
-              >
-                <Plus size={16} />새 노트
-              </button>
-              <button
-                className="button"
-                onClick={importNotes}
-                disabled={!isDesktop}
-              >
-                <Upload size={16} />
-                가져오기
-              </button>
-            </div>
-          </section>
-        ) : (
-          <div
-            className={`document-layout ${edit ? "editing" : ""} ${sheetData || infraData || architectureData || xcode || analyzer || builder || flow ? "sheet-layout" : ""}`}
-          >
-            <article className="document">
-              {readingKey && reading.titles.length > 0 && (
-                <details className="compact-outline">
-                  <summary>이 노트의 목차</summary>
-                  {outline}
-                </details>
-              )}
-              {activeNote && (
+              {view === "note" && activeNote && (
                 <div className="note-utilities">
                   {!edit &&
                     !readonly &&
@@ -1575,6 +1491,92 @@ export default function App() {
                     </button>
                   )}
                 </div>
+              )}
+              {view === "note" &&
+                activeNote &&
+                !readonly &&
+                !sheetData &&
+                !infraData &&
+                !architectureData &&
+                !xcode &&
+                !analyzer &&
+                !builder &&
+                !flow && (
+                  <button
+                    className="mode-switch"
+                    onClick={() => setEdit((s) => !s)}
+                  >
+                    {edit ? <Eye size={14} /> : <Pencil size={14} />}{" "}
+                    {edit ? "읽기 모드" : "편집하기"}
+                  </button>
+                )}
+            </div>
+          </div>
+        )}
+        {!workspace ? (
+          <section className="welcome">
+            <span className="welcome-symbol">
+              <BookOpen size={38} />
+            </span>
+            <span className="eyebrow">YOUR NOTES. YOUR SPACE.</span>
+            <h1>
+              생각이 머무는
+              <br />
+              나만의 공간.
+            </h1>
+            <p>
+              내 폴더에 기록하고, 노트를 연결하세요.
+              <br />
+              계정 없이, 인터넷 없이 시작할 수 있습니다.
+            </p>
+            <button
+              className="button primary"
+              onClick={openVault}
+              disabled={busy}
+            >
+              <FolderOpen size={16} />
+              보관함 폴더 열기
+            </button>
+            <small>기존 Markdown 폴더 또는 빈 폴더를 선택하세요.</small>
+          </section>
+        ) : view === "graph" ? (
+          <Graph
+            notes={notes}
+            active={active}
+            onOpen={(id) => void navigate(id)}
+          />
+        ) : !activeNote ? (
+          <section className="welcome">
+            <FileText size={35} />
+            <h1>첫 생각을 기록해 보세요.</h1>
+            <p>새 노트를 만들거나 Markdown 파일을 가져오세요.</p>
+            <div className="row">
+              <button
+                className="button primary"
+                onClick={() => void createNote()}
+              >
+                <Plus size={16} />새 노트
+              </button>
+              <button
+                className="button"
+                onClick={importNotes}
+                disabled={!isDesktop}
+              >
+                <Upload size={16} />
+                가져오기
+              </button>
+            </div>
+          </section>
+        ) : (
+          <div
+            className={`document-layout ${edit ? "editing" : ""} ${isToolPage ? "sheet-layout" : ""}`}
+          >
+            <article className="document">
+              {readingKey && reading.titles.length > 0 && (
+                <details className="compact-outline">
+                  <summary>이 노트의 목차</summary>
+                  {outline}
+                </details>
               )}
               {loadingNote || creatingNote ? (
                 <p className="muted">노트 불러오는 중…</p>
@@ -1839,9 +1841,8 @@ export default function App() {
                 />
               )}
               <Attachments body={body} />
-              <div className="document-end">
-                <span>—</span>
-                <span>
+              {!isToolPage && <div className="document-end">
+                <span className="document-tags">
                   {tags.map((t) => (
                     <span className="tag" key={t}>
                       #{t}
@@ -1849,7 +1850,7 @@ export default function App() {
                   ))}
                 </span>
                 <span>{body.length.toLocaleString()}자</span>
-              </div>
+              </div>}
             </article>
             <aside className="context">
               <div className="context-heading">
