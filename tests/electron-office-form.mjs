@@ -49,7 +49,7 @@ try {
   const panel=page.locator(".office-form");
   await expect(panel.locator('input[value="730"]')).toBeVisible();
   await expect(panel.locator('input[value="Kim"]')).toBeVisible();
-  const field=panel.locator(".office-source-field").filter({has:panel.locator('input[value="730"]')});
+  const field=panel.locator(".office-source-field").filter({has:page.locator('input[value="730"]')});
   await field.getByText("budget.xlsx · Budget!D12",{exact:true}).click();
   await expect(field.locator("pre")).toHaveText("730");
   await panel.getByLabel("근거 누락·충돌만 보기").check();
