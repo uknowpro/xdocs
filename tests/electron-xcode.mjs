@@ -379,6 +379,8 @@ try {
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByLabel("API 주소").fill(endpoint);
   await page.getByLabel("xcode 메시지").fill("parallel-second");
+  await page.getByRole("button",{name:"왼쪽 메뉴 접기",exact:true}).click();
+  await expect(page.locator('.session-tabs [data-state="running"]')).toHaveCount(1);
   caseMode = "normal";
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect(page.locator(".xcode article")).toContainText("parallel-second");
@@ -397,6 +399,8 @@ try {
   await expect(page.locator(".xcode article")).not.toContainText(
     "first finished",
   );
+  await expect(page.locator('.session-tabs button:not([aria-current]) [data-state="complete"]')).toHaveCount(1);
+  await page.getByRole("button",{name:"왼쪽 메뉴 펼치기",exact:true}).click();
   const send = page.getByRole("button", { name: "전송", exact: true }),
     input = page.getByLabel("xcode 메시지");
   await openAdvanced();

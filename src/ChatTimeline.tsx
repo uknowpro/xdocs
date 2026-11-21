@@ -58,6 +58,7 @@ function Question({ prompt, files }: { prompt: string; files: string[] }) {
 
 export default function ChatTimeline({
   turns,
+  reading,
   pending,
   preview,
   phase,
@@ -66,6 +67,7 @@ export default function ChatTimeline({
   readonly,
   applyHarness,
 }: {
+  reading: { top:number; follow:boolean };
   turns: Turn[];
   pending: PendingMessage | null;
   preview: string;
@@ -76,8 +78,8 @@ export default function ChatTimeline({
   applyHarness: (h: Harness) => void;
 }) {
   const view = useRef<HTMLDivElement>(null),
-    follow = useRef(true);
-  const [away, setAway] = useState(false),
+    follow = useRef(reading.follow);
+  const [away, setAway] = useState(!reading.follow),
     [copied, setCopied] = useState<number | null>(null),
     [copyError, setCopyError] = useState("");
   useEffect(() => {
@@ -85,6 +87,9 @@ export default function ChatTimeline({
     const timer = window.setTimeout(() => setCopied(null), 1800);
     return () => window.clearTimeout(timer);
   }, [copied]);
+  useLayoutEffect(() => {
+    if (view.current && !reading.follow) view.current.scrollTop = reading.top;
+  }, [reading]);
   useLayoutEffect(() => {
     if (follow.current && view.current)
       view.current.scrollTop = view.current.scrollHeight;
@@ -102,6 +107,8 @@ export default function ChatTimeline({
           const el = e.currentTarget;
           follow.current =
             el.scrollHeight - el.clientHeight - el.scrollTop < 48;
+          reading.top = el.scrollTop;
+          reading.follow = follow.current;
           setAway(!follow.current);
         }}
       >

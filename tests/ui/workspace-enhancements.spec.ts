@@ -1,3 +1,4 @@
+import {fresh,pack} from "../../src/xcode-session";
 import {test,expect} from "@playwright/test";
 
 test("selected sheet range creates a note without neighbouring cells",async({page})=>{
@@ -121,6 +122,12 @@ test("sheet row menu deletes the selected data rows or just the clicked row",asy
   await cell(2).click({button:"right"});
   await page.getByRole("button",{name:"1행 삭제",exact:true}).click();
   await expect(cell(2)).toHaveValue("four");
+  await cell(2).press("Control+z"); await expect(cell(2)).toHaveValue("three");
+  await cell(2).press("Meta+z"); await expect(cell(2)).toHaveValue("one");
+  await expect(cell(3)).toHaveValue("two");
+  await cell(2).press("Control+Shift+z"); await expect(cell(2)).toHaveValue("three");
+  await cell(2).press("Meta+Shift+z"); await expect(cell(2)).toHaveValue("four");
+  await expect(cell(1)).toHaveValue("header");
 });
 
 test("wide xcode header uses the page while chat stays centered",async({page})=>{
@@ -140,4 +147,64 @@ test("wide xcode header uses the page while chat stays centered",async({page})=>
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x+box!.width).toBeLessThanOrEqual(width);
   }
+});
+
+test("session tabs retain independent drafts and transcript positions",async({page})=>{
+  const session=fresh();
+  session.turns=Array.from({length:36},(_,i)=>({prompt:"질문 "+i,files:[],answers:[{stage:"응답",text:"답변 "+i}]}));
+  const notes=["세션 A","세션 B"].map((title,i)=>({id:"session-"+i,title,path:title+".md",revision:"1",body:"# "+title+"\n\n"+pack(session)}));
+  await page.addInitScript(notes=>localStorage.setItem("xdocs.preview.v1",JSON.stringify({name:"워크스페이스",root:"미리보기",notes})),notes);
+  await page.goto("/");
+  await page.getByRole("button",{name:"세션 A",exact:true}).click();
+  await page.getByRole("button",{name:"왼쪽 메뉴 접기",exact:true}).click();
+  const tabs=page.getByRole("navigation",{name:"xcode 세션 전환"});
+  const prompt=page.getByLabel("xcode 메시지");
+  const scroll=page.locator(".chat-scroll");
+  for(const [name,draft,top] of [["세션 A","첫 초안",180],["세션 B","다른 초안",350]] as const){
+    await tabs.getByRole("button",{name,exact:true}).click();
+    await prompt.fill(draft);
+    await scroll.evaluate((el,top)=>el.scrollTo(0,top),top);
+    await expect(page.locator(".chat-latest")).toBeVisible();
+  }
+  for(const [name,draft,top] of [["세션 A","첫 초안",180],["세션 B","다른 초안",350]] as const){
+    await tabs.getByRole("button",{name,exact:true}).click();
+    await expect(prompt).toHaveValue(draft);
+    await expect.poll(()=>scroll.evaluate(el=>el.scrollTop)).toBe(top);
+  }
+});
+
+test("sheet search and address navigation cross page boundaries",async({page})=>{
+  await page.goto("/");
+  const button=(name:string)=>page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();await button("새 시트 테이블").click();
+  const start=page.getByLabel("시트 1 A1",{exact:true});
+  await start.evaluate(el=>{
+    const data=new DataTransfer();
+    data.setData("text/plain",Array.from({length:205},(_,i)=>i===0?"헤더":i===2||i===203?"일치":"행"+i).join("\n"));
+    el.dispatchEvent(new ClipboardEvent("paste",{clipboardData:data,bubbles:true,cancelable:true}));
+  });
+  await page.getByLabel("첫 행을 헤더로 사용").check();
+  await start.press("Control+f");
+  const input=page.getByLabel("찾을 값");
+  await input.fill("일치");await input.press("Enter");
+  await expect(page.locator("td.selected textarea")).toHaveAttribute("data-row","2");
+  await input.press("Enter");await expect(page.locator("td.selected textarea")).toHaveAttribute("data-row","203");
+  await input.press("Shift+Enter");await expect(page.locator("td.selected textarea")).toHaveAttribute("data-row","2");
+  const address=page.getByLabel("셀 주소");await address.fill("a205");await address.press("Enter");
+  await expect(page.getByLabel("시트 1 A205",{exact:true})).toBeFocused();
+  await address.fill("A206");await address.press("Enter");
+  await expect(address).toHaveAttribute("aria-invalid","true");
+});
+
+test("Terraform viewer copies the selected resource address",async({page,context})=>{
+  await context.grantPermissions(["clipboard-read","clipboard-write"]);
+  await page.goto("/");
+  const btn=(name:string)=>page.getByRole("button",{name,exact:true});
+  await btn("새로 만들기").click();await btn("xinfra 캔버스").click();await btn("멀티클라우드 예제").click();
+  const node=btn("컴포넌트 Application EC2");await node.click();
+  const address="aws_instance."+await node.getAttribute("data-scope");
+  await expect(page.locator(".tf-address")).toContainText(await page.getByLabel("Terraform 파일",{exact:true}).inputValue());
+  await expect(page.locator(".tf-address")).toContainText(address);
+  await btn("Terraform 주소 복사").click();
+  await expect.poll(()=>page.evaluate(()=>navigator.clipboard.readText())).toBe(address);
 });

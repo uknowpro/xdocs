@@ -3190,3 +3190,38 @@ textarea {
 .main .builder-panel.xcode {max-width:none; width:100%; padding-inline:0;}
 .xcode .chat-workbench {width:min(100%,56rem); margin-inline:auto;}
 .xcode .chat-header > span {min-width:0;}
+
+@media (min-width:801px) and (max-width:1050px) {
+  .arch-editor, .arch-editor[data-palette=false] {
+    grid-template-columns:var(--compact-palette, 116px) minmax(0,1fr) var(--compact-review, min(31%,280px));
+  }
+  .arch-editor[data-palette=false] {--compact-palette:0px;}
+  .arch-editor[data-rail=false] {--compact-review:0px;}
+  .arch-editor > .arch-workspace {grid-column:2;grid-row:1;}
+  .arch-editor > .arch-review-rail:not([hidden]) {
+    grid-column:3;grid-row:1;display:flex;flex-direction:column;contain:size;
+    overflow:auto;min-width:0;border-left:1px solid var(--line);
+  }
+  .arch-review-rail > * {flex:none;min-width:0;}
+  .arch-review-rail .terraform-live {order:-1;}
+  .arch-review-rail .terraform-live pre {max-height:32dvh;overflow:auto;}
+  .arch-editor.inspector-open .arch-properties {
+    position:static;width:auto;max-height:none;overflow:visible;box-shadow:none;
+  }
+}
+.session-tabs button {display:inline-flex;align-items:center;gap:6px;}
+.session-tabs .session-state-dot {width:7px;margin:0;}
+
+.sheet-find,.sheet-find form,.tf-address {display:flex;flex-wrap:wrap;align-items:center;gap:5px;}
+.sheet-find {margin-block:6px;}
+.sheet-find input {min-width:0;width:10em;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:5px;}
+.sheet-find form input {width:5em;}
+.sheet-find button,.tf-address button {display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:4px 6px;}
+.tf-address {flex-wrap:nowrap;margin-block:4px;}
+.tf-address code {min-width:0;overflow-wrap:anywhere;font-size:11px;}
+.chat-waiting {flex:none;max-height:22dvh;overflow:auto;font-size:.85rem;}
+.chat-waiting > div {display:flex;align-items:center;gap:6px;padding-block:3px;}
+.chat-waiting > div > :is(span,textarea) {flex:1;min-width:0;overflow-wrap:anywhere;}
+.chat-waiting small {overflow-wrap:anywhere;}
+.xcode .chat-composer:has(.chat-stop) {grid-template-columns:minmax(0,1fr) auto auto;}
+.xcode .chat-composer > .chat-stop {grid-row:1;grid-column:3;align-self:end;margin:0;min-height:34px;}

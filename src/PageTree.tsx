@@ -1,3 +1,4 @@
+import {sessionStatus} from "./xcode-run";
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
   ChevronDown,
@@ -319,10 +320,7 @@ export default function PageTree({
             kind = folder ? "folder" : pageKind(n!),
             Icon = icons[kind] || FileText;
           const activity = n && phases.get(n.id);
-          const phase = activity?.phase;
-          const status = activity && !activity.busy && activity.outcome ? activity.outcome : phase === undefined ? "idle"
-            : /대기열|초 후/.test(phase) ? "waiting" : "running";
-          const statusLabel = status==="failed" ? "요청 실패" : status==="complete" ? "새 답변 도착" : phase === undefined ? "대기 중인 요청 없음" : phase || "요청 준비 중";
+          const {state:status, label:statusLabel} = sessionStatus(activity || undefined);
           return (
             <div key={e.key} style={{ paddingLeft: Math.min(depth, 10) * 12 }}>
               <div

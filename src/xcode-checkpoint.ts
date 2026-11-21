@@ -57,3 +57,25 @@ export const clearCheckpoint = (key: string) =>
     s.delete(key + "/progress");
     return s.delete(key);
   });
+
+export type QueuedPrompt = {
+  id: string;
+  prompt: string;
+  files: InputFile[];
+  templates: (File | undefined)[];
+  omitted: string[];
+  endpoint: string;
+  model: string;
+};
+
+// Separate keys keep waiting prompts independent of an interrupted stage.
+export const readWaiting = (key:string) =>
+  transact<QueuedPrompt[] | undefined>("readonly",store=>store.get(key+"/waiting"));
+export const writeWaiting = (key:string, items:QueuedPrompt[]) =>
+  items.length ? transact("readwrite",store=>store.put(items,key+"/waiting"))
+    : transact("readwrite",store=>store.delete(key+"/waiting"));
+
+export const readComposerDraft = (key:string) =>
+  transact<string | undefined>("readonly",store=>store.get(key+"/draft"));
+export const writeComposerDraft = (key:string, prompt:string) =>
+  transact("readwrite",store=>store.put(prompt,key+"/draft"));

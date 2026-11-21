@@ -1,6 +1,6 @@
 import path from "node:path";
 import { open, realpath } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { parseAllDocuments } from "yaml";
 
 const sessions = new Map();
@@ -22,7 +22,7 @@ export function helmOrigins(yaml) {
   });
 }
 
-export function traceSources(raw, root, origins) {
+export async function traceSources(raw, root, origins) {
   const files = new Map();
   const session = randomUUID();
   function trace(e) {
@@ -56,6 +56,13 @@ export function traceSources(raw, root, origins) {
   for (const f of raw.findings || raw.report?.findings || []) trace(f);
   for (const c of raw.connections || [])
     for (const e of c.evidence || []) trace(e);
+  for (const file of files.keys()) {
+    try {
+      files.set(file, digest(await readProjectFile(root, file)));
+    } catch {
+      files.set(file, null);
+    }
+  }
   if (sessions.size >= 12) sessions.delete(sessions.keys().next().value);
   sessions.set(session, { root, files });
   return raw;
@@ -64,7 +71,24 @@ export function traceSources(raw, root, origins) {
 export async function readAnalyzerSource({ session, file }) {
   const scan = sessions.get(session);
   if (!scan?.files.has(file)) throw Error("폴더를 다시 분석해 원본을 여세요.");
-  const root = await realpath(scan.root);
+  const expected = scan.files.get(file);
+  let data;
+  try {
+    data = await readProjectFile(scan.root, file);
+  } catch (e) {
+    if (["ENOENT","ENOTDIR"].includes(e.code)) throw Error("원본 파일이 이동하거나 삭제되었습니다. 폴더를 다시 분석하세요.");
+    throw e;
+  }
+  if (digest(data) !== expected) throw Error("분석 이후 원본이 변경되었습니다. 폴더를 다시 분석하세요.");
+  return data.toString("utf8");
+}
+
+function digest(data) {
+  return createHash("sha256").update(data).digest("hex");
+}
+
+async function readProjectFile(directory, file) {
+  const root = await realpath(directory);
   const target = await realpath(path.join(root, file));
   const relative = path.relative(root, target);
   if (
@@ -78,7 +102,7 @@ export async function readAnalyzerSource({ session, file }) {
     const info = await handle.stat();
     if (!info.isFile() || info.size > 2 * 1024 * 1024)
       throw Error("2MB 이하의 원본 텍스트 파일만 열 수 있습니다.");
-    return await handle.readFile("utf8");
+    return await handle.readFile();
   } finally {
     await handle.close();
   }

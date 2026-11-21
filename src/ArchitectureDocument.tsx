@@ -471,7 +471,7 @@ export default function ArchitectureDocument({
   const [sitesOpen,setSitesOpen] = useState(false);
   const [site,setSite] = useState<{file:string;line:number;property:string}>();
   const [selected, setSelected] = useState(entry?.source || model.nodes[0]?.id || ""),
-    [paletteOpen,setPaletteOpen] = useState(true),
+    [paletteOpen,setPaletteOpen] = useState(() => !window.matchMedia("(min-width: 801px) and (max-width: 1050px)").matches),
     [railOpen,setRailOpen] = useState(true),
     [codeOnly,setCodeOnly] = useState(false),
     [paletteQuery,setPaletteQuery] = useState(""),
@@ -660,6 +660,7 @@ export default function ArchitectureDocument({
   }, [result.files, livePath]);
   const viewer = useRef<HTMLDetailsElement>(null);
   const resourceCode = useRef<HTMLDetailsElement>(null);
+  const revealSelection = useRef(false);
   const declaration = declarations.find((d) => d.id === selected);
   const nodeCodePath = useMemo(() => {
     if (!node || tab !== "canvas") return undefined;
@@ -777,7 +778,11 @@ export default function ArchitectureDocument({
       setSelected(n.id);
       setDetail("open");
       const rail = section.current?.querySelector<HTMLElement>(".arch-review-rail");
-      if (railOpen && !codeOnly && rail && rail.scrollTop > 0)
+      revealSelection.current = true;
+      if (railOpen && window.matchMedia("(min-width: 801px) and (max-width: 1050px)").matches && !compareFile) {
+        if (viewer.current) viewer.current.open = true;
+
+      } else if (railOpen && !codeOnly && rail && rail.scrollTop > 0)
         requestAnimationFrame(() => rail.querySelector(".arch-properties header")?.scrollIntoView({block:"nearest",container:"nearest"} as ScrollIntoViewOptions));
     }
   }
@@ -1040,7 +1045,11 @@ export default function ArchitectureDocument({
   useLayoutEffect(() => {
     const code = viewer.current?.querySelector<HTMLElement>('pre[aria-label="Terraform 코드"]');
     const line = code?.querySelector<HTMLElement>('[data-declaration="'+CSS.escape(selected)+'"]');
-    if (code && line) code.scrollTop += line.getBoundingClientRect().top - code.getBoundingClientRect().top - 12;
+    if (!code || !line || !railOpen) return;
+    code.scrollTop += line.getBoundingClientRect().top - code.getBoundingClientRect().top - 12;
+    if (revealSelection.current && window.matchMedia("(min-width: 801px) and (max-width: 1050px)").matches) {
+      line.scrollIntoView({block:"nearest", inline:"nearest"});
+    }
   },[livePath,selected,railOpen,compareFile,tab]);
   return (
     <section
@@ -1975,6 +1984,13 @@ export default function ArchitectureDocument({
                   <option key={name}>{name}</option>
                 ))}
               </select>
+              {declaration && livePath === nodeCodePath && <div className="tf-address">
+                <code title={livePath+" · "+declaration.address}>{livePath} · {declaration.address}</code>
+                <button type="button" aria-label="Terraform 주소 복사" title="Terraform 주소 복사" onClick={async()=>{
+                  try {await navigator.clipboard.writeText(declaration.address);setStatus("Terraform 주소를 복사했습니다.");}
+                  catch {setStatus("클립보드에 접근할 수 없습니다.");}
+                }}><Copy size={14}/></button>
+              </div>}
               {moduleFocus && livePath === "terraform/"+moduleFocus.file && <div>
                 <strong>{moduleFocus.address}</strong>
                 <pre aria-label="모듈 리소스 선언">{moduleDeclarationPreview(model.sources.find(s=>s.name===moduleFocus.file),moduleFocus.address)}</pre>

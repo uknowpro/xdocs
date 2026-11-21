@@ -1,6 +1,6 @@
 import { usePaneHeight } from "./usePaneHeight";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Plus, Copy, ChevronLeft, ChevronRight, FileText, Trash2 } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Plus, Copy, Search, X, ChevronLeft, ChevronRight, FileText, Trash2 } from "lucide-react";
 import {
   parseDelimited,
   toTSV,
@@ -50,10 +50,15 @@ export default function SheetTable({
         (_, c) => sheet.rows[r + minR]?.[c + minC] || "",
       ),
     );
-  function commit(next: SheetBook) {
+  type RowRemoval = { first: number; rows: string[][]; column: number };
+  const history = useRef<{ sheet: string; expected: string; undo: RowRemoval[]; redo: RowRemoval[] }>({
+    sheet: "", expected: "", undo: [], redo: [],
+  });
+  function commit(next: SheetBook, rowAction = false) {
     try {
       validateWorkbook(next);
       onChange(next);
+      if (!rowAction) { history.current.undo = []; history.current.redo = []; }
       setMessage("");
     } catch (e) {
       setMessage(String(e));
@@ -192,6 +197,56 @@ export default function SheetTable({
       updateDrag(true);
     });
   }
+  const [finding, setFinding] = useState(false);
+  const [query, setQuery] = useState("");
+  const [address, setAddress] = useState("");
+  const [hit, setHit] = useState(-1);
+  const [invalidAddress, setInvalidAddress] = useState(false);
+  const findInput = useRef<HTMLInputElement>(null);
+  const matches = useMemo(() => {
+    const needle = query.toLowerCase();
+    const cells: [number,number][] = [];
+    if (finding && needle) sheet.rows.forEach((row,r) => row.forEach((value,c) => {
+      if (value.toLowerCase().includes(needle)) cells.push([r,c]);
+    }));
+    return cells;
+  },[sheet.rows,query,finding]);
+  function revealCell(r:number,c:number,focus=false) {
+    setPage(Math.floor(Math.max(0,r-headerRows)/100));
+    setAnchor([r,c]); setEnd([r,c]); axisAnchor.current=null;
+    requestAnimationFrame(()=>{
+      const cell=viewport.current?.querySelector<HTMLTextAreaElement>(`textarea[data-row="${r}"][data-column="${c}"]`);
+      cell?.scrollIntoView({block:"nearest",inline:"nearest"});
+      if (focus) cell?.focus({preventScroll:true});
+    });
+  }
+  function stepMatch(step:number) {
+    if (!matches.length) return;
+    const next=hit<0 ? (step>0 ? 0 : matches.length-1) : (hit+step+matches.length)%matches.length;
+    setHit(next); revealCell(...matches[next]);
+  }
+  function openFind(){
+    setFinding(true);
+    requestAnimationFrame(()=>{findInput.current?.focus();findInput.current?.select();});
+  }
+  useEffect(()=>{
+    function shortcut(e:KeyboardEvent){
+      if ((e.ctrlKey||e.metaKey) && !e.altKey && e.key.toLowerCase()==="f" &&
+          !document.querySelector("dialog[open], [role=dialog]") && !document.activeElement?.closest("aside")) {
+        e.preventDefault(); openFind();
+      }
+    }
+    window.addEventListener("keydown",shortcut);
+    return ()=>window.removeEventListener("keydown",shortcut);
+  },[]);
+  useEffect(()=>{setHit(-1);setInvalidAddress(false);},[sheet.id]);
+  function goToAddress() {
+    const match=/^([a-z]+)([1-9]\d*)$/i.exec(address.trim());
+    const r=match ? Number(match[2])-1 : -1;
+    const c=match ? [...match[1].toUpperCase()].reduce((n,ch)=>n*26+ch.charCodeAt(0)-64,0)-1 : -1;
+    if (r<0 || r>=rowCount || c<0 || c>=columns) {setInvalidAddress(true); return;}
+    setInvalidAddress(false); setHit(-1); revealCell(r,c,true);
+  }
   function changePage(next: number) {
     setPage(next);
     setAnchor([next * 100 + headerRows, 0]);
@@ -224,10 +279,20 @@ export default function SheetTable({
 
   function deleteRows(first: number, last: number) {
     if (readonly || first < headerRows || last >= sheet.rows.length) return;
-    const rows = sheet.rows.filter((_, index) => index < first || index > last);
-    commit({...workbook, sheets: workbook.sheets.map(s => s.id === sheet.id ? {...s, rows} : s)});
+    const h = history.current;
+    if (h.sheet !== sheet.id || h.expected !== JSON.stringify(sheet)) h.undo = [];
+    h.sheet = sheet.id;
+    h.redo = [];
+    h.undo.push({first, rows:sheet.rows.slice(first,last+1), column:minC});
+    if (h.undo.length > 50) h.undo.shift();
+    applyRowAction(sheet.rows.slice(0,first).concat(sheet.rows.slice(last+1)), first, minC);
+  }
+  function applyRowAction(rows: string[][], first: number, focusColumn: number) {
+    const updated = {...sheet, rows};
+    commit({...workbook, sheets: workbook.sheets.map(s => s.id === sheet.id ? updated : s)}, true);
+    history.current.expected = JSON.stringify(updated);
     const row = Math.max(0, Math.min(first, rows.length - 1));
-    const column = Math.min(minC, Math.max(4, ...rows.map(r => r.length)) - 1);
+    const column = Math.min(focusColumn, Math.max(4, ...rows.map(r => r.length)) - 1);
     setPage(Math.floor(Math.max(0, row - headerRows) / 100));
     setAnchor([row, column]);
     setEnd([row, column]);
@@ -342,6 +407,7 @@ export default function SheetTable({
   return (
     <section className="sheet-book" aria-label="시트 탭형 테이블">
       <div className="sheet-toolbar">
+        <button type="button" className="button" title="시트 찾기 (Ctrl/Cmd+F)" aria-label="시트 찾기" aria-expanded={finding} onClick={openFind}><Search size={14}/></button>
         <button
           className="button"
           onClick={async () => {
@@ -425,6 +491,21 @@ export default function SheetTable({
           </>
         )}
       </div>
+      {finding && <div className="sheet-find" role="search" aria-label="현재 시트 찾기"
+        onKeyDown={e=>{if(e.key==="Escape"){setFinding(false);revealCell(...anchor,true);}}}>
+        <input ref={findInput} aria-label="찾을 값" placeholder="찾을 값" value={query}
+          onChange={e=>{setQuery(e.target.value);setHit(-1);}}
+          onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();stepMatch(e.shiftKey?-1:1);}}}/>
+        <small role="status">{query && (matches.length ? (hit>=0 && hit<matches.length ? (hit+1)+" / " : "")+matches.length+"개" : "검색 결과 없음")}</small>
+        <button type="button" aria-label="이전 검색 결과" disabled={!matches.length} onClick={()=>stepMatch(-1)}><ChevronLeft size={14}/></button>
+        <button type="button" aria-label="다음 검색 결과" disabled={!matches.length} onClick={()=>stepMatch(1)}><ChevronRight size={14}/></button>
+        <form onSubmit={e=>{e.preventDefault();goToAddress();}}>
+          <input aria-label="셀 주소" placeholder="A1" value={address} aria-invalid={invalidAddress} onChange={e=>{setAddress(e.target.value);setInvalidAddress(false);}}/>
+          <button>이동</button>
+        </form>
+        {invalidAddress && <small role="alert">현재 시트 안의 주소를 입력하세요.</small>}
+        <button type="button" aria-label="시트 찾기 닫기" onClick={()=>{setFinding(false);revealCell(...anchor,true);}}><X size={14}/></button>
+      </div>}
       {message && <p role="status">{message}</p>}
       <div className="sheet-grid-settings">
         <span>
@@ -454,6 +535,20 @@ export default function SheetTable({
       <div
         className="sheet-scroll"
         ref={viewport}
+        onKeyDown={e => {
+          if (readonly || editing.current || e.altKey || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+          const h = history.current;
+          const stack = e.shiftKey ? h.redo : h.undo;
+          if (!stack.length || h.sheet !== sheet.id || h.expected !== JSON.stringify(sheet)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.repeat) return;
+          const op = stack.pop()!;
+          const rows = sheet.rows.slice(0,op.first).concat(
+            e.shiftKey ? [] : op.rows, sheet.rows.slice(op.first + (e.shiftKey ? op.rows.length : 0)));
+          (e.shiftKey ? h.undo : h.redo).push(op);
+          applyRowAction(rows, op.first, op.column);
+        }}
         onCopy={(e) => {
           e.preventDefault();
           const input = e.target;

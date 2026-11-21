@@ -1,5 +1,5 @@
 import { pageKind } from "../shared/page-kind.mjs";
-import {sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
+import {sessionStatus,sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
 import Xcode from "./Xcode";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
@@ -1285,19 +1285,23 @@ export default function App() {
       <main ref={mainPane} className="main" inert={compactNav && drawer}>
         {sessionTabs.length > 1 && (
           <nav className="session-tabs" aria-label="xcode 세션 전환">
-            {sessionTabs.map((n, i) => (
+            {sessionTabs.map((n, i) => {
+              const {state,label} = sessionStatus(activity.find(item => item.page === n.id));
+              return (
               <button
                 key={n.id}
                 aria-current={active === n.id ? "page" : undefined}
-                title={n.path}
+                title={n.path + " · " + label}
+                aria-description={label}
                 onClick={() => void navigate(n.id)}
               >
+                <i className="session-state-dot" data-state={state} title={label} aria-hidden="true"/>
                 {n.title}
                 {sessionTabs.some((t) => t !== n && t.title === n.title)
                   ? " · " + (i + 1)
                   : ""}
               </button>
-            ))}
+            );})}
           </nav>
         )}
         <div className="toolbar">

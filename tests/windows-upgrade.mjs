@@ -1,3 +1,5 @@
+import { folderBody, withParent } from "../shared/page-parent.mjs";
+import { encodeWorkbook } from "../shared/tabular.mjs";
 import { unzipSync } from "fflate";
 import { _electron as electron, expect } from "@playwright/test";
 import assert from "node:assert/strict";
@@ -19,8 +21,8 @@ if (mode === "seed") {
   await writeFile(path.join(root, "fixture.txt"), "업그레이드 첨부\n");
 }
 const app = await electron.launch({
-  executablePath,
-  args: ["--force-device-scale-factor=" + scale],
+  ...(executablePath === "." ? {} : { executablePath }),
+  args: [...(executablePath === "." ? ["."] : []), "--force-device-scale-factor=" + scale],
   env: { ...process.env, XDOCS_TEST_DATA: data },
 });
 try {
@@ -70,6 +72,18 @@ try {
       },
       path.join(root, "fixture.txt"),
     );
+    // Store representative documents through the old desktop build's vault API.
+    const make = (title,body) => page.evaluate(([title,body])=>window.xdocs.create(title,body),[title,body]);
+    const team = await make("운영팀",folderBody("", "운영팀"));
+    const project = await make("분기 검토",folderBody(team.id,"분기 검토"));
+    const book = encodeWorkbook({version:1,sheets:[{id:"budget",name:"비용",firstRowHeader:true,rows:[["항목","금액"],["운영","420"]]}]});
+    await make("예산표",withParent(project.id,"# 예산표\n\n"+book));
+    for (const name of ["네트워크 검토","비용 검토"]) {
+      const session = {endpoint:"http://localhost/v1",model:"upgrade-test",profile:"",
+        harness:{name:"검토",stages:["검토"],skills:[]},
+        turns:[{prompt:name+" 질문",files:[],answers:[{stage:"검토",text:name+" 답변"}]}]};
+      await make(name,withParent(project.id,"# "+name+"\n\n" + "```xdocs-xcode\n"+JSON.stringify(session)+"\n```"));
+    }
     const expected = await page.evaluate(async () => {
       const api = window.xdocs,
         attachment = await api.addAttachment();
@@ -96,7 +110,7 @@ try {
     await writeFile(manifest, JSON.stringify(expected));
   } else {
     const expected = JSON.parse(await readFile(manifest, "utf8"));
-    assert.equal(expected.notes.length, 3);
+    assert.equal(expected.notes.length, 8);
     await expect(button("왼쪽 메뉴 펼치기")).toBeVisible();
     assert.equal(
       await readFile(path.join(vault, expected.attachment), "utf8"),
@@ -115,6 +129,19 @@ try {
       BrowserWindow.getAllWindows()[0].setContentSize(780, 600),
     );
     const tree = page.getByRole("navigation", { name: "보관함 페이지" });
+    for (const [folder,child] of [["운영팀","분기 검토"],["분기 검토","예산표"]]) {
+      if (!await tree.getByRole("button",{name:child,exact:true}).isVisible())
+        await tree.getByRole("button",{name:folder,exact:true}).click();
+    }
+    await tree.getByRole("button",{name:"예산표",exact:true}).click();
+    await expect(page.getByLabel("첫 행을 헤더로 사용")).toBeChecked();
+    await expect(page.locator("thead textarea").first()).toHaveValue("항목");
+    await expect(page.getByLabel("비용 B2",{exact:true})).toHaveValue("420");
+    for (const name of ["네트워크 검토","비용 검토"]) {
+      await tree.getByRole("button",{name,exact:true}).click();
+      await expect(page.locator(".chat-question")).toHaveText(name+" 질문");
+      await expect(page.locator(".chat-answer")).toHaveText(name+" 답변");
+    }
     await tree.getByRole("button", { name: "새 시트", exact: true }).click();
     await expect(page.locator(".sheet-grid textarea").first()).toHaveValue(
       "분기 예산",

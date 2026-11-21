@@ -143,5 +143,5 @@ export async function analyzeDirectory(
           directory,
         ];
   const result = JSON.parse(await run("kubewiser", args));
-  return mode === "manifest" ? traceSources(result, directory) : result;
+  return (mode === "manifest" || mode === "upgrade") ? traceSources(result, directory) : result;
 }

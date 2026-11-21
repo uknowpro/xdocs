@@ -77,7 +77,7 @@ test("Helm origins use the rendered document index and keep ambiguous findings u
       },
     ],
   };
-  traceSources(raw, ".", origins);
+  await traceSources(raw, ".", origins);
   assert.equal(raw.findings[0].source, undefined);
   const source = raw.connections[0].evidence[0].source;
   assert.equal(source.file, "templates/second.yaml");

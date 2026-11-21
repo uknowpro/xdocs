@@ -223,3 +223,45 @@ test("canvas title and design modes share a row and tool pages omit the text foo
   await expect(page.locator(".document-end")).toHaveCount(0);
   expect(await page.locator(".view-tabs .note-utilities").count()).toBe(1);
 });
+
+for (const width of [1093,911]) test("laptop workspaces fit at CSS width "+width,async({page})=>{
+  await page.setViewportSize({width,height:width===911?512:614});
+  await page.goto("/");
+  const btn=(name:string)=>page.getByRole("button",{name,exact:true});
+  await expect(page.locator(".document")).toBeVisible();
+  await fitsWidth(page,"main, .document");
+  for(const [name,selector] of [
+    ["새 시트 테이블",".sheet-book"],["xcode 세션 만들기",".xcode"],["Analyzer 만들기",".analyzer"],
+    ["Harness 만들기",".builder-panel"],["xinfra 캔버스",".architecture-start"],
+  ]){
+    await btn("새로 만들기").click();await btn(name).click();
+    await expect(page.locator(selector)).toBeVisible();
+    await fitsWidth(page,"main, .document, "+selector);
+    const control=page.locator(selector).getByRole("button").first();
+    await control.scrollIntoViewIfNeeded();
+    await expect(control).toBeInViewport({ratio:1});
+  }
+  await btn("멀티클라우드 예제").click();
+  const node=btn("컴포넌트 Application EC2");
+  await node.click();
+  const line=page.locator(".terraform-live .declaration-line[aria-current=location]");
+  await expect(line).toBeInViewport();
+  const diagram=await page.locator(".arch-workspace").boundingBox();
+  const rail=await page.locator(".arch-review-rail").boundingBox();
+  expect(rail!.x).toBeGreaterThanOrEqual(diagram!.x+diagram!.width-1);
+  expect(Math.abs(rail!.y-diagram!.y)).toBeLessThan(2);
+  await btn("Terraform·속성 패널").click();
+  await btn("Terraform·속성 패널").click();
+  await expect(line).toBeInViewport();
+  await btn("자유 배치·참조선").click();
+  await page.getByLabel("도면 배율").selectOption("actual");
+  const surface=page.locator(".arch-viewport");
+  const center=await surface.evaluate(el=>{
+    el.scrollLeft=(el.scrollWidth-el.clientWidth)/2;
+    return el.scrollLeft+el.clientWidth/2;
+  });
+  for (let i=0;i<2;i++){
+    await btn("Terraform·속성 패널").click();
+    await expect.poll(()=>surface.evaluate((el,expected)=>Math.abs(el.scrollLeft+el.clientWidth/2-expected),center)).toBeLessThan(2);
+  }
+});

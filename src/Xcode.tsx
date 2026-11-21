@@ -11,7 +11,7 @@ import {
   saveCheckpoint,
   saveProgress,
   clearCheckpoint,
-  type Checkpoint,
+  type Checkpoint, type QueuedPrompt,
 } from "./xcode-checkpoint";
 import {
   diagnosticInput,
@@ -119,9 +119,12 @@ export default function Xcode({
   readonly: boolean;
 }) {
   const run = sessionRun(scope, page);
-  const { pending, busy, preview, phase, error, prompt, files, omitted } =
+  const { pending, busy, preview, phase, error, prompt, files, omitted, draftError, waiting, queuePaused, queueReady } =
     useSyncExternalStore(run.subscribe, run.snapshot);
   useEffect(()=>{if(run.snapshot().outcome)run.patch({outcome:""});},[run]);
+  useEffect(()=>{void run.loadWaiting().catch(e=>run.patch({error:String(e)}));},[run]);
+  const [editingItem,setEditingItem] = useState("");
+  const [editedPrompt,setEditedPrompt] = useState("");
   const origin = serverOrigin(s.endpoint);
   const capacity = useCapacity(origin);
   const start = Math.max(
@@ -257,7 +260,7 @@ export default function Xcode({
   const cancel = () => run.cancel();
   const [importing, setImporting] = useState(false);
   async function attach(selected: File[]) {
-    if (busy || readonly || importing) return;
+    if (readonly || importing) return;
     setImporting(true);
     setError("");
     try {
@@ -372,17 +375,76 @@ export default function Xcode({
     [prompt, s.harness, s.turns, files, omitted],
   );
   const currentInput = { s, prompt, selectedFiles, execution };
-  async function send(saved?: Checkpoint) {
-    if (!tokenReady()) return;
+  async function removeWaiting(id:string) {
+    if (run.activeItem===id) return;
+    if (local && !run.snapshot().busy && recovery?.id===id) {
+      await clearCheckpoint(checkpointKey);
+      setRecovery(undefined);
+    }
+    await run.updateWaiting(items=>items.filter(i=>i.id!==id || run.activeItem===id));
+  }
+  async function resumeQueue() {
+    if (readonly || run.snapshot().busy) return;
+    const queued=run.snapshot().waiting[0];
+    if (!queued || !tokenReady()) return;
+    const saved=local ? await loadCheckpoint(checkpointKey) : undefined;
+    if (run.snapshot().busy || run.snapshot().waiting[0]?.id!==queued.id) return;
+    run.patch({queuePaused:false});
+    if (saved?.id===queued.id && saved.prompt===queued.prompt && !s.turns.some(t=>t.runId===queued.id))
+      await send(saved,queued);
+    else await drain(s);
+  }
+  function consumeInput(text:string, attached:InputFile[]) {
+    const draft=run.snapshot();
+    run.patch({prompt:draft.prompt===text ? "" : draft.prompt,
+      files:draft.files.filter(file=>!attached.includes(file))});
+  }
+  async function submit() {
+    if (!api.xcodeChat || readonly || importing || run.submitting || !queueReady) return;
+    if (!run.snapshot().busy && !run.snapshot().waiting.length) { void send(); return; }
+    if (!run.activeItem) run.patch({queuePaused:true});
+    if (!prompt.trim() && !selectedFiles.length) return;
+    const item:QueuedPrompt={id:crypto.randomUUID(),prompt,files:selectedFiles,
+      templates:selectedFiles.map(f=>templateFiles.get(f)),omitted:[...omitted],endpoint:s.endpoint,model:s.model};
+    run.submitting=true;
+    try {
+      await run.updateWaiting(items=>[...items,item]);
+      consumeInput(prompt,selectedFiles);
+    } catch(e) {setError("대기 메시지를 저장하지 못했습니다. "+String(e));}
+    finally {run.submitting=false;}
+  }
+  async function drain(session:Session) {
+    await run.settled();
+    if (run.snapshot().busy || run.snapshot().queuePaused || readonly) return;
+    const item=run.snapshot().waiting[0];
+    if (!item) return;
+    if (session.turns.some(turn=>turn.runId===item.id)) {
+      await run.updateWaiting(items=>items.filter(i=>i.id!==item.id));
+      return drain(session);
+    }
+    if (item.endpoint!==session.endpoint || item.model!==session.model) {
+      run.patch({queuePaused:true,error:"대기 메시지를 추가할 때의 API 주소와 모델을 확인하세요."});
+      return;
+    }
+    item.files.forEach((f,i)=>{if(item.templates[i]) templateFiles.set(f,item.templates[i]!);});
+    await send(undefined,item,session);
+  }
+  async function send(saved?: Checkpoint,item?:QueuedPrompt,context?:Session) {
+    if (!tokenReady()) {run.patch({queuePaused:true});return;}
     const {
       s: session,
       prompt: initialPrompt,
       selectedFiles: initialFiles,
       execution: initialExecution,
     } = currentInput;
-    const s = saved ? { ...session, harness: saved.harness } : session;
-    const prompt = saved?.prompt ?? initialPrompt,
-      selectedFiles = saved?.files ?? initialFiles;
+    const s = saved ? { ...session, harness: saved.harness } : context || session;
+    const excluded=item?.omitted || omitted;
+    const selected=(key:string)=>!excluded.includes(key);
+    const start=Math.max(0,s.turns.length-(s.harness.historyTurns??s.turns.length));
+    const candidates=s.turns.slice(start);
+    const selectedSkills=s.harness.skills.filter((k,i)=>selected("skill:"+i+":"+k.name));
+    const prompt = saved?.prompt ?? item?.prompt ?? initialPrompt,
+      selectedFiles = saved?.files ?? item?.files ?? initialFiles;
     const execution = saved
       ? {
           model: saved.model,
@@ -390,7 +452,8 @@ export default function Xcode({
           skills: saved.harness.skills.map((k) => k.name),
           configuration: saved.harness,
         }
-      : initialExecution;
+      : item ? {...initialExecution,model:s.model,harness:s.harness.name,skills:selectedSkills.map(k=>k.name),
+        configuration:{...s.harness,skills:selectedSkills}} : initialExecution;
     if (saved && (s.model !== saved.model || s.endpoint !== saved.endpoint)) {
       setError("복구하려면 저장 당시 모델과 서버 주소를 선택하세요.");
       return;
@@ -402,9 +465,12 @@ export default function Xcode({
       (!prompt.trim() && !selectedFiles.length)
     )
       return;
-    const id = crypto.randomUUID();
+    const id = saved?.id ?? item?.id ?? crypto.randomUUID();
+    run.activeItem=id;
+    if (!item && !saved) consumeInput(prompt,selectedFiles);
+    let continuation:Session|undefined;
     run.id = id;
-    run.patch({outcome:""});
+    run.patch({outcome:"",queuePaused:false});
     run.enabled = s.autoRetry === true;
     run.patch({
       pending: {
@@ -433,6 +499,7 @@ export default function Xcode({
       }
     });
     try {
+      await run.draftSaved();
       if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
       if (!s.harness.stages.every((i) => i.trim()))
         throw Error("빈 단계에 지침을 입력하세요.");
@@ -461,7 +528,7 @@ export default function Xcode({
       }
       const formRequest = /채워|채우|작성해|작성하|기입|입력해|fill|populate|complete/i.test(prompt)
         || (/양식|서식|템플릿|template|form/i.test(prompt) && !/요약|번역|summari[sz]e|translate/i.test(prompt));
-      let form = !saved && documentPanel === "form" && (formRequest || !run.snapshot().formReview)
+      let form = !item && !saved && documentPanel === "form" && (formRequest || !run.snapshot().formReview)
         ? run.snapshot().form : undefined;
       let evidence = selectedFiles;
       if (!saved && formRequest) {
@@ -704,16 +771,17 @@ export default function Xcode({
         setRecovery(undefined);
       }
       if (form && answers.length) run.patch({formReview:{id,text:answers[answers.length-1].text}});
-      setFiles(files.filter((f) => !selected(fileKey(f))));
-      run.patch({
-        omitted: files.filter((f) => !selected(fileKey(f))).map(fileKey),
-      });
-      setPrompt("");
+      continuation=next;
+      if (run.snapshot().waiting.some(q=>q.id===id))
+        await run.updateWaiting(items=>items.filter(q=>q.id!==id));
+      if (saved && !item && run.snapshot().prompt===saved.prompt) consumeInput(saved.prompt,saved.files);
+
       run.patch({ pending: null, preview: "" });
       let completed = s.turns.length + 1;
       messages.pop(); // No next harness stage after the final answer.
-      while (run.id === id && run.enabled && s.repeatCompleted) {
+      while (run.id === id && run.enabled && s.repeatCompleted && !run.snapshot().waiting.length) {
         await delay("다음 대화 대기");
+        if (run.snapshot().waiting.length) break;
         run.patch({
           pending: { prompt: "계속해주세요", files: [], index: completed },
         });
@@ -736,11 +804,15 @@ export default function Xcode({
             },
           ],
         });
+        continuation.turns.push({prompt:"계속해주세요",files:[],execution,answers:[{stage:"자동 이어쓰기",...result}]});
         completed++;
         messages.push({ role: "assistant", content: result.text });
         run.patch({ pending: null, preview: "" });
       }
     } catch (e) {
+      run.patch({queuePaused:true});
+      if (!continuation && !item && !saved && !run.snapshot().prompt && !run.snapshot().files.length)
+        run.patch({prompt,files:selectedFiles});
       setError(
         run.id === id
           ? String(e).replace("[XCODE_RETRY] ", "")
@@ -749,8 +821,12 @@ export default function Xcode({
     } finally {
       run.patch({outcome:mounted.current || run.id!==id ? "" : run.snapshot().error ? "failed" : "complete"});
       off?.();
+      await run.settled();
+      run.activeItem="";
       run.patch({ busy: false, phase: "" });
       run.id = "";
+      if (continuation && !run.snapshot().queuePaused)
+        void drain(continuation).catch(e=>run.patch({queuePaused:true,error:String(e)}));
     }
   }
   return (
@@ -792,7 +868,7 @@ export default function Xcode({
           {showSettings ? "세션 설정 접기" : "세션 설정 펼치기"}
         </button>
       </header>
-      {local && recovery && !busy && (
+      {local && recovery && !busy && !waiting.some(q=>q.id===recovery.id) && (
         <fieldset disabled={readonly}>
           <legend>중단된 실행 복구</legend>
           <p>
@@ -1249,6 +1325,7 @@ export default function Xcode({
       </div>}
       <div className="chat-workbench" ref={workbench}>
         <ChatTimeline
+          reading={run.reading}
           turns={s.turns}
           preview={preview}
           phase={phase}
@@ -1258,14 +1335,32 @@ export default function Xcode({
           readonly={readonly}
           applyHarness={(h) => config({ harness: h })}
         />
+        {waiting.some(q=>q.id!==run.activeItem) && <details className="chat-waiting">
+          <summary>대기 메시지 {waiting.filter(q=>q.id!==run.activeItem).length}개</summary>
+          {waiting.filter(q=>q.id!==run.activeItem).map(q=><div key={q.id}>
+            {editingItem===q.id ? <textarea aria-label="대기 메시지 수정" value={editedPrompt} onChange={e=>setEditedPrompt(e.target.value)}/>
+              : <span>{q.prompt}</span>}
+            {q.files.length>0 && <small>{q.files.map(f=>f.name).join(" · ")}</small>}
+            <button disabled={readonly || (editingItem===q.id && !editedPrompt.trim() && !q.files.length)} onClick={()=>{
+              if(editingItem!==q.id){setEditingItem(q.id);setEditedPrompt(q.prompt);return;}
+              void run.updateWaiting(items=>items.map(i=>i.id===q.id && run.activeItem!==q.id ? {...i,prompt:editedPrompt}:i))
+                .then(()=>setEditingItem("")).catch(e=>setError(String(e)));
+            }}>{editingItem===q.id ? "수정 저장" : "수정"}</button>
+            <button disabled={readonly} onClick={()=>void removeWaiting(q.id).catch(e=>setError(String(e)))}>취소</button>
+          </div>)}
+          {!busy && queuePaused && <button disabled={readonly} onClick={()=>{
+            void resumeQueue().catch(e=>run.patch({queuePaused:true,error:String(e)}));
+          }}>대기열 재개</button>}
+        </details>}
         <div className="chat-composer">
+          {draftError && <small className="chat-keys" role="alert">{draftError}</small>}
           <textarea
             ref={composerRef}
             aria-label="xcode 메시지"
             placeholder="메시지를 입력하세요"
             rows={2}
-            disabled={readonly || busy}
-            value={busy && pending ? "" : prompt}
+            disabled={readonly}
+            value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {
               if (
@@ -1276,31 +1371,31 @@ export default function Xcode({
               )
                 return;
               e.preventDefault();
-              if (!e.repeat && !importing && !run.snapshot().busy && !readonly)
-                void send();
+              if (!e.repeat) void submit();
             }}
           />
-            {busy ? (
+            {busy && (
               <button
-                className="chat-submit"
+                className="chat-stop"
                 aria-label="중지"
                 title="중지"
                 onClick={cancel}
               >
                 <Square size={14} />
               </button>
-            ) : (
+            )}
+            {(!busy || prompt.trim() || selectedFiles.length>0) && (
               <button
                 className="chat-submit"
-                aria-label="전송"
-                title="전송 (Enter)"
+                aria-label={busy || waiting.length ? "대기열에 추가" : "전송"}
+                title={busy || waiting.length ? "대기열에 추가 (Enter)" : "전송 (Enter)"}
                 disabled={
                   readonly ||
                   importing ||
                   !api.xcodeChat ||
                   (!prompt.trim() && !selectedFiles.length)
                 }
-                onClick={() => void send()}
+                onClick={() => void submit()}
               >
                 <ArrowUp size={18} />
               </button>
@@ -1311,13 +1406,13 @@ export default function Xcode({
               className="chat-attach"
               aria-label="파일 첨부"
               title="첨부 옵션"
-              disabled={busy || readonly || importing}
+              disabled={readonly || importing}
               popoverTarget="xcode-attachment-menu"
             >
               <Paperclip size={16} />
             </button>
             <div id="xcode-attachment-menu" popover="auto" ref={attachmentMenu} className="chat-attachment-menu">
-              <button disabled={busy || readonly || importing} onClick={() => {
+              <button disabled={readonly || importing} onClick={() => {
                 attachmentMenu.current?.hidePopover();
                 attachmentPicker.current?.click();
               }}>파일 첨부</button>
@@ -1398,7 +1493,7 @@ export default function Xcode({
               {files.map((f, i) => (
                 <button
                   key={i}
-                  disabled={readonly || busy}
+                  disabled={readonly}
                   onClick={() => setFiles((v) => v.filter((_, j) => j !== i))}
                 >
                   {f.name} 제거
@@ -1407,7 +1502,7 @@ export default function Xcode({
             </div>
           )}
           </div>
-          <small className="chat-keys">Enter 전송 · Shift+Enter 줄바꿈</small>
+          <small className="chat-keys">Enter {busy || waiting.length ? "대기열에 추가" : "전송"} · Shift+Enter 줄바꿈</small>
         </div>
       </div>
       {!api.xcodeChat && <p>모델 연결은 데스크톱 앱에서 사용할 수 있습니다.</p>}

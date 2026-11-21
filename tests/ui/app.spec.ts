@@ -414,7 +414,8 @@ test("existing preview workspaces keep notes and reject stale deletes", async ({
   ).toBe("2");
 });
 
-test("holding a sheet selection at the viewport edge scrolls and extends it until release",async({page})=>{
+for (const header of [false,true]) test("diagonal sheet drag copies the highlighted rectangle, header="+header,async({page,context})=>{
+  await context.grantPermissions(["clipboard-read","clipboard-write"]);
   await page.goto("/");
   await page.getByRole("button",{name:"새로 만들기",exact:true}).click();
   await page.getByRole("button",{name:"새 시트 테이블",exact:true}).click();
@@ -423,6 +424,7 @@ test("holding a sheet selection at the viewport edge scrolls and extends it unti
     data.setData("text/plain",Array.from({length:22},(_,r)=>Array.from({length:16},(_,c)=>r+"-"+c).join("\t")).join("\n"));
     el.dispatchEvent(new ClipboardEvent("paste",{clipboardData:data,bubbles:true,cancelable:true}));
   });
+  if (header) await page.getByLabel("첫 행을 헤더로 사용").check();
   const scroll=page.locator(".sheet-scroll");
   await scroll.evaluate(el=>{el.style.maxWidth="520px";el.style.maxHeight="180px";});
   await scroll.scrollIntoViewIfNeeded();
@@ -436,10 +438,16 @@ test("holding a sheet selection at the viewport edge scrolls and extends it unti
   await expect(scroll.locator('td.selected textarea[data-column="5"][data-row="5"]')).toHaveCount(1);
   await page.mouse.move(box!.x-4,box!.y-4);
   await expect.poll(()=>scroll.evaluate(el=>[el.scrollLeft,el.scrollTop])).toEqual([0,0]);
-  await expect(scroll.locator('td.selected textarea[data-column="0"][data-row="0"]')).toHaveCount(1);
-  await page.mouse.move(box!.x+box!.width-2,start!.y+10);
+  await expect(scroll.locator('.selected textarea[data-column="0"]').first()).toBeAttached();
+  await page.mouse.move(box!.x+box!.width-2,box!.y+box!.height-35);
   await expect.poll(()=>scroll.evaluate(el=>el.scrollLeft)).toBeGreaterThan(60);
   await page.mouse.up();
+  const expected = await scroll.locator("tr:has(.selected)").evaluateAll(rows =>
+    rows.map(row=>Array.from(row.querySelectorAll<HTMLTextAreaElement>(".selected textarea"),cell=>cell.value).join("\t")).join("\n"));
+  expect(expected).toContain("\t");
+  expect(expected).toContain("\n");
+  await page.keyboard.press("Control+c");
+  await expect.poll(()=>page.evaluate(async()=>(await navigator.clipboard.readText()).replaceAll("\r\n","\n"))).toBe(expected);
   const stopped=await scroll.evaluate(el=>el.scrollLeft);
   await scroll.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   expect(await scroll.evaluate(el=>el.scrollLeft)).toBe(stopped);

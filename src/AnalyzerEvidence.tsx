@@ -41,9 +41,9 @@ export function AnalyzerEvidence({
   useEffect(() => {
     const box = panel.current;
     const line = box?.querySelector("mark");
-    if (box && line) box.scrollTop = line.offsetTop - box.clientHeight / 3;
+    if (box && line) box.scrollTop += line.getBoundingClientRect().top - box.getBoundingClientRect().top - box.clientHeight / 3;
   }, [text]);
-  if (!source || !api.analyzerSource) return <small>{evidence}</small>;
+  if (!source?.session || !api.analyzerSource) return <small>{evidence}</small>;
   const lines = text?.split(/\r?\n/);
   const index = (source.line || 0) - 1;
   const hasLine = lines && index >= 0 && index < lines.length;

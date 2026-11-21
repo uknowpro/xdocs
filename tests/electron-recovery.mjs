@@ -61,6 +61,12 @@ try {
   let page = await launch();
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await page.getByLabel("xcode 메시지").fill("전송 전 초안");
+  await app.close();
+  page = await launch();
+  if (!await page.locator(".xcode").count())
+    await page.getByRole("button",{name:"새 xcode 세션",exact:true}).first().click();
+  await expect(page.getByLabel("xcode 메시지")).toHaveValue("전송 전 초안");
   await page.getByRole("button",{name:"세션 설정 펼치기"}).click();
   await page
     .getByLabel("API 주소")
@@ -90,6 +96,8 @@ try {
       .click();
   await page.getByRole("button", { name: "미완료 단계부터 재실행" }).click();
   await expect(page.locator(".xcode article")).toContainText("answer-3");
+  await expect(page.getByLabel("xcode 메시지")).toHaveValue("");
+  assert.equal(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith("xdocs.xcode.draft.")).length),0);
   assert.equal(calls.length, 3);
   assert.ok(
     calls[2].messages.some(

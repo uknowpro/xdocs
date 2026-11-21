@@ -93,6 +93,19 @@ try {
         mode === "network" ? '@GetMapping("/orders")' : "{{ .Release.Name }}",
       );
     }
+    if (mode==="manifest") {
+      const link=page.getByRole("button",{name:/원본 · .*cron.yaml/}).first();
+      await link.click();
+      await expect(page.locator(".analyzer-evidence mark").first()).toBeVisible();
+      await link.click();
+      const file=dir("manifest/cron.yaml");
+      const {readFile}=await import("node:fs/promises");
+      const original=await readFile(file,"utf8");
+      await writeFile(file,"# 변경\n"+original);
+      await link.click();
+      await expect(page.getByRole("alert")).toContainText("다시 분석");
+      await writeFile(file,original);
+    }
     console.log("PASS bundled engine:", mode);
   }
 } finally {
