@@ -129,6 +129,8 @@ try {
     JSON.stringify({ endpoint, model: "invalid-change", retrySeconds: 0 }),
   );
   await applyJson.click();
+  await expect(editor).toBeFocused();
+  assert.equal(await editor.evaluate(el=>el.value.slice(el.selectionStart,el.selectionEnd)),'"retrySeconds"');
   await expect(page.locator(".chat-json [role=alert]")).toContainText(
     "retrySeconds",
   );

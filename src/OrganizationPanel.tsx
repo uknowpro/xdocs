@@ -137,13 +137,13 @@ export default function OrganizationPanel({
                 <strong>{c.title}</strong>
                 <details>
                   <summary>내용 비교</summary>
-                  <h4>내 변경</h4>
+                  <div className="conflict-versions"><section><h4>내 변경</h4>
                   <pre>{c.body}</pre>
-                  <h4>서버</h4>
-                  <pre>{c.server.body || "삭제된 문서"}</pre>
+                  </section><section><h4>서버 버전</h4>
+                  <pre>{c.server.body ?? "삭제된 문서"}</pre></section></div>
                 </details>
                 <details><summary>줄 단위 변경 보기</summary><pre className="review-diff">{createTwoFilesPatch("서버 버전","내 변경",c.server.body || "",c.body)}</pre></details>
-                <div className="row">
+                <div className="row conflict-actions">
                   <button
                     className="button"
                     disabled={busy}

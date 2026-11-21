@@ -67,6 +67,17 @@ try {
   await expect(page.locator(".save-state")).toContainText("로컬에 저장됨");
   await page.getByRole("tab", { name: "관계", exact: true }).click();
   await expect(page.getByLabel("리소스 관계 그래프")).toBeVisible();
+  const originalFile = page.getByRole("tab",{name:"원문",exact:true});
+  await originalFile.click();
+  await page.getByLabel("로컬 원문 열기").setInputFiles(file);
+  const sourceView=page.getByLabel("인프라 파일 원문");
+  await expect(sourceView).toHaveValue(/depends_on/);
+  await sourceView.focus();
+  await sourceView.evaluate(el=>el.setSelectionRange(2,7));
+  await page.getByRole("tab",{name:"관계",exact:true}).click();
+  await originalFile.click();
+  assert.deepEqual(await sourceView.evaluate(el=>[el.selectionStart,el.selectionEnd]),[2,7]);
+  await page.getByRole("tab",{name:"관계",exact:true}).click();
   await page.setViewportSize({ width: 1440, height: 1050 });
   await page.screenshot({ path: "test-results/infrastructure.png" });
   const output = path.join(temp, "infra.html");

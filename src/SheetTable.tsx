@@ -1,3 +1,4 @@
+import { usePaneHeight } from "./usePaneHeight";
 import { useEffect, useRef, useState } from "react";
 import { Plus, Copy, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import {
@@ -34,7 +35,7 @@ export default function SheetTable({
   const sheet =
     workbook.sheets.find((s) => s.id === active) || workbook.sheets[0];
   const columns = Math.max(4, ...sheet.rows.map((r) => r.length)),
-    rowCount = Math.max(10, sheet.rows.length);
+    rowCount = Math.max(1, sheet.rows.length);
   const headerRows = sheet.firstRowHeader ? 1 : 0;
   const dataRowCount = rowCount - headerRows;
   const firstDataIndex = page * 100 + headerRows;
@@ -111,7 +112,7 @@ export default function SheetTable({
         {
           id,
           name: `시트 ${workbook.sheets.length + 1}`,
-          rows: [["", "", "", ""]],
+          rows: Array.from({length:10},()=>["","","",""]),
         },
       ],
     });
@@ -129,6 +130,7 @@ export default function SheetTable({
   const editing = useRef<HTMLTextAreaElement | null>(null);
   const pointer = useRef<number | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
+  usePaneHeight(viewport);
   const frame = useRef<number | null>(null);
   const position = useRef<{x:number; y:number} | null>(null);
 
@@ -386,7 +388,7 @@ export default function SheetTable({
             disabled={readonly}
             onChange={(e) => {
               const checked = e.target.checked;
-              setPage(Math.min(page, Math.floor((rowCount - Number(checked) - 1) / 100)));
+              setPage(Math.max(0, Math.min(page, Math.floor((rowCount - Number(checked) - 1) / 100))));
               commit({
                 ...workbook,
                 sheets: workbook.sheets.map((s) =>

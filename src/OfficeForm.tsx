@@ -160,8 +160,9 @@ export default function OfficeForm({
                 ))}
               </>
             ) : (
-              <div className="form-fields">
-                {form.fields.map(({ id, label }) => (
+              <div>
+                {Array.from({length:Math.ceil(form.fields.length/8)},(_,group)=>{
+                  const inputs = form.fields.slice(group*8,group*8+8).map(({ id, label }) => (
                   <label key={id}>
                     {label}
                     {id.includes("#blank") && <input type="checkbox" aria-label={label+" 밑줄 사용"} checked={accepted.includes(id)} onChange={e => setAccepted(prev => e.target.checked ? [...prev,id] : prev.filter(k=>k!==id))}/>}
@@ -186,7 +187,12 @@ export default function OfficeForm({
                     {values[id] === undefined && <small>값 누락</small>}
                     {sources[id] && <small>{sources[id]}</small>}
                   </label>
-                ))}
+                  ));
+                  const fields=<div key={group} className="form-fields">{inputs}</div>;
+                  return form.fields.length<=8 ? fields : <details key={group} open={group===0}>
+                    <summary>양식 항목 {group*8+1}–{Math.min(group*8+8,form.fields.length)}</summary>{fields}
+                  </details>;
+                })}
               </div>
             )}
             <button onClick={() => void save()}>작성본 사본 저장</button>

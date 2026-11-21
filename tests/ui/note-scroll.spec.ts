@@ -93,6 +93,7 @@ for (const width of [390, 1366])
             "# " +
             title +
             "\n\n## 시작\n\n" +
+            "| "+Array.from({length:110},(_,i)=>"Column_"+i).join(" | ")+" |\n| "+Array(110).fill("---").join(" | ")+" |\n| "+Array(110).fill("WideCellContents").join(" | ")+" |\n\n"+
             "내용\n\n".repeat(90) +
             "\n## 결론\n\n" +
             "나머지\n\n".repeat(60),
@@ -113,6 +114,9 @@ for (const width of [390, 1366])
         await expect(page.locator(".markdown h1")).toHaveText(title);
       }
       await open("목차 문서");
+      const table=page.locator(".markdown table");
+      const tableOffset=await table.evaluate(el=>{el.scrollLeft=el.scrollWidth;return el.scrollLeft;});
+      expect(tableOffset).toBeGreaterThan(0);
       if (width === 390) await page.locator(".compact-outline summary").click();
       const toc = page.getByRole("navigation", { name: "노트 목차" });
       await toc.getByRole("button", { name: "결론" }).click();
@@ -120,6 +124,7 @@ for (const width of [390, 1366])
       await expect
         .poll(() => main.evaluate((el) => el.scrollTop))
         .toBeGreaterThan(1000);
+      expect(await table.evaluate(el=>el.scrollLeft)).toBe(tableOffset);
       const scroll = await main.evaluate((el) => el.scrollTop);
       await open("둘째 문서");
       await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBe(0);

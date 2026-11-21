@@ -1,5 +1,5 @@
 import { AnalyzerEvidence } from "./AnalyzerEvidence";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { analyzerReport, analyzerMarkdown } from "../shared/analyzer.mjs";
 type Report = ReturnType<typeof analyzerReport>;
@@ -71,6 +71,23 @@ export default function Analyzer({
   const [pathLimit, setPathLimit] = useState(25),
     [findingLimit, setFindingLimit] = useState(100);
   const [previous,setPrevious]=useState<Report|null>(null);
+  const readingPath = useRef("");
+  function visit(index:number) {
+    setPathLimit(limit=>Math.max(limit,index+1));
+    requestAnimationFrame(()=>{
+      const target=document.getElementById("network-path-"+index) as HTMLDetailsElement | null;
+      if (target) {target.open=true;target.scrollIntoView({block:"center"});target.querySelector("summary")?.focus({preventScroll:true});}
+    });
+  }
+  const evidenceFiles = useMemo(()=>{
+    const files=new Map<string,Set<number>>();
+    result?.paths.forEach((path,index)=>path.files.forEach((file:string)=>{
+      if (!file) return;
+      if (!files.has(file)) files.set(file,new Set());
+      files.get(file)!.add(index);
+    }));
+    return [...files];
+  },[result]);
   const [localScan, setLocalScan] = useState(false);
   const pathsByEvidence = useMemo(() => {
     const index = new Map<string,number[]>();
@@ -78,6 +95,15 @@ export default function Analyzer({
       if (key) index.set(key,[...(index.get(key)||[]),i]);
     }));
     return index;
+  },[result]);
+  const pathKeys=useMemo(()=>{
+    const counts=new Map<string,number>();
+    return result?.paths.map(path=>{
+      const identity=JSON.stringify(path.nodes);
+      const index=counts.get(identity)||0;
+      counts.set(identity,index+1);
+      return JSON.stringify([identity,index]);
+    }) || [];
   },[result]);
   async function load(fn: () => Promise<unknown>, local = false) {
     setBusy(true);
@@ -89,7 +115,9 @@ export default function Analyzer({
         setPrevious(result?.title===next.title ? result : null);
         setResult(next);
         setLocalScan(local);
+        const index=next.paths.findIndex(p=>JSON.stringify(p.nodes)===readingPath.current);
         setPathLimit(25);
+        if (index>=0) visit(index); else readingPath.current="";
         setFindingLimit(100);
       }
     } catch (e) {
@@ -219,13 +247,16 @@ export default function Analyzer({
             })}</details>}
           {result.rules && <p>규칙 {result.rules}</p>}
           {result.steps.length > 0 && <p>{result.steps.join(" → ")}</p>}
+          {evidenceFiles.length>0 && <details><summary>파일별 경로 근거 · {evidenceFiles.length}개 파일</summary>
+            {evidenceFiles.map(([file,indices])=><div key={file} className="evidence-file"><strong>{file}</strong>
+              {[...indices].map(i=><button key={i} onClick={()=>visit(i)}>경로 {i+1}</button>)}</div>)}</details>}
           {result.paths.slice(0, pathLimit).map((p, i) => (
-            <details key={i} id={"network-path-"+i} open>
+            <details key={pathKeys[i]} id={"network-path-"+i} open
+              onFocus={()=>{readingPath.current=JSON.stringify(p.nodes);}} onClick={()=>{readingPath.current=JSON.stringify(p.nodes);}}>
               <summary>
                 {p.status} · 경로 {i + 1}
               </summary>
               <NetworkPath
-                key={p.sources[0]?.session || p.evidence.join("|")}
                 path={p}
                 local={localScan}
               />
@@ -241,13 +272,7 @@ export default function Analyzer({
             {result.rows.slice(0, findingLimit).map((row, i) => (
               <li key={i}>
                 {row.filter(Boolean).join(" · ")}
-                {pathsByEvidence.get(row[3])?.map(index => <button key={index} type="button" onClick={()=>{
-                  setPathLimit(limit=>Math.max(limit,index+1));
-                  requestAnimationFrame(()=>{
-                    const target=document.getElementById("network-path-"+index) as HTMLDetailsElement | null;
-                    if (target) {target.open=true;target.scrollIntoView({block:"center"});target.querySelector("summary")?.focus({preventScroll:true});}
-                  });
-                }}>경로 {index+1} 보기</button>)}
+                {pathsByEvidence.get(row[3])?.map(index => <button key={index} type="button" onClick={()=>visit(index)}>경로 {index+1} 보기</button>)}
                 {localScan && result.rowSources[i] && (
                   <AnalyzerEvidence
                     key={result.rowSources[i].session}

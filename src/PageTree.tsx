@@ -37,6 +37,11 @@ type Entry = {
   parent?: Entry;
   children: Entry[];
 };
+function displayPath(entry: Entry) {
+  const parts = [];
+  for (let item: Entry | undefined=entry; item?.key; item=item.parent) parts.unshift(item.name);
+  return parts.join(" / ");
+}
 function tree(notes: Note[]) {
   const root: Entry = { key: "", name: "", children: [] },
     folders = new Map([["", root]]);
@@ -285,8 +290,15 @@ export default function PageTree({
     setMenu("");
     setMoving(moving === key ? "" : key);
   }
+  const [hint,setHint]=useState<{text:string;x:number;y:number}>();
+  function showPath(button:HTMLButtonElement,entry:Entry) {
+    const label=button.querySelector("span");
+    if (!label || label.scrollWidth<=label.clientWidth) {setHint(undefined);return;}
+    const rect=button.getBoundingClientRect();
+    setHint({text:displayPath(entry),x:Math.min(rect.left,Math.max(8,window.innerWidth-300)),y:Math.max(8,Math.min(rect.bottom+3,window.innerHeight-84))});
+  }
   return (
-    <nav className="note-list page-tree" aria-label="보관함 페이지" tabIndex={-1}
+    <nav onScroll={()=>setHint(undefined)} className="note-list page-tree" aria-label="보관함 페이지" tabIndex={-1}
       onKeyDown={event => {
         if (readonly || event.defaultPrevented || !(event.ctrlKey || event.metaKey) || event.altKey ||
           (event.target instanceof HTMLElement && (event.target.isContentEditable || event.target.closest("input, textarea, select")))) return;
@@ -387,6 +399,9 @@ export default function PageTree({
                 )}
                 <button
                   data-entry-key={e.key}
+                  onFocus={event=>showPath(event.currentTarget,e)} onBlur={()=>setHint(undefined)}
+                  onMouseEnter={event=>showPath(event.currentTarget,e)} onMouseLeave={()=>setHint(undefined)}
+                  aria-description={[displayPath(e),kind==="xcode"?statusLabel:""].filter(Boolean).join(" · ")}
                   onKeyDown={event => {
                     const key = event.key;
                     const tree = event.currentTarget.closest("nav")!;
@@ -422,7 +437,7 @@ export default function PageTree({
                             : "노트 · ") + n.path
                       : e.name
                   }
-                  aria-description={kind === "xcode" ? statusLabel : undefined}
+
                   aria-current={n?.id === active ? "page" : undefined}
                   onClick={() =>
                     n && !isFolderPage(n) ? onOpen(n.id) : toggle(e.key)
@@ -553,6 +568,7 @@ export default function PageTree({
             </div>
           );
         })}
+      {hint && <div className="tree-path-hint" role="tooltip" style={{left:hint.x,top:hint.y}}>{hint.text}</div>}
       {message && <p role="alert">{message}</p>}
       {!notes.length && (
         <p className="sidebar-empty">첫 페이지를 만들어 보세요.</p>

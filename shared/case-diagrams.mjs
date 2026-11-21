@@ -257,8 +257,12 @@ export function caseDiagram(model, selected = "", planLabels = {}, magnify = fal
   const nodes = new Map(model.nodes.map((n) => [n.address, n]));
   const boxes = spec.boxes.filter(([key]) => key === "frame" || key.startsWith("op:") || key.startsWith("step:") || nodes.has(key));
   const byKey = new Map(boxes.map((b) => [b[0], b]));
-  const text = (x, y, label, size) =>
-    `<text x="${x}" y="${y}" font-family="system-ui,sans-serif" font-size="${size}" fill="#243445">${esc(label)}</text>`;
+  function text(x, y, label, size, available) {
+    // Constrain tight labels in the SVG itself so exported diagrams fit across system fonts.
+    const estimate=Array.from(label).reduce((w,c)=>w+(/[^\x00-\x7f]/.test(c)?1:0.66)*size,0);
+    const fit=estimate>=available ? ` textLength="${available}" lengthAdjust="spacingAndGlyphs"` : "";
+    return `<text x="${x}" y="${y}" font-family="system-ui,sans-serif" font-size="${size}"${fit} fill="#243445">${esc(label)}</text>`;
+  }
   const rects = boxes.map(([key, label, x, y, w, h]) => {
     const node = nodes.get(key),
       frame = h > 75;
@@ -273,7 +277,7 @@ export function caseDiagram(model, selected = "", planLabels = {}, magnify = fal
     const glyph = symbol
       ? `<g transform="translate(${x + 8} ${y + (frame ? 6 : 11)}) scale(.74)"><rect width="24" height="24" rx="4" fill="${symbol[2]}"/><path d="${symbol[1]}" fill="none" stroke="white" stroke-width="1.6"/></g>`
       : "";
-    return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" || key.startsWith("op:") ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), (node && planLabels[node.id] ? planLabels[node.id]+" · " : "")+label, frame ? 14 : 12)}</g>`;
+    return `<g${node ? ' data-resource="' + esc(node.id) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"' : ""}><title>${esc(node?.address || label)}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${frame ? "#f4f8fb" : "white"}" stroke="${node?.id === selected ? "#0567bf" : color}" stroke-width="${node?.id === selected ? 3 : 1.2}" ${key === "frame" || key.startsWith("op:") ? 'stroke-dasharray="6 4"' : ""}/>${glyph}${text(x + (glyph ? 31 : 10), y + (frame ? 20 : 25), (node && planLabels[node.id] ? planLabels[node.id]+" · " : "")+label, frame ? 14 : 12, w-(glyph ? 31 : 10)-6)}</g>`;
   });
   const occupied = boxes.map(([, ,x,y,w,h])=>[x,y,w,h>75?25:h]);
   function edgeLabel(x,y,label) {

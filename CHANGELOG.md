@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.24
+
+- Make sheets and chat use the available window height. Keep input and send controls visible with attachments, and focus invalid session JSON settings.
+- Keep the selected design and create button visible in the catalog. Fit cloud diagrams, follow Terraform declarations and step between changed IaC files.
+- Show complete paths for truncated tree entries, compact the graph controls, group long forms and compare sync conflicts alongside their resolution actions.
+- Group Analyzer evidence by file, restore selected paths after rescanning, and remember source positions in infrastructure and automation canvases.
+
 ## 0.5.23
 
 - Search offline AWS, Azure and Google Cloud component palettes and edit Terraform arguments using provider-schema forms. Connect resources, inspect regional boundaries and navigate between canvas nodes and Terraform declarations.

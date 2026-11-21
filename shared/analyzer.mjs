@@ -73,6 +73,7 @@ export function analyzerReport(raw) {
         (!end.reference || !proof.reference || end.reference===proof.reference ||
           proof.reference.startsWith(end.reference+".") || end.reference.startsWith(proof.reference+"."))) ? [i] : []);
     }),
+    files: list(c.evidence).map(e=>str(e.file)),
     sources: list(c.evidence).map(e => e.source),
     status: str(c.status),
     nodes: list(c.nodes).map((n) =>
@@ -99,6 +100,7 @@ export function analyzerReport(raw) {
         status: [str(f.direction), str(f.status)].filter(Boolean).join(" · "),
         nodes: f.direction === "inbound" ? [target, origin] : [origin, target],
         edgeEvidence: [[0]],
+        files: [origin],
         sources: [f.source],
         evidence: [[origin, f.line || f.reference].filter(Boolean).join(":")],
       });

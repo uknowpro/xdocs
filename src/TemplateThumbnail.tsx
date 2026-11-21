@@ -57,7 +57,7 @@ export default function TemplateThumbnail({ id }: { id: string }) {
             if (active) setFailed(true);
           });
       },
-      { root: frame.current?.closest(".template-gallery") },
+      { root: frame.current?.closest(".catalog-content") },
     );
     observer.observe(frame.current!);
     return () => {

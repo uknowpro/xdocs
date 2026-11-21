@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEditorPosition } from "./useEditorPosition";
+import { useEffect, useState } from "react";
 import {
   Network,
   List,
@@ -173,7 +174,7 @@ export default function InfrastructureDocument({
   onCreateNote: (title: string, body: string) => Promise<void>;
   readonly?: boolean;
 }) {
-  const [tab, setTab] = useState<"inventory" | "relations" | "notes">(
+  const [tab, setTab] = useState<"inventory" | "relations" | "notes" | "source">(
       "inventory",
     ),
     [filter, setFilter] = useState(""),
@@ -185,6 +186,21 @@ export default function InfrastructureDocument({
     [message, setMessage] = useState("");
   const resource =
     snapshot.resources.find((r) => r.id === selected) || snapshot.resources[0];
+  const memoEditor=useEditorPosition(resource?.id || "");
+  const [sourceFiles,setSourceFiles]=useState<File[]>([]);
+  const [sourceIndex,setSourceIndex]=useState(0);
+  const [sourceText,setSourceText]=useState<{file:File;text:string}>();
+  const sourceFile=sourceFiles[sourceIndex];
+  useEffect(()=>{
+    if (!sourceFile) return;
+    let current=true;
+    sourceFile.text().then(text=>{if (current) setSourceText({file:sourceFile,text});},
+      reason=>{if (current) setError(String(reason));});
+    return ()=>{current=false;};
+  },[sourceFile]);
+  const sourceReady=sourceFile && sourceText?.file===sourceFile;
+  const sourceEditor=useEditorPosition(tab==="source" && sourceReady ? String(sourceIndex) : "");
+
   const filtered = snapshot.resources.filter((r) =>
     (r.id + " " + r.kind + " " + r.scope)
       .toLowerCase()
@@ -353,6 +369,7 @@ export default function InfrastructureDocument({
             <FileText size={14} />
             운영 메모
           </button>
+          <button role="tab" aria-selected={tab==="source"} onClick={()=>setTab("source")}>원문</button>
         </div>
         <input
           aria-label="인프라 리소스 검색"
@@ -504,6 +521,18 @@ export default function InfrastructureDocument({
           </p>
         </>
       )}
+      {tab==="source" && <section className="infra-source">
+        <label>로컬 원문 열기 <input type="file" multiple accept=".tf,.json,.yaml,.yml" onChange={event=>{
+          const files=Array.from(event.target.files || []);
+          event.target.value="";
+          if (!files.length) return;
+          if (files.some(f=>f.size>4_000_000)) {setError("4MB 이하의 원문 파일을 선택하세요.");return;}
+          setSourceIndex(sourceFiles.length);setSourceFiles([...sourceFiles,...files]);setError("");
+        }}/></label>
+        {sourceFiles.length>0 && <label>열린 파일 <select value={sourceIndex} onChange={e=>setSourceIndex(Number(e.target.value))}>
+          {sourceFiles.map((file,i)=><option key={i} value={i}>{file.name}</option>)}</select></label>}
+        {sourceReady && <textarea key={sourceIndex} aria-label="인프라 파일 원문" ref={sourceEditor} readOnly wrap="off" value={sourceText.text}/>}
+      </section>}
       {tab === "notes" && (
         <div className="infra-memos">
           {Object.entries(snapshot.notes || {})
@@ -565,7 +594,7 @@ export default function InfrastructureDocument({
           <label>
             운영 메모
             <textarea
-              aria-label="리소스 운영 메모"
+              key={resource.id} ref={memoEditor} aria-label="리소스 운영 메모"
               placeholder="담당자, 역할, 점검 사항, 관련 문서…"
               value={snapshot.notes?.[resource.id] || ""}
               readOnly={readonly}

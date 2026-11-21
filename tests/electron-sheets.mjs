@@ -180,7 +180,8 @@ try {
   assert.equal(await first.evaluate(el => el.closest("td") !== null),true);
   await page.getByRole("button",{name:"A열 선택",exact:true}).click();
   await page.getByRole("button",{name:"B열 선택",exact:true}).click({modifiers:["Shift"]});
-  await expect(page.locator(".sheet-grid .selected")).toHaveCount(20);
+  await expect(page.locator(".sheet-grid tbody tr")).toHaveCount(2);
+  await expect(page.locator(".sheet-grid .selected")).toHaveCount(4);
   await page.getByRole("button",{name:"1행 선택",exact:true}).click();
   await page.getByRole("button",{name:"2행 선택",exact:true}).click({modifiers:["Shift"]});
   await page.keyboard.press(copyKey);

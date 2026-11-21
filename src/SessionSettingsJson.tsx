@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Session } from "./xcode-session";
 import { builderEndpoint } from "../desktop/builder-model.mjs";
 
@@ -33,10 +33,11 @@ function parseSettings(text: string) {
   let value;
   try {
     value = JSON.parse(text);
-  } catch {
-    throw Error(
+  } catch (cause) {
+    const offset = /position (\d+)/.exec(String(cause));
+    throw Object.assign(Error(
       "JSON 문법을 확인하세요. 키와 문자열은 큰따옴표로 묶어야 합니다.",
-    );
+    ), {offset:offset ? Number(offset[1]) : text.length});
   }
   if (!value || typeof value !== "object" || Array.isArray(value))
     throw Error("설정을 JSON 객체로 입력하세요.");
@@ -112,6 +113,7 @@ export default function SessionSettingsJson({
     null,
     2,
   );
+  const input = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState(""),
     [notice, setNotice] = useState("");
@@ -137,7 +139,7 @@ export default function SessionSettingsJson({
         <legend>settings.json</legend>
         <label>
           설정 JSON
-          <textarea aria-label="설정 JSON"
+          <textarea ref={input} aria-invalid={!!error} aria-label="설정 JSON"
             value={draft ?? current}
             spellCheck={false}
             autoCapitalize="off"
@@ -179,6 +181,14 @@ export default function SessionSettingsJson({
                 setError("");
                 setNotice("설정을 적용했습니다.");
               } catch (err) {
+                const field=err instanceof Error && [...allowed].find(k=>err.message.startsWith(k+"에") || err.message.startsWith(k+"은") || err.message.startsWith(k+"는"));
+                const unknown = err instanceof Error && /^지원하지 않는 항목: (.+)$/.exec(err.message)?.[1];
+                const key=field || unknown;
+                const el=input.current;
+                if (el) {
+                  const index=err && typeof err==="object" && "offset" in err && typeof err.offset==="number" ? err.offset : key ? Math.max(0,el.value.indexOf(JSON.stringify(key))) : 0;
+                  el.focus();el.setSelectionRange(index,index+(key ? JSON.stringify(key).length : 1));
+                }
                 setNotice("");
                 setError(
                   err instanceof Error ? err.message : "입력을 확인하세요.",

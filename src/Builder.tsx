@@ -401,7 +401,8 @@ export default function Builder({
             </select>
           </label>
         )}
-        {config.rules.map((rule, i) => (
+        {config.rules.map((rule, i) => {
+          const fields = (
           <div className="builder-stage" key={i}>
             {i > 0 && (
               <label>
@@ -539,8 +540,10 @@ export default function Builder({
                 삭제
               </button>
             </div>
-          </div>
-        ))}
+          </div>);
+          return config.rules.length < 4 ? fields : <details key={i} open={i===0}>
+            <summary>{i+1}. {rule.label}</summary>{fields}</details>;
+        })}
         <button
           onClick={() =>
             patch({

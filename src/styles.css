@@ -3147,3 +3147,32 @@ textarea {
 }
 .live-file-actions button[aria-pressed=true] {background:var(--active);border-color:var(--muted);color:var(--ink);}
 .live-file-actions button:focus-visible {outline:2px solid currentColor;outline-offset:2px;}
+
+.sheet-scroll {max-height:var(--remaining-height,60dvh);}
+.chat-workbench {height:var(--remaining-height,65dvh);min-height:min(340px,70dvh);}
+.xcode .chat-composer {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:4px 8px;overflow:visible;max-height:none;}
+.chat-composer > textarea {grid-area:1 / 1;min-width:0;}
+.xcode .chat-composer > .chat-submit {grid-column:2;grid-row:1;margin:0;background:var(--ink);color:var(--bg);}
+.chat-options {grid-column:1/-1;min-height:0;max-height:min(25dvh,11rem);overflow:auto;}
+.chat-composer > .chat-keys {grid-column:1/-1;}
+.dialog.architecture-start {display:flex;flex-direction:column;overflow:hidden;}
+.architecture-start > header,.architecture-start .catalog-confirm {flex:none;}
+.catalog-content {min-height:0;overflow:auto;overscroll-behavior:contain;padding-inline:2px;}
+.catalog-content > * + * {margin-block-start:12px;}
+.catalog-content .template-gallery {max-height:none;overflow:visible;}
+.catalog-confirm,.diff-navigation,.evidence-file {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.catalog-confirm {border-top:1px solid var(--line);padding-top:8px;justify-content:space-between;}
+.catalog-confirm strong {min-width:0;flex:1;overflow-wrap:anywhere;}
+.main .builder-panel .form-fields {max-height:none;overflow:visible;}
+.tree-path-hint {position:fixed;z-index:40;max-width:min(290px,85vw);padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);box-shadow:var(--shadow);pointer-events:none;overflow-wrap:anywhere;}
+.graph-header {gap:8px;}
+.graph-header h1 {margin:0;font-size:20px;}
+.graph-filters {margin-block:8px;}
+.evidence-file strong {overflow-wrap:anywhere;}
+.conflict-versions {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:8px;}
+.conflict-versions section {min-width:0;}
+.conflict-entry pre {max-height:35dvh;overflow:auto;}
+.conflict-actions {position:sticky;bottom:0;background:var(--bg);padding-block:6px;border-top:1px solid var(--line);}
+
+.infra-source {display:grid;gap:8px;margin-block:12px;min-width:0;}
+.infra-source textarea {height:clamp(12rem,45dvh,32rem);width:100%;font-family:monospace;color:var(--ink);background:var(--surface);}

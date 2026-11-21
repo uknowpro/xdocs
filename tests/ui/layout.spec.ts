@@ -28,9 +28,9 @@ test("laptop sidebar stays reachable, remembers its width state and gives the tr
   ).toBeLessThanOrEqual(1);
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "새 시트 테이블" }).click();
-  expect(
-    await page.locator(".sheet-scroll").evaluate((e) => e.clientHeight),
-  ).toBeGreaterThan(300);
+  const sheet=page.locator(".sheet-scroll");
+  expect(await sheet.evaluate(e=>e.clientHeight)).toBeGreaterThan(150);
+  await expect(page.locator(".sheet-footer")).toBeInViewport({ratio:1});
   await main.evaluate((e) => {
     e.scrollTop = e.scrollHeight;
   });
@@ -103,7 +103,7 @@ for (const width of [390, 780, 1440]) {
       ["인프라 문서", ".infrastructure-start", ".infra-actions"],
     ]) {
       await openFromMenu(entry);
-      expect(await gapAbove(section + " > " + actions)).toBeGreaterThanOrEqual(12);
+      expect(await gapAbove(section + " " + actions)).toBeGreaterThanOrEqual(12);
       expect(await page.locator(section).evaluate(e => parseFloat(getComputedStyle(e).paddingLeft))).toBeGreaterThanOrEqual(16);
       await fitsWidth(page, section);
       if (section === ".architecture-start") {

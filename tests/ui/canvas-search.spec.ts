@@ -126,6 +126,10 @@ for (const [kind, query, source] of [
       await find.press("Enter");
       const editor = page.getByLabel("캔버스 코드");
       await expect(editor).toBeFocused();
+      await editor.evaluate(el=>{const t=el as HTMLTextAreaElement;t.setSelectionRange(2,5);});
+      await page.getByRole("button",{name:"전체 원문",exact:true}).click();
+      await find.fill(query); await find.press("Enter");
+      await expect.poll(()=>editor.evaluate(el=>{const t=el as HTMLTextAreaElement;return [t.selectionStart,t.selectionEnd];})).toEqual([2,5]);
       const before = await editor.inputValue();
       expect(before).toContain(source);
       await editor.fill(before + " ");

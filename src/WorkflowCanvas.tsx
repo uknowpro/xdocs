@@ -1,7 +1,8 @@
+import { useEditorPosition } from "./useEditorPosition";
 import {createTwoFilesPatch} from "diff";
 import CanvasSearch from "./CanvasSearch";
 import { api } from "./api";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useLayoutEffect } from "react";
 import { templates, workflowNodes, addBlock, jobDependencyIssues } from "../shared/workflows.mjs";
 type Kind = keyof typeof templates;
 export type Flow = {
@@ -49,11 +50,23 @@ export function WorkflowCanvas({
   );
   const baseline=useRef(model.source);
   const [showDiff,setShowDiff]=useState(false);
-  const editor = useRef<HTMLTextAreaElement>(null);
+  const sourceKey=full || !nodes.length ? "file" : active?.id || "";
+  const editor = useEditorPosition(sourceKey);
+  const focusAfterSwitch=useRef(false);
+  useLayoutEffect(()=>{
+    if (focusAfterSwitch.current) {
+      focusAfterSwitch.current=false;
+      editor.current?.focus();
+    }
+  },[sourceKey,editor]);
+  function prepareSwitch(nextKey:string) {
+    if(nextKey===sourceKey) editor.current?.focus();
+    else focusAfterSwitch.current=true;
+  }
   function showBlock(id: string) {
+    prepareSwitch(id);
     setSelected(id);
     setFull(false);
-    requestAnimationFrame(() => editor.current?.focus());
   }
   function commit(next: string) {
     if (readonly) return;
@@ -153,7 +166,7 @@ export function WorkflowCanvas({
         <button
           className="button"
           disabled={draft !== null}
-          onClick={() => setFull(true)}
+          onClick={() => {prepareSwitch("file");setFull(true);}}
         >
           전체 원문
         </button>
@@ -254,7 +267,7 @@ export function WorkflowCanvas({
           <label className="workflow-source">
             {full || !active ? "전체 원문" : active.label + " 블록"}
             <textarea
-              ref={editor}
+              key={sourceKey} ref={editor}
               aria-label="캔버스 코드"
               style={{
                 width: "100%",

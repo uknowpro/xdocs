@@ -1,3 +1,4 @@
+import { usePaneHeight } from "./usePaneHeight";
 import {formInstruction, inspectForm, templateFiles} from "./office-form";
 import OfficeForm from "./OfficeForm";
 import SessionSettingsJson from "./SessionSettingsJson";
@@ -199,6 +200,8 @@ export default function Xcode({
     setSettingsSave("idle");
     change({ ...s, ...patch });
   };
+  const workbench = useRef<HTMLDivElement>(null);
+  usePaneHeight(workbench);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (settingsSave !== "saved") return;
@@ -1244,7 +1247,7 @@ export default function Xcode({
           answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
           attach={(name,text)=>setFiles(previous=>[...previous,{name,text}])}/>
       </div>}
-      <div className="chat-workbench">
+      <div className="chat-workbench" ref={workbench}>
         <ChatTimeline
           turns={s.turns}
           preview={preview}
@@ -1277,6 +1280,32 @@ export default function Xcode({
                 void send();
             }}
           />
+            {busy ? (
+              <button
+                className="chat-submit"
+                aria-label="중지"
+                title="중지"
+                onClick={cancel}
+              >
+                <Square size={14} />
+              </button>
+            ) : (
+              <button
+                className="chat-submit"
+                aria-label="전송"
+                title="전송 (Enter)"
+                disabled={
+                  readonly ||
+                  importing ||
+                  !api.xcodeChat ||
+                  (!prompt.trim() && !selectedFiles.length)
+                }
+                onClick={() => void send()}
+              >
+                <ArrowUp size={18} />
+              </button>
+            )}
+          <div className="chat-options">
           <div className="chat-toolbar">
             <button
               className="chat-attach"
@@ -1362,31 +1391,6 @@ export default function Xcode({
                 inclusion("skill:" + i + ":" + k.name, "스킬 · " + k.name),
               )}
             </details>
-            {busy ? (
-              <button
-                className="chat-submit"
-                aria-label="중지"
-                title="중지"
-                onClick={cancel}
-              >
-                <Square size={14} />
-              </button>
-            ) : (
-              <button
-                className="chat-submit"
-                aria-label="전송"
-                title="전송 (Enter)"
-                disabled={
-                  readonly ||
-                  importing ||
-                  !api.xcodeChat ||
-                  (!prompt.trim() && !selectedFiles.length)
-                }
-                onClick={() => void send()}
-              >
-                <ArrowUp size={18} />
-              </button>
-            )}
           </div>
           {files.length > 0 && (
             <div className="chat-files">
@@ -1402,6 +1406,7 @@ export default function Xcode({
               ))}
             </div>
           )}
+          </div>
           <small className="chat-keys">Enter 전송 · Shift+Enter 줄바꿈</small>
         </div>
       </div>

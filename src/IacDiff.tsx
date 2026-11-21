@@ -79,6 +79,11 @@ export default function IacDiff({
           ))}
         </select>
       </label>
+      {paths.length > 1 && <nav className="diff-navigation" aria-label="차이 탐색">
+        <button disabled={path===paths[0]} onClick={()=>setChoice(paths[paths.indexOf(path)-1])}>이전 변경 파일</button>
+        <span>{paths.indexOf(path)+1} / {paths.length}</span>
+        <button disabled={path===paths.at(-1)} onClick={()=>setChoice(paths[paths.indexOf(path)+1])}>다음 변경 파일</button>
+      </nav>}
       <pre aria-label="IaC 변경 내용">
         {diff ??
           "비교 시간 한도를 초과했습니다. 추출 파일을 로컬 diff 도구에서 비교하세요."}

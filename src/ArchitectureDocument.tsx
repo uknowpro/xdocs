@@ -251,6 +251,7 @@ export function ArchitectureStart({
             <X size={18} />
           </button>
         </header>
+        <div className="catalog-content">
         <p>구성 요소를 배치하고 연결해 코드와 문서를 함께 만드세요.</p>
         <div className="arch-start-options">
           <button
@@ -392,14 +393,8 @@ export function ArchitectureStart({
               {"revision" in chosen && String(chosen.revision).slice(0, 7)}
             </small>
           )}
-          <button
-            className="button"
-            disabled={!chosen}
-            onClick={() => void openChosen()}
-          >
-            템플릿으로 시작
-          </button>
         </fieldset>
+
         <p className="muted small-text">
           AWS · Azure · Azure Verified Modules · GCP · Kubernetes. .tf와
           .tf.json 파일 선택은 데스크톱 앱에서 지원합니다.
@@ -435,6 +430,19 @@ export function ArchitectureStart({
           </section>
         )}
         {error && <p role="alert">{error}</p>}
+        </div>
+        {!preview && <>
+        <footer className="catalog-confirm">
+          <strong>{chosen?.name}</strong>
+          <button
+            className="button primary"
+            disabled={!chosen || busy}
+            onClick={() => void openChosen()}
+          >
+            템플릿으로 시작
+          </button>
+        </footer>
+        </>}
       </section>
     </div>
   );
@@ -768,6 +776,9 @@ export default function ArchitectureDocument({
       if (n.sourceFile) setLiveFile("terraform/" + n.sourceFile);
       setSelected(n.id);
       setDetail("open");
+      const rail = section.current?.querySelector<HTMLElement>(".arch-review-rail");
+      if (railOpen && !codeOnly && rail && rail.scrollTop > 0)
+        requestAnimationFrame(() => rail.querySelector(".arch-properties header")?.scrollIntoView({block:"nearest",container:"nearest"} as ScrollIntoViewOptions));
     }
   }
   async function download() {

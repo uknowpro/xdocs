@@ -63,11 +63,7 @@ export default function Graph({
     <div className={compact ? "graph compact" : "graph"}>
       {!compact && (
         <header className="graph-header">
-          <div>
-            <span className="eyebrow">CONNECTED THINKING</span>
-            <h1>생각의 연결을 따라가 보세요</h1>
-            <p>노트를 선택해 연결된 맥락을 발견하세요.</p>
-          </div>
+          <h1>지식 그래프</h1>
           <div className="segmented">
             <button
               className={scope === "local" ? "selected" : ""}
@@ -94,6 +90,7 @@ export default function Graph({
             onChange={(e) => setFilter(e.target.value)}
             placeholder="제목·폴더·태그로 필터"
           />
+          <span>{candidates.length}개 중 {visible.length}개</span>
           {scope==="local" && <label>연결 범위<select value={depth} onChange={e=>setDepth(Number(e.target.value))}>
             <option value={1}>직접 연결</option><option value={2}>두 단계 연결</option></select></label>}
           <label>
@@ -108,9 +105,7 @@ export default function Graph({
               <option value={120}>120</option>
             </select>
           </label>
-          <span>
-            {candidates.length}개 중 {visible.length}개
-          </span>
+
         </div>
       )}
       <div className="graph-canvas" aria-label="노트 연결 그래프">

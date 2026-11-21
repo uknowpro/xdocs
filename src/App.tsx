@@ -752,7 +752,7 @@ export default function App() {
                 {
                   id: crypto.randomUUID(),
                   name: "시트 1",
-                  rows: [["", "", "", ""]],
+                  rows: Array.from({length:10},()=>["","","",""]),
                 },
               ],
             }) +

@@ -57,3 +57,45 @@ test("folder quick actions, block editing, trash confirmation and session switch
   await tabs.getByRole("button",{name:"새 xcode 세션",exact:true}).click();
   await expect(tabs.getByRole("button",{name:"새 xcode 세션",exact:true})).toHaveAttribute("aria-current","page");
 });
+
+test("catalog confirmation stays visible while its content scrolls",async({page})=>{
+  await page.setViewportSize({width:780,height:600});
+  await page.goto("/");
+  const button=(name:string)=>page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();await button("xinfra 캔버스").click();
+  const confirm=button("템플릿으로 시작");
+  await expect(confirm).toBeInViewport({ratio:1});
+  const original=await confirm.boundingBox();
+  await page.locator(".catalog-content").evaluate(el=>el.scrollTop=el.scrollHeight);
+  await expect(confirm).toBeInViewport({ratio:1});
+  expect((await confirm.boundingBox())!.y).toBeCloseTo(original!.y,0);
+});
+
+test("chat uses tall windows and keeps submit visible beside expanded options",async({page})=>{
+  await page.setViewportSize({width:1600,height:1440});
+  await page.goto("/");
+  const btn=(name:string)=>page.getByRole("button",{name,exact:true});
+  await btn("새로 만들기").click();await btn("xcode 세션 만들기").click();
+  const settings=btn("세션 설정 접기");
+  if (await settings.isVisible()) await settings.click();
+  await expect.poll(()=>page.locator(".chat-workbench").evaluate(el=>el.clientHeight)).toBeGreaterThan(900);
+  await page.setViewportSize({width:980,height:700});
+  await page.getByText("전송 미리보기",{exact:true}).click();
+  await expect(page.getByLabel("xcode 메시지")).toBeInViewport({ratio:1});
+  await expect(btn("전송")).toBeInViewport({ratio:1});
+});
+
+test("Analyzer groups shared source files and restores a path after reordering",async({page})=>{
+  await page.goto("/");
+  await page.getByRole("button",{name:"새로 만들기",exact:true}).click();
+  await page.getByRole("button",{name:"Analyzer 만들기"}).click();
+  const upload=async(names:string[])=>page.getByLabel("기존 분석 JSON 열기").setInputFiles({
+    name:"paths.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({connections:names.map(name=>({
+      status:"declared",nodes:[{kind:"Service",name}],evidence:[{file:"app.yaml",line:2}]}))}))});
+  await upload(["one","two"]);
+  await page.getByText("파일별 경로 근거 · 1개 파일").click();
+  await page.locator(".evidence-file").getByRole("button",{name:"경로 2",exact:true}).click();
+  await upload(["two","one"]);
+  await expect(page.locator("#network-path-0 summary")).toBeFocused();
+  await expect(page.locator("#network-path-0")).toContainText("two");
+});
