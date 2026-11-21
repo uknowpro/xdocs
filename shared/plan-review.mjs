@@ -1,3 +1,4 @@
+import { terraformAddress } from "./architecture.mjs";
 const actions = new Map([
   ["create", "생성"],
   ["update", "수정"],
@@ -116,7 +117,7 @@ export function reviewPlan(plan) {
 // Only a root instance index may be stripped. Never match a child module to a root declaration.
 export function planNode(address, nodes) {
   const base = address.replace(indexSuffix, "");
-  return nodes.find((n) => (n.address || n.kind + "." + n.id) === base)?.id;
+  return nodes.find((n) => terraformAddress(n) === base)?.id;
 }
 
 // A module call represents its instances on the declaration-level canvas.

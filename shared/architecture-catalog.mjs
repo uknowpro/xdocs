@@ -1,5 +1,6 @@
 import {
   layoutArchitecture,
+  terraformAddress,
   newArchitecture,
   newComponent,
 } from "./architecture.mjs";
@@ -75,7 +76,7 @@ export function terraformDeclarations(text, nodes) {
   }
   return nodes.flatMap((n) => {
     const module = n.kind.startsWith("avm_");
-    const address = n.address || (module ? "module" : n.kind) + "." + n.id;
+    const address = terraformAddress(n);
     const parts = address.split(".");
     const block =
       parts.length === 2 &&

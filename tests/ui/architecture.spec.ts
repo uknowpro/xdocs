@@ -385,3 +385,16 @@ test("provider palette isolates registry resources and adds a generic Azure comp
   await page.getByLabel("Terraform 속성 (JSON)").fill('{"dns_prefix":"team"}');
   await expect(page.getByLabel("Terraform 코드")).toContainText("team");
 });
+
+test("a cloud service outside the snapshot can be drawn under its provider", async ({page}) => {
+  await page.goto("/");
+  const button = (name:string) => page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("xinfra 아키텍처 캔버스").click();
+  await button("빈 캔버스").click();
+  await page.getByLabel("컴포넌트 공급자").selectOption("GCP");
+  await page.getByLabel("컴포넌트 종류").selectOption("service");
+  await page.getByLabel("추가할 리소스 검색").fill("새 클라우드 서비스");
+  await button("“새 클라우드 서비스” 서비스 도식 추가").click();
+  await expect(page.getByRole("button",{name:"컴포넌트 새 클라우드 서비스",exact:true})).toBeVisible();
+});

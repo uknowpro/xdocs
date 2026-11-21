@@ -1,3 +1,4 @@
+import inventory from "./cloud-inventory.mjs";
 import { providerCatalog } from "./provider-catalog.mjs";
 import {caseDiagram} from "./case-diagrams.mjs";
 import { boundarySVG, indexedPlacementTarget } from "./network-boundaries.mjs";
@@ -239,6 +240,61 @@ for (const [group, provider] of Object.entries(providerCatalog)) {
       };
     }
   }
+}
+
+const extensions = {
+  awscc: { group: "AWS", source: "hashicorp/awscc", version: "1.110.0" },
+  azuread: { group: "Azure", source: "hashicorp/azuread", version: "3.10.0" },
+  azapi: { group: "Azure", source: "Azure/azapi", version: "2.14.0" },
+  "google-beta": { group: "GCP", source: "hashicorp/google-beta", version: "7.46.2" },
+};
+const baseGroups = { aws: "AWS", azurerm: "Azure", google: "GCP" };
+for (const [provider, types] of Object.entries(inventory.managed)) {
+  const extension = extensions[provider];
+  const group = extension?.group || baseGroups[provider];
+  const actual = new Set(types);
+  if (!extension) {
+    // Older notes can still open registry documentation entries that grouped multiple real types.
+    for (const type of Object.values(providerCatalog[group].services).flat()) {
+      if (!actual.has(type)) allComponents[type].documentationOnly = true;
+    }
+  }
+  for (const type of types) {
+    const kind = provider === "google-beta" ? "beta_" + type : type;
+    if (allComponents[kind]) continue;
+    const service = allComponents[type]?.service || type.split("_")[1];
+    allComponents[kind] = {
+      group, service: extension ? service + " · " + provider : service,
+      extension: extension && provider, terraformType: type, generic: true,
+      label: type.slice(type.indexOf("_") + 1).replaceAll("_", " "),
+      fields: { arguments: field("Terraform 속성 (JSON)", "{}", { json: true }) },
+    };
+  }
+}
+const azureServices = new Set();
+for (const armType of inventory.armTypes) {
+  const type = armType.split("@")[0];
+  const service = type.split("/")[0];
+  azureServices.add(service);
+  allComponents["arm_" + type.toLowerCase()] = {
+    ...allComponents.azapi_resource, label: type, service: service + " · AzAPI",
+    fields: { arguments: field("Terraform 속성 (JSON)", JSON.stringify({ type: armType }, null, 2), { json: true }) },
+  };
+}
+function diagramService(group, key, label) {
+  allComponents["service_" + group.toLowerCase() + "_" + key] = {
+    group, label, service: "서비스 도식", diagramOnly: true, fields: {},
+  };
+}
+for (const service of inventory.awsServices) diagramService("AWS", service, service.replaceAll("-", " "));
+for (const service of azureServices) diagramService("Azure", service.toLowerCase(), service);
+for (const [name, title] of Object.entries(inventory.googleApis)) diagramService("GCP", name, title);
+for (const group of ["AWS", "Azure", "GCP"]) diagramService(group, "_custom", "사용자 정의 서비스");
+
+export function terraformAddress(node) {
+  if (node.address) return node.address;
+  const type = node.kind.startsWith("avm_") ? "module" : allComponents[node.kind]?.terraformType || node.kind;
+  return type + "." + node.id;
 }
 
 export const WAF_PILLARS = [
@@ -588,6 +644,11 @@ export function architectureIssues(m) {
       }
       continue;
     }
+    if (allComponents[n.kind].diagramOnly) continue;
+    if (allComponents[n.kind].documentationOnly) {
+      issues.push({ id: n.id, message: "공급자 스키마에 없는 문서 항목입니다. 팔레트에서 실제 리소스 유형을 선택하세요." });
+      continue;
+    }
     if (allComponents[n.kind].generic) {
       try {
         if (!plain(JSON.parse(n.props.arguments))) throw Error();
@@ -831,12 +892,12 @@ export function generateArchitecture(m, format = "all", ids = []) {
   const selected = subset(m, ids),
     wantTF = ["all", "terraform"].includes(format),
     wantK = ["all", "manifest", "helm"].includes(format);
-  const nodes = selected.filter((n) =>
+  const nodes = selected.filter((n) => (!allComponents[n.kind]?.diagramOnly || n.imported) && (
       format === "cloudformation"
-        ? n.kind.startsWith("aws_") && !n.imported
+        ? allComponents[n.kind]?.group === "AWS" && !n.imported
         : n.kind.startsWith("k8s_")
           ? wantK
-          : wantTF,
+          : wantTF),
     ),
     issues = architectureIssues({ ...m, nodes: m.nodes }).filter((i) =>
       nodes.some((n) => n.id === i.id),
@@ -861,12 +922,14 @@ export function generateArchitecture(m, format = "all", ids = []) {
       "AWS 드로잉은 시각 문서입니다. 계정·서비스·방향선은 배포 코드에 포함되지 않습니다.",
     );
   }
-  const genericAws = nodes.some(n => !n.imported && n.kind.startsWith("aws_") && allComponents[n.kind]?.generic);
+  const genericAws = nodes.some(n => !n.imported && allComponents[n.kind]?.group === "AWS" && allComponents[n.kind]?.generic);
   if (genericAws && format === "cloudformation")
     return { files: {}, errors: ["선택한 리소스에 CloudFormation 매핑이 없습니다. Terraform으로 추출하세요."], warnings };
   if (genericAws && format === "all")
     warnings.push("CloudFormation에는 전용 매핑이 있는 AWS 리소스만 포함됩니다.");
-  const skipped = selected.length - nodes.length;
+  const diagramCount = selected.filter(n => !n.imported && allComponents[n.kind]?.diagramOnly).length;
+  if (diagramCount) warnings.push("서비스 도식 " + diagramCount + "개는 도면에만 포함됩니다.");
+  const skipped = selected.length - nodes.length - diagramCount;
   if (skipped)
     warnings.push(
       `${skipped}개 컴포넌트는 선택한 형식에 포함되지 않습니다. 전체 묶음을 선택하면 함께 추출됩니다.`,
@@ -925,7 +988,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
   }
   if (wantTF && clouds.length) {
     const modules = {};
-    const groups = new Set(clouds.map((n) => allComponents[n.kind].group)),
+    const groups = new Set(clouds.filter(n => !allComponents[n.kind].extension).map(n => allComponents[n.kind].group)),
       providers = {},
       required = {},
       variables = {};
@@ -959,6 +1022,20 @@ export function generateArchitecture(m, format = "all", ids = []) {
       required.azapi = { source: "Azure/azapi", version: "~> 2.12" };
       providers.azapi = { subscription_id: "${var.azure_subscription_id}" };
     }
+    for (const key of new Set(clouds.map(n => allComponents[n.kind].extension).filter(Boolean))) {
+      const { source, version } = extensions[key];
+      required[key] = { source, version };
+      providers[key] = {};
+      if (key === "awscc") providers[key].region = lit(m.settings.aws_region);
+      if (key === "azapi") {
+        variables.azure_subscription_id = { type: "string", description: "Azure subscription ID" };
+        providers[key].subscription_id = "${var.azure_subscription_id}";
+      }
+      if (key === "google-beta") {
+        variables.gcp_project_id = { type: "string", description: "Google Cloud project ID" };
+        providers[key] = { project: "${var.gcp_project_id}", region: lit(m.settings.gcp_region) };
+      }
+    }
     for (const n of clouds) {
       const p = n.props,
         t = { Name: lit(p.name) },
@@ -975,7 +1052,10 @@ export function generateArchitecture(m, format = "all", ids = []) {
             )
           : null;
       if (allComponents[n.kind].generic) {
-        put(n.kind, n.id, JSON.parse(p.arguments));
+        const spec = allComponents[n.kind];
+        const args = JSON.parse(p.arguments);
+        if (spec.extension === "google-beta") args.provider = "google-beta";
+        put(spec.terraformType || n.kind, n.id, args);
         continue;
       }
       if (AVM_MODULES[n.kind]) {

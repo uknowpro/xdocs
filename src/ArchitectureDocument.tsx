@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import {
   allComponents as COMPONENTS,
+  terraformAddress,
   COMPONENTS as builtInComponents,
   AVM_MODULES,
   newArchitecture,
@@ -478,6 +479,7 @@ export default function ArchitectureDocument({
       return groups.size === 1 ? [...groups][0] : "전체";
     }),
     [paletteLimit, setPaletteLimit] = useState(50),
+    [paletteMode, setPaletteMode] = useState("all"),
     [zoom, setZoom] = useState(1),
     [boundary, setBoundary] = useState(true),
     [caseView, setCaseView] = useState(Boolean(model.caseStudyId) && !entry),
@@ -559,7 +561,7 @@ export default function ArchitectureDocument({
     : "";
   const openingModel = useRef(model);
   const targetNode = focused && model.nodes.find(n => n.id === focused.target);
-  const targetAddress = targetNode && (targetNode.address || (targetNode.kind.startsWith("avm_") ? "module" : targetNode.kind) + "." + targetNode.id);
+  const targetAddress = targetNode && terraformAddress(targetNode);
   const sites = focused?.sites.filter(s => {
     const current = result.files["terraform/" + s.file];
     const original = openingModel.current.sources.find(f => f.name === s.file);
@@ -699,6 +701,7 @@ export default function ArchitectureDocument({
     x?: number,
     y?: number,
     parent?: ArchitectureNode,
+    displayName?: string,
   ) {
     if (readonly) return;
     const n = newComponent(
@@ -706,6 +709,7 @@ export default function ArchitectureDocument({
       x ?? 60 + (model.nodes.length % 4) * 220,
       y ?? 60 + Math.floor(model.nodes.length / 4) * 130,
     ) as ArchitectureNode;
+    if (displayName) n.label = displayName;
     if (parent && !canPlace(model, n, parent)) return;
     const next = { ...model, nodes: [...model.nodes, n] };
     const placed = parent ? reassignPlacement(next, n, parent) : next;
@@ -900,8 +904,8 @@ export default function ArchitectureDocument({
     }
   }
   const providerEntries = useMemo(() => Object.entries(COMPONENTS).filter(([, c]) =>
-    group === "전체" || c.group === group || (group === "Azure" && c.group === "Azure AVM"),
-  ), [group]);
+    !c.documentationOnly && (paletteMode === "all" || (paletteMode === "service" ? c.diagramOnly : !c.diagramOnly)) && (group === "전체" || c.group === group || (group === "Azure" && c.group === "Azure AVM")),
+  ), [group, paletteMode]);
   const query = paletteQuery.trim().toLowerCase();
   const matches = useMemo(() => providerEntries.filter(([kind, c]) =>
     [kind, c.label, c.group, c.service].join(" ").toLowerCase().includes(query),
@@ -1089,6 +1093,11 @@ export default function ArchitectureDocument({
                 <option key={g}>{g}</option>
               ))}
             </select>
+            <select aria-label="컴포넌트 종류" value={paletteMode} onChange={e => {setPaletteMode(e.target.value); setPaletteLimit(50);}}>
+              <option value="all">모든 컴포넌트</option>
+              <option value="resource">인프라 리소스</option>
+              <option value="service">서비스 도식</option>
+            </select>
             <input className="palette-search" type="search" aria-label="추가할 리소스 검색" placeholder="리소스 검색" value={paletteQuery} onChange={e=>{setPaletteQuery(e.target.value); setPaletteLimit(50);}}/>
             {matches.slice(0, paletteLimit)
               .map(([kind, c]) => {
@@ -1110,13 +1119,19 @@ export default function ArchitectureDocument({
                     <Icon size={17} />
                     <span>
                       {c.label}
-                      <small>{c.generic ? c.service : c.group}</small>
+                      <small>{c.generic || c.diagramOnly ? c.service : c.group}</small>
                     </span>
                     <Plus size={12} />
                   </button>
                 );
               })}
             {!matches.length && <small>검색 결과가 없습니다.</small>}
+            {!matches.length && !readonly && paletteMode !== "resource" && ["AWS", "Azure", "GCP"].includes(group) &&
+              paletteQuery.trim().length > 0 && paletteQuery.trim().length <= 200 &&
+              <button onClick={() => add("service_" + group.toLowerCase() + "__custom", undefined, undefined, undefined, paletteQuery.trim())}>
+                “{paletteQuery.trim()}” 서비스 도식 추가
+              </button>}
+
             {matches.length > paletteLimit && <button onClick={() => setPaletteLimit(limit => limit + 50)}>더 보기 ({paletteLimit}/{matches.length})</button>}
           </aside>
           <div className="arch-workspace">
