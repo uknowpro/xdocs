@@ -1,3 +1,8 @@
+import {serviceGlyph} from "../shared/service-glyph.mjs";
+import schemaChanges from "../shared/schema-changes.mjs";
+import {declarationLines} from "../shared/declaration-lines.mjs";
+import ResourceFields from "./ResourceFields";
+import { compatibleFields, referenceTargets, resourceSchema, fieldProblems } from "../shared/resource-form.mjs";
 import {networkCases} from "../shared/network-case-layouts.mjs";
 import {firewallCase,firewallSteps} from "../shared/azure-firewall-path.mjs";
 import {caseDiagram} from "../shared/case-diagrams.mjs";
@@ -25,13 +30,10 @@ import IacDiff from "./IacDiff";
 import NetworkLayout from "./NetworkLayout";
 import { AwsDrawing, type Drawing } from "./AwsDrawing";
 import { backupDrawing, blankDrawing } from "../shared/aws-drawing.mjs";
-import { useMemo, useRef, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import {
   Box,
   Cloud,
-  Container,
-  Database,
-  Network,
   Plus,
   Upload,
   Download,
@@ -49,6 +51,7 @@ import {
 } from "lucide-react";
 import {
   allComponents as COMPONENTS,
+  catalogSettings, catalogVersions,
   terraformAddress,
   COMPONENTS as builtInComponents,
   AVM_MODULES,
@@ -99,6 +102,7 @@ export type ArchitectureNode = {
   x: number;
   y: number;
   props: Record<string, string>;
+  schemaFingerprint?:string;
   imported?: boolean;
   unresolvedReferences?:string[];
   sourceFile?: string;
@@ -148,17 +152,9 @@ export type ArchitectureModel = {
   };
   review?: Record<string, string>;
 };
-const icon = (kind: string) =>
-  kind.includes("storage") || kind.includes("bucket") || kind.includes("pvc")
-    ? Database
-    : kind.includes("network") ||
-        kind.includes("vpc") ||
-        kind.includes("subnet") ||
-        kind.includes("service")
-      ? Network
-      : kind.startsWith("k8s_")
-        ? Container
-        : Cloud;
+function ServiceIcon({kind,size}:{kind:string;size:number}) {
+  return <svg width={size} height={size} viewBox="0 0 21 21" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"><path d={String(serviceGlyph(kind))}/></svg>;
+}
 const scenarios: Record<string, RegExp> = {
   "복구 · 백업": /복구|백업|failover|recovery|backup|disaster/i,
   "네트워크 격리": /격리|망 분리|스포크|isolat|private|사설|프라이빗|spoke/i,
@@ -489,6 +485,9 @@ export default function ArchitectureDocument({
     [only, setOnly] = useState(false),
     [file, setFile] = useState(""),
     [connecting, setConnecting] = useState(false),
+    [refChoice,setRefChoice] = useState(""),
+    [catalogService,setCatalogService] = useState(""),
+    [cliReport,setCliReport] = useState<{model:ArchitectureModel;message:string;rows:{message:string;address:string;file:string;line:number}[]}>(),
     [error, setError] = useState(""),
     [status, setStatus] = useState("");
   const [drag, setDrag] = useState<{
@@ -509,7 +508,12 @@ export default function ArchitectureDocument({
     viewport = useRef<HTMLDivElement>(null);
   const node = model.nodes.find((n) => n.id === selected),
     edges = architectureEdges(model),
-    issues = architectureIssues(model);
+    issues = useMemo(()=>[...architectureIssues(model),...model.nodes.flatMap(n=>{
+      if(n.imported || !COMPONENTS[n.kind]?.generic) return [];
+      const schema=resourceSchema(n.kind);
+      try{return schema?fieldProblems(schema.fields,JSON.parse(n.props.arguments)).map((message:string)=>({id:n.id,message})):[];}catch{return [];}
+    })],[model]);
+  const migration = node && (schemaChanges.changes as Record<string,{from:string;added:string[];removed:string[];changed:string[]}>)[node.kind.startsWith("arm_")?"azapi_resource":node.kind];
   const selectedId = only ? node?.id : undefined;
   const result = useMemo(() => {
     try {
@@ -614,6 +618,22 @@ export default function ArchitectureDocument({
               })),
       [result.files, livePath, scopedNodes, model.caseStudyId],
     );
+  const lineNodes = useMemo(()=>declarationLines(result.files[livePath]||"",livePath,scopedNodes),[result.files,livePath,scopedNodes]);
+  const codeLines=useMemo(()=>{
+    const lines=(result.files[livePath]||"").split("\n");
+    const parts:(string|{number:number;id:string;line:string})[]=[];
+    let start=0;
+    for(const [number,id] of [...lineNodes].sort((a,b)=>a[0]-b[0])){
+      const i=number-1;
+      if(i<start||i>=lines.length)continue;
+      if(start<i)parts.push(lines.slice(start,i).join("\n")+"\n");
+      parts.push({number,id,line:lines[i]});
+      if(i+1<lines.length)parts.push("\n");
+      start=i+1;
+    }
+    parts.push(lines.slice(start).join("\n"));
+    return parts;
+  },[result.files,livePath,lineNodes]);
   const parameters = useMemo(() => {
     if (!livePath?.endsWith(".tf.json")) return [];
     try {
@@ -651,7 +671,9 @@ export default function ArchitectureDocument({
     requestAnimationFrame(() => {
       if (!resourceCode.current) return;
       resourceCode.current.open = true;
-      resourceCode.current.querySelector<HTMLElement>("pre")?.focus();
+      const line=viewer.current?.querySelector<HTMLElement>('[data-declaration="'+CSS.escape(selected)+'"]');
+      line?.scrollIntoView({block:"nearest"});
+      resourceCode.current.querySelector<HTMLElement>("pre")?.focus({preventScroll:!!line});
     });
   }
   const fileNames = Object.keys(result.files),
@@ -668,6 +690,7 @@ export default function ArchitectureDocument({
           before.x !== after.x ||
           before.y !== after.y ||
           before.scopeAddress !== after.scopeAddress ||
+          before.props.arguments !== after.props.arguments ||
           Object.entries(COMPONENTS[before.kind]?.fields || {}).some(
             ([key, f]: [string, any]) =>
               f.ref && before.props[key] !== after.props[key],
@@ -720,6 +743,11 @@ export default function ArchitectureDocument({
   }
   function select(n: ArchitectureNode) {
     if (connecting && node) {
+      if (COMPONENTS[node.kind]?.generic && !node.imported) {
+        if (node.id===n.id || !compatibleFields(node.kind,n.kind).length) {setError("호환되는 참조 속성이 없습니다.");return;}
+        setRefChoice(n.id);
+        return;
+      }
       const match = Object.entries(COMPONENTS[node.kind]?.fields || {}).find(
         ([, f]: [string, any]) => f.ref === n.kind,
       );
@@ -906,10 +934,19 @@ export default function ArchitectureDocument({
   const providerEntries = useMemo(() => Object.entries(COMPONENTS).filter(([, c]) =>
     !c.documentationOnly && (paletteMode === "all" || (paletteMode === "service" ? c.diagramOnly : !c.diagramOnly)) && (group === "전체" || c.group === group || (group === "Azure" && c.group === "Azure AVM")),
   ), [group, paletteMode]);
+  const serviceName=(c:any)=>c.extension==="azuread"?"Microsoft Entra ID":(c.service||c.group).split(" · ")[0];
+  const serviceOptions=useMemo(()=>[...new Set(providerEntries.map(([,c])=>serviceName(c)))].sort(),[providerEntries]);
   const query = paletteQuery.trim().toLowerCase();
   const matches = useMemo(() => providerEntries.filter(([kind, c]) =>
-    [kind, c.label, c.group, c.service].join(" ").toLowerCase().includes(query),
-  ), [providerEntries, query]);
+    (!catalogService || serviceName(c)===catalogService) && query.split(/\s+/).every(w=>[kind,c.label,c.group,c.service,serviceName(c)].join(" ").toLowerCase().includes(w)),
+  ), [providerEntries, query,catalogService]);
+  const visibleMatches = useMemo(()=>{
+    const visible=matches.slice(0,paletteLimit);
+    return query?visible.sort((a,b)=>String(a[1].service||a[1].group).localeCompare(String(b[1].service||b[1].group))):visible;
+  },[matches,paletteLimit,query]);
+  const insertionEntries=useMemo(()=>providerEntries.filter(([kind,c])=>
+    (!catalogService||serviceName(c)===catalogService) && (!contextParent || rules[kind]?.[1]===contextParent.kind || (c.generic && compatibleFields(kind,contextParent.kind).length===1))
+  ).map(([id,c])=>({id,label:c.label,detail:c.group+" · "+id})),[providerEntries,catalogService,contextParent?.kind,rules]);
   const width = Math.max(1000, ...model.nodes.map((n) => n.x + 240)),
     height = Math.max(650, ...model.nodes.map((n) => n.y + 150));
   return (
@@ -1060,16 +1097,7 @@ export default function ArchitectureDocument({
               }
               shortcutKey="+"
               resultLimit={100}
-              entries={providerEntries
-                .filter(
-                  ([kind]) =>
-                    !contextParent || rules[kind]?.[1] === contextParent.kind,
-                )
-                .map(([id, c]) => ({
-                  id,
-                  label: c.label,
-                  detail: c.group + " · " + id,
-                }))}
+              entries={insertionEntries}
               onChoose={(kind) =>
                 add(kind, undefined, undefined, contextParent)
               }
@@ -1084,7 +1112,7 @@ export default function ArchitectureDocument({
             <select
               aria-label="컴포넌트 공급자"
               value={group}
-              onChange={(e) => {setGroup(e.target.value); setPaletteLimit(50); setPaletteQuery("");}}
+              onChange={(e) => {setGroup(e.target.value); setCatalogService(""); setPaletteLimit(50); setPaletteQuery("");}}
             >
               {[
                 "전체",
@@ -1093,16 +1121,20 @@ export default function ArchitectureDocument({
                 <option key={g}>{g}</option>
               ))}
             </select>
-            <select aria-label="컴포넌트 종류" value={paletteMode} onChange={e => {setPaletteMode(e.target.value); setPaletteLimit(50);}}>
+            <select aria-label="컴포넌트 종류" value={paletteMode} onChange={e => {setPaletteMode(e.target.value); setCatalogService(""); setPaletteLimit(50);}}>
               <option value="all">모든 컴포넌트</option>
               <option value="resource">인프라 리소스</option>
               <option value="service">서비스 도식</option>
             </select>
+            <select aria-label="클라우드 서비스" value={catalogService} onChange={e=>{setCatalogService(e.target.value);setPaletteLimit(50);}}>
+              <option value="">모든 서비스</option>{serviceOptions.map(service=><option key={service}>{service}</option>)}
+            </select>
             <input className="palette-search" type="search" aria-label="추가할 리소스 검색" placeholder="리소스 검색" value={paletteQuery} onChange={e=>{setPaletteQuery(e.target.value); setPaletteLimit(50);}}/>
-            {matches.slice(0, paletteLimit)
-              .map(([kind, c]) => {
-                const Icon = icon(kind);
-                return (
+            {visibleMatches.map(([kind, c],i) => {
+                const service=c.service||c.group;
+                const previous=visibleMatches[i-1]?.[1];
+                return (<Fragment key={kind}>
+                  {query && service!==(previous?.service||previous?.group) && <small className="palette-service-name">{service}</small>}
                   <button
                     key={kind}
                     draggable={!readonly}
@@ -1116,13 +1148,13 @@ export default function ArchitectureDocument({
                     onClick={() => add(kind)}
                     title={c.group + " · " + c.label}
                   >
-                    <Icon size={17} />
+                    <ServiceIcon kind={kind} size={17} />
                     <span>
                       {c.label}
                       <small>{c.generic || c.diagramOnly ? c.service : c.group}</small>
                     </span>
                     <Plus size={12} />
-                  </button>
+                  </button></Fragment>
                 );
               })}
             {!matches.length && <small>검색 결과가 없습니다.</small>}
@@ -1366,8 +1398,7 @@ export default function ArchitectureDocument({
                         })}
                       </svg>
                       {model.nodes.map((n) => {
-                        const Icon = icon(n.kind),
-                          bad = issues.some((i) => i.id === n.id);
+                        const bad = issues.some((i) => i.id === n.id);
                         return (
                           <button
                             key={n.id}
@@ -1440,7 +1471,7 @@ export default function ArchitectureDocument({
                               });
                             }}
                           >
-                            <Icon size={22} />
+                            <ServiceIcon kind={n.kind} size={22} />
                             <span>
                               <strong>{n.label}</strong>
                               <small>
@@ -1521,6 +1552,16 @@ export default function ArchitectureDocument({
                     {AVM_MODULES[node.kind as keyof typeof AVM_MODULES].version}
                   </p>
                 )}
+                {!node.imported && COMPONENTS[node.kind]?.generic && <>
+                  <ResourceFields key={node.id} kind={node.kind} raw={node.props.arguments} disabled={!!readonly || !!model.presentation?.locked?.includes(node.id)} change={argumentsJson=>updateNode({props:{...node.props,arguments:argumentsJson}})}/>
+                  {node.schemaFingerprint!==resourceSchema(node.kind)?.fingerprint && <details><summary>공급자 스키마 검토</summary><p>{node.schemaFingerprint?"저장 이후 스키마가 변경되었습니다.":"이전 도면에 스키마 기록이 없습니다."} 속성 폼에서 현재 값을 확인하세요.</p>
+                    {migration && node.schemaFingerprint===migration.from && <p>{[["추가",migration.added],["삭제",migration.removed],["변경",migration.changed]].map(([label,fields])=>Array.isArray(fields) && fields.length?String(label)+" · "+fields.join(", "):"").filter(Boolean).join(" / ")}</p>}
+                    <button disabled={readonly || model.presentation?.locked?.includes(node.id)} onClick={()=>updateNode({schemaFingerprint:resourceSchema(node.kind)?.fingerprint})}>현재 스키마 확인 기록</button></details>}
+                  {connecting && refChoice && model.nodes.filter(t=>t.id===refChoice).map(target=><fieldset key={target.id}><legend>{target.label} 참조 속성</legend>
+                    {compatibleFields(node.kind,target.kind).map(k=><button key={k} onClick={()=>{
+                      try {const args=JSON.parse(node.props.arguments);args[k]="${"+terraformAddress(target)+"."+referenceTargets[k][1]+"}";updateNode({props:{...node.props,arguments:JSON.stringify(args,null,2)}});setConnecting(false);setRefChoice("");setError("");}catch{setError("Terraform 속성 JSON을 확인하세요.");}
+                    }}>{k}</button>)}</fieldset>)}
+                </>}
                 {Object.entries(COMPONENTS[node.kind]?.fields || {})
                   .filter(
                     ([k]) => !node.imported || Object.hasOwn(node.props, k),
@@ -1580,7 +1621,7 @@ export default function ArchitectureDocument({
                       ) : f.json ? (
                         <textarea
                           aria-label={f.label}
-                          readOnly={readonly}
+                          readOnly={readonly || model.presentation?.locked?.includes(node.id)}
                           value={node.props[k]}
                           onChange={(e) =>
                             updateNode({
@@ -1732,7 +1773,7 @@ export default function ArchitectureDocument({
                   <button
                     className="button"
                     disabled={readonly}
-                    onClick={() => setConnecting(!connecting)}
+                    onClick={() => {setRefChoice("");setConnecting(!connecting);}}
                   >
                     <Link2 size={14} />
                     {connecting ? "연결 취소" : "대상 클릭으로 연결"}
@@ -1783,6 +1824,11 @@ export default function ArchitectureDocument({
             )}
             <details className="arch-environment">
               <summary>클라우드 환경 설정</summary>
+              {!model.sources.length && <details><summary>Terraform 공급자 버전</summary>
+                {Object.entries(catalogVersions).map(([key,version])=><p key={key}>{key} · {model.settings["provider_"+key]||"기존 버전 범위"}{model.settings["provider_"+key]!==version && " → "+version}</p>)}
+                {Object.entries(catalogVersions).some(([key,v])=>model.settings["provider_"+key]!==v) &&
+                  <button disabled={readonly} onClick={()=>change({...model,settings:{...model.settings,...catalogSettings()}})}>내장 공급자 버전 적용</button>}
+              </details>}
               {[
                 ["aws_region", "AWS Region"],
                 ["azure_subscription", "Azure Subscription ID"],
@@ -1841,6 +1887,13 @@ export default function ArchitectureDocument({
           </details>
           <details className="arch-review-issues">
             <summary>설계 이슈 ({issues.length})</summary>
+            {api.checkTerraform && <button onClick={async()=>{
+              try{const report=await api.checkTerraform!(model);if(report)setCliReport({model,message:report.tool+" validate · "+(report.valid?"통과":"확인 필요"),rows:report.diagnostics});}catch(e){setError(String(e));}
+            }}>로컬 Terraform 검증</button>}
+            {cliReport?.model===model && <div>{cliReport.message}{cliReport.rows.map((d,i)=><button key={i} onClick={()=>{
+              const target=model.nodes.find(n=>terraformAddress(n)===d.address || (n.sourceFile===d.file && n.sourceLine===d.line));
+              if(target)openDetail(target.id);else if(d.file)setLiveFile("terraform/"+d.file);
+            }}>{d.file} {d.line||""} · {d.message}</button>)}</div>}
             {issues.length === 0 && <p>발견된 이슈가 없습니다.</p>}
             {issues.map((issue, i) => <button key={i} onClick={() => openDetail(issue.id)}>
               {model.nodes.find(n => n.id === issue.id)?.label} · {issue.message}
@@ -1927,7 +1980,8 @@ export default function ArchitectureDocument({
                       <span key={i} className={part.added ? "live-added" : "live-removed"}>{part.value.replace(/^./gm, line => (part.added ? "+ " : "− ") + line)}</span>)}</pre>
                     : <p>페이지를 열었을 때와 같습니다.</p>}
               </div> : <pre aria-label="Terraform 코드">
-                <code>{site && focused && sites.some(s => s.file === site.file && s.line === site.line) && livePath === "terraform/" + site.file ? result.files[livePath].split("\n").map((line,i,lines) => <span key={i}>{i+1 === site.line ? <mark title={site.property}>{line}</mark> : line}{i < lines.length-1 ? "\n" : ""}</span>) : result.files[livePath]}</code>
+                <code>{site && focused && sites.some(s => s.file === site.file && s.line === site.line) && livePath === "terraform/" + site.file ? result.files[livePath].split("\n").map((line,i,lines) => <span key={i}>{i+1 === site.line ? <mark title={site.property}>{line}</mark> : line}{i < lines.length-1 ? "\n" : ""}</span>) : codeLines.map(part=>typeof part==="string"?part:<button type="button" key={part.number} className="declaration-line" data-declaration={part.id}
+                   title="캔버스에서 선언 선택" onClick={()=>{openDetail(part.id);focusNode(part.id);}}>{part.line}</button>)}</code>
               </pre>}
             </>
           )}

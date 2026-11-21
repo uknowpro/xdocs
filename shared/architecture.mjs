@@ -1,3 +1,5 @@
+import schemaChanges from "./schema-changes.mjs";
+import { resourceSchema, argumentReferences } from "./resource-form.mjs";
 import inventory from "./cloud-inventory.mjs";
 import { providerCatalog } from "./provider-catalog.mjs";
 import {caseDiagram} from "./case-diagrams.mjs";
@@ -24,6 +26,7 @@ export const COMPONENTS = {
       name: field("이름", "private"),
       vpc: ref("VPC", "aws_vpc"),
       cidr: field("CIDR", "10.0.1.0/24", { cidr: true }),
+      availability_zone: field("가용 영역", "", {optional:true}),
     },
   },
   aws_instance: {
@@ -100,6 +103,7 @@ export const COMPONENTS = {
       name: field("이름", "private"),
       network: ref("VPC Network", "google_compute_network"),
       cidr: field("CIDR", "10.20.0.0/24", { cidr: true }),
+      region: field("서브넷 리전", "", {optional:true}),
     },
   },
   google_compute_instance: {
@@ -248,6 +252,13 @@ const extensions = {
   azapi: { group: "Azure", source: "Azure/azapi", version: "2.14.0" },
   "google-beta": { group: "GCP", source: "hashicorp/google-beta", version: "7.46.2" },
 };
+export const catalogVersions = Object.fromEntries([
+  ...Object.values(providerCatalog).map(p=>[p.provider.split("/")[1],p.version]),
+  ...Object.entries(extensions).map(([key,p])=>[key,p.version]),
+]);
+export function catalogSettings() {
+  return Object.fromEntries(Object.entries(catalogVersions).map(([key,version])=>["provider_"+key,version]));
+}
 const baseGroups = { aws: "AWS", azurerm: "Azure", google: "GCP" };
 for (const [provider, types] of Object.entries(inventory.managed)) {
   const extension = extensions[provider];
@@ -270,6 +281,12 @@ for (const [provider, types] of Object.entries(inventory.managed)) {
       fields: { arguments: field("Terraform 속성 (JSON)", "{}", { json: true }) },
     };
   }
+}
+for (const kind of schemaChanges.retired) {
+  const prefix=kind.split("_")[0];
+  const group=prefix==="beta"?"GCP":extensions[prefix]?.group || baseGroups[prefix];
+  allComponents[kind] = {...allComponents[kind],group,label:allComponents[kind]?.label || kind,
+    documentationOnly:true,fields:allComponents[kind]?.fields || {arguments:field("Terraform 속성 (JSON)","{}",{json:true})}};
 }
 const azureServices = new Set();
 for (const armType of inventory.armTypes) {
@@ -380,6 +397,7 @@ export function newArchitecture() {
     version: 1,
     title: "새 아키텍처",
     settings: {
+      ...catalogSettings(),
       aws_region: "ap-northeast-2",
       azure_subscription: "",
       gcp_project: "",
@@ -397,6 +415,7 @@ export function newComponent(kind, x = 80, y = 80) {
     id: "n_" + globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, 16),
     kind,
     label: allComponents[kind].label,
+    ...(allComponents[kind].generic ? {schemaFingerprint:resourceSchema(kind)?.fingerprint} : {}),
     x,
     y,
     props: Object.fromEntries(
@@ -579,6 +598,13 @@ export function architectureEdges(m) {
             locked: true,
           });
       }
+    } else if (allComponents[n.kind].generic) {
+      let args;
+      try { args = JSON.parse(n.props.arguments); } catch { continue; }
+      for (const ref of argumentReferences(args)) {
+        const target = m.nodes.find(t => terraformAddress(t) === ref.address);
+        if (target) edges.push({source:n.id,target:target.id,field:ref.path,label:ref.path,locked:true});
+      }
     } else
       for (const [k, f] of Object.entries(allComponents[n.kind].fields)) {
         if (f.ref && n.props[k])
@@ -651,7 +677,12 @@ export function architectureIssues(m) {
     }
     if (allComponents[n.kind].generic) {
       try {
-        if (!plain(JSON.parse(n.props.arguments))) throw Error();
+        const args = JSON.parse(n.props.arguments);
+        if (!plain(args)) throw Error();
+        for (const ref of argumentReferences(args)) {
+          if (!m.nodes.some(t => terraformAddress(t) === ref.address))
+            issues.push({id:n.id,message:ref.path + " · 참조 대상이 없습니다: " + ref.address});
+        }
       } catch {
         issues.push({ id: n.id, message: "Terraform 속성을 JSON 객체로 입력하세요." });
       }
@@ -660,7 +691,7 @@ export function architectureIssues(m) {
     for (const [k, f] of Object.entries(allComponents[n.kind].fields)) {
       const v = n.props[k] ?? "";
       if (
-        (f.required || (!f.ref && !["storage_class", "ami"].includes(k))) &&
+        (f.required || (!f.ref && !f.optional && !["storage_class", "ami"].includes(k))) &&
         !v
       )
         issues.push({ id: n.id, message: f.label + "을 입력하세요." });
@@ -1136,6 +1167,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
         case "aws_subnet":
           put(n.kind, n.id, {
             vpc_id: expr(parent),
+            ...(p.availability_zone ? {availability_zone:lit(p.availability_zone)} : {}),
             cidr_block: p.cidr,
             map_public_ip_on_launch: false,
             tags: t,
@@ -1250,7 +1282,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
             name: lit(p.name),
             network: expr(parent),
             ip_cidr_range: p.cidr,
-            region: lit(m.settings.gcp_region),
+            region: lit(p.region || m.settings.gcp_region),
             private_ip_google_access: true,
           });
           break;
@@ -1274,6 +1306,10 @@ export function generateArchitecture(m, format = "all", ids = []) {
           });
           break;
       }
+    }
+    for (const [provider, spec] of Object.entries(required)) {
+      const pin=m.settings["provider_"+provider];
+      if (pin && /^\d+\.\d+\.\d+$/.test(pin)) spec.version=pin;
     }
     files["terraform/main.tf.json"] = json({
       terraform: {
@@ -1331,6 +1367,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
             Type: "AWS::EC2::Subnet",
             Properties: {
               VpcId: ref(get(p.vpc)),
+              ...(p.availability_zone ? {AvailabilityZone:p.availability_zone} : {}),
               CidrBlock: p.cidr,
               MapPublicIpOnLaunch: false,
               Tags,

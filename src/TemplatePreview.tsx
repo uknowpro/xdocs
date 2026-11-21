@@ -1,3 +1,4 @@
+import checks from "../catalog/roundtrip-checks.json";
 import { useEffect, useMemo, useState } from "react";
 import { containerKinds } from "../shared/network-boundaries.mjs";
 import { templateDiagram } from "./TemplateThumbnail";
@@ -70,6 +71,7 @@ export default function TemplatePreview({
       active = false;
     };
   }, [template.id]);
+  const verified=checks[template.id as keyof typeof checks] as {files:number; validation?:{tool:string;warnings:string[];count:number}}|undefined;
   const boundaries = model?.nodes.filter((n) => containerKinds.has(n.kind));
   const scope = useMemo(() => model && scopeFacts(model), [model]);
   const diagram = useMemo(
@@ -131,6 +133,8 @@ export default function TemplatePreview({
             네트워크·배치 경계:{" "}
             {boundaries?.map((n) => n.label).join(", ") || "명시된 경계 없음"}
           </p>
+          {verified && <div><p>원문 {verified.files}개 파일 · 리소스 참조 왕복 검증 통과</p>
+            {verified.validation && <p>{verified.validation.tool} validate 통과 · 경고 {verified.validation.count}건 {verified.validation.warnings.join(", ")}</p>}</div>}
           <p>{template.review?.operations || template.study}</p>
         </>
       )}

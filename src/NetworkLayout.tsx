@@ -57,7 +57,8 @@ export default function NetworkLayout({
   const updateView = onView;
   const refs = Boolean(focused) || focusRelated || (view.refs ?? false),
     all = refs ? architectureEdges(model) : [];
-  const { representatives } = boundaryLayout({ ...model, presentation: view });
+  const [mapOpen,setMapOpen]=useState(false), [magnify,setMagnify]=useState(false);
+  const { representatives,boxes,width,height } = boundaryLayout({ ...model, presentation: view });
   const edges = all.filter(
     (e) =>
       (!focused || (e.source === focused.source && e.target === focused.target)) &&
@@ -127,6 +128,8 @@ export default function NetworkLayout({
             {label}
           </label>
         ))}
+        <button aria-pressed={mapOpen} onClick={()=>setMapOpen(!mapOpen)}>미니맵</button>
+        {node && <button aria-pressed={magnify} onClick={()=>setMagnify(!magnify)}>{magnify?"전체 영역":"선택 영역 확대"}</button>}
         {node && (
           <>
             {containerKinds.has(node.kind) && (
@@ -144,6 +147,7 @@ export default function NetworkLayout({
           </>
         )}
       </div>
+      {mapOpen && <svg className="infra-minimap" aria-label="리소스 미니맵" viewBox={`0 0 ${width} ${height}`}>{boxes.map(b=><rect key={b.id} x={b.x} y={b.y} width={b.w} height={b.h} role="button" tabIndex={0} aria-label={b.label+" 위치"} onClick={()=>onSelect(model.nodes.find(n=>n.id===b.id)!)} onKeyDown={e=>{if(e.key==="Enter")onSelect(model.nodes.find(n=>n.id===b.id)!);}} fill={b.id===selected?"#3c91b7":"#c8cdd1"} stroke="#666"><title>{b.label}</title></rect>)}</svg>}
       <div
         className={focused ? "network-sheet reference-focused" : "network-sheet"}
         aria-label="클라우드 경계 도면"
@@ -233,7 +237,11 @@ export default function NetworkLayout({
           setNotice(child.label + " → " + p.label);
         }}
         dangerouslySetInnerHTML={{
-          __html: boundarySVG(renderModel, selected, edges, hover, dragging, planLabels),
+          __html: (()=>{
+            const svg=boundarySVG(renderModel,selected,edges,hover,dragging,planLabels);
+            const box=magnify && boxes.find(b=>b.id===selected);
+            return box ? svg.replace(/viewBox="[^"]+"/,`viewBox="${box.x-8} ${box.y-8} ${box.w+16} ${box.h+16}"`) : svg;
+          })(),
         }}
       />
       {hover && (

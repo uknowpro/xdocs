@@ -1,8 +1,15 @@
+import {compatibleFields,referenceTargets} from "./resource-form.mjs";
 import { canPlace, placementFields } from "./network-boundaries.mjs";
 export { canPlace };
 export function reassignPlacement(model, child, parent) {
   if (!canPlace(model, child, parent))
     throw Error("직접 참조를 확인할 수 있는 호환 경계를 선택하세요.");
+  if (!child.imported && child.props.arguments!==undefined) {
+    const [key]=compatibleFields(child.kind,parent.kind);
+    const args=JSON.parse(child.props.arguments);
+    args[key]="${"+parent.kind+"."+parent.id+"."+referenceTargets[key][1]+"}";
+    return {...model,nodes:model.nodes.map(n=>n.id===child.id?{...n,props:{...n.props,arguments:JSON.stringify(args,null,2)}}:n)};
+  }
   const field = placementFields[child.kind][0];
   if (!child.imported)
     return {

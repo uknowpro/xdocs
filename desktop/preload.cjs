@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld("xdocs", {
     ipcRenderer.invoke("architecture:import", project),
   exportWorkflow: (kind, source) =>
     ipcRenderer.invoke("workflow:export", { kind, source }),
+  checkTerraform: model => ipcRenderer.invoke("architecture:validate",model),
   exportArchitecture: (model, format, ids) =>
     ipcRenderer.invoke("architecture:export", { model, format, ids }),
   analyzerSource: (source) => ipcRenderer.invoke("analyzer:source", source),

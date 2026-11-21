@@ -125,6 +125,7 @@ export interface NoteAPI {
   importArchitecture?(
     project?: boolean,
   ): Promise<import("./ArchitectureDocument").ArchitectureModel | null>;
+  checkTerraform?(model:import("./ArchitectureDocument").ArchitectureModel):Promise<{tool:string;valid:boolean;diagnostics:{message:string;address:string;file:string;line:number}[]}|null>;
   exportArchitecture?(
     model: import("./ArchitectureDocument").ArchitectureModel,
     format: string,

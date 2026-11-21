@@ -204,3 +204,13 @@ xdocs에서 가져온 원본의 지원 속성을 수정한 뒤 내보낸 Terrafo
 AWS, Azure, GCP를 선택한 뒤 **인프라 리소스**에서 Terraform 유형을 검색하세요. 앱은 AWS 6.73.0, AWS Cloud Control 1.110.0, AzureRM 4.81.0, AzureAD 3.10.0, AzAPI 2.14.0, Google 및 Google Beta 7.46.2의 관리 리소스 스키마를 내장합니다. Azure ARM 유형을 고르면 AzAPI 속성에 리소스 유형과 API 버전이 채워집니다. 속성의 JSON에 해당 리소스의 필수 인수를 입력하세요.
 
 **서비스 도식**에서는 AWS SDK 클라이언트, Azure 리소스 네임스페이스, Google Discovery API를 이름으로 찾습니다. 목록에 없는 서비스는 검색 결과에서 입력한 이름으로 추가할 수 있습니다. 서비스 도식은 아키텍처 파일과 그림에 저장되며 Terraform 추출 시에는 배포 대상에서 제외됩니다.
+
+### 설계와 검증
+
+컴포넌트 팔레트에서 공급자와 서비스를 선택하세요. Terraform 속성 폼은 내장한 공급자 스키마에서 필수 속성을 먼저 표시합니다. 선택 속성과 중첩 블록을 추가하거나 같은 속성을 JSON에서 편집할 수 있습니다. 필수값이 비어 있는 동안에도 코드 뷰어에서 작성 중인 선언을 볼 수 있습니다.
+
+**대상 클릭으로 연결**을 켜고 컴포넌트를 선택하면 지원하는 참조 속성을 고를 수 있습니다. 예를 들어 AWS Security Group의 VPC, Azure Availability Set의 Resource Group, Google Cloud Firewall의 VPC Network가 있습니다. AWS 서브넷의 가용 영역과 Google Cloud 서브넷의 리전을 지정하면 도면 경계와 Terraform에 반영됩니다. 미니맵에서 리소스를 선택하고 **선택 영역 확대**를 누르거나, 코드 뷰어의 선언 줄을 눌러 도면으로 돌아가세요.
+
+데스크톱의 **설계 이슈 → 로컬 Terraform 검증**에서 현재 도면을 추출한 뒤 초기화한 Terraform 디렉터리를 선택하세요. 시스템 PATH의 Terraform 또는 OpenTofu로 검증합니다. 사례 미리보기에는 원문 왕복 검증과 실제 CLI 검증 기록이 있는 템플릿의 결과를 표시합니다.
+
+새 도면은 공급자 버전을 저장합니다. 이전 도면은 **클라우드 환경 설정 → Terraform 공급자 버전**에서 변경 내용을 보고 내장 버전을 적용할 수 있습니다. 가져온 프로젝트는 원본 공급자 제약을 유지합니다. 카탈로그를 갱신할 때는 기존 스냅샷을 둔 채 `python3 scripts/compile-resource-schema.py schemas.json shared/schema-snapshot.mjs`를 실행합니다. 이전 버전과 비교해 추가·삭제·변경된 유형 및 속성을 기록하고, 폐기된 유형을 사용한 도면은 계속 열 수 있습니다.

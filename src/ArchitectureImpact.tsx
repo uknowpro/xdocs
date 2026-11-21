@@ -1,3 +1,4 @@
+import {boundaryLayout} from "../shared/network-boundaries.mjs";
 import { diffLines } from "diff";
 import { placementFields } from "../shared/network-boundaries.mjs";
 import { useMemo, useState } from "react";
@@ -79,7 +80,7 @@ export default function ArchitectureImpact({
     const current = after.nodes.find((n) => n.id === placement.id);
     if (!old || !next || !current) return;
     const field = (placementFields as Record<string, string[]>)[next.kind]?.[0];
-    const target = (n: ArchitectureNode) => n.scopeAddress || n.props[field];
+    const target = (n: ArchitectureNode) => n.scopeAddress || n.props[field] || boundaryLayout(n===old?placement.before:n===next?placement.after:after).parents.get(n.id) || "";
     if (target(current) !== target(next) || target(old) === target(next))
       return;
     const label = (model: ArchitectureModel, key: string) =>

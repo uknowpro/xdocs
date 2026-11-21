@@ -1,3 +1,4 @@
+import {jsonDeclarationLines} from "../shared/declaration-lines.mjs";
 import { attachModuleTraces, localDir } from "./local-modules.mjs";
 import { placementFields } from "../shared/network-boundaries.mjs";
 import { parse, getReferencesInExpression } from "@cdktn/hcl2json";
@@ -34,7 +35,7 @@ async function locateReferences(file) {
 // Let the HCL parser distinguish real block headers from matches in comments or heredocs.
 async function declarationLines(file) {
   const lines = new Map();
-  if (file.name.endsWith(".json")) return lines;
+  if (file.name.endsWith(".json")) return jsonDeclarationLines(file.content);
   let prefix = "xdocsdecl";
   while (file.content.includes(prefix)) prefix += "x";
   const candidates = [];
@@ -216,6 +217,8 @@ async function parseBase(files) {
           original: { ...props },
           imported: true,
           sourceFile: file.name,
+          ...(["aws_subnet","google_compute_subnetwork"].includes(kind) && typeof (raw?.availability_zone || raw?.region)==="string"
+            ? {locationScope:raw.availability_zone || raw.region} : {}),
           ...(lines.has(address) ? { sourceLine: lines.get(address) } : {}),
           ...(raw?.count !== undefined || raw?.for_each !== undefined
             ? { multipleInstances: true }

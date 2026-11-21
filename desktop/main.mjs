@@ -372,6 +372,12 @@ app.whenReady().then(async () => {
     await writeFile(target.filePath, source, "utf8");
     return true;
   });
+  register("architecture:validate",async model=>{
+    mustVault();
+    const pick=await dialog.showOpenDialog(window,{title:"현재 도면에서 추출하고 init한 Terraform 디렉터리",properties:["openDirectory"]});
+    if(pick.canceled)return null;
+    return (await import("./terraform-check.mjs")).checkTerraform(model,pick.filePaths[0]);
+  });
   register("architecture:export", async ({ model, format, ids }) => {
     mustVault();
     if (!Array.isArray(ids) || ids.some((id) => typeof id !== "string"))

@@ -140,6 +140,7 @@ export default function DesignFragments({
       setFragment({
         nodes: source.nodes.map((n) => {
           const props = { ...n.props };
+          if(props.arguments) props.arguments=props.arguments.replace(/(?<!\$)\$\{([\w-]+)\.(n_[\w]+)\./g,(match,type,id)=>mapped.has(id)?"${"+type+"."+mapped.get(id)+".":match);
           for (const [key, spec] of Object.entries(
             COMPONENTS[n.kind].fields,
           ) as [string, { ref?: string }][])

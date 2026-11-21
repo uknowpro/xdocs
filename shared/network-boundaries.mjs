@@ -1,3 +1,5 @@
+import {serviceGlyph} from "./service-glyph.mjs";
+import { compatibleFields, argumentReferences } from "./resource-form.mjs";
 // Only membership fields produce nesting. General dependencies stay in the reference graph.
 export const placementFields = {
   aws_route_table:["vpc","aws_vpc","vpc_id"],
@@ -52,6 +54,10 @@ export function indexedPlacementTarget(node, nodes) {
 }
 
 export function canPlace(model, child, parent) {
+  if (child && !child.imported && child.props.arguments !== undefined) {
+    if (!parent || parent.imported || child.id===parent.id || model.presentation?.locked?.includes(child.id) || !containerKinds.has(parent.kind)) return false;
+    try {const args=JSON.parse(child.props.arguments);return args && typeof args==="object" && !Array.isArray(args) && compatibleFields(child.kind,parent.kind).length===1;} catch{return false;}
+  }
   const rule = placementFields[child?.kind];
   return !!(
     rule &&
@@ -80,7 +86,8 @@ export const containerKinds = new Set([
   "k8s_namespace",
 ]);
 const providers = {
-  aws: "AWS",
+  aws: "AWS", awscc:"AWS",
+  azuread:"Azure",azapi:"Azure",arm:"Azure",beta:"GCP",
   azurerm: "Azure",
   avm: "Azure",
   google: "GCP",
@@ -114,6 +121,15 @@ export function boundaryLayout(model) {
     children = new Map(),
     parents = new Map();
   function direct(n) {
+    if (!n.imported && n.props.arguments !== undefined) {
+      try {
+        for (const ref of argumentReferences(JSON.parse(n.props.arguments))) {
+          const target=byId.get(ref.address.split(".")[1]);
+          if (target && ref.address===target.kind+"."+target.id && containerKinds.has(target.kind) && compatibleFields(n.kind,target.kind).includes(ref.path)) return target;
+        }
+      } catch { /* Incomplete JSON has no resolved membership. */ }
+      return;
+    }
     const rule = placementFields[n.kind];
     if (!rule) return;
     const p = n.imported
@@ -146,7 +162,7 @@ export function boundaryLayout(model) {
       if (!children.has(p.id)) children.set(p.id, []);
       children.get(p.id).push(n);
     } else {
-      const provider = providers[n.kind.split("_")[0]] || "Terraform";
+      const provider = providers[(n.kind.startsWith("service_")?n.kind.split("_")[1]:n.kind.split("_")[0])] || ({gcp:"GCP",azure:"Azure"}[n.kind.split("_")[1]]) || "Terraform";
       if (!groups.has(provider)) groups.set(provider, []);
       groups.get(provider).push(n);
     }
@@ -162,13 +178,25 @@ export function boundaryLayout(model) {
     for (const c of children.get(n.id) || []) count += hide(c, container);
     return count;
   }
+  const sections = [];
+  const scopeOf = child => child.kind === "aws_subnet" ? child.locationScope || child.props.availability_zone :
+    child.kind === "google_compute_subnetwork" ? child.locationScope || child.props.region || (!child.imported && model.settings?.gcp_region) : "";
+  function childGroups(n) {
+    const grouped=new Map();
+    for(const child of children.get(n.id)||[]) {
+      const scope=scopeOf(child)||"";
+      if(!grouped.has(scope))grouped.set(scope,[]);
+      grouped.get(scope).push(child);
+    }
+    return grouped;
+  }
   function measure(n) {
     if (folded.has(n.id)) return header + 12;
     const kids = children.get(n.id) || [];
     return (
       header +
       (kids.length
-        ? pad + kids.reduce((sum, c) => sum + measure(c) + gap, 0)
+        ? pad + kids.reduce((sum, c) => sum + measure(c) + gap, 0) + [...childGroups(n).keys()].filter(Boolean).length * 26
         : containerKinds.has(n.kind)
           ? 12
           : 0)
@@ -199,9 +227,16 @@ export function boundaryLayout(model) {
     });
     if (folded.has(n.id)) return;
     let top = y + header;
-    for (const child of children.get(n.id) || []) {
-      place(child, x + pad, top, w - 2 * pad, provider, depth + 1);
-      top += measure(child) + gap;
+    for (const [scope,kids] of childGroups(n)) {
+      if(scope){
+        sections.push({scope,x:x+pad,y:top,w:w-2*pad,h:23+kids.reduce((sum,c)=>sum+measure(c)+gap,0)});
+        top+=26;
+      }
+      for(const child of kids) {
+        const inset=scope?pad+5:pad;
+        place(child,x+inset,top,w-2*inset,provider,depth+1);
+        top+=measure(child)+gap;
+      }
     }
   }
   let index = 0,
@@ -225,7 +260,7 @@ export function boundaryLayout(model) {
     index++;
   }
   return {
-    frames,
+    frames, sections,
     representatives,
     parents,
     boxes,
@@ -292,7 +327,7 @@ export function boundarySVG(
   dragging = "",
   planLabels = {},
 ) {
-  const { frames, boxes, width, height, representatives } =
+  const { frames, sections, boxes, width, height, representatives } =
     boundaryLayout(model);
   const text = (x, y, s, size = 12, weight = 400) =>
     '<text x="' +
@@ -325,6 +360,7 @@ export function boundarySVG(
         colors[f.provider] +
         '"/>' +
         text(f.x + 24, f.y + 28, f.provider, 15, 650) +
+        text(f.x+76,f.y+27, String((model.nodes.some(n=>n.imported)?"":{AWS:model.settings?.aws_region,Azure:model.settings?.azure_subscription,GCP:model.settings?.gcp_project}[f.provider])||"").slice(0,32),10) +
         "</g>",
     )
     .join("");
@@ -340,7 +376,7 @@ export function boundarySVG(
       const label = b.label.length > 27 ? b.label.slice(0, 25) + "…" : b.label;
       const meta = b.hidden
         ? "접힘 · " + b.hidden + "개 리소스"
-        : b.cidr || b.kind;
+        : b.kind==="google_compute_network" ? "Global VPC" : b.cidr || b.kind;
       const locked = model.presentation?.locked?.includes(b.id);
       const annotation = model.presentation?.annotations?.[b.id];
       const eligible =
@@ -353,9 +389,7 @@ export function boundarySVG(
       const paper =
         model.presentation?.resources === false ? ' visibility="hidden"' : "";
 
-      const glyph = b.container
-        ? "M2 4h7l2 3h8v10H2z"
-        : "M4 4h13v13H4zM7 1v3m6-3v3M7 17v3m6-3v3M1 8h3m13 0h3";
+      const glyph = serviceGlyph(b.kind,b.container);
       return (
         "<g" +
         paper +
@@ -548,6 +582,7 @@ export function boundarySVG(
     "</title>" +
     frame +
     nodes +
+    sections.map(s=>'<g pointer-events="none"><rect x="'+s.x+'" y="'+s.y+'" width="'+s.w+'" height="'+s.h+'" rx="5" fill="none" stroke="#8391a1" stroke-dasharray="4 3"/>'+text(s.x+7,s.y+16,s.scope,10,600)+'</g>').join("") +
     annotationLines +
     (arrows
       ? '<defs><marker id="scope-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#246782"/></marker><mask id="scope-header-mask" maskUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="white"/>' + headerMask + '</mask></defs><g mask="url(#scope-header-mask)" pointer-events="none">' +

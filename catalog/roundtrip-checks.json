@@ -1,0 +1,54 @@
+{
+  "efs-backup-copy": {
+    "files": 1,
+    "resources": 11,
+    "sha256": "5a01a2de6ad28f37995c61be9eecaac676560e03c255c86d5ff08acc6dad0b53",
+    "validation": {
+      "tool": "terraform",
+      "warnings": [],
+      "count": 0
+    }
+  },
+  "azure-isolated-spokes": {
+    "files": 1,
+    "resources": 13,
+    "sha256": "7b72ddef8b2d445f89466909d4c2c1986d2ec2a71d451e51d028908e36413d21",
+    "validation": {
+      "tool": "terraform",
+      "warnings": [],
+      "count": 0
+    }
+  },
+  "azure-quickstart-301-machine-learning-hub-spoke-secure": {
+    "files": 11,
+    "resources": 75,
+    "sha256": "f2bb76a34fe75e992027c0909941c0c78719b64d53af4eba974d5627ab8bedef",
+    "validation": {
+      "tool": "terraform",
+      "warnings": [
+        "Argument is deprecated"
+      ],
+      "count": 8
+    }
+  },
+  "gcp-regional-shared-egress": {
+    "files": 1,
+    "resources": 9,
+    "sha256": "66fd05f735b31ef1d475bd5c39d58a4ca705bf3c62a681e73f42c3eb0f6289b5",
+    "validation": {
+      "tool": "terraform",
+      "warnings": [],
+      "count": 0
+    }
+  },
+  "dual-cloud-branches": {
+    "files": 1,
+    "resources": 19,
+    "sha256": "7d347ee223835df15e5e6eb4522587bfcc0b78bc965479a2a0c61f563f22ee41",
+    "validation": {
+      "tool": "terraform",
+      "warnings": [],
+      "count": 0
+    }
+  }
+}
