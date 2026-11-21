@@ -88,6 +88,7 @@ import {
   Moon,
   Network,
   Waypoints,
+  ScanSearch,
   ChevronsLeft,
   ChevronsRight,
   Plus,
@@ -1082,7 +1083,7 @@ export default function App() {
             disabled={!workspace || readonly || busy}
             onClick={() => void createPage("analyzer")}
           >
-            <Network size={16} />
+            <ScanSearch size={16} aria-hidden="true" />
             Analyzer 만들기
           </button>
           <button
