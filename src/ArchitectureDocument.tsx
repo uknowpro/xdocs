@@ -48,7 +48,8 @@ import {
   Copy,
 } from "lucide-react";
 import {
-  COMPONENTS,
+  allComponents as COMPONENTS,
+  COMPONENTS as builtInComponents,
   AVM_MODULES,
   newArchitecture,
   newComponent,
@@ -468,7 +469,15 @@ export default function ArchitectureDocument({
     [railOpen,setRailOpen] = useState(true),
     [codeOnly,setCodeOnly] = useState(false),
     [paletteQuery,setPaletteQuery] = useState(""),
-    [group, setGroup] = useState("전체"),
+    [group, setGroup] = useState<string>(() => {
+      const groups = new Set<string>();
+      for (const node of model.nodes) {
+        const group = COMPONENTS[node.kind]?.group;
+        if (group) groups.add(group === "Azure AVM" ? "Azure" : group);
+      }
+      return groups.size === 1 ? [...groups][0] : "전체";
+    }),
+    [paletteLimit, setPaletteLimit] = useState(50),
     [zoom, setZoom] = useState(1),
     [boundary, setBoundary] = useState(true),
     [caseView, setCaseView] = useState(Boolean(model.caseStudyId) && !entry),
@@ -890,6 +899,13 @@ export default function ArchitectureDocument({
       setError(String(e));
     }
   }
+  const providerEntries = useMemo(() => Object.entries(COMPONENTS).filter(([, c]) =>
+    group === "전체" || c.group === group || (group === "Azure" && c.group === "Azure AVM"),
+  ), [group]);
+  const query = paletteQuery.trim().toLowerCase();
+  const matches = useMemo(() => providerEntries.filter(([kind, c]) =>
+    [kind, c.label, c.group, c.service].join(" ").toLowerCase().includes(query),
+  ), [providerEntries, query]);
   const width = Math.max(1000, ...model.nodes.map((n) => n.x + 240)),
     height = Math.max(650, ...model.nodes.map((n) => n.y + 150));
   return (
@@ -1039,7 +1055,8 @@ export default function ArchitectureDocument({
                   : "컴포넌트 추가"
               }
               shortcutKey="+"
-              entries={Object.entries(COMPONENTS)
+              resultLimit={100}
+              entries={providerEntries
                 .filter(
                   ([kind]) =>
                     !contextParent || rules[kind]?.[1] === contextParent.kind,
@@ -1063,19 +1080,17 @@ export default function ArchitectureDocument({
             <select
               aria-label="컴포넌트 공급자"
               value={group}
-              onChange={(e) => setGroup(e.target.value)}
+              onChange={(e) => {setGroup(e.target.value); setPaletteLimit(50); setPaletteQuery("");}}
             >
               {[
                 "전체",
-                ...new Set(Object.values(COMPONENTS).map((c: any) => c.group)),
+                ...new Set(Object.values(builtInComponents).map((c: any) => c.group)),
               ].map((g) => (
                 <option key={g}>{g}</option>
               ))}
             </select>
-            <input className="palette-search" type="search" aria-label="추가할 리소스 검색" placeholder="리소스 검색" value={paletteQuery} onChange={e=>setPaletteQuery(e.target.value)}/>
-            {Object.entries(COMPONENTS)
-              .filter(([kind, c]) => (group === "전체" || c.group === group) &&
-                (kind+" "+c.label+" "+c.group).toLowerCase().includes(paletteQuery.trim().toLowerCase()))
+            <input className="palette-search" type="search" aria-label="추가할 리소스 검색" placeholder="리소스 검색" value={paletteQuery} onChange={e=>{setPaletteQuery(e.target.value); setPaletteLimit(50);}}/>
+            {matches.slice(0, paletteLimit)
               .map(([kind, c]) => {
                 const Icon = icon(kind);
                 return (
@@ -1095,12 +1110,14 @@ export default function ArchitectureDocument({
                     <Icon size={17} />
                     <span>
                       {c.label}
-                      <small>{c.group}</small>
+                      <small>{c.generic ? c.service : c.group}</small>
                     </span>
                     <Plus size={12} />
                   </button>
                 );
               })}
+            {!matches.length && <small>검색 결과가 없습니다.</small>}
+            {matches.length > paletteLimit && <button onClick={() => setPaletteLimit(limit => limit + 50)}>더 보기 ({paletteLimit}/{matches.length})</button>}
           </aside>
           <div className="arch-workspace">
             {mutedSelector && <style>{mutedSelector + "{opacity:0.25}"}</style>}

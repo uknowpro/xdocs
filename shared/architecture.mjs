@@ -1,3 +1,4 @@
+import { providerCatalog } from "./provider-catalog.mjs";
 import {caseDiagram} from "./case-diagrams.mjs";
 import { boundarySVG, indexedPlacementTarget } from "./network-boundaries.mjs";
 import { validateDrawing, drawingSVG } from "./aws-drawing.mjs";
@@ -226,6 +227,20 @@ Object.assign(COMPONENTS, {
     },
   },
 });
+/** @type {Record<string, any>} */
+export const allComponents = { ...COMPONENTS };
+for (const [group, provider] of Object.entries(providerCatalog)) {
+  for (const [service, kinds] of Object.entries(provider.services)) {
+    for (const kind of kinds) {
+      const builtIn = COMPONENTS[kind];
+      allComponents[kind] = builtIn ? { ...builtIn, service } : {
+        group, service, generic: true, label: kind.slice(kind.indexOf("_") + 1).replaceAll("_", " "),
+        fields: { arguments: field("Terraform 속성 (JSON)", "{}", { json: true }) },
+      };
+    }
+  }
+}
+
 export const WAF_PILLARS = [
   {
     id: "reliability",
@@ -320,16 +335,16 @@ export function newArchitecture() {
   };
 }
 export function newComponent(kind, x = 80, y = 80) {
-  if (!Object.hasOwn(COMPONENTS, kind))
+  if (!Object.hasOwn(allComponents, kind))
     throw Error("지원하지 않는 컴포넌트입니다.");
   return {
     id: "n_" + globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, 16),
     kind,
-    label: COMPONENTS[kind].label,
+    label: allComponents[kind].label,
     x,
     y,
     props: Object.fromEntries(
-      Object.entries(COMPONENTS[kind].fields).map(([k, f]) => [k, f.value]),
+      Object.entries(allComponents[kind].fields).map(([k, f]) => [k, f.value]),
     ),
   };
 }
@@ -411,7 +426,7 @@ export function validateArchitecture(m) {
     if (n.unresolvedReferences !== undefined &&
         (!Array.isArray(n.unresolvedReferences) || n.unresolvedReferences.some(v=>typeof v!=="string")))
       throw Error("미해석 참조 형식을 확인하세요.");
-    if (!n.imported && !Object.hasOwn(COMPONENTS, n.kind))
+    if (!n.imported && !Object.hasOwn(allComponents, n.kind))
       throw Error("알 수 없는 컴포넌트입니다.");
     if (
       n.imported &&
@@ -509,7 +524,7 @@ export function architectureEdges(m) {
           });
       }
     } else
-      for (const [k, f] of Object.entries(COMPONENTS[n.kind].fields)) {
+      for (const [k, f] of Object.entries(allComponents[n.kind].fields)) {
         if (f.ref && n.props[k])
           edges.push({
             source: n.id,
@@ -567,13 +582,21 @@ export function architectureIssues(m) {
     if (n.imported) {
       for (const [key, value] of Object.entries(n.props)) {
         if (value === n.original[key]) continue;
-        const f = COMPONENTS[n.kind]?.fields[key];
+        const f = allComponents[n.kind]?.fields[key];
         if (f && (!value || (f.cidr && !validCIDR(value))))
           issues.push({ id: n.id, message: f.label + " 변경값을 확인하세요." });
       }
       continue;
     }
-    for (const [k, f] of Object.entries(COMPONENTS[n.kind].fields)) {
+    if (allComponents[n.kind].generic) {
+      try {
+        if (!plain(JSON.parse(n.props.arguments))) throw Error();
+      } catch {
+        issues.push({ id: n.id, message: "Terraform 속성을 JSON 객체로 입력하세요." });
+      }
+      continue;
+    }
+    for (const [k, f] of Object.entries(allComponents[n.kind].fields)) {
       const v = n.props[k] ?? "";
       if (
         (f.required || (!f.ref && !["storage_class", "ami"].includes(k))) &&
@@ -609,7 +632,7 @@ export function architectureIssues(m) {
         }
       }
     }
-    for (const [key, f] of Object.entries(COMPONENTS[n.kind].fields)) {
+    for (const [key, f] of Object.entries(allComponents[n.kind].fields)) {
       if (f.options && !f.options.includes(n.props[key]))
         issues.push({ id: n.id, message: f.label + " 선택을 확인하세요." });
       if (f.ref && n.props.cidr) {
@@ -754,7 +777,7 @@ export function fragmentIssues(existing, incoming) {
     const owner = subnetNetworks.get(node.kind);
     const parent = owner && all.find((n) => n.id === node.props[owner]);
     for (const [field, value] of Object.entries(node.props)) {
-      if (COMPONENTS[node.kind]?.fields[field]?.cidr && !validCIDR(value))
+      if (allComponents[node.kind]?.fields[field]?.cidr && !validCIDR(value))
         issues.add(node.label + " · " + field + " IPv4 CIDR을 확인하세요.");
     }
     if (
@@ -838,6 +861,11 @@ export function generateArchitecture(m, format = "all", ids = []) {
       "AWS 드로잉은 시각 문서입니다. 계정·서비스·방향선은 배포 코드에 포함되지 않습니다.",
     );
   }
+  const genericAws = nodes.some(n => !n.imported && n.kind.startsWith("aws_") && allComponents[n.kind]?.generic);
+  if (genericAws && format === "cloudformation")
+    return { files: {}, errors: ["선택한 리소스에 CloudFormation 매핑이 없습니다. Terraform으로 추출하세요."], warnings };
+  if (genericAws && format === "all")
+    warnings.push("CloudFormation에는 전용 매핑이 있는 AWS 리소스만 포함됩니다.");
   const skipped = selected.length - nodes.length;
   if (skipped)
     warnings.push(
@@ -897,7 +925,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
   }
   if (wantTF && clouds.length) {
     const modules = {};
-    const groups = new Set(clouds.map((n) => COMPONENTS[n.kind].group)),
+    const groups = new Set(clouds.map((n) => allComponents[n.kind].group)),
       providers = {},
       required = {},
       variables = {};
@@ -934,18 +962,22 @@ export function generateArchitecture(m, format = "all", ids = []) {
     for (const n of clouds) {
       const p = n.props,
         t = { Name: lit(p.name) },
-        parent = Object.values(COMPONENTS[n.kind].fields).some((f) => f.ref)
+        parent = Object.values(allComponents[n.kind].fields).some((f) => f.ref)
           ? get(
-              Object.entries(COMPONENTS[n.kind].fields).find(
+              Object.entries(allComponents[n.kind].fields).find(
                 ([, f]) => f.ref,
               )?.[0] &&
                 p[
-                  Object.entries(COMPONENTS[n.kind].fields).find(
+                  Object.entries(allComponents[n.kind].fields).find(
                     ([, f]) => f.ref,
                   )[0]
                 ],
             )
           : null;
+      if (allComponents[n.kind].generic) {
+        put(n.kind, n.id, JSON.parse(p.arguments));
+        continue;
+      }
       if (AVM_MODULES[n.kind]) {
         const base = {
           ...AVM_MODULES[n.kind],
@@ -1266,7 +1298,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
       }
       if (resource) Resources[logical(n)] = resource;
     }
-    if (aws.length) {
+    if (Object.keys(Resources).length) {
       files["cloudformation/template.json"] = json({
         AWSTemplateFormatVersion: "2010-09-09",
         Description: "Architecture designed in xdocs",
@@ -1281,7 +1313,7 @@ export function generateArchitecture(m, format = "all", ids = []) {
   const docs = {};
   function namespace(n) {
     if (n.kind === "k8s_namespace") return n.props.name;
-    const f = Object.entries(COMPONENTS[n.kind].fields).find(([, f]) => f.ref);
+    const f = Object.entries(allComponents[n.kind].fields).find(([, f]) => f.ref);
     return namespace(get(n.props[f[0]]));
   }
   for (const n of nodes.filter((n) => n.kind.startsWith("k8s_"))) {
@@ -1445,13 +1477,13 @@ export function generateArchitecture(m, format = "all", ids = []) {
 }
 export function layoutArchitecture(m) {
   const groups = [
-      ...new Set(m.nodes.map((n) => COMPONENTS[n.kind]?.group || "Terraform")),
+      ...new Set(m.nodes.map((n) => allComponents[n.kind]?.group || "Terraform")),
     ],
     counts = {};
   return {
     ...m,
     nodes: m.nodes.map((n) => {
-      const group = COMPONENTS[n.kind]?.group || "Terraform";
+      const group = allComponents[n.kind]?.group || "Terraform";
       const row = counts[group] || 0;
       counts[group] = row + 1;
       return { ...n, x: 60 + groups.indexOf(group) * 240, y: 60 + row * 140 };
@@ -1522,7 +1554,7 @@ export function architectureExample() {
       60 + (i % 3) * 250,
       60 + Math.floor(i / 3) * 140,
     );
-    for (const [k, f] of Object.entries(COMPONENTS[kind].fields))
+    for (const [k, f] of Object.entries(allComponents[kind].fields))
       if (f.ref) n.props[k] = m.nodes.find((n) => n.kind === f.ref)?.id || "";
     if (kind === "aws_instance") {
       n.label = "Application EC2";

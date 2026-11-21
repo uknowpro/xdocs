@@ -352,7 +352,7 @@ test("xinfra palette search and independent panels preserve the active drawing",
   await button("템플릿으로 시작").click();
   const search=page.getByRole("searchbox",{name:"추가할 리소스 검색"});
   await search.fill("aws_vpc");
-  await expect(page.locator(".arch-palette > button")).toHaveCount(1);
+  await expect(page.locator(".arch-palette").getByRole("button",{name:"VPC AWS",exact:true})).toBeVisible();
   await button("리소스 팔레트").click();
   await expect(search).toBeHidden();
   await button("Terraform·속성 패널").click();
@@ -366,4 +366,22 @@ test("xinfra palette search and independent panels preserve the active drawing",
   await button("코드 크게 보기").click();
   await expect(page.locator(".arch-properties")).toBeHidden();
   await page.locator(".arch-editor").screenshot({path:"test-results/xinfra-workbench.png"});
+});
+
+test("provider palette isolates registry resources and adds a generic Azure component", async ({page}) => {
+  await page.goto("/");
+  const button = (name:string) => page.getByRole("button",{name,exact:true});
+  await button("새로 만들기").click();
+  await button("xinfra 아키텍처 캔버스").click();
+  await button("빈 캔버스").click();
+  const provider = page.getByLabel("컴포넌트 공급자");
+  const query = page.getByRole("searchbox",{name:"추가할 리소스 검색"});
+  await provider.selectOption("AWS");
+  await query.fill("azurerm_kubernetes_cluster");
+  await expect(page.locator(".arch-palette")).toContainText("검색 결과가 없습니다.");
+  await provider.selectOption("Azure");
+  await query.fill("azurerm_kubernetes_cluster");
+  await page.locator('.arch-palette button[title="Azure · kubernetes cluster"]').click();
+  await page.getByLabel("Terraform 속성 (JSON)").fill('{"dns_prefix":"team"}');
+  await expect(page.getByLabel("Terraform 코드")).toContainText("team");
 });

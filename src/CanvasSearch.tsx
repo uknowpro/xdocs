@@ -7,12 +7,14 @@ export default function CanvasSearch({
   onChoose,
   disabled = false,
   shortcutKey = "/",
+  resultLimit,
 }: {
   label: string;
   entries: Entry[];
   onChoose: (id: string) => void;
   disabled?: boolean;
   shortcutKey?: string;
+  resultLimit?: number;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const list = useId();
@@ -20,11 +22,11 @@ export default function CanvasSearch({
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const words = query.toLowerCase().trim().split(/\s+/);
-  const matches = entries.filter((e) =>
+  const matches = open ? entries.filter((e) =>
     words.every((w) =>
       (e.label + " " + e.detail + " " + e.id).toLowerCase().includes(w),
     ),
-  );
+  ).slice(0, resultLimit) : [];
   const active = Math.min(index, matches.length - 1);
   useEffect(() => {
     const scope = input.current?.closest<HTMLElement>("[data-search-scope]");

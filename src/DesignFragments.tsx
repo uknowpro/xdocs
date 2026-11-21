@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  COMPONENTS,
+  allComponents as COMPONENTS,
   fragmentIssues,
   newComponent,
   validateArchitecture,
