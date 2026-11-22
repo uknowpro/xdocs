@@ -9,7 +9,7 @@ import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
 import WordSelection from "./WordSelection";
 import ProjectInputs from "./ProjectInputs";
 import {
-  fileKey, restoreFileKey, loadCheckpoint,
+  fileKey, restoreFileKey, loadCheckpoint, readApplicationDraft, type ApplicationDraft,
   saveCheckpoint,
   saveProgress,
   clearCheckpoint,
@@ -97,7 +97,7 @@ export default function Xcode({
   scope,
   page,
   prepare,
-  finish, folders, defaultFolder, savePage, access,
+  finish, folders, defaultFolder, savePage, access, focusTurn,appliedRecord,
   change,
   readonly,
 }: {
@@ -108,6 +108,8 @@ export default function Xcode({
   prepare: () => Promise<boolean>;
   finish: (t: Turn) => Promise<void>;
   access:WorkspaceAccess;
+  appliedRecord?:import("./xcode-checkpoint").NoteApplication;
+  focusTurn?:number;
   folders:{id:string;title:string}[];
   defaultFolder:string;
   savePage:(index:number,kind:"note"|"branch",title:string,parent:string)=>Promise<void>;
@@ -332,6 +334,18 @@ export default function Xcode({
     }
   }
   const checkpointKey = JSON.stringify([scope, page]);
+  const [applicationDraft,setApplicationDraft]=useState<ApplicationDraft>();
+  useEffect(()=>{
+    let current=true;
+    void readApplicationDraft(checkpointKey).then(draft=>{if(current)setApplicationDraft(draft);}).catch(e=>setError(String(e)));
+    return ()=>{current=false;};
+  },[checkpointKey]);
+  function applyToNotes(answer:string,turn:number,runId?:string,citations?:string[]){
+    if(applicationDraft && (applicationDraft.origin.turn!==turn || applicationDraft.origin.answer!==answer)){
+      setMaterial({kind:"apply",...applicationDraft.origin});return;
+    }
+    setMaterial({kind:"apply",answer,turn,runId,citations});
+  }
   const [recovery, setRecovery] = useState<Checkpoint>();
   useEffect(() => {
     let active = true;
@@ -1388,7 +1402,7 @@ export default function Xcode({
           <small aria-live="polite">{settingsSave === "failed" ? "세션 설정을 저장하지 못했습니다. 다시 시도하세요." : ""}</small>
         </div>
       </div>
-      <div hidden={documentPanel !== "form"}><OfficeForm form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""}
+      <div hidden={documentPanel !== "form"}><OfficeForm sessionKey={checkpointKey} form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""}
         answerFiles={[...(s.turns.at(-1)?.sourceHistory || []).flatMap(([ti,fi])=>s.turns[ti]?.files[fi] || []),...(s.turns.at(-1)?.files || [])]} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
       {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
         <WordSelection close={()=>setDocumentPanel(null)} disabled={busy || readonly}
@@ -1397,7 +1411,8 @@ export default function Xcode({
       </div>}
       <div className="chat-workbench" ref={workbench}>
         <ChatTimeline
-          workspacePages={access.notes} applyAnswer={(answer,turn)=>setMaterial({kind:"apply",answer,turn})}
+          focusTurn={focusTurn} appliedRecord={appliedRecord} workspacePages={access.notes}
+          applyAnswer={applyToNotes}
           openHistory={()=>setMaterial({kind:"history"})}
           openOriginal={(origin,cited)=>void access.open(origin,cited).catch(e=>setError(String(e)))}
           reviewInput={file=>setMaterial({kind:"compare",file})}
@@ -1418,7 +1433,9 @@ export default function Xcode({
           <button disabled={readonly} onClick={()=>void retryInterrupted().catch(e=>setError(String(e)))}>이 메시지 재시도</button>
           <button disabled={readonly} onClick={()=>void skipInterrupted().catch(e=>setError(String(e)))}>{visibleQueue.some(q=>q.id!==interrupted.id) ? "건너뛰고 다음 전송" : "건너뛰기"}</button>
         </div>}
-        {material && <WorkspaceMaterial sessionKey={checkpointKey} access={access} action={material} close={()=>{setMaterial(undefined);mention.current=undefined;}} attach={(file,original)=>{
+        {applicationDraft && !readonly && <button className="application-resume" onClick={()=>setMaterial({kind:"apply",...applicationDraft.origin})}>노트 반영 초안 이어서 검토</button>}
+        {material && <WorkspaceMaterial sessionKey={checkpointKey} resumeDraft={material.kind==="apply"?applicationDraft:undefined}
+          draftChanged={setApplicationDraft} access={access} action={material} close={()=>{setMaterial(undefined);mention.current=undefined;}} attach={(file,original)=>{
           const draft=run.snapshot();
           const index=original?draft.files.indexOf(original):-1;
           const history:string[]=[];

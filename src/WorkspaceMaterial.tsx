@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  downloadReview,
+  markdownQuote,
+  officeReviewMarkdown,
+  type OfficeReview,
+} from "./review-export";
 import { diffLines, applyPatch, createPatch } from "diff";
 import {
   readNoteApplications,
+  readOfficeReview,
   saveNoteApplication,
   removeNoteApplication,
   type NoteApplication,
+  type ApplicationDraft,
+  type ApplicationProposal,
+  writeApplicationDraft,
 } from "./xcode-checkpoint";
 import { pageKind } from "../shared/page-kind.mjs";
 import {
@@ -21,18 +31,34 @@ import type { Note } from "./types";
 export type MaterialAction =
   | { kind: "attach"; query?: string }
   | { kind: "compare"; file: TextInput }
-  | { kind: "apply"; answer: string; turn: number }
+  | {
+      kind: "apply";
+      answer: string;
+      turn: number;
+      runId?: string;
+      citations?: string[];
+    }
   | { kind: "history" };
-type Proposal = { note: Note; body: string; checked: boolean };
+type Proposal = ApplicationProposal;
+type SaveResult = {
+  page: string;
+  title: string;
+  state: "saved" | "conflict" | "held";
+  problem?: string;
+};
 export default function WorkspaceMaterial({
   access,
   action,
   close,
   attach,
   sessionKey,
+  resumeDraft,
+  draftChanged,
 }: {
   access: WorkspaceAccess;
   sessionKey: string;
+  resumeDraft?: ApplicationDraft;
+  draftChanged: (value?: ApplicationDraft) => void;
   action: MaterialAction;
   close: () => void;
   attach: (file: TextInput, original?: TextInput) => void;
@@ -43,9 +69,13 @@ export default function WorkspaceMaterial({
     action.kind === "attach" ? action.query || "" : "",
   );
   const [answer, setAnswer] = useState(
-    action.kind === "apply" ? action.answer : "",
+    resumeDraft?.answer ?? (action.kind === "apply" ? action.answer : ""),
   );
-  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>(
+    resumeDraft?.proposals || [],
+  );
+  const [results, setResults] = useState<SaveResult[]>();
+  const [officeReview, setOfficeReview] = useState<OfficeReview>();
   const [records, setRecords] = useState<NoteApplication[]>([]);
   const [undo, setUndo] = useState<{
     record: NoteApplication;
@@ -53,19 +83,27 @@ export default function WorkspaceMaterial({
     body: string;
     conflict: boolean;
   }>();
-  const [id, setId] = useState(original?.workspace?.page || "");
-  const [note, setNote] = useState<Note>(),
+  const [id, setId] = useState(
+    resumeDraft?.id || original?.workspace?.page || "",
+  );
+  const [conflictBase, setConflictBase] = useState<Note>();
+  const initialDraft = useRef(resumeDraft);
+  const [note, setNote] = useState<Note | undefined>(resumeDraft?.baseline),
     [error, setError] = useState(""),
     [saving, setSaving] = useState(false);
   const [selection, setSelection] = useState<Selection | undefined>(
     original?.workspace?.selection,
   );
-  const [block, setBlock] = useState(-1),
+  const [block, setBlock] = useState(resumeDraft?.block ?? -1),
     [reload, setReload] = useState(0);
   const read = useRef(access.read);
   read.current = access.read;
   useEffect(() => {
     dialog.current?.showModal();
+    if (action.kind === "history")
+      void readOfficeReview(sessionKey)
+        .then(setOfficeReview)
+        .catch((e) => setError(String(e)));
     if (action.kind === "history")
       void readNoteApplications(sessionKey)
         .then((list) =>
@@ -75,6 +113,9 @@ export default function WorkspaceMaterial({
   }, []);
   useEffect(() => {
     let live = true;
+    const cached = initialDraft.current;
+    initialDraft.current = undefined;
+    if (cached?.id === id && cached.baseline) return;
     setNote(undefined);
     setError("");
     setBlock(-1);
@@ -153,24 +194,76 @@ export default function WorkspaceMaterial({
     [before, after],
   );
   const [limit, setLimit] = useState(60);
+  const latestWrite = useRef<Promise<unknown>>(Promise.resolve());
+  function persist(draft?: ApplicationDraft) {
+    latestWrite.current = writeApplicationDraft(sessionKey, draft).then(() =>
+      draftChanged(draft),
+    );
+    return latestWrite.current;
+  }
+  useEffect(() => {
+    if (action.kind !== "apply") return;
+    const draft =
+      id || proposals.length || answer !== action.answer
+        ? {
+            origin: {
+              answer: action.answer,
+              turn: action.turn,
+              runId: action.runId,
+              citations: action.citations,
+            },
+            id,
+            baseline: note,
+            answer,
+            block,
+            proposals,
+          }
+        : undefined;
+    void persist(draft).catch((e) =>
+      setError("검토 초안을 저장하지 못했습니다. " + String(e)),
+    );
+  }, [action, id, note, answer, block, proposals]);
+  async function closeDialog() {
+    try {
+      await latestWrite.current;
+      close();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
   function stage(note: Note) {
+    const existing = proposals.find((p) => p.note.id === note.id);
     setProposals((current) => [
       ...current.filter((p) => p.note.id !== note.id),
-      { note, body: nextBody, checked: true },
+      {
+        note,
+        body: nextBody,
+        answer,
+        block,
+        checked: existing?.checked ?? true,
+      },
     ]);
     setId("");
+    setConflictBase(undefined);
     setAnswer(action.kind === "apply" ? action.answer : "");
   }
   async function apply(p: Proposal) {
     if (action.kind !== "apply" || p.note.body === p.body) return;
+    const current = await access.read(p.note.id);
+    if (current.body === p.body) return;
+    if (current.revision !== p.note.revision)
+      throw Error("원본이 변경되었습니다.");
     const record: NoteApplication = {
       id: crypto.randomUUID(),
       turn: action.turn,
+      runId: action.runId,
       title: p.note.title,
       page: p.note.id,
       date: new Date().toISOString(),
       before: p.note.body,
       after: p.body,
+      content: p.answer,
+      citations: action.citations,
       state: "pending",
     };
     await saveNoteApplication(sessionKey, record);
@@ -188,18 +281,60 @@ export default function WorkspaceMaterial({
     setError("");
     try {
       if (action.kind === "apply") {
-        const checked = proposals.filter((p) => p.checked);
-        for (const p of checked) {
-          await apply(p);
-          setProposals((items) =>
-            items.filter((item) => item.note.id !== p.note.id),
-          );
-        }
-        if (!proposals.length && note && answer.trim())
-          await apply({ note, body: nextBody, checked: true });
-        if (proposals.some((p) => !p.checked)) {
-          setId("");
+        if (proposals.length) {
+          let remaining = proposals;
+          const outcome: SaveResult[] = proposals
+            .filter((p) => !p.checked || p.problem)
+            .map((p) => ({
+              page: p.note.id,
+              title: p.note.title,
+              state: p.checked ? "conflict" : "held",
+              problem: p.problem,
+            }));
+          for (const proposal of proposals.filter(
+            (p) => p.checked && !p.problem,
+          )) {
+            try {
+              await apply(proposal);
+              outcome.push({
+                page: proposal.note.id,
+                title: proposal.note.title,
+                state: "saved",
+              });
+              remaining = remaining.filter(
+                (p) => p.note.id !== proposal.note.id,
+              );
+            } catch (err) {
+              outcome.push({
+                page: proposal.note.id,
+                title: proposal.note.title,
+                state: "conflict",
+                problem: String(err),
+              });
+              remaining = remaining.map((p) =>
+                p.note.id === proposal.note.id
+                  ? { ...p, problem: String(err) }
+                  : p,
+              );
+            }
+            setProposals(remaining);
+            await persist(
+              remaining.length
+                ? {
+                    origin: action,
+                    id: "",
+                    answer: action.answer,
+                    block: -1,
+                    proposals: remaining,
+                  }
+                : undefined,
+            );
+          }
+          setResults(outcome);
           return;
+        } else if (note && answer.trim() && block !== -2) {
+          await apply({ note, body: nextBody, answer, block, checked: true });
+          await persist();
         }
       } else if (preview.file) attach(preview.file, original);
       close();
@@ -207,6 +342,72 @@ export default function WorkspaceMaterial({
       setError(String(err));
     } finally {
       setSaving(false);
+    }
+  }
+  function exportHistory() {
+    const items = records.map((record) =>
+      [
+        "## " + record.title.replace(/[\r\n]/g, " "),
+        "",
+        "답변 " +
+          (record.turn + 1) +
+          " · " +
+          record.date +
+          " · " +
+          { applied: "저장 완료", pending: "저장 확인 필요", undone: "되돌림" }[
+            record.state
+          ],
+        "",
+        markdownQuote("노트: " + record.page),
+        ...(record.content ? ["", markdownQuote(record.content)] : []),
+        ...(record.citations?.length
+          ? ["", markdownQuote("출처\n" + record.citations.join("\n"))]
+          : []),
+        "",
+        ...(diffLines(record.before, record.after, { timeout: 120 })
+          ?.filter((c) => c.added || c.removed)
+          .map((c) =>
+            markdownQuote((c.added ? "추가\n" : "삭제\n") + c.value),
+          ) || []),
+      ].join("\n"),
+    );
+    downloadReview(
+      "xdocs-반영-검토-기록",
+      [
+        "# xdocs 반영 검토 기록",
+        "",
+        ...items,
+        officeReviewMarkdown(officeReview),
+      ].join("\n\n"),
+    );
+  }
+  async function revisit(proposal: Proposal) {
+    setError("");
+    try {
+      const fresh = await access.read(proposal.note.id);
+      const target = noteBlocks(proposal.note.body)[proposal.block];
+      const matches = target
+        ? noteBlocks(fresh.body).flatMap((block, i) =>
+            block.text === target.text ? [i] : [],
+          )
+        : [];
+      initialDraft.current = {
+        origin: action.kind === "apply" ? action : { answer: "", turn: 0 },
+        id: fresh.id,
+        baseline: fresh,
+        block: proposal.block,
+        answer: proposal.answer,
+        proposals,
+      };
+      setId(fresh.id);
+      setNote(fresh);
+      setAnswer(proposal.answer);
+      setBlock(
+        proposal.block === -1 ? -1 : matches.length === 1 ? matches[0] : -2,
+      );
+      setConflictBase(proposal.note);
+    } catch (err) {
+      setError(String(err));
     }
   }
   async function previewUndo(record: NoteApplication) {
@@ -265,7 +466,7 @@ export default function WorkspaceMaterial({
       ref={dialog}
       onCancel={(e) => {
         e.preventDefault();
-        if (!saving) close();
+        if (!saving) void closeDialog();
       }}
     >
       <header>
@@ -278,12 +479,72 @@ export default function WorkspaceMaterial({
                 ? "첨부 버전 비교"
                 : "워크스페이스 자료 첨부"}
         </strong>
-        <button disabled={saving} onClick={close}>
+        <button disabled={saving} onClick={() => void closeDialog()}>
           닫기
         </button>
       </header>
+      {results && (
+        <section className="application-results" aria-label="노트 반영 결과">
+          <header>
+            <strong>노트 반영 결과</strong>
+            <button type="button" onClick={() => setResults(undefined)}>
+              결과 닫기
+            </button>
+          </header>
+          <p>
+            {(["saved", "conflict", "held"] as const)
+              .map(
+                (state, i) =>
+                  ["완료", "충돌·오류", "보류"][i] +
+                  " " +
+                  results.filter((item) => item.state === state).length +
+                  "건",
+              )
+              .join(" · ")}
+          </p>
+          {results.map((result) => (
+            <div className="application-row" key={result.page}>
+              <span>
+                {result.title} ·{" "}
+                {
+                  { saved: "완료", conflict: "재검토 필요", held: "보류" }[
+                    result.state
+                  ]
+                }
+                {result.problem && <small>{result.problem}</small>}
+              </span>
+              {result.state === "saved" ? (
+                <button
+                  onClick={() =>
+                    void latestWrite.current
+                      .then(() => access.openNote(result.page))
+                      .catch((e) => setError(String(e)))
+                  }
+                >
+                  노트 열기
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    const current = proposals.find(
+                      (p) => p.note.id === result.page,
+                    );
+                    if (current) void revisit(current);
+                    setResults(undefined);
+                  }}
+                >
+                  이 항목 검토
+                </button>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
       {action.kind === "history" && (
         <>
+          {(records.length > 0 || officeReview) && (
+            <button onClick={exportHistory}>검토 기록 Markdown 저장</button>
+          )}
           {!records.length && <p>이 세션에서 반영한 노트가 없습니다.</p>}
           {records.map((record) => (
             <div className="application-row" key={record.id}>
@@ -360,6 +621,7 @@ export default function WorkspaceMaterial({
             value={id}
             onChange={(e) => {
               setNote(undefined);
+              setConflictBase(undefined);
               setId(e.target.value);
             }}
           >
@@ -420,6 +682,11 @@ export default function WorkspaceMaterial({
           value={block}
           onChange={(e) => setBlock(Number(e.target.value))}
         >
+          {block === -2 && (
+            <option value={-2} disabled>
+              최신본에서 반영 위치 선택
+            </option>
+          )}
           <option value={-1}>끝에 추가</option>
           {choices.map((b, i) => (
             <option key={b.start} value={i}>
@@ -427,6 +694,18 @@ export default function WorkspaceMaterial({
             </option>
           ))}
         </select>
+      )}
+      {conflictBase && note && (
+        <details open className="material-diff">
+          <summary>검토 당시 원본과 최신본 비교</summary>
+          {diffLines(conflictBase.body, note.body, { timeout: 120 })
+            ?.filter((c) => c.added || c.removed)
+            .map((c, i) => (
+              <pre key={i} data-kind={c.added ? "add" : "remove"}>
+                {c.value}
+              </pre>
+            ))}
+        </details>
       )}
       {action.kind === "apply" && note && (
         <label>
@@ -441,7 +720,14 @@ export default function WorkspaceMaterial({
       {action.kind === "apply" &&
         proposals.map((p) => (
           <details key={p.note.id} className="application-proposal">
-            <summary>{p.note.title}</summary>
+            <summary>
+              {p.note.title}
+              {p.problem ? " · 재검토 필요" : ""}
+            </summary>
+            {p.problem && <p>{p.problem}</p>}
+            <button disabled={saving} onClick={() => void revisit(p)}>
+              {p.problem ? "최신본에서 재검토" : "대상과 내용 편집"}
+            </button>
             <label>
               <input
                 type="checkbox"
@@ -526,9 +812,22 @@ export default function WorkspaceMaterial({
         {error && id && (
           <button onClick={() => setReload((n) => n + 1)}>다시 불러오기</button>
         )}
+        {action.kind === "apply" &&
+          (id || proposals.length > 0 || answer !== action.answer) && (
+            <button
+              disabled={saving}
+              onClick={() => {
+                void persist()
+                  .then(close)
+                  .catch((e) => setError(String(e)));
+              }}
+            >
+              검토 초안 삭제
+            </button>
+          )}
         {action.kind === "apply" && note && (
           <button
-            disabled={saving || !answer.trim()}
+            disabled={saving || block === -2 || !answer.trim()}
             onClick={() => stage(note)}
           >
             검토 목록에 추가
@@ -540,8 +839,8 @@ export default function WorkspaceMaterial({
               saving ||
               (action.kind === "apply"
                 ? proposals.length
-                  ? !!note || !proposals.some((p) => p.checked)
-                  : !(note && answer.trim())
+                  ? !!note || !proposals.some((p) => p.checked && !p.problem)
+                  : !(note && block !== -2 && answer.trim())
                 : !preview.file)
             }
             onClick={() => void saveSelection()}

@@ -1,6 +1,11 @@
 name: Windows session upgrade
 on:
   workflow_dispatch:
+    inputs:
+      baseline:
+        description: Previous release tag or commit to upgrade from
+        required: false
+        type: string
   push:
     branches: [main]
     paths:
@@ -21,7 +26,7 @@ jobs:
       - run: npm ci
       - uses: actions/checkout@v4
         with:
-          ref: 42c830729fc629064147d7a8c5d6061bda132eb4
+          ref: ${{ inputs.baseline || '42c830729fc629064147d7a8c5d6061bda132eb4' }}
           path: previous
       - name: Build and install each version against the same session profile
         shell: pwsh

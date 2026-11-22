@@ -153,6 +153,17 @@ export function SourcePanel({
     </aside>
   );
 }
+export function answerCitations(text: string, files: InputFile[]) {
+  const references = new Set(
+    Array.from(
+      text.matchAll(/\[([^\[\]\n]{1,400}#[^\[\]\n]{1,200})\]/g),
+      (match) => match[1],
+    ),
+  );
+  return [...references].flatMap(
+    (label) => resolveCitation(files, label) || [],
+  );
+}
 export default function AnswerSources({
   text,
   files,
@@ -162,18 +173,7 @@ export default function AnswerSources({
   files: InputFile[];
   inspect: (hit: Citation) => void;
 }) {
-  const citations = useMemo(
-    () =>
-      [
-        ...new Set(
-          Array.from(
-            text.matchAll(/\[([^\[\]\n]{1,400}#[^\[\]\n]{1,200})\]/g),
-            (m) => m[1],
-          ),
-        ),
-      ].flatMap((label) => resolveCitation(files, label) || []),
-    [text, files],
-  );
+  const citations = useMemo(() => answerCitations(text, files), [text, files]);
   return (
     <>
       {citations.map((c) => (

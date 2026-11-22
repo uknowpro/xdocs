@@ -123,15 +123,67 @@ export const writeDraftInputs=(key:string,data:DraftInputs)=>data.files.length |
   ? transact("readwrite",s=>s.put(data,key+"/inputs")) : transact("readwrite",s=>s.delete(key+"/inputs"));
 
 export type NoteApplication = {
-  id:string; turn:number; title:string; page:string; date:string;
-  before:string; after:string; state:"pending"|"applied"|"undone";
+  id:string; turn:number; runId?:string; title:string; page:string; date:string;
+  before:string; after:string; content?:string; citations?:string[]; state:"pending"|"applied"|"undone";
 };
 const applicationPrefix=(session:string)=>session+"/note-application/";
+export type NoteApplicationLink={id:string;session:string;turn:number;runId?:string;date:string};
+const linkPrefix=(scope:string,page:string)=>JSON.stringify([scope,page])+"/application-link/";
 export const saveNoteApplication=(session:string,record:NoteApplication)=>
-  transact("readwrite",store=>store.put(record,applicationPrefix(session)+record.id));
+  transact("readwrite",store=>{
+    const [scope,page]=JSON.parse(session) as [string,string];
+    const key=linkPrefix(scope,record.page)+record.id;
+    if(record.state==="applied"){
+      const link:NoteApplicationLink={id:record.id,session:page,turn:record.turn,runId:record.runId,date:record.date};
+      store.put(link,key);
+    }else if(record.state==="undone") store.delete(key);
+    return store.put(record,applicationPrefix(session)+record.id);
+  });
 export const removeNoteApplication=(session:string,id:string)=>
   transact("readwrite",store=>store.delete(applicationPrefix(session)+id));
 export const readNoteApplications=(session:string)=>{
   const prefix=applicationPrefix(session);
   return transact<NoteApplication[]>("readonly",store=>store.getAll(IDBKeyRange.bound(prefix,prefix+"\uffff")));
 };
+
+export async function readApplicationLinks(scope:string,page:string){
+  const prefix=linkPrefix(scope,page);
+  return transact<NoteApplicationLink[]>("readonly",store=>store.getAll(IDBKeyRange.bound(prefix,prefix+"\uffff")));
+}
+
+export async function indexExistingApplications(scope:string){
+  const prefix=JSON.stringify([scope]).slice(0,-1)+",";
+  const marker=JSON.stringify([scope])+"/application-link-indexed";
+  if(await transact("readonly",store=>store.get(marker))) return;
+  const keys=await transact("readonly",store=>store.getAllKeys(IDBKeyRange.bound(prefix,prefix+"\uffff")));
+  const records=keys.filter((key):key is string=>typeof key==="string" && /\]\/note-application\/[^/]+$/.test(key));
+  await transact("readwrite",store=>{
+    for(const key of records){
+      const request=store.get(key);
+      request.onsuccess=()=>{
+        const record:NoteApplication|undefined=request.result;
+        if(record?.state!=="applied")return;
+        const [,session]=JSON.parse(key.slice(0,key.lastIndexOf("/note-application/")));
+        const link:NoteApplicationLink={id:record.id,session,turn:record.turn,runId:record.runId,date:record.date};
+        store.put(link,linkPrefix(scope,record.page)+record.id);
+      };
+    }
+    return store.put(true,marker);
+  });
+}
+export type ApplicationProposal={note:import("./types").Note;body:string;answer:string;block:number;checked:boolean;problem?:string};
+export type ApplicationDraft={
+  origin:{answer:string;turn:number;runId?:string;citations?:string[]};
+  answer:string; id:string; baseline?:import("./types").Note; block:number;
+  proposals:ApplicationProposal[];
+};
+export const readApplicationDraft=(session:string)=>transact<ApplicationDraft|undefined>("readonly",s=>s.get(session+"/application-draft"));
+export const writeApplicationDraft=(session:string,draft?:ApplicationDraft)=>draft
+  ? transact("readwrite",s=>s.put(draft,session+"/application-draft"))
+  : transact("readwrite",s=>s.delete(session+"/application-draft"));
+
+export const readOfficeReview=(session:string)=>transact<import("./review-export").OfficeReview|undefined>("readonly",s=>s.get(session+"/office-review"));
+export const writeOfficeReview=(session:string,review:import("./review-export").OfficeReview)=>
+  transact("readwrite",s=>s.put(review,session+"/office-review"));
+export const readNoteApplication=(session:string,id:string)=>
+  transact<NoteApplication|undefined>("readonly",s=>s.get(applicationPrefix(session)+id));

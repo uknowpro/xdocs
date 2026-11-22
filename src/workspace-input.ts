@@ -26,6 +26,7 @@ export type WorkspaceAccess = {
   read: (id: string) => Promise<Note>;
   save: (note: Note, body: string) => Promise<void>;
   open: (origin: WorkspaceOrigin, cited?: string) => Promise<void>;
+  openNote:(id:string)=>Promise<void>;
 };
 type Book = {
   sheets: {

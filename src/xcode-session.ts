@@ -1,3 +1,4 @@
+import {workbookCellFormatter} from "./office-value";
 import type { Attachment } from "./types";
 import { unzipSync, strFromU8 } from "fflate";
 export const templateGroups: Record<string, Record<string, string[]>> = {
@@ -307,7 +308,7 @@ export async function documentInput(f: File): Promise<InputFile> {
   if (isOpenDocument || isHwpx || /\.(docx|dotx|pptx|potx|xlsx|xltx)$/i.test(f.name)) {
     const partPattern = isOpenDocument ? /^content\.xml$/ :
       isHwpx ? /^Contents\/section\d+\.xml$/ :
-      /^(word\/document|ppt\/slides\/slide\d+|xl\/workbook|xl\/sharedStrings|xl\/worksheets\/sheet\d+)\.xml$/;
+      /^(word\/document|ppt\/slides\/slide\d+|xl\/workbook|xl\/styles|xl\/sharedStrings|xl\/worksheets\/sheet\d+)\.xml$/;
     const parts: string[] = [];
     let bytes = 0;
     const zip = unzipSync(new Uint8Array(await f.arrayBuffer()), {
@@ -327,10 +328,13 @@ export async function documentInput(f: File): Promise<InputFile> {
           (e) => e.textContent || "",
         )
       : [];
+    const workbook=zip["xl/workbook.xml"] ? xml("xl/workbook.xml") : undefined;
+    const date1904=/^(?:1|true)$/.test(workbook?.getElementsByTagNameNS("*","workbookPr")[0]?.getAttribute("date1904") || "");
+    const formatCell=workbookCellFormatter(zip["xl/styles.xml"]?xml("xl/styles.xml"):undefined,date1904);
     const sheetNames = new Map<string,string>();
     if (zip["xl/workbook.xml"] && zip["xl/_rels/workbook.xml.rels"]) {
       const rels = Array.from(xml("xl/_rels/workbook.xml.rels").getElementsByTagNameNS("*","Relationship"));
-      for (const sheet of xml("xl/workbook.xml").getElementsByTagNameNS("*","sheet")) {
+      for (const sheet of workbook!.getElementsByTagNameNS("*","sheet")) {
         const rel = rels.find(r=>r.getAttribute("Id") === sheet.getAttribute("r:id"));
         if (rel) sheetNames.set(new URL(rel.getAttribute("Target")!, "https://local/xl/workbook.xml").pathname.slice(1), sheet.getAttribute("name") || "");
       }
@@ -338,7 +342,7 @@ export async function documentInput(f: File): Promise<InputFile> {
     for (const name of Object.keys(zip).sort((a, b) =>
       a.localeCompare(b, "en", { numeric: true }),
     )) {
-      if (["xl/sharedStrings.xml","xl/workbook.xml","xl/_rels/workbook.xml.rels"].includes(name)) continue;
+      if (["xl/sharedStrings.xml","xl/styles.xml","xl/workbook.xml","xl/_rels/workbook.xml.rels"].includes(name)) continue;
       const doc = xml(name);
       if (doc.getElementsByTagName("parsererror").length)
         throw Error("문서 XML을 읽을 수 없습니다.");
@@ -370,7 +374,8 @@ export async function documentInput(f: File): Promise<InputFile> {
           for(const cell of row.getElementsByTagName("c")) {
             const address=cell.getAttribute("r") || "";
             const raw=cell.getElementsByTagName("v")[0]?.textContent || "";
-            const value=cell.getAttribute("t")==="s" ? strings[Number(raw)] || "" : raw || cell.textContent || "";
+            const type=cell.getAttribute("t");
+            const value=type==="s" ? strings[Number(raw)] || "" : formatCell(raw,cell.getAttribute("s"),type) || cell.textContent || "";
             const entry=address+"="+value;
             if(address && value) sources.push({place:sheet+"!"+address,start:offset+address.length+1,length:value.length});
             cells.push(entry); offset+=entry.length+1;

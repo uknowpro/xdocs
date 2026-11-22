@@ -7,10 +7,10 @@ type Scalar = string | number | boolean;
 export type OfficeTemplate = Awaited<ReturnType<typeof inspectForm>>;
 export const templateFiles = new WeakMap<object, File>();
 export function formInstruction(form: OfficeTemplate) {
-  const schema = form.advanced ? form.excerpt : JSON.stringify(form.fields);
+  const schema = form.advanced ? form.excerpt : JSON.stringify(form.fields.map(({id,label})=>({id,label})));
   return form.name + " 양식을 첨부 근거로 채우세요. 최종 답변은 JSON 객체로 반환하세요. values는 필드별 값, sources는 필드마다 파일명#시트!셀 또는 파일명#문단 번호 형식의 문자열이나 배열, conflicts는 상충하는 필드별 근거 설명입니다. 누락·충돌 값은 생략하세요. 반복 행은 배열로 반환하세요. 양식 필드: " + schema;
 }
-export type FormField = { id: string; label: string };
+export type FormField = { id: string; label: string; original:string };
 export async function inspectForm(file: File) {
   if (file.size > 8 * 1024 * 1024) throw Error("8MB 이하 양식을 선택하세요.");
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -34,7 +34,7 @@ export async function inspectForm(file: File) {
     return doc;
   }
   const word = /\.docx$/i.test(file.name);
-  const fields = new Map<string, string>(),
+  const fields = new Map<string, FormField>(),
     descriptions: string[] = [];
   let advanced = false;
   function process(values: Record<string, Scalar>, write: boolean) {
@@ -43,8 +43,8 @@ export async function inspectForm(file: File) {
       if (write)
         output[path] = strToU8(new XMLSerializer().serializeToString(doc));
     }
-    function field(id: string, label: string) {
-      fields.set(id, label);
+    function field(id: string,label:string,original="") {
+      if(!write) fields.set(id,{id,label,original});
       if (fields.size > 1500)
         throw Error("양식 입력란은 1,500개까지 지원합니다.");
       return Object.hasOwn(values, id) && values[id] !== ""
@@ -62,8 +62,8 @@ export async function inspectForm(file: File) {
           if (!pr || !content || !children(pr, "text").length || children(pr, "lock").length || children(pr, "dataBinding").length) continue;
           const labelNode = children(pr, "alias")[0] || children(pr, "tag")[0];
           const label = labelNode?.getAttributeNS(pr.namespaceURI, "val") || "텍스트 입력란 " + (i+1);
-          const value = field(path+"#control"+i, label);
           const runs = children(content, "t");
+          const value = field(path+"#control"+i,label,runs.map(run=>run.textContent || "").join(""));
           if (write && value !== undefined && runs.length) {
             runs.forEach((run, index) => { run.textContent = index ? "" : String(value); });
             children(pr, "showingPlcHdr")[0]?.remove();
@@ -81,7 +81,7 @@ export async function inspectForm(file: File) {
           const spans = [...text.matchAll(marker), ...text.matchAll(/_{3,}/g)].sort((a,b) => b.index! - a.index!);
           for (const match of spans) {
             const id = match[1] || path+"#blank"+paragraphIndex+"-"+match.index;
-            const val = field(id, match[1] || text.slice(Math.max(0,match.index!-48), match.index).trim() || "밑줄 입력 후보");
+            const val = field(id, match[1] || text.slice(Math.max(0,match.index!-48), match.index).trim() || "밑줄 입력 후보",match[0]);
             if (!write || val === undefined) continue;
             let offset = 0;
             original.forEach((s, i) => {
@@ -195,7 +195,7 @@ export async function inspectForm(file: File) {
             )
               continue;
             const id = sheet.getAttribute("name") + "!" + addr;
-            const val = field(id, placeholder?.[1] || previous || id);
+            const val = field(id, placeholder?.[1] || previous || id,text);
             if (!write || val === undefined) continue;
             c.replaceChildren();
             if (typeof val === "number" || typeof val === "boolean") {
@@ -240,7 +240,8 @@ export async function inspectForm(file: File) {
     name: file.name,
     bytes,
     advanced,
-    fields: [...fields].map(([id, label]) => ({ id, label })),
+    identity: Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),b=>b.toString(16).padStart(2,"0")).join(""),
+    fields: [...fields.values()],
     excerpt: descriptions.join("\n").slice(0, 30000),
     render: (values: Record<string, Scalar>) => zipSync(process(values, true)),
   };

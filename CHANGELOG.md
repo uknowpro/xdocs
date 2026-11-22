@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.28
+
+- Review original and proposed values before saving a Word or Excel copy. Select which fields to write, record approvals and reasons, and export the review as Markdown.
+- Select answer blocks in their original Markdown. Resume draft note edits after restarting, review conflicting notes, and open saved notes from the batch result.
+- Return from an edited note to the exact answer, applied content, and checked citations. Export note changes and Office review reasons from the session.
+
 ## 0.5.27
 
 - Attach workspace notes, sheet ranges and xinfra resources. Inspect citations alongside the answer, open the original sheet range or resource, and compare the sent snapshot with its current source.

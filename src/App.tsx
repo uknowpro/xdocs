@@ -1,6 +1,7 @@
 import { pageKind } from "../shared/page-kind.mjs";
 import {sessionStatus,sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
 import Xcode from "./Xcode";
+import {indexExistingApplications,readApplicationLinks,readNoteApplication,type NoteApplication,type NoteApplicationLink} from "./xcode-checkpoint";
 import {coordinates,workbook as readWorkbook,architecture as readArchitecture,type WorkspaceOrigin} from "./workspace-input";
 import {decode as decodeXcode, fresh as freshXcode, pack as packXcode, replaceSession} from "./xcode-session";
 import { LicensePage } from "./LicensePage";
@@ -284,6 +285,17 @@ export default function App() {
     workspace?.role === "reader" ||
     workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
+  const [answerJump,setAnswerJump]=useState<{scope:string;session:string;turn:number;record?:NoteApplication}>();
+  const [noteLinks,setNoteLinks]=useState<{page:string;scope:string;items:NoteApplicationLink[]}>();
+  useEffect(()=>{
+    const scope=workspace?.root;
+    if(!scope || !activeNote || pageKind(activeNote)!=="note")return;
+    let live=true;
+    void indexExistingApplications(scope).then(()=>readApplicationLinks(scope,active))
+      .then(items=>{if(live)setNoteLinks({page:active,scope,items:items.sort((a,b)=>b.date.localeCompare(a.date))});})
+      .catch(()=>{if(live)setNoteLinks(undefined);});
+    return ()=>{live=false;};
+  },[workspace?.root,active,activeNote?.revision]);
   const activity=useSessionActivity(workspace?.root);
   const runningPages=activity.filter(item=>item.busy);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
@@ -1492,6 +1504,19 @@ export default function App() {
                       문서 권한
                     </button>
                   )}
+                  {noteLinks?.page===active && noteLinks.scope===workspace?.root && noteLinks.items.length>0 &&
+                    <details className="note-answer-links"><summary>반영 출처 ({noteLinks.items.length})</summary>
+                      {noteLinks.items.map(link=><button key={link.id} onClick={()=>void action(async()=>{
+                        if(!(await flush()))return;
+                        const entry=api.readNote?await api.readNote(link.session):notes.find(n=>n.id===link.session);
+                        const session=entry && decodeXcode(entry.body);
+                        const index=link.runId?session?.turns.findIndex(t=>t.runId===link.runId):link.turn;
+                        if(!entry || !session || index===undefined || !session.turns[index])throw Error("원래 답변을 찾을 수 없습니다.");
+                        const record=await readNoteApplication(JSON.stringify([workspace!.root,entry.id]),link.id);
+                        setAnswerJump({scope:workspace!.root,session:entry.id,turn:index,record});
+                        select(entry);setEdit(false);setView("note");
+                      })}>{notes.find(n=>n.id===link.session)?.title || "xcode 세션"} · 답변 {link.turn+1}</button>)}
+                    </details>}
                   {api.history && (
                     <button
                       className="text-button"
@@ -1595,6 +1620,7 @@ export default function App() {
                   local={!shared}
                   key={JSON.stringify([workspace?.root, active])}
                   page={active}
+                  focusTurn={answerJump?.scope===workspace?.root && answerJump?.session===active?answerJump.turn:undefined}
                   scope={workspace!.root}
                   prepare={flush}
                   finish={async (turn) => {
@@ -1613,7 +1639,12 @@ export default function App() {
                       select(saved);
                     else setNotice(saved.title + " · xcode 응답 저장 완료");
                   }}
-                  access={{notes,open:async(origin,cited)=>{
+                  appliedRecord={answerJump?.scope===workspace?.root && answerJump?.session===active?answerJump.record:undefined}
+                  access={{notes,openNote:async id=>{
+                    if(!(await flush()))throw Error("현재 세션을 저장할 수 없습니다.");
+                    const n=api.readNote?await api.readNote(id):notes.find(item=>item.id===id);
+                    if(!n)throw Error("노트를 찾을 수 없습니다.");select(n);setView("note");setEdit(false);
+                  },open:async(origin,cited)=>{
                     if(!(await flush())) throw Error("현재 세션을 저장할 수 없습니다.");
                     const n=api.readNote ? await api.readNote(origin.page) : notes.find(entry=>entry.id===origin.page);
                     if(!n || pageKind(n)!==origin.selection.kind) throw Error("해당 원본 페이지를 찾을 수 없습니다.");

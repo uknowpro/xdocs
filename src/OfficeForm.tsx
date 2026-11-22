@@ -1,3 +1,6 @@
+import {downloadReview,officeReviewMarkdown,reviewValue,type FieldReview} from "./review-export";
+import {readOfficeReview,writeOfficeReview} from "./xcode-checkpoint";
+import {compareOfficeValue} from "./office-value";
 import { useEffect, useRef, useState } from "react";
 import {resolveCitation} from "./AnswerSources";
 import type {InputFile} from "./xcode-session";
@@ -6,12 +9,13 @@ import { formInstruction, inspectForm } from "./office-form";
 
 type Form = Awaited<ReturnType<typeof inspectForm>>;
 export default function OfficeForm({
-  form, setForm, review, disabled,
+  form, setForm, review, disabled, sessionKey,
   answer,answerFiles,
   prepare,
   close,
 }: {
   form?: Form;
+  sessionKey:string;
   setForm: (value?: Form) => void;
   review?: {text:string;id:string;files?:InputFile[]};
   close: () => void;
@@ -24,6 +28,19 @@ export default function OfficeForm({
     [notice, setNotice] = useState(""),
     [working, setWorking] = useState(false);
   const generation = useRef(0);
+  const [preview,setPreview]=useState<FieldReview[]>();
+  const reviewPanel=useRef<HTMLDivElement>(null);
+  const lastChanges=useRef<Promise<unknown>>(Promise.resolve());
+  function persistReview(fields:FieldReview[]) {
+    if(!form)return Promise.resolve();
+    const snapshot={form:form.name,identity:form.identity,reviewedAt:new Date().toISOString(),fields};
+    lastChanges.current=lastChanges.current.catch(()=>{}).then(()=>writeOfficeReview(sessionKey,snapshot));
+    return lastChanges.current;
+  }
+  function updateReview(fields:FieldReview[]) {
+    setPreview(fields);
+    void persistReview(fields).catch(err=>setNotice(String(err)));
+  }
   const [sources, setSources] = useState<Record<string, string[]>>({});
   const [reviewFiles,setReviewFiles]=useState<InputFile[]>([]);
   const [issuesOnly,setIssuesOnly]=useState(false);
@@ -34,8 +51,13 @@ export default function OfficeForm({
   const verified=(id:string)=>citations(id).length>0;
   function evidence(id:string){
     const hits=citations(id);
+    const proposed=proposedValue(id);
     return hits.length ? <details><summary>{hits.map(hit=>hit.label.replace("#"," · ")).join(" · ")}</summary>
-      {hits.map(hit=><pre key={hit.label}>{hit.value}</pre>)}</details> : sources[id]?.length?<small>{sources[id].join(" · ")}{sources[id][0]!=="직접 입력"?" · 근거 확인 필요":""}</small>:<small>연결된 근거 없음</small>;
+      {hits.map(hit=><div className="office-value-compare" key={hit.label}>
+        {proposed!==undefined && <div><small>제안 값</small><p>{String(proposed)}</p></div>}
+        <div><small>출처 값</small><pre>{hit.value}</pre></div>
+        {compareOfficeValue(proposed,hit.value) && <small>{compareOfficeValue(proposed,hit.value)}</small>}
+      </div>)}</details> : sources[id]?.length?<small>{sources[id].join(" · ")}{sources[id][0]!=="직접 입력"?" · 근거 확인 필요":""}</small>:<small>연결된 근거 없음</small>;
   }
   const [values, setValues] = useState<
     Record<string, string | number | boolean>
@@ -61,10 +83,11 @@ export default function OfficeForm({
   const [conflicts, setConflicts] = useState<Record<string,string>>({});
   const [accepted, setAccepted] = useState<string[]>([]);
   useEffect(() => {
-    setValues({}); setSources({}); setConflicts({}); setAccepted([]); setDraft("{}"); setNotice("");
+    setValues({}); setSources({}); setConflicts({}); setAccepted([]); setDraft("{}"); setNotice("");setPreview(undefined);
   }, [form]);
   useEffect(() => { if (review && form) applyAnswer(review.text,review.files || []); }, [review, form]);
   function applyAnswer(text: string,files=answerFiles) {
+    setPreview(undefined);
     try {
       const block =
         text.match(/```(?:json)?\s*\n([\s\S]*?)\n```/i)?.[1] ?? text;
@@ -97,18 +120,52 @@ export default function OfficeForm({
       );
     }
   }
-  let advancedKeys:string[]=[];
+  let advancedValues:Record<string,unknown>={};
   if(form?.advanced){
-    try{advancedKeys=Object.keys(JSON.parse(draft));}catch{ /* The JSON editor reports invalid input on save. */ }
+    try{advancedValues=JSON.parse(draft) || {};}catch{ /* The JSON editor reports invalid input on save. */ }
+  }
+  const advancedKeys=Object.keys(advancedValues);
+  function proposedValue(id:string){
+    return form?.advanced?advancedValues[id]:values[id];
+  }
+  function needsReview(id:string){
+    return Boolean(conflicts[id] || proposedValue(id)===undefined || !verified(id) ||
+      citations(id).some(hit=>compareOfficeValue(proposedValue(id),hit.value)));
+  }
+  async function openPreview(){
+    if(!form)return;
+    try{
+      const advanced=form.advanced?JSON.parse(draft):undefined;
+      if(form.advanced && (!advanced || Array.isArray(advanced) || typeof advanced!=="object"))
+        throw Error("반복 행·조건 데이터는 JSON 객체여야 합니다.");
+      const fields=form.advanced
+        ? Object.keys(advanced).map(id=>({id,label:id,original:""}))
+        : form.fields;
+      const stored=await readOfficeReview(sessionKey);
+      const saved=stored?.identity===form.identity ? new Map(stored.fields.map(item=>[item.id,item])) : new Map<string,FieldReview>();
+      const listed=fields.map(field=>{
+        const value=form.advanced?advanced[field.id]:values[field.id];
+        const refs=sources[field.id] || [];
+        const previous=saved.get(field.id);
+        const same=previous && JSON.stringify(previous.value)===JSON.stringify(value) && JSON.stringify(previous.sources)===JSON.stringify(refs);
+        return {...field,value,sources:refs,
+          included:same?previous.included:value!==undefined && value!=="" && (!field.id.includes("#blank") || accepted.includes(field.id)),
+          approved:same?previous.approved:false,reason:same?previous.reason:""};
+      });
+      setPreview(listed);setNotice("");
+      requestAnimationFrame(()=>reviewPanel.current?.scrollIntoView({block:"nearest"}));
+    }catch(err){setNotice(String(err));}
   }
   async function save() {
-    if (!form) return;
+    if (!form || !preview) return;
     setWorking(true);
     setNotice("");
     try {
+      const selected=Object.fromEntries(preview.filter(field=>field.included && field.value!==undefined && field.value!=="").map(field=>[field.id,field.value]));
+      await persistReview(preview);
       const data = form.advanced
-        ? await api.renderWordTemplate?.(form.bytes, JSON.parse(draft))
-        : form.render(Object.fromEntries(Object.entries(values).filter(([id]) => !id.includes("#blank") || accepted.includes(id))));
+        ? await api.renderWordTemplate?.(form.bytes, selected)
+        : form.render(selected as typeof values);
       if (data === null) {
         setNotice("설치를 취소했습니다.");
         return;
@@ -163,7 +220,7 @@ export default function OfficeForm({
                   반복 행·조건 데이터 (JSON)
                   <textarea
                     value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
+                    onChange={(e) => {setDraft(e.target.value);setPreview(undefined);}}
                   />
                 </label>
                 <small>
@@ -171,21 +228,22 @@ export default function OfficeForm({
                   사용합니다.
                 </small>
                 {Object.entries(conflicts).map(([id, value]) => <small key={id}>{id} · 근거 충돌 · {value}</small>)}
-                {[...new Set([...Object.keys(sources),...Object.keys(conflicts),...advancedKeys])].filter(id=>!issuesOnly || conflicts[id] || !verified(id)).map(id=>
+                {[...new Set([...Object.keys(sources),...Object.keys(conflicts),...advancedKeys])].filter(id=>!issuesOnly || needsReview(id)).map(id=>
                   <div key={id}><small>{id}</small>{evidence(id)}</div>)}
               </>
             ) : (
               <div>
                 {Array.from({length:Math.ceil(form.fields.length/8)},(_,group)=>{
-                  const inputs = form.fields.slice(group*8,group*8+8).filter(({id})=>!issuesOnly || conflicts[id] || values[id]===undefined || !verified(id)).map(({ id, label }) => (
+                  const inputs = form.fields.slice(group*8,group*8+8).filter(({id})=>!issuesOnly || needsReview(id)).map(({ id, label }) => (
                   <div key={id} className="office-source-field"><label>
                     {label}
-                    {id.includes("#blank") && <input type="checkbox" aria-label={label+" 밑줄 사용"} checked={accepted.includes(id)} onChange={e => setAccepted(prev => e.target.checked ? [...prev,id] : prev.filter(k=>k!==id))}/>}
+                    {id.includes("#blank") && <input type="checkbox" aria-label={label+" 밑줄 사용"} checked={accepted.includes(id)} onChange={e => {setPreview(undefined);setAccepted(prev => e.target.checked ? [...prev,id] : prev.filter(k=>k!==id));}}/>}
                     {id !== label && <small>{id}</small>}
                     <input
                       value={String(values[id] ?? "")}
                       placeholder="확인 필요"
                       onChange={(e) => {
+                        setPreview(undefined);
                         const raw = e.target.value;
                         setValues({
                           ...values,
@@ -195,12 +253,14 @@ export default function OfficeForm({
                               ? Number(raw)
                               : raw,
                         });
-                        setSources({ ...sources, [id]: ["직접 입력"] });
+                        // Keep cited evidence available when the proposed value is corrected.
                       }}
                     />
                     {conflicts[id] && <small>근거 충돌 · {conflicts[id]}</small>}
                     {values[id] === undefined && <small>값 누락</small>}
-                  </label>{evidence(id)}</div>
+                  </label>
+                  {citations(id).some(hit=>compareOfficeValue(proposedValue(id),hit.value)) && <small className="office-compare-status">출처와 값 대조 필요</small>}
+                  {evidence(id)}</div>
                   ));
                   if(!inputs.length) return null;
                   const fields=<div key={group} className="form-fields">{inputs}</div>;
@@ -210,7 +270,37 @@ export default function OfficeForm({
                 })}
               </div>
             )}
-            <button onClick={() => void save()}>작성본 사본 저장</button>
+            <button onClick={()=>void openPreview()}>저장 전 미리보기</button>
+            {preview && <div ref={reviewPanel} className="office-save-review" role="region" aria-label="작성본 미리보기">
+              <header><strong>작성본 미리보기</strong><button onClick={()=>setPreview(undefined)}>닫기</button></header>
+              <div className="office-preview-fields">
+                {preview.map(field=>{
+                  const patch=(next:Partial<FieldReview>)=>updateReview(preview.map(item=>item.id===field.id?{...item,...next}:item));
+                  const hasValue=field.value!==undefined && field.value!=="";
+                  return <section key={field.id}>
+                    <strong>{field.label}</strong>
+                    <div className="office-value-compare">
+                      <div><small>{form.advanced?"양식 변수":"원본 값"}</small><pre>{field.original || (form.advanced?field.id:"(빈 값)")}</pre></div>
+                      <div><small>제안 값</small><pre>{reviewValue(field.value) || "(빈 값)"}</pre></div>
+                    </div>
+                    {evidence(field.id)}
+                    {conflicts[field.id] && <p>근거 충돌 · {conflicts[field.id]}</p>}
+                    <label><input type="checkbox" checked={field.included} disabled={!hasValue}
+                      onChange={e=>patch({included:e.target.checked})}/>반영</label>
+                    <label><input type="checkbox" checked={field.approved}
+                      onChange={e=>patch({approved:e.target.checked})}/>검토 승인</label>
+                    <label>수정·승인 사유<input aria-label={field.label+" 검토 사유"} value={field.reason}
+                      onChange={e=>patch({reason:e.target.value})}/></label>
+                  </section>;
+                })}
+              </div>
+              <footer>
+                <button onClick={()=>void persistReview(preview).then(()=>downloadReview("Office-검토-기록",officeReviewMarkdown({
+                  form:form.name,identity:form.identity,reviewedAt:new Date().toISOString(),fields:preview,
+                }))).catch(err=>setNotice(String(err)))}>검토 기록 Markdown 저장</button>
+                <button disabled={!preview.some(field=>field.included)} onClick={() => void save()}>작성본 사본 저장</button>
+              </footer>
+            </div>}
           </>
         )}
       </fieldset>

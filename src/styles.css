@@ -3267,3 +3267,19 @@ textarea {
 .material-dialog textarea {width:100%;min-height:5rem;max-height:20dvh;}
 .office-source-field {display:grid;align-content:start;gap:5px;min-width:0;}
 .office-source-field pre {max-height:10rem;overflow:auto;white-space:pre-wrap;}
+.answer-block-picker {display:grid;gap:6px;max-height:24dvh;overflow:auto;}
+.answer-block-picker label {display:flex;align-items:flex-start;gap:7px;overflow-wrap:anywhere;}
+.application-resume {align-self:flex-start;}
+.note-answer-links[open] {display:grid;gap:4px;}
+.office-value-compare {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;margin-block:6px;overflow-wrap:anywhere;}
+.office-value-compare > small {grid-column:1/-1;}
+.office-value-compare :is(p,pre) {margin:2px 0;}
+.office-compare-status {font-weight:600;}
+.office-save-review,.application-results,.applied-answer {display:grid;gap:8px;border:1px solid var(--line);border-radius:8px;padding:10px;}
+.office-save-review :is(header,footer),.application-results header {display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;}
+.office-preview-fields {max-height:42dvh;overflow:auto;display:grid;gap:8px;}
+.office-preview-fields section {border-bottom:1px solid var(--line);padding-block:6px;}
+.office-preview-fields section > label {display:flex;align-items:center;gap:6px;}
+.office-preview-fields pre {white-space:pre-wrap;overflow-wrap:anywhere;max-height:8rem;overflow:auto;}
+.application-results small {display:block;overflow-wrap:anywhere;}
+.applied-answer {margin-bottom:8px;}

@@ -1,6 +1,8 @@
+import {diffLines} from "diff";
 import {noteBlocks,type WorkspaceOrigin,type TextInput} from "./workspace-input";
 import type {Note} from "./types";
-import AnswerSources,{SourcePanel,type Citation} from "./AnswerSources";
+import type {NoteApplication} from "./xcode-checkpoint";
+import AnswerSources,{answerCitations,SourcePanel,type Citation} from "./AnswerSources";
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, Check, Copy, History, Terminal, Search, MoreHorizontal } from "lucide-react";
 import { marked } from "marked";
@@ -68,7 +70,7 @@ export default function ChatTimeline({
   busy,
   error,
   readonly,
-  applyHarness, onQuote, applyAnswer,reviewInput,openOriginal,openHistory,workspacePages, folders, defaultFolder, savePage,
+  applyHarness, onQuote, applyAnswer,reviewInput,openOriginal,openHistory,workspacePages, folders, defaultFolder, savePage,focusTurn,appliedRecord,
 }: {
   reading: { top:number; follow:boolean };
   turns: Turn[];
@@ -80,7 +82,9 @@ export default function ChatTimeline({
   readonly: boolean;
   applyHarness: (h: Harness) => void;
   onQuote:(text:string)=>void;
-  applyAnswer:(text:string,index:number)=>void;
+  applyAnswer:(text:string,index:number,runId?:string,citations?:string[])=>void;
+  focusTurn?:number;
+  appliedRecord?:NoteApplication;
   openHistory:()=>void;
   openOriginal:(origin:WorkspaceOrigin,cited?:string)=>void;
   reviewInput:(f:TextInput)=>void;
@@ -148,7 +152,22 @@ export default function ChatTimeline({
     if(!follow.current && (turns.length>previousLength.current || preview)) setUnread(true);
     previousLength.current=turns.length;
   },[turns.length,preview]);
+  const [blockSelection,setBlockSelection]=useState<{index:number;checked:number[]}>();
+  useLayoutEffect(()=>{
+    if(focusTurn===undefined || !view.current)return;
+    const transcript=view.current;
+    const target=transcript.querySelector<HTMLElement>('[data-turn="'+focusTurn+'"]');
+    if(!target)return;
+    follow.current=false;
+    transcript.scrollTop+=target.getBoundingClientRect().top-transcript.getBoundingClientRect().top;
+    target.focus({preventScroll:true});
+  },[focusTurn]);
   const [source,setSource]=useState<Citation>();
+  const appliedContent=useMemo(()=>{
+    if(!appliedRecord) return "";
+    return appliedRecord.content ?? (diffLines(appliedRecord.before,appliedRecord.after,{timeout:120})
+      ?.filter(change=>change.added).map(change=>change.value).join("\n") || "");
+  },[appliedRecord]);
   const pendingVisible = pending && turns.length <= pending.index;
   return (
     <div className={"chat-transcript"+(source?" has-source":"")}>
@@ -186,8 +205,11 @@ export default function ChatTimeline({
         )}
         {turns.map((t, i) => {
           const last = t.answers.at(-1);
+          const files=t.sourceHistory ? [...t.sourceHistory.flatMap(([ti,fi])=>turns[ti]?.files[fi] || []),...t.files] : turns.slice(0,i+1).flatMap(turn=>turn.files);
+          const apply=(text:string)=>applyAnswer(text,i,t.runId,answerCitations(last?.text || "",files).map(c=>c.label));
+          const blocks=blockSelection?.index===i ? noteBlocks(last?.text || "") : [];
           return (
-            <article className="chat-turn" data-turn={i} data-found={finding && results[match]?.index===i ? results[match].part : undefined} key={t.runId || i}
+            <article className="chat-turn" tabIndex={-1} data-turn={i} data-found={finding && results[match]?.index===i ? results[match].part : undefined} key={t.runId || i}
               onMouseUp={()=>{const sel=window.getSelection();const answer=sel?.anchorNode?.parentElement?.closest(".chat-answer");
                 if(sel?.toString().trim() && answer?.contains(sel.focusNode) && answer.closest("article")?.dataset.turn===String(i))
                   {
@@ -201,8 +223,24 @@ export default function ChatTimeline({
 
               <Question prompt={t.prompt} files={t.files.map((f) => f.name)} />
               {t.files.map((f,j)=>"workspace" in f && f.workspace && <button disabled={readonly} className="material-origin" key={j} onClick={()=>reviewInput(f)}>{f.name} · {workspacePages.find(n=>n.id===f.workspace!.page)?.revision!==f.workspace.revision?"원본 변경됨":"이 사본으로 재질문"}</button>)}
+              {focusTurn===i && appliedRecord && <details className="applied-answer" open>
+                <summary>{appliedRecord.title}에 반영한 내용</summary>
+                {appliedContent && <Answer text={appliedContent}/>}
+                {last && <AnswerSources inspect={setSource} text={last.text} files={files}/>}
+              </details>}
               {last && <Answer text={last.text} />}
-              {last && last.text.includes("#") && <AnswerSources inspect={setSource} text={last.text} files={t.sourceHistory ? [...t.sourceHistory.flatMap(([ti,fi])=>turns[ti]?.files[fi] || []),...t.files] : turns.slice(0,i+1).flatMap(turn=>turn.files)}/>}
+              {!(focusTurn===i && appliedRecord) && last && last.text.includes("#") && <AnswerSources inspect={setSource} text={last.text} files={files}/>}
+              {blockSelection?.index===i && <fieldset className="answer-block-picker">
+                <legend>반영할 답변 블록</legend>
+                {blocks.map((block,j)=><label key={block.start}><input type="checkbox" checked={blockSelection.checked.includes(j)}
+                  onChange={event=>setBlockSelection({index:i,checked:event.target.checked?[...blockSelection.checked,j]:blockSelection.checked.filter(key=>key!==j)})}/>
+                  <span>{j+1}. {block.text.slice(0,120)}</span></label>)}
+                <button disabled={!blockSelection.checked.length || readonly} onClick={()=>{
+                  apply(blocks.filter((_,j)=>blockSelection.checked.includes(j)).map(block=>block.text).join("\n\n"));
+                  setBlockSelection(undefined);
+                }}>선택 블록 반영</button>
+                <button onClick={()=>setBlockSelection(undefined)}>취소</button>
+              </fieldset>}
               <div className="chat-result-actions">
                 {last && (
                   <button
@@ -223,9 +261,10 @@ export default function ChatTimeline({
                   </button>
                 )}
                 {quote?.index===i && <button disabled={readonly} onClick={()=>{onQuote(quote.text);setQuote(undefined);}}>인용해 질문</button>}
-                {quote?.index===i && <button disabled={readonly} onClick={()=>applyAnswer(quote.markdown || quote.text,i)}>선택한 부분 반영</button>}
+                {quote?.index===i && <button disabled={readonly} onClick={()=>apply(quote.markdown || quote.text)}>선택한 부분 반영</button>}
                 {last && <details className="chat-answer-menu"><summary className="chat-action-icon" aria-label="답변 메뉴" title="답변 메뉴"><MoreHorizontal size={13}/></summary>
-                  <button disabled={readonly} onClick={e=>{e.currentTarget.closest("details")!.open=false;applyAnswer(last.text,i);}}>기존 노트에 반영</button>
+                  <button disabled={readonly} onClick={e=>{e.currentTarget.closest("details")!.open=false;apply(last.text);}}>기존 노트에 반영</button>
+                  <button disabled={readonly} onClick={e=>{e.currentTarget.closest("details")!.open=false;setBlockSelection({index:i,checked:[]});}}>답변 블록 선택</button>
                   <button onClick={e=>{e.currentTarget.closest("details")!.open=false;openHistory();}}>노트 반영 이력</button>
                   {t.files.filter((f):f is TextInput=>"workspace" in f && Boolean(f.workspace)).map((file,j)=>
                     <button key={j} onClick={()=>openOriginal(file.workspace!)}>{file.name} 원본 열기</button>)}
