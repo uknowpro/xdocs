@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.30
+
+- Bundle kubewiser 0.2.0-alpha.12 for local Kubernetes manifest, Helm, and upgrade analysis.
+
 ## 0.5.29
 
 - Reopen Office output to verify selected and excluded fields and spreadsheet formulas.

@@ -6,8 +6,8 @@
       "directory": "netspector-0.3.0-linux-x86_64"
     },
     "kubewiser": {
-      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.10/kubewiser_v0.2.0-alpha.10_linux_amd64.tar.gz",
-      "sha256": "20e8bf00c048c53c66cec2f6b8163955d13c4896ac9532429f6f171edb0548da",
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.12/kubewiser_v0.2.0-alpha.12_linux_amd64.tar.gz",
+      "sha256": "6a05afb4bb1e4b1ce11ad8b4f44ebe92161cb256e92c01c614a7cbb56426eb47",
       "directory": "."
     },
     "helm": {
@@ -23,8 +23,8 @@
       "directory": "netspector-0.3.0-windows-x86_64"
     },
     "kubewiser": {
-      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.10/kubewiser_v0.2.0-alpha.10_windows_amd64.zip",
-      "sha256": "083f80633143037bacc882c1110a1063d2db2112f0ecb8a98c6307bc7c4a6122",
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.12/kubewiser_v0.2.0-alpha.12_windows_amd64.zip",
+      "sha256": "454c5cfbb47bf540c59fb1e6c9bf776ec48b41fa1dff585cf221b03ba0382a7a",
       "directory": "."
     },
     "helm": {
@@ -40,8 +40,8 @@
       "directory": "netspector-0.3.0-macos-arm64"
     },
     "kubewiser": {
-      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.10/kubewiser_v0.2.0-alpha.10_darwin_arm64.tar.gz",
-      "sha256": "494e05d619df0fcded82775d3b3c1b67a1ed613e2bd150b683328574dd862051",
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.12/kubewiser_v0.2.0-alpha.12_darwin_arm64.tar.gz",
+      "sha256": "2b26ccdddc6afbc16ad850ea94e0942887b581a2e1054502d7dd34fdb732cc07",
       "directory": "."
     },
     "helm": {
@@ -57,8 +57,8 @@
       "directory": "netspector-0.3.0-macos-x86_64"
     },
     "kubewiser": {
-      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.10/kubewiser_v0.2.0-alpha.10_darwin_amd64.tar.gz",
-      "sha256": "e4751cf300a5ba296d3285fabce1439fe200b55ba151ac6b0320e4e9ca912473",
+      "url": "https://github.com/uknowpro/kubewiser/releases/download/v0.2.0-alpha.12/kubewiser_v0.2.0-alpha.12_darwin_amd64.tar.gz",
+      "sha256": "e020eab630472a9591afffccf178f6eaa3a24c5eb659678f66503146de730fa7",
       "directory": "."
     },
     "helm": {
