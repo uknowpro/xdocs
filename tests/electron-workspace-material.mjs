@@ -282,6 +282,11 @@ try {
     .poll(async () => (await read(secondNote)).body)
     .toContain("```terraform");
   await button("검토 이력").click();
+  await page.locator(".review-filters summary").click();
+  await page.getByLabel("검토 이력 세션").selectOption(ids[3]);
+  await page.getByLabel("검토 이력 결과").selectOption("conflict");
+  await expect(page.locator(".review-search-results")).toContainText("정리");
+  await page.getByLabel("검토 이력 결과").selectOption("");
   await page.getByLabel("검토 이력 검색").fill("예산#비용!B2");
   const found = page
     .locator(".review-search-results details")
@@ -296,11 +301,41 @@ try {
     await page.getByLabel("반영할 내용").fill("묶음 작업 확인");
     await button("검토 목록에 추가").click();
   }
+  await app.evaluate(({ ipcMain }, id) => {
+    const handlers = ipcMain._invokeHandlers;
+    const original = handlers.get("note:save");
+    handlers.set("note:save", (event, data) => {
+      if (data.id === id && data.body.includes("묶음 작업 확인")) {
+        handlers.set("note:save", original);
+        throw Error("Temporary write error");
+      }
+      return original(event, data);
+    });
+  }, secondNote);
   await button("선택한 변경 저장").click();
-  await expect(page.getByLabel("노트 반영 결과")).toContainText("완료 2건");
+  await expect(page.getByLabel("노트 반영 결과")).toContainText("완료 1건");
+  await expect(page.getByLabel("노트 반영 결과")).toContainText(
+    "충돌·오류 1건",
+  );
+  const firstSaved = await read(ids[2]);
+  await button("닫기").click();
+  await app.close();
+  page = await launch();
+  prompt = page.getByLabel("xcode 메시지");
+  await open();
+  await button("노트 반영 초안 이어서 검토").click();
+  await button("실패한 항목 다시 저장").click();
+  await expect(page.getByLabel("노트 반영 결과")).toContainText("완료 1건");
+  assert.equal((await read(ids[2])).revision, firstSaved.revision);
   await button("닫기").click();
   await page.getByLabel("답변 메뉴").click();
   await button("노트 반영 이력").click();
+  const group = page
+    .locator(".application-history-group")
+    .filter({ hasText: "노트 반영 작업" });
+  await group.locator("summary").click();
+  await expect(group).toContainText("추가 노트");
+  await expect(group).toContainText("예산#비용!B2");
   await page.getByRole("button", { name: /여러 노트 되돌리기/ }).click();
   const undoBatch = page.getByLabel("여러 노트 되돌리기");
   await undoBatch.getByLabel("추가 노트").uncheck();

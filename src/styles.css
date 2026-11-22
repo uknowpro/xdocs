@@ -3288,3 +3288,8 @@ textarea {
 .workspace-review-search .review-search-results {display:grid;gap:8px;max-height:56dvh;overflow:auto;}
 .review-search-results details {border-bottom:1px solid var(--line);padding-block:6px;overflow-wrap:anywhere;}
 .review-search-results summary {cursor:pointer;}
+.review-filters[open],.review-backup[open],.review-output {display:grid;gap:6px;}
+.review-filters > div {display:flex;align-items:end;gap:8px;flex-wrap:wrap;}
+.review-filters label,.review-backup label,.review-output label {display:grid;gap:4px;}
+.application-history-group > .application-row,.application-history-group > details {margin-inline-start:10px;}
+.review-output {padding:7px;border:1px solid var(--line);border-radius:6px;}

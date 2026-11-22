@@ -124,7 +124,7 @@ export const writeDraftInputs=(key:string,data:DraftInputs)=>data.files.length |
 
 export type NoteApplication = {
   id:string; turn:number; runId?:string; title:string; page:string; date:string;
-  before:string; after:string; content?:string; citations?:string[]; group?:string; state:"pending"|"applied"|"undone";
+  before:string; after:string; content?:string; citations?:string[]; group?:string; state:"pending"|"applied"|"undone"|"conflict";
 };
 const applicationPrefix=(session:string)=>session+"/note-application/";
 export type NoteApplicationLink={id:string;session:string;turn:number;runId?:string;date:string};
@@ -171,7 +171,7 @@ export async function indexExistingApplications(scope:string){
     return store.put(true,marker);
   });
 }
-export type ApplicationProposal={note:import("./types").Note;body:string;answer:string;block:number;checked:boolean;problem?:string};
+export type ApplicationProposal={note:import("./types").Note;body:string;answer:string;block:number;checked:boolean;problem?:string;retryable?:boolean;operation?:string;group?:string};
 export type ApplicationDraft={
   origin:{answer:string;turn:number;runId?:string;citations?:string[]};
   answer:string; id:string; baseline?:import("./types").Note; block:number;
@@ -238,5 +238,57 @@ export async function readWorkspaceReviews(scope:string):Promise<WorkspaceReview
       }));
     };
     transaction.onabort=()=>reject(transaction.error || Error("검토 이력을 읽지 못했습니다."));
+  });
+}
+
+export type ReviewSlot={session:string;slot:string;value:unknown};
+const reviewSlotPattern=/^(?:application-draft|note-application\/[\w-]+|office-review|office-history\/[\w:.-]+|office-draft\/(?:[a-f0-9]{64}|latest)|office-template)$/;
+export const isReviewSlot=(slot:string)=>reviewSlotPattern.test(slot);
+export async function reviewSlots(scope:string):Promise<ReviewSlot[]>{
+  const prefix=JSON.stringify([scope]).slice(0,-1)+",";
+  const keys=await transact("readonly",s=>s.getAllKeys(IDBKeyRange.bound(prefix,prefix+"\uffff")));
+  const result=await Promise.all(keys.flatMap(key=>{
+    if(typeof key!=="string")return [];
+    const split=key.lastIndexOf("]/");
+    if(split<0)return [];
+    const [,session]=JSON.parse(key.slice(0,split+1)) as [string,string];
+    const slot=key.slice(split+2);
+    if(isReviewSlot(slot) && slot!=="office-template")return [transact("readonly",s=>s.get(key)).then(value=>({session,slot,value}))];
+    if(slot==="inputs")return [readDraftInputs(JSON.stringify([scope,session])).then(value=>({session,slot:"office-template",value:value?.form}))];
+    return [];
+  }));
+  return result.filter(entry=>entry.value!==undefined);
+}
+export async function mergeReviewSlots(scope:string,entries:ReviewSlot[]){
+  const db=await open();
+  return new Promise<{restored:number;duplicates:number}>((resolve,reject)=>{
+    const tx=db.transaction("runs","readwrite"), store=tx.objectStore("runs");
+    let restored=0,duplicates=0;
+    for(const entry of entries){
+      if(!isReviewSlot(entry.slot)){tx.abort();break;}
+      const session=JSON.stringify([scope,entry.session]);
+      const target=session+"/"+(entry.slot==="office-template"?"inputs":entry.slot);
+      const request=store.get(target);
+      request.onsuccess=()=>{
+        if(entry.slot==="office-template"){
+          if(request.result?.form){duplicates++;return;}
+          store.put({...request.result,files:request.result?.files || [],keys:request.result?.keys || [],
+            templates:request.result?.templates || [],omitted:request.result?.omitted || [],form:entry.value},target);
+        }else{
+          if(request.result!==undefined){duplicates++;return;}
+          store.put(entry.value,target);
+          if(entry.slot.startsWith("note-application/")){
+            const record=entry.value as NoteApplication;
+            if(record.state==="applied"){
+              const link:NoteApplicationLink={id:record.id,session:entry.session,turn:record.turn,runId:record.runId,date:record.date};
+              store.put(link,linkPrefix(scope,record.page)+record.id);
+            }
+          }
+        }
+        restored++;
+      };
+    }
+    tx.oncomplete=()=>resolve({restored,duplicates});
+    tx.onabort=()=>reject(tx.error || Error("검토 백업을 복원하지 못했습니다."));
   });
 }

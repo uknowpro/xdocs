@@ -70,6 +70,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   importMarkdown: () => ipcRenderer.invoke("note:import"),
   documentPermissions: (id, principal, readOnly) =>
     ipcRenderer.invoke("note:permissions", id, principal, readOnly),
+  saveOfficeCopy: (data) => ipcRenderer.invoke("office:save-copy", data),
   history: (id) => ipcRenderer.invoke("note:history", id),
   restoreHistory: (data) => ipcRenderer.invoke("note:restore-history", data),
   purgeTrash: (tokens) => ipcRenderer.invoke("vault:purge-trash", tokens),

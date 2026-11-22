@@ -31,8 +31,8 @@ const server = createServer(async(req,res)=>{
 });
 await new Promise(r=>server.listen(0,"127.0.0.1",r));
 let app;
-async function launch(){
-  app = await _electron.launch({args:process.env.XDOCS_EXECUTABLE ? []:["."],executablePath:process.env.XDOCS_EXECUTABLE || undefined,env:{...process.env,XDOCS_TEST_DATA:data}});
+async function launch(profile=data){
+  app = await _electron.launch({args:process.env.XDOCS_EXECUTABLE ? []:["."],executablePath:process.env.XDOCS_EXECUTABLE || undefined,env:{...process.env,XDOCS_TEST_DATA:profile}});
   await app.evaluate(({dialog},file)=>{
     dialog.showMessageBox=async()=>({response:1});
     dialog.showOpenDialog=async(_w,options)=>{
@@ -73,8 +73,8 @@ try {
   await panel.getByLabel("근거 누락·충돌만 보기").uncheck();
   assert.match(JSON.stringify(packets.at(-1)), /Budget.*D12=730/s);
   const saved=path.join(root,"copy.docx");
-  await app.evaluate(({BrowserWindow},dest)=>{
-    BrowserWindow.getAllWindows()[0].webContents.session.once("will-download",(_event,item)=>item.setSavePath(dest));
+  await app.evaluate(({dialog},dest)=>{
+    dialog.showSaveDialog=async()=>({canceled:false,filePath:dest});
   },saved);
   await button("저장 전 미리보기").click();
   let preview=page.getByRole("region",{name:"작성본 미리보기"});
@@ -115,8 +115,8 @@ try {
   await expect(preview).toContainText("{{forecast}}");
   await preview.locator(".office-preview-fields > section").filter({hasText:"excluded"}).getByLabel("반영",{exact:true}).uncheck();
   const excelOutput=path.join(root,"draft-copy.xlsx");
-  await app.evaluate(({BrowserWindow},dest)=>{
-    BrowserWindow.getAllWindows()[0].webContents.session.once("will-download",(_event,item)=>item.setSavePath(dest));
+  await app.evaluate(({dialog},dest)=>{
+    dialog.showSaveDialog=async()=>({canceled:false,filePath:dest});
   },excelOutput);
   await button("작성본 사본 저장").click();
   await expect.poll(async()=>(await readFile(excelOutput).catch(()=>Buffer.alloc(0))).length).toBeGreaterThan(0);
@@ -151,11 +151,43 @@ try {
   await delta.getByText("일치하는 입력란의 검토 복구").click();
   await expect(preview.getByLabel("forecast 검토 사유")).toHaveValue("검토를 이어서 진행");
   await button("검토 이력").click();
+  await page.locator(".review-filters summary").click();
   await page.getByLabel("검토 이력 종류").selectOption("office");
+  await page.getByLabel("검토 이력 결과").selectOption("verified");
   await page.getByLabel("검토 이력 검색").fill("예산 시트에서 확인");
   const entry=page.locator(".review-search-results details").filter({hasText:"report form.docx"}).first();
   await entry.locator("summary").click();
   await expect(entry).toContainText("예산 시트에서 확인");
+  await expect(entry).toContainText("copy.docx");
+  await entry.getByLabel("작성본 대조").setInputFiles(saved);
+  await expect(entry).toContainText("저장 당시 검사한 작성본과 동일합니다.");
+  await entry.getByLabel("작성본 대조").setInputFiles(formPath);
+  await expect(entry).toContainText("저장 당시 검사한 작성본과 다릅니다.");
+  await page.locator(".review-backup summary").click();
+  const backup=path.join(root,"office-backup.json");
+  await app.evaluate(({BrowserWindow},dest)=>{
+    BrowserWindow.getAllWindows()[0].webContents.session.once("will-download",(_event,item)=>item.setSavePath(dest));
+  },backup);
+  await button("검토 백업 내보내기").click();
+  await expect.poll(()=>readFile(backup,"utf8").catch(()=>"")).toContain("xdocs-review-backup");
+  await page.getByLabel("검토 백업 가져오기").setInputFiles(backup);
+  await expect(page.locator(".review-backup")).toContainText("복원 가능 0개");
+  const otherProfile=path.join(root,"restored");
+  await mkdir(otherProfile);
+  await writeFile(path.join(otherProfile,"workspace.json"),JSON.stringify({root:vault}));
+  await app.close();
+  page=await launch(otherProfile);
+  await button("검토 이력").click();await page.locator(".review-backup summary").click();
+  await page.getByLabel("검토 백업 가져오기").setInputFiles(backup);
+  await button("중복 제외하고 복원").click();
+  await expect(page.locator(".review-backup [role=status]")).toContainText(/복원 [1-9]/);
+  await page.getByLabel("검토 이력 검색").fill("예산 시트에서 확인");
+  await expect(page.locator(".review-search-results")).toContainText("report form.docx");
+  await app.close();
+  page=await launch(otherProfile);
+  if(!await page.locator(".xcode").count())await button("새 xcode 세션").first().click();
+  await button("Office 검토 초안 열기").click();
+  await expect(page.getByRole("region",{name:"작성본 미리보기"}).getByLabel("forecast 검토 사유")).toHaveValue("검토를 이어서 진행");
 
   console.log("PASS attachment and local-path form review, workbook references and separate Word output");
 } finally {

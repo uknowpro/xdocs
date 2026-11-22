@@ -13,17 +13,22 @@ if (mode === "seed") {
 const inputFile = {name:"upgrade.docx", mimeType:"application/octet-stream", buffer:Buffer.from(zipSync({
   "word/document.xml":strToU8('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>{{amount}}</w:t></w:r></w:p><w:p><w:r><w:t>{{skip}}</w:t></w:r></w:p></w:body></w:document>'),
 }))};
-const app = await _electron.launch({
+const launch = () => _electron.launch({
   executablePath: process.env.XDOCS_EXECUTABLE,
   args: process.env.XDOCS_EXECUTABLE ? [] : ["."],
   env: { ...process.env, XDOCS_TEST_DATA: profile },
 });
+let app = await launch();
 try {
-  const page = await app.firstWindow();
+  let page = await app.firstWindow();
   const button = name => page.getByRole("button", { name, exact: true });
   await expect(page.locator(".workspace-switch strong")).toHaveText("vault", {timeout:30000});
   if (mode === "seed") {
     await button("새로 만들기").click();await button("xcode 세션 만들기").click();
+    await button("세션 설정 펼치기").click();
+    await page.getByLabel("API 주소").fill("http://127.0.0.1:9091/v1/chat/completions");
+    await page.getByLabel("모델명",{exact:true}).fill("saved-on-0.5.28");
+    await button("설정 저장").click();
     await button("파일 첨부").click();
     await button("Word·Excel 양식 채우기").click();
     const office=page.locator(".office-form");
@@ -41,6 +46,23 @@ try {
     await expect.poll(()=>readFile(path.join(root,"review.md"),"utf8").catch(()=>"")).toContain("업그레이드 확인 값");
   } else {
     if(!await page.locator(".xcode").count()) await button("새 xcode 세션").first().click();
+    await button("세션 설정 펼치기").click();
+    await expect(page.getByLabel("API 주소")).toHaveValue("http://127.0.0.1:9091/v1/chat/completions");
+    await expect(page.getByLabel("모델명",{exact:true})).toHaveValue("saved-on-0.5.28");
+    await page.getByLabel("API 주소").fill("http://127.0.0.1:9092/v1/chat/completions");
+    await page.getByLabel("모델명",{exact:true}).fill("saved-on-0.5.29");
+    await button("설정 저장").click();
+    await expect(page.getByLabel("xcode 메시지")).toBeFocused();
+    await app.close();
+    app=await launch();
+    page=await app.firstWindow();
+    await expect(page.locator(".workspace-switch strong")).toHaveText("vault",{timeout:30000});
+    if(!await page.locator(".xcode").count()) await button("새 xcode 세션").first().click();
+    await button("세션 설정 펼치기").click();
+    await expect(page.getByLabel("API 주소")).toHaveValue("http://127.0.0.1:9092/v1/chat/completions");
+    await expect(page.getByLabel("모델명",{exact:true})).toHaveValue("saved-on-0.5.29");
+    await button("세션 설정 접기").click();
+    console.log("PASS Session settings saved without a chat and preserved after restarting Windows");
     await button("Office 검토 초안 열기").click();
     const preview=page.getByRole("region",{name:"작성본 미리보기"});
     await expect(preview.getByLabel("amount 검토 사유")).toHaveValue("업그레이드 확인 값");

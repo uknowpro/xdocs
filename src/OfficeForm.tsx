@@ -2,7 +2,7 @@ import {
   downloadReview,
   officeReviewMarkdown,
   reviewValue,
-  type FieldReview,
+  type FieldReview,type OfficeOutput,officeOutputHash,
 } from "./review-export";
 import {
   readOfficeReview,
@@ -53,13 +53,13 @@ export default function OfficeForm({
   const [preview, setPreview] = useState<FieldReview[]>();
   const reviewPanel = useRef<HTMLDivElement>(null);
   const lastChanges = useRef<Promise<unknown>>(Promise.resolve());
-  function persistReview(fields: FieldReview[], archive = false) {
+  function persistReview(fields: FieldReview[], archive = false,output?:OfficeOutput) {
     if (!form) return Promise.resolve();
     const snapshot = {
       form: form.name,
       identity: form.identity,
       reviewedAt: new Date().toISOString(),
-      fields,
+      fields,output,
     };
     lastChanges.current = lastChanges.current
       .catch(() => {})
@@ -462,11 +462,21 @@ export default function OfficeForm({
         setNotice("검사에서 불일치가 발견되어 작성본 저장을 중단했습니다.");
         return;
       }
-      await persistReview(preview, true);
+      const filename=form.name.replace(/(\.[^.]+)$/, "-작성본$1");
+      if(api.saveOfficeCopy){
+        const sha256=await officeOutputHash(data);
+        const receipt=await api.saveOfficeCopy({filename,bytes:new Uint8Array(data)});
+        if(!receipt){setNotice("작성본 저장을 취소했습니다.");return;}
+        await persistReview(preview,true,{...receipt,sha256,bytes:data.byteLength,fields:result.total,
+          formulas:result.formulaCount,status:result.structureOnly?"structure":"verified"});
+        setNotice("작성본을 저장하고 검토 이력에 기록했습니다.");
+        return;
+      }
+      await persistReview(preview,true);
       const url = URL.createObjectURL(new Blob([new Uint8Array(data)]));
       const a = document.createElement("a");
       a.href = url;
-      a.download = form.name.replace(/(\.[^.]+)$/, "-작성본$1");
+      a.download = filename;
       a.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 60000);
       setNotice("작성본 다운로드를 요청했습니다.");

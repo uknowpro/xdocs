@@ -360,6 +360,19 @@ app.whenReady().then(async () => {
     if (result.canceled) return null;
     return importArchitecture(result.filePaths, project === true);
   });
+  register("office:save-copy",async ({filename,bytes})=>{
+    mustVault();
+    if(typeof filename!=="string" || !/\.(docx|xlsx)$/i.test(filename) || !(bytes instanceof Uint8Array) || bytes.byteLength>32*1024*1024)
+      throw Error("32MB 이하 Word·Excel 작성본을 선택하세요.");
+    const extension=path.extname(filename).slice(1).toLowerCase();
+    const target=await dialog.showSaveDialog(window,{
+      defaultPath:path.basename(filename).replace(/[<>:"/\\|?*]/g,"-"),
+      filters:[{name:extension.toUpperCase(),extensions:[extension]}],
+    });
+    if(target.canceled)return null;
+    await writeFile(target.filePath,bytes);
+    return {filename:path.basename(target.filePath),savedAt:new Date().toISOString()};
+  });
   register("workflow:export", async ({ kind, source }) => {
     mustVault();
     if (!Object.hasOwn(templates, kind) || typeof source !== "string")

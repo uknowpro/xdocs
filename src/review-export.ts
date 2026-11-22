@@ -8,7 +8,15 @@ export type FieldReview = {
   reason: string;
   sources: string[];
 };
+export type OfficeOutput={
+  filename:string; savedAt:string; sha256:string; bytes:number;
+  fields:number; formulas:number; status:"verified"|"structure";
+};
+export async function officeOutputHash(bytes:Uint8Array){
+  return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new Uint8Array(bytes))),byte=>byte.toString(16).padStart(2,"0")).join("");
+}
 export type OfficeReview = {
+  output?:OfficeOutput;
   form: string;
   identity: string;
   reviewedAt: string;
@@ -42,6 +50,11 @@ export function officeReviewMarkdown(review?: OfficeReview) {
     "## Office 양식 검토",
     "",
     markdownQuote(review.form + " · " + review.reviewedAt),
+    ...(review.output ? ["",markdownQuote([
+      "작성본 "+review.output.filename,review.output.savedAt,
+      review.output.status==="verified"?"작성본 검사 통과":"Word 구조 검사 통과",
+      "SHA-256 "+review.output.sha256,
+    ].join("\n"))] : []),
     "",
     ...review.fields.flatMap((field) => [
       "### " + field.label.replace(/[\r\n]/g, " "),

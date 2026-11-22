@@ -2182,7 +2182,7 @@ export default function App() {
           </section>
         </div>
       )}
-      {reviewSearch && workspace && <WorkspaceReviewSearch scope={workspace.root} notes={notes}
+      {reviewSearch && workspace && <WorkspaceReviewSearch scope={workspace.root} notes={notes} readonly={workspace.role==="reader"}
         close={()=>setReviewSearch(false)} open={entry=>{
           setReviewSearch(false);
           if(entry.kind==="office") void navigate(entry.session);

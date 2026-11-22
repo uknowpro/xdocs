@@ -85,6 +85,7 @@ export interface NoteAPI {
   xcodeChat?(request:{id:string;profile:string;endpoint:string;model:string;key:string;effort?:string;messages:unknown[]}):Promise<string>;
   xcodeCancel?(id:string):Promise<void>;
   onXcodeDelta?(callback:(chunk:{id:string;token:string})=>void):()=>void;
+  saveOfficeCopy?(data:{filename:string;bytes:Uint8Array}):Promise<{filename:string;savedAt:string}|null>;
   chooseWordForm?(path:string):Promise<{name:string;bytes:Uint8Array}|null>;
   renderWordTemplate?(bytes:Uint8Array, context:unknown):Promise<Uint8Array|null>;
   wordHelper?():Promise<boolean>;

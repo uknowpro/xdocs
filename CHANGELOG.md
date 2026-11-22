@@ -5,6 +5,8 @@
 - Reopen Office output to verify selected and excluded fields and spreadsheet formulas.
 - Resume Office reviews and compare changed template fields.
 - Undo selected notes from a saved batch, and search workspace review history by note, form or citation.
+- Record the exact saved Office copy and compare its fingerprint from review history.
+- Back up and restore Office drafts and review records, skip duplicates, retry failed note writes, and filter grouped history by date, session and result.
 
 ## 0.5.28
 

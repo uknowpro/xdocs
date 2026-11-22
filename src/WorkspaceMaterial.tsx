@@ -10,7 +10,7 @@ import {
   readNoteApplications,
   readOfficeReview,
   saveNoteApplication,
-  removeNoteApplication,
+  readNoteApplication,
   type NoteApplication,
   type ApplicationDraft,
   type ApplicationProposal,
@@ -40,6 +40,8 @@ export type MaterialAction =
     }
   | { kind: "history" };
 type Proposal = ApplicationProposal;
+class NoteChanged extends Error {}
+const noteStates={applied:"저장 완료",undone:"되돌림",pending:"저장 확인 필요",conflict:"원본 충돌"} as const;
 type UndoCandidate = {
   record: NoteApplication;
   note?: Note;
@@ -253,20 +255,26 @@ export default function WorkspaceMaterial({
         answer,
         block,
         checked: existing?.checked ?? true,
+        group:existing?.group,
+        operation:existing?.retryable===false?existing.operation:undefined,
       },
     ]);
     setId("");
     setConflictBase(undefined);
     setAnswer(action.kind === "apply" ? action.answer : "");
   }
-  async function apply(p: Proposal, group?: string) {
+  async function apply(p: Proposal) {
     if (action.kind !== "apply" || p.note.body === p.body) return;
-    const current = await access.read(p.note.id);
-    if (current.body === p.body) return;
-    if (current.revision !== p.note.revision)
-      throw Error("원본이 변경되었습니다.");
-    const record: NoteApplication = {
-      id: crypto.randomUUID(),
+    const current=await access.read(p.note.id);
+    const prior=p.operation?await readNoteApplication(sessionKey,p.operation):undefined;
+    if(prior?.state==="applied" || prior?.state==="undone")return;
+    if(current.body===p.body){
+      if(prior?.state==="pending" && prior.page===p.note.id && prior.after===p.body)
+        await saveNoteApplication(sessionKey,{...prior,state:"applied"});
+      return;
+    }
+    const record:NoteApplication=prior?.state==="pending"?prior:{
+      id:p.operation || crypto.randomUUID(),
       turn: action.turn,
       runId: action.runId,
       title: p.note.title,
@@ -277,40 +285,53 @@ export default function WorkspaceMaterial({
       content: p.answer,
       citations: action.citations,
       state: "pending",
-      group,
+      group:p.group,
     };
-    await saveNoteApplication(sessionKey, record);
+    if(current.revision!==p.note.revision){
+      await saveNoteApplication(sessionKey,{...record,state:"conflict"});
+      throw new NoteChanged("원본이 변경되었습니다.");
+    }
+    await saveNoteApplication(sessionKey,record);
     try {
-      await access.save(p.note, p.body);
-    } catch (err) {
-      await removeNoteApplication(sessionKey, record.id);
+      await access.save(p.note,p.body);
+    }catch(err){
+      const latest=await access.read(p.note.id).catch(()=>undefined);
+      if(latest?.body===p.body){
+        await saveNoteApplication(sessionKey,{...record,state:"applied"});
+        return;
+      }
+      if(latest && latest.revision!==p.note.revision){
+        await saveNoteApplication(sessionKey,{...record,state:"conflict"});
+        throw new NoteChanged("원본이 변경되었습니다.");
+      }
       throw err;
     }
     await saveNoteApplication(sessionKey, { ...record, state: "applied" });
   }
-  async function saveSelection() {
+  async function saveSelection(retry=false) {
     if (saving) return;
     setSaving(true);
     setError("");
     try {
       if (action.kind === "apply") {
         if (proposals.length) {
-          let remaining = proposals;
-          const checked = proposals.filter((p) => p.checked && !p.problem);
-          const group = checked.length > 1 ? crypto.randomUUID() : undefined;
-          const outcome: SaveResult[] = proposals
-            .filter((p) => !p.checked || p.problem)
+          const eligible=(p:Proposal)=>p.checked && (retry?Boolean(p.problem && p.retryable):!p.problem);
+          const group=proposals.filter(eligible).length>1?crypto.randomUUID():undefined;
+          let remaining=proposals.map(p=>eligible(p)?{...p,group:p.group || group,operation:p.operation || crypto.randomUUID()}:p);
+          setProposals(remaining);
+          const saveRemaining=()=>persist(remaining.length?{origin:action,id:"",answer:action.answer,block:-1,proposals:remaining}:undefined);
+          await saveRemaining();
+          const outcome: SaveResult[] = remaining
+            .filter(p=>!eligible(p))
             .map((p) => ({
               page: p.note.id,
               title: p.note.title,
               state: p.checked ? "conflict" : "held",
               problem: p.problem,
             }));
-          for (const proposal of proposals.filter(
-            (p) => p.checked && !p.problem,
-          )) {
+          for (const proposal of remaining.filter(eligible)) {
             try {
-              await apply(proposal, group);
+              await apply(proposal);
               outcome.push({
                 page: proposal.note.id,
                 title: proposal.note.title,
@@ -328,22 +349,12 @@ export default function WorkspaceMaterial({
               });
               remaining = remaining.map((p) =>
                 p.note.id === proposal.note.id
-                  ? { ...p, problem: String(err) }
+                  ? { ...p, problem: String(err),retryable:!(err instanceof NoteChanged) }
                   : p,
               );
             }
             setProposals(remaining);
-            await persist(
-              remaining.length
-                ? {
-                    origin: action,
-                    id: "",
-                    answer: action.answer,
-                    block: -1,
-                    proposals: remaining,
-                  }
-                : undefined,
-            );
+            await saveRemaining();
           }
           setResults(outcome);
           return;
@@ -359,6 +370,21 @@ export default function WorkspaceMaterial({
       setSaving(false);
     }
   }
+  const recordGroups=new Map<string,NoteApplication[]>();
+  for(const record of records){
+    const key=record.group || record.id;
+    const group=recordGroups.get(key) || [];
+    group.push(record);recordGroups.set(key,group);
+  }
+  function historyRow(record:NoteApplication){
+    return <div className="application-row" key={record.id}>
+      <div><span>{record.title} · 답변 {record.turn+1}</span>
+        <small>{noteStates[record.state]} · {new Date(record.date).toLocaleString()}</small>
+        {record.citations?.length ? <small>{record.citations.join(" · ")}</small> : null}
+      </div>
+      {(record.state==="applied" || record.state==="pending") && <button disabled={saving} onClick={()=>void previewUndo(record)}>되돌리기 미리보기</button>}
+    </div>;
+  }
   function exportHistory() {
     const items = records.map((record) =>
       [
@@ -369,9 +395,7 @@ export default function WorkspaceMaterial({
           " · " +
           record.date +
           " · " +
-          { applied: "저장 완료", pending: "저장 확인 필요", undone: "되돌림" }[
-            record.state
-          ],
+          noteStates[record.state],
         "",
         markdownQuote("노트: " + record.page),
         ...(record.content ? ["", markdownQuote(record.content)] : []),
@@ -735,24 +759,11 @@ export default function WorkspaceMaterial({
             </section>
           )}
           {!records.length && <p>이 세션에서 반영한 노트가 없습니다.</p>}
-          {records.map((record) => (
-            <div className="application-row" key={record.id}>
-              <span>
-                {record.title} · 답변 {record.turn + 1} ·{" "}
-                {new Date(record.date).toLocaleString()}
-              </span>
-              {record.state === "undone" ? (
-                <small>되돌림</small>
-              ) : (
-                <button
-                  disabled={saving}
-                  onClick={() => void previewUndo(record)}
-                >
-                  되돌리기 미리보기
-                </button>
-              )}
-            </div>
-          ))}
+          {[...recordGroups].map(([id,group])=>group.length>1?
+            <details key={id} className="application-history-group">
+              <summary>노트 반영 작업 · {group.length}건 · {new Date(group[0].date).toLocaleString()}</summary>
+              {group.map(historyRow)}
+            </details>:historyRow(group[0]))}
           {undo && (
             <section>
               {undo.note.body !== undo.record.after && (
@@ -1022,6 +1033,8 @@ export default function WorkspaceMaterial({
             검토 목록에 추가
           </button>
         )}
+        {action.kind==="apply" && proposals.some(p=>p.checked && p.problem && p.retryable) && <button disabled={saving || !!note}
+          onClick={()=>void saveSelection(true)}>실패한 항목 다시 저장</button>}
         {action.kind !== "history" && (
           <button
             disabled={
