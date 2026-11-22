@@ -161,7 +161,7 @@ export default function ChatTimeline({
     follow.current=false;
     transcript.scrollTop+=target.getBoundingClientRect().top-transcript.getBoundingClientRect().top;
     target.focus({preventScroll:true});
-  },[focusTurn]);
+  },[focusTurn,appliedRecord]);
   const [source,setSource]=useState<Citation>();
   const appliedContent=useMemo(()=>{
     if(!appliedRecord) return "";

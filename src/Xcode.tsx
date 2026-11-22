@@ -1402,6 +1402,7 @@ export default function Xcode({
           <small aria-live="polite">{settingsSave === "failed" ? "세션 설정을 저장하지 못했습니다. 다시 시도하세요." : ""}</small>
         </div>
       </div>
+      {run.snapshot().form && documentPanel!=="form" && !readonly && <button className="application-resume" onClick={()=>setDocumentPanel("form")}>Office 검토 초안 열기</button>}
       <div hidden={documentPanel !== "form"}><OfficeForm sessionKey={checkpointKey} form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""}
         answerFiles={[...(s.turns.at(-1)?.sourceHistory || []).flatMap(([ti,fi])=>s.turns[ti]?.files[fi] || []),...(s.turns.at(-1)?.files || [])]} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
       {local && api.wordCapture && <div hidden={documentPanel !== "word"}>

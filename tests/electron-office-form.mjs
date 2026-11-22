@@ -31,7 +31,7 @@ const server = createServer(async(req,res)=>{
 });
 await new Promise(r=>server.listen(0,"127.0.0.1",r));
 let app;
-try {
+async function launch(){
   app = await _electron.launch({args:process.env.XDOCS_EXECUTABLE ? []:["."],executablePath:process.env.XDOCS_EXECUTABLE || undefined,env:{...process.env,XDOCS_TEST_DATA:data}});
   await app.evaluate(({dialog},file)=>{
     dialog.showMessageBox=async()=>({response:1});
@@ -41,6 +41,11 @@ try {
     };
   },formPath);
   const page=await app.firstWindow();
+  await expect(page.locator(".workspace-switch strong")).toHaveText("vault",{timeout:20000});
+  return page;
+}
+try {
+  let page=await launch();
   const button=name=>page.getByRole("button",{name,exact:true});
   await button("새로 만들기").click(); await button("xcode 세션 만들기").click();
   await button("세션 설정 펼치기").click();
@@ -49,7 +54,7 @@ try {
   await page.getByLabel("파일 첨부 선택").setInputFiles([formPath,budget]);
   const prompt=page.getByLabel("xcode 메시지");
   await prompt.fill("예산으로 첨부 양식을 채워줘"); await button("전송").click();
-  const panel=page.locator(".office-form");
+  let panel=page.locator(".office-form");
   await expect(panel.locator('input[value="730"]')).toBeVisible();
   await expect(panel.locator('input[value="Kim"]')).toBeVisible();
   const field=panel.locator(".office-source-field").filter({has:page.locator('input[value="730"]')});
@@ -72,7 +77,7 @@ try {
     BrowserWindow.getAllWindows()[0].webContents.session.once("will-download",(_event,item)=>item.setSavePath(dest));
   },saved);
   await button("저장 전 미리보기").click();
-  const preview=page.getByRole("region",{name:"작성본 미리보기"});
+  let preview=page.getByRole("region",{name:"작성본 미리보기"});
   const owner=preview.locator(".office-preview-fields > section").filter({hasText:"Owner"});
   await expect(owner).toContainText("Enter owner");
   await expect(owner).toContainText("Kim");
@@ -100,6 +105,7 @@ try {
   const templateSheet=excelTemplate.addWorksheet("Draft");
   templateSheet.getCell("A1").value="{{forecast}}";
   templateSheet.getCell("A2").value="{{excluded}}";
+  templateSheet.getCell("A3").value={formula:"SUM(A1:A2)",result:0};
   await panel.getByLabel("원본 양식").setInputFiles({
     name:"draft.xlsx",mimeType:"application/octet-stream",buffer:Buffer.from(await excelTemplate.xlsx.writeBuffer()),
   });
@@ -117,6 +123,40 @@ try {
   const actual=new ExcelJS.Workbook();await actual.xlsx.readFile(excelOutput);
   assert.equal(actual.getWorksheet("Draft").getCell("A1").value,1200);
   assert.equal(actual.getWorksheet("Draft").getCell("A2").value,"{{excluded}}");
+  await expect(preview.getByLabel("작성본 검사 결과")).toContainText("수식 1개 비교");
+  await preview.getByLabel("저장한 작성본 검사").setInputFiles(excelOutput);
+  await expect(preview.getByLabel("작성본 검사 결과")).toContainText("작성본 검사 통과");
+  actual.getWorksheet("Draft").getCell("A3").value={formula:"1+1",result:2};
+  await preview.getByLabel("저장한 작성본 검사").setInputFiles({
+    name:"tampered.xlsx",mimeType:"application/octet-stream",buffer:Buffer.from(await actual.xlsx.writeBuffer()),
+  });
+  await expect(preview.getByLabel("작성본 검사 결과")).toContainText("수식이 변경되었습니다.");
+  await preview.getByLabel("forecast 검토 사유").fill("검토를 이어서 진행");
+  await button("양식 패널 닫기").click();
+  await app.close();
+  page=await launch();
+  panel=page.locator(".office-form");
+  preview=page.getByRole("region",{name:"작성본 미리보기"});
+  if(!await page.locator(".xcode").count())await page.getByRole("button",{name:"새 xcode 세션",exact:true}).first().click();
+  await button("Office 검토 초안 열기").click();
+  await expect(preview.getByLabel("forecast 검토 사유")).toHaveValue("검토를 이어서 진행");
+  await expect(preview.locator(".office-preview-fields > section").filter({hasText:"excluded"}).getByLabel("반영",{exact:true})).not.toBeChecked();
+  templateSheet.getCell("A2").value="고정 제목";
+  templateSheet.getCell("A4").value="{{newfield}}";
+  await panel.getByLabel("원본 양식").setInputFiles({
+    name:"draft.xlsx",mimeType:"application/octet-stream",buffer:Buffer.from(await excelTemplate.xlsx.writeBuffer()),
+  });
+  const delta=panel.getByLabel("원본 양식 변경");
+  await expect(delta).toContainText("추가 · newfield");await expect(delta).toContainText("삭제 · excluded");
+  await delta.getByText("일치하는 입력란의 검토 복구").click();
+  await expect(preview.getByLabel("forecast 검토 사유")).toHaveValue("검토를 이어서 진행");
+  await button("검토 이력").click();
+  await page.getByLabel("검토 이력 종류").selectOption("office");
+  await page.getByLabel("검토 이력 검색").fill("예산 시트에서 확인");
+  const entry=page.locator(".review-search-results details").filter({hasText:"report form.docx"}).first();
+  await entry.locator("summary").click();
+  await expect(entry).toContainText("예산 시트에서 확인");
+
   console.log("PASS attachment and local-path form review, workbook references and separate Word output");
 } finally {
   await app?.close();server.closeAllConnections();server.close();await rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:200});

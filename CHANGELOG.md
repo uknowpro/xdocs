@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.29
+
+- Reopen Office output to verify selected and excluded fields and spreadsheet formulas.
+- Resume Office reviews and compare changed template fields.
+- Undo selected notes from a saved batch, and search workspace review history by note, form or citation.
+
 ## 0.5.28
 
 - Review original and proposed values before saving a Word or Excel copy. Select which fields to write, record approvals and reasons, and export the review as Markdown.

@@ -23,10 +23,10 @@ export async function inspectForm(file: File) {
       return true;
     },
   });
-  function xml(path: string) {
-    if (!parts[path]) throw Error("양식 구성 파일을 찾을 수 없습니다.");
+  function xml(path: string, archive=parts) {
+    if (!archive[path]) throw Error("양식 구성 파일을 찾을 수 없습니다.");
     const doc = new DOMParser().parseFromString(
-      strFromU8(parts[path]),
+      strFromU8(archive[path]),
       "application/xml",
     );
     if (children(doc, "parsererror").length)
@@ -37,14 +37,21 @@ export async function inspectForm(file: File) {
   const fields = new Map<string, FormField>(),
     descriptions: string[] = [];
   let advanced = false;
-  function process(values: Record<string, Scalar>, write: boolean) {
+  const indexedCells=new WeakMap<Document,Map<string,Element>>();
+  function cellAt(doc:Document,address:string){
+    let cells=indexedCells.get(doc);
+    if(!cells){cells=new Map(children(doc,"c").map(cell=>[cell.getAttribute("r") || "",cell]));indexedCells.set(doc,cells);}
+    return cells.get(address);
+  }
+  type Check={path:string;location:string;expected:string;read:(doc:Document,archive:typeof parts)=>string};
+  function process(values: Record<string, Scalar>, write: boolean, checks?:Check[]) {
     const output = { ...parts };
     function save(path: string, doc: Document) {
       if (write)
         output[path] = strToU8(new XMLSerializer().serializeToString(doc));
     }
     function field(id: string,label:string,original="") {
-      if(!write) fields.set(id,{id,label,original});
+      if(!write && !checks) fields.set(id,{id,label,original});
       if (fields.size > 1500)
         throw Error("양식 입력란은 1,500개까지 지원합니다.");
       return Object.hasOwn(values, id) && values[id] !== ""
@@ -64,6 +71,8 @@ export async function inspectForm(file: File) {
           const label = labelNode?.getAttributeNS(pr.namespaceURI, "val") || "텍스트 입력란 " + (i+1);
           const runs = children(content, "t");
           const value = field(path+"#control"+i,label,runs.map(run=>run.textContent || "").join(""));
+          checks?.push({path,location:label,expected:value===undefined?runs.map(run=>run.textContent || "").join(""):String(value),
+            read:out=>children(children(children(out,"sdt")[i],"sdtContent")[0],"t").map(run=>run.textContent || "").join("")});
           if (write && value !== undefined && runs.length) {
             runs.forEach((run, index) => { run.textContent = index ? "" : String(value); });
             children(pr, "showingPlcHdr")[0]?.remove();
@@ -76,9 +85,22 @@ export async function inspectForm(file: File) {
           );
           const original = nodes.map((n) => n.textContent || "");
           const text = original.join("");
-          if (!write && text.trim()) descriptions.push(text);
+          if (!write && !checks && text.trim()) descriptions.push(text);
           if (/{[%#]|{{/.test(text.replace(marker, ""))) advanced = true;
           const spans = [...text.matchAll(marker), ...text.matchAll(/_{3,}/g)].sort((a,b) => b.index! - a.index!);
+          if(checks && spans.length){
+            let expected=text;
+            for(const match of spans){
+              const id=match[1] || path+"#blank"+paragraphIndex+"-"+match.index;
+              const value=Object.hasOwn(values,id) && values[id]!=="" ? values[id] : undefined;
+              if(value!==undefined) expected=expected.slice(0,match.index)+String(value)+expected.slice(match.index!+match[0].length);
+            }
+            checks.push({path,location:"문단 "+(paragraphIndex+1),expected,read:out=>{
+              const paragraph=children(out,"p")[paragraphIndex];
+              return children(paragraph,"t").filter(n=>!n.closest("sdt, w\\:sdt") &&
+                (n.closest("p, w\\:p")===paragraph || n.parentElement?.parentElement===paragraph)).map(n=>n.textContent || "").join("");
+            }});
+          }
           for (const match of spans) {
             const id = match[1] || path+"#blank"+paragraphIndex+"-"+match.index;
             const val = field(id, match[1] || text.slice(Math.max(0,match.index!-48), match.index).trim() || "밑줄 입력 후보",match[0]);
@@ -117,6 +139,8 @@ export async function inspectForm(file: File) {
           if (!p || !label) continue;
           const id = path + "#cell" + i,
             val = field(id, label.slice(0, 80));
+          checks?.push({path,location:label,expected:val===undefined?"":String(val),
+            read:out=>children(children(out,"tc")[i],"t").map(run=>run.textContent || "").join("")});
           if (write && val !== undefined) {
             const r = doc.createElementNS(p.namespaceURI, "w:r"),
               t = doc.createElementNS(p.namespaceURI, "w:t");
@@ -196,6 +220,17 @@ export async function inspectForm(file: File) {
               continue;
             const id = sheet.getAttribute("name") + "!" + addr;
             const val = field(id, placeholder?.[1] || previous || id,text);
+            if(checks){
+              const expected=val===undefined?type=== "b"?String(raw==="1"):text:String(val);
+              checks.push({path,location:id,expected,read:(out,archive)=>{
+                const saved=cellAt(out,addr);
+                if(!saved)throw Error("셀을 찾을 수 없습니다.");
+                const kind=saved.getAttribute("t"), value=children(saved,"v")[0]?.textContent || "";
+                if(kind==="b")return String(value==="1");
+                if(kind==="s")return children(xml("xl/sharedStrings.xml",archive),"si")[Number(value)]?.textContent || "";
+                return kind==="inlineStr"?children(saved,"t").map(run=>run.textContent || "").join(""):value;
+              }});
+            }
             if (!write || val === undefined) continue;
             c.replaceChildren();
             if (typeof val === "number" || typeof val === "boolean") {
@@ -231,6 +266,56 @@ export async function inspectForm(file: File) {
     }
     return output;
   }
+  function formulaMap(archive:typeof parts){
+    const formulas=new Map<string,string>();
+    for(const path of Object.keys(archive).filter(item=>/^xl\/worksheets\/[^/]+\.xml$/.test(item))){
+      for(const c of children(xml(path,archive),"c")){
+        const formula=children(c,"f")[0];
+        if(formula){
+          const key=path+"!"+c.getAttribute("r");
+          const attributes=Array.from(formula.attributes,attr=>[attr.name,attr.value]).sort();
+          formulas.set(key,JSON.stringify([formula.textContent,attributes]));
+        }
+      }
+    }
+    return formulas;
+  }
+  function verify(output:Uint8Array,values:Record<string,Scalar>){
+    let total=0,formulaCount=0,copied=0;
+    const issues:string[]=[];
+    try{
+      let size=0;
+      const archive=unzipSync(output,{filter(entry){
+        size+=entry.originalSize;
+        if(size>32*1024*1024)throw Error("작성본의 압축 해제 한도를 초과했습니다.");
+        return true;
+      }});
+      if(advanced){
+        for(const path of Object.keys(parts).filter(p=>/^word\/(document|header\d+|footer\d+)\.xml$/.test(p)))xml(path,archive);
+        return {total,formulaCount,copied,issues,structureOnly:true};
+      }
+      const checks:Check[]=[];
+      process(values,false,checks);
+      const parsed=new Map<string,Document>();
+      for(const check of checks){
+        try{
+          let doc=parsed.get(check.path);
+          if(!doc){doc=xml(check.path,archive);parsed.set(check.path,doc);}
+          if(check.read(doc,archive)!==check.expected) issues.push(check.location+" 값이 예상과 다릅니다.");
+          total++;
+        }catch{issues.push(check.location+" 위치를 읽을 수 없습니다.");}
+      }
+      if(!word){
+        const original=formulaMap(parts),saved=formulaMap(archive);
+        formulaCount=original.size;
+        for(const key of new Set([...original.keys(),...saved.keys()])){
+          if(original.get(key)!==saved.get(key)) issues.push(key+" 수식이 변경되었습니다.");
+        }
+      }
+      copied=Object.keys(values).length;
+    }catch(err){issues.push(String(err));}
+    return {total,formulaCount,copied,issues,structureOnly:false};
+  }
   process({}, false);
   if (!advanced && !fields.size)
     throw Error(
@@ -243,6 +328,7 @@ export async function inspectForm(file: File) {
     identity: Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),b=>b.toString(16).padStart(2,"0")).join(""),
     fields: [...fields.values()],
     excerpt: descriptions.join("\n").slice(0, 30000),
+    verify,
     render: (values: Record<string, Scalar>) => zipSync(process(values, true)),
   };
 }

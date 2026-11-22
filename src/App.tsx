@@ -1,3 +1,4 @@
+import WorkspaceReviewSearch from "./WorkspaceReviewSearch";
 import { pageKind } from "../shared/page-kind.mjs";
 import {sessionStatus,sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
 import Xcode from "./Xcode";
@@ -285,6 +286,7 @@ export default function App() {
     workspace?.role === "reader" ||
     workspace?.notes.find((n) => n.id === active)?.role === "reader";
   const activeNote = workspace?.notes.find((n) => n.id === active);
+  const [reviewSearch,setReviewSearch]=useState(false);
   const [answerJump,setAnswerJump]=useState<{scope:string;session:string;turn:number;record?:NoteApplication}>();
   const [noteLinks,setNoteLinks]=useState<{page:string;scope:string;items:NoteApplicationLink[]}>();
   useEffect(()=>{
@@ -607,6 +609,16 @@ export default function App() {
     } finally {
       setBusy(false);
     }
+  }
+  async function openReviewedAnswer(link:{id:string;session:string;turn:number;runId?:string}){
+    if(!(await flush())) return;
+    const entry=api.readNote?await api.readNote(link.session):notes.find(n=>n.id===link.session);
+    const session=entry && decodeXcode(entry.body);
+    const index=link.runId?session?.turns.findIndex(t=>t.runId===link.runId):link.turn;
+    if(!entry || !session || index===undefined || !session.turns[index])throw Error("원래 답변을 찾을 수 없습니다.");
+    const record=await readNoteApplication(JSON.stringify([workspace!.root,entry.id]),link.id);
+    setAnswerJump({scope:workspace!.root,session:entry.id,turn:index,record});
+    select(entry);setEdit(false);setView("note");
   }
   async function openVault() {
     if (!(await flush())) return;
@@ -1020,6 +1032,8 @@ export default function App() {
           <span>빠른 검색</span>
           <kbd>⌘ K</kbd>
         </button>
+        {workspace && <button className="nav-item" onClick={()=>setReviewSearch(true)}><FileText size={15}/><span>검토 이력</span></button>}
+
         <div className="create-shortcuts">
           <button
             className="create-trigger"
@@ -1506,16 +1520,8 @@ export default function App() {
                   )}
                   {noteLinks?.page===active && noteLinks.scope===workspace?.root && noteLinks.items.length>0 &&
                     <details className="note-answer-links"><summary>반영 출처 ({noteLinks.items.length})</summary>
-                      {noteLinks.items.map(link=><button key={link.id} onClick={()=>void action(async()=>{
-                        if(!(await flush()))return;
-                        const entry=api.readNote?await api.readNote(link.session):notes.find(n=>n.id===link.session);
-                        const session=entry && decodeXcode(entry.body);
-                        const index=link.runId?session?.turns.findIndex(t=>t.runId===link.runId):link.turn;
-                        if(!entry || !session || index===undefined || !session.turns[index])throw Error("원래 답변을 찾을 수 없습니다.");
-                        const record=await readNoteApplication(JSON.stringify([workspace!.root,entry.id]),link.id);
-                        setAnswerJump({scope:workspace!.root,session:entry.id,turn:index,record});
-                        select(entry);setEdit(false);setView("note");
-                      })}>{notes.find(n=>n.id===link.session)?.title || "xcode 세션"} · 답변 {link.turn+1}</button>)}
+                      {noteLinks.items.map(link=><button key={link.id} onClick={()=>void action(()=>openReviewedAnswer(link))}>
+                        {notes.find(n=>n.id===link.session)?.title || "xcode 세션"} · 답변 {link.turn+1}</button>)}
                     </details>}
                   {api.history && (
                     <button
@@ -2176,6 +2182,12 @@ export default function App() {
           </section>
         </div>
       )}
+      {reviewSearch && workspace && <WorkspaceReviewSearch scope={workspace.root} notes={notes}
+        close={()=>setReviewSearch(false)} open={entry=>{
+          setReviewSearch(false);
+          if(entry.kind==="office") void navigate(entry.session);
+          else void action(()=>openReviewedAnswer({session:entry.session,id:entry.record.id,turn:entry.record.turn,runId:entry.record.runId}));
+        }}/>}
       {settings === "license" && (
         <LicensePage
           close={() => setSettings(false)}

@@ -124,7 +124,7 @@ export const writeDraftInputs=(key:string,data:DraftInputs)=>data.files.length |
 
 export type NoteApplication = {
   id:string; turn:number; runId?:string; title:string; page:string; date:string;
-  before:string; after:string; content?:string; citations?:string[]; state:"pending"|"applied"|"undone";
+  before:string; after:string; content?:string; citations?:string[]; group?:string; state:"pending"|"applied"|"undone";
 };
 const applicationPrefix=(session:string)=>session+"/note-application/";
 export type NoteApplicationLink={id:string;session:string;turn:number;runId?:string;date:string};
@@ -183,7 +183,60 @@ export const writeApplicationDraft=(session:string,draft?:ApplicationDraft)=>dra
   : transact("readwrite",s=>s.delete(session+"/application-draft"));
 
 export const readOfficeReview=(session:string)=>transact<import("./review-export").OfficeReview|undefined>("readonly",s=>s.get(session+"/office-review"));
-export const writeOfficeReview=(session:string,review:import("./review-export").OfficeReview)=>
-  transact("readwrite",s=>s.put(review,session+"/office-review"));
+export const writeOfficeReview=(session:string,review:import("./review-export").OfficeReview,archive=false)=>
+  transact("readwrite",s=>{
+    if(archive)s.put(review,session+"/office-history/"+review.reviewedAt+"-"+crypto.randomUUID());
+    return s.put(review,session+"/office-review");
+  });
 export const readNoteApplication=(session:string,id:string)=>
   transact<NoteApplication|undefined>("readonly",s=>s.get(applicationPrefix(session)+id));
+
+export type OfficeDraft={
+  identity:string; form:string; advanced:boolean; fields:import("./office-form").FormField[];
+  values:Record<string,string|number|boolean>; json:string; preview?:import("./review-export").FieldReview[];
+  sources:Record<string,string[]>; files:InputFile[]; conflicts:Record<string,string>; accepted:string[]; responseId?:string;
+};
+export async function readOfficeDraft(session:string,identity:string){
+  const key=session+"/office-draft/";
+  const last=await transact<string|undefined>("readonly",s=>s.get(key+"latest"));
+  const [exact,previous]=await Promise.all([identity,last].map(id=>id?transact<OfficeDraft|undefined>("readonly",s=>s.get(key+id)):undefined));
+  return {exact,previous:last!==identity?previous:undefined};
+}
+export const writeOfficeDraft=(session:string,draft:OfficeDraft)=>
+  transact("readwrite",s=>{s.put(draft.identity,session+"/office-draft/latest");return s.put(draft,session+"/office-draft/"+draft.identity);});
+
+export type WorkspaceReviewEntry=
+  | {kind:"note";session:string;record:NoteApplication}
+  | {kind:"office";session:string;record:import("./review-export").OfficeReview};
+export async function readWorkspaceReviews(scope:string):Promise<WorkspaceReviewEntry[]>{
+  const prefix=JSON.stringify([scope]).slice(0,-1)+",";
+  const keys=await transact("readonly",s=>s.getAllKeys(IDBKeyRange.bound(prefix,prefix+"\uffff")));
+  const reviewKeys=keys.filter((key):key is string=>typeof key==="string" && (/\]\/note-application\/[^/]+$/.test(key) || key.endsWith("]/office-review") || /\]\/office-history\/[^/]+$/.test(key)));
+  const db=await open();
+  return new Promise((resolve,reject)=>{
+    const transaction=db.transaction("runs","readonly"), store=transaction.objectStore("runs");
+    const entries:WorkspaceReviewEntry[]=[];
+    for(const key of reviewKeys){
+      const request=store.get(key);
+      request.onsuccess=()=>{
+        if(!request.result)return;
+        const latestOffice=key.endsWith("]/office-review");
+        const archivedOffice=key.includes("]/office-history/");
+        const office=latestOffice || archivedOffice;
+        const end=key.lastIndexOf(latestOffice?"/office-review":archivedOffice?"/office-history/":"/note-application/");
+        const [,session]=JSON.parse(key.slice(0,end));
+        entries.push(office?{kind:"office",session,record:request.result}:{kind:"note",session,record:request.result});
+      };
+    }
+    transaction.oncomplete=()=>{
+      const seen=new Set<string>();
+      resolve(entries.filter(entry=>{
+        if(entry.kind==="note")return true;
+        const key=JSON.stringify([entry.session,entry.record.identity,entry.record.reviewedAt]);
+        if(seen.has(key))return false;
+        seen.add(key);return true;
+      }));
+    };
+    transaction.onabort=()=>reject(transaction.error || Error("검토 이력을 읽지 못했습니다."));
+  });
+}

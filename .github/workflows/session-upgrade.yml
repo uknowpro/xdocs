@@ -30,6 +30,8 @@ jobs:
           path: previous
       - name: Build and install each version against the same session profile
         shell: pwsh
+        env:
+          XDOCS_UPGRADE_BASELINE: ${{ inputs.baseline }}
         run: |
           $fixture = Join-Path $env:RUNNER_TEMP 'session-upgrade'
           $install = Join-Path $env:RUNNER_TEMP 'xdocs-install'
@@ -49,4 +51,8 @@ jobs:
             } finally { if ($mode -eq 'seed') { Pop-Location } }
             node tests/electron-message-queue.mjs $mode $fixture
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            if ($env:XDOCS_UPGRADE_BASELINE -eq 'v0.5.28') {
+              node tests/electron-office-upgrade.mjs $mode (Join-Path $fixture 'office')
+              if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            }
           }

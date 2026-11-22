@@ -3283,3 +3283,8 @@ textarea {
 .office-preview-fields pre {white-space:pre-wrap;overflow-wrap:anywhere;max-height:8rem;overflow:auto;}
 .application-results small {display:block;overflow-wrap:anywhere;}
 .applied-answer {margin-bottom:8px;}
+.office-origin-change,.office-copy-check {display:grid;gap:6px;border:1px solid var(--line);padding:8px;border-radius:6px;}
+.office-origin-change ul {max-height:22dvh;overflow:auto;}
+.workspace-review-search .review-search-results {display:grid;gap:8px;max-height:56dvh;overflow:auto;}
+.review-search-results details {border-bottom:1px solid var(--line);padding-block:6px;overflow-wrap:anywhere;}
+.review-search-results summary {cursor:pointer;}

@@ -228,7 +228,9 @@ try {
   const baseline = await read(ids[2]);
   await change(ids[2], baseline.body + "\n다른 곳 수정\n");
   await button("선택한 변경 저장").click();
-  await expect(page.getByRole("region",{name:"노트 반영 결과"})).toContainText("충돌·오류 1건");
+  await expect(
+    page.getByRole("region", { name: "노트 반영 결과" }),
+  ).toContainText("충돌·오류 1건");
   await expect(firstProposal).toContainText("재검토 필요");
   await button("결과 닫기").click();
   await firstProposal.locator("summary").click();
@@ -238,8 +240,12 @@ try {
   await button("선택한 변경 저장").click();
   await expect.poll(async () => (await read(ids[2])).body).toMatch(/결정\n$/);
   assert.doesNotMatch((await read(secondNote)).body, /별도 결정/);
-  await expect(page.getByRole("region",{name:"노트 반영 결과"})).toContainText("완료 1건");
-  await expect(page.getByRole("region",{name:"노트 반영 결과"})).toContainText("보류 1건");
+  await expect(
+    page.getByRole("region", { name: "노트 반영 결과" }),
+  ).toContainText("완료 1건");
+  await expect(
+    page.getByRole("region", { name: "노트 반영 결과" }),
+  ).toContainText("보류 1건");
   await button("검토 초안 삭제").click();
   await button("정리").first().click();
   await page.getByText(/^반영 출처/).click();
@@ -249,12 +255,17 @@ try {
   await expect(page.locator(".applied-answer")).toContainText("예산#비용!B2");
   await page.getByLabel("답변 메뉴").click();
   await button("노트 반영 이력").click();
-  const exportPath=path.join(root,"note-review.md");
-  await app.evaluate(({BrowserWindow},dest)=>{
-    BrowserWindow.getAllWindows()[0].webContents.session.once("will-download",(_event,item)=>item.setSavePath(dest));
-  },exportPath);
+  const exportPath = path.join(root, "note-review.md");
+  await app.evaluate(({ BrowserWindow }, dest) => {
+    BrowserWindow.getAllWindows()[0].webContents.session.once(
+      "will-download",
+      (_event, item) => item.setSavePath(dest),
+    );
+  }, exportPath);
   await button("검토 기록 Markdown 저장").click();
-  await expect.poll(()=>readFile(exportPath,"utf8").catch(()=>"")).toContain("예산#비용!B2");
+  await expect
+    .poll(() => readFile(exportPath, "utf8").catch(() => ""))
+    .toContain("예산#비용!B2");
   await button("닫기").click();
   await page.getByLabel("답변 메뉴").click();
   await button("답변 블록 선택").click();
@@ -270,6 +281,34 @@ try {
   await expect
     .poll(async () => (await read(secondNote)).body)
     .toContain("```terraform");
+  await button("검토 이력").click();
+  await page.getByLabel("검토 이력 검색").fill("예산#비용!B2");
+  const found = page
+    .locator(".review-search-results details")
+    .filter({ hasText: "추가 노트" });
+  await found.locator("summary").click();
+  await found.getByText("답변 열기").click();
+  await expect(page.locator("article[data-turn='0']")).toBeFocused();
+  await page.getByLabel("답변 메뉴").click();
+  await button("기존 노트에 반영").click();
+  for (const id of [ids[2], secondNote]) {
+    await page.getByLabel("워크스페이스 페이지").selectOption(id);
+    await page.getByLabel("반영할 내용").fill("묶음 작업 확인");
+    await button("검토 목록에 추가").click();
+  }
+  await button("선택한 변경 저장").click();
+  await expect(page.getByLabel("노트 반영 결과")).toContainText("완료 2건");
+  await button("닫기").click();
+  await page.getByLabel("답변 메뉴").click();
+  await button("노트 반영 이력").click();
+  await page.getByRole("button", { name: /여러 노트 되돌리기/ }).click();
+  const undoBatch = page.getByLabel("여러 노트 되돌리기");
+  await undoBatch.getByLabel("추가 노트").uncheck();
+  await undoBatch.getByText("선택한 노트 되돌리기").click();
+  await expect(page.locator(".material-dialog")).toContainText("되돌림 1건");
+  assert.doesNotMatch((await read(ids[2])).body, /묶음 작업 확인/);
+  assert.match((await read(secondNote)).body, /묶음 작업 확인/);
+  await button("닫기").click();
   await change(ids[0], sheet("880"));
   await page
     .locator("button.material-origin")

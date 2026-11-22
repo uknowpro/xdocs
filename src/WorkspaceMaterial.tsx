@@ -40,6 +40,13 @@ export type MaterialAction =
     }
   | { kind: "history" };
 type Proposal = ApplicationProposal;
+type UndoCandidate = {
+  record: NoteApplication;
+  note?: Note;
+  body?: string;
+  checked: boolean;
+  problem?: string;
+};
 type SaveResult = {
   page: string;
   title: string;
@@ -74,9 +81,14 @@ export default function WorkspaceMaterial({
   const [proposals, setProposals] = useState<Proposal[]>(
     resumeDraft?.proposals || [],
   );
+  const [batchUndo, setBatchUndo] = useState<{
+    group: string;
+    items: UndoCandidate[];
+  }>();
   const [results, setResults] = useState<SaveResult[]>();
   const [officeReview, setOfficeReview] = useState<OfficeReview>();
   const [records, setRecords] = useState<NoteApplication[]>([]);
+  const [undoSummary, setUndoSummary] = useState("");
   const [undo, setUndo] = useState<{
     record: NoteApplication;
     note: Note;
@@ -247,7 +259,7 @@ export default function WorkspaceMaterial({
     setConflictBase(undefined);
     setAnswer(action.kind === "apply" ? action.answer : "");
   }
-  async function apply(p: Proposal) {
+  async function apply(p: Proposal, group?: string) {
     if (action.kind !== "apply" || p.note.body === p.body) return;
     const current = await access.read(p.note.id);
     if (current.body === p.body) return;
@@ -265,6 +277,7 @@ export default function WorkspaceMaterial({
       content: p.answer,
       citations: action.citations,
       state: "pending",
+      group,
     };
     await saveNoteApplication(sessionKey, record);
     try {
@@ -283,6 +296,8 @@ export default function WorkspaceMaterial({
       if (action.kind === "apply") {
         if (proposals.length) {
           let remaining = proposals;
+          const checked = proposals.filter((p) => p.checked && !p.problem);
+          const group = checked.length > 1 ? crypto.randomUUID() : undefined;
           const outcome: SaveResult[] = proposals
             .filter((p) => !p.checked || p.problem)
             .map((p) => ({
@@ -295,7 +310,7 @@ export default function WorkspaceMaterial({
             (p) => p.checked && !p.problem,
           )) {
             try {
-              await apply(proposal);
+              await apply(proposal, group);
               outcome.push({
                 page: proposal.note.id,
                 title: proposal.note.title,
@@ -436,6 +451,88 @@ export default function WorkspaceMaterial({
       setError(String(err));
     }
   }
+  async function prepareBatchUndo(group: string) {
+    setError("");
+    setUndo(undefined);
+    const items = await Promise.all(
+      records
+        .filter(
+          (record) => record.group === group && record.state === "applied",
+        )
+        .map(async (record) => {
+          try {
+            const note = await access.read(record.page);
+            const rebuilt =
+              note.body === record.after
+                ? record.before
+                : applyPatch(
+                    note.body,
+                    createPatch(
+                      record.title,
+                      record.after,
+                      record.before,
+                      "",
+                      "",
+                      { context: 2 },
+                    ),
+                  );
+            if (rebuilt === false)
+              return {
+                record,
+                note,
+                checked: false,
+                problem: "나중 편집과 겹칩니다.",
+              };
+            return { record, note, body: rebuilt, checked: true };
+          } catch (err) {
+            return { record, checked: false, problem: String(err) };
+          }
+        }),
+    );
+    setBatchUndo({ group, items });
+  }
+  async function applyBatchUndo() {
+    if (!batchUndo || saving) return;
+    setSaving(true);
+    setError("");
+    const remaining: UndoCandidate[] = [];
+    let saved = 0;
+    try {
+      for (const item of batchUndo.items) {
+        if (!item.checked || !item.note || item.body === undefined) {
+          remaining.push(item);
+          continue;
+        }
+        try {
+          await access.save(item.note, item.body);
+          await saveNoteApplication(sessionKey, {
+            ...item.record,
+            state: "undone",
+          });
+          setRecords((current) =>
+            current.map((record) =>
+              record.id === item.record.id
+                ? { ...record, state: "undone" }
+                : record,
+            ),
+          );
+          saved++;
+        } catch (err) {
+          remaining.push({ ...item, checked: false, problem: String(err) });
+        }
+      }
+      setBatchUndo(
+        remaining.length
+          ? { group: batchUndo.group, items: remaining }
+          : undefined,
+      );
+      setUndoSummary(
+        "되돌림 " + saved + "건 · 미처리 " + remaining.length + "건",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
   async function confirmUndo() {
     if (!undo || saving) return;
     setSaving(true);
@@ -544,6 +641,98 @@ export default function WorkspaceMaterial({
         <>
           {(records.length > 0 || officeReview) && (
             <button onClick={exportHistory}>검토 기록 Markdown 저장</button>
+          )}
+          {undoSummary && <p role="status">{undoSummary}</p>}
+          {[
+            ...new Set(
+              records.flatMap((record) =>
+                record.group && record.state === "applied"
+                  ? [record.group]
+                  : [],
+              ),
+            ),
+          ].map((group) => {
+            const listed = records.filter(
+              (record) => record.group === group && record.state === "applied",
+            );
+            return (
+              listed.length > 1 && (
+                <button
+                  key={group}
+                  disabled={saving}
+                  onClick={() => void prepareBatchUndo(group)}
+                >
+                  여러 노트 되돌리기 · {listed.length}건 ·{" "}
+                  {new Date(listed[0].date).toLocaleString()}
+                </button>
+              )
+            );
+          })}
+          {batchUndo && (
+            <section
+              aria-label="여러 노트 되돌리기"
+              className="application-results"
+            >
+              <strong>되돌릴 노트 선택</strong>
+              {batchUndo.items.map((item) => (
+                <div key={item.record.id}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      disabled={saving || !!item.problem}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setBatchUndo({
+                          ...batchUndo,
+                          items: batchUndo.items.map((other) =>
+                            other.record.id === item.record.id
+                              ? { ...other, checked }
+                              : other,
+                          ),
+                        });
+                      }}
+                    />
+                    {item.record.title}
+                  </label>
+                  {item.problem ? (
+                    <>
+                      <small>{item.problem}</small>
+                      <button
+                        onClick={() => {
+                          setBatchUndo(undefined);
+                          void previewUndo(item.record);
+                        }}
+                      >
+                        개별 검토
+                      </button>
+                    </>
+                  ) : (
+                    <details>
+                      <summary>되돌리기 변경 보기</summary>
+                      {diffLines(item.note!.body, item.body!, { timeout: 120 })
+                        ?.filter((c) => c.added || c.removed)
+                        .map((c, i) => (
+                          <pre key={i} data-kind={c.added ? "add" : "remove"}>
+                            {c.value}
+                          </pre>
+                        ))}
+                    </details>
+                  )}
+                </div>
+              ))}
+              <button
+                disabled={
+                  saving || !batchUndo.items.some((item) => item.checked)
+                }
+                onClick={() => void applyBatchUndo()}
+              >
+                선택한 노트 되돌리기
+              </button>
+              <button disabled={saving} onClick={() => setBatchUndo(undefined)}>
+                묶음 닫기
+              </button>
+            </section>
           )}
           {!records.length && <p>이 세션에서 반영한 노트가 없습니다.</p>}
           {records.map((record) => (
