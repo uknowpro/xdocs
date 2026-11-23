@@ -30,6 +30,11 @@ const server = createServer(async (req, res) => {
   const packet = JSON.parse(Buffer.concat(chunks));
   calls.push(packet);
   lastAuthorization = req.headers.authorization;
+  if (caseMode === "unauthorized" || caseMode === "missing") {
+    res.writeHead(caseMode === "unauthorized" ? 401 : 404);
+    res.end();
+    return;
+  }
   if (caseMode === "hold") {
     slowResponse = res;
     return;
@@ -426,6 +431,15 @@ try {
     await expect(page.locator(".xcode [role=alert]")).toContainText("사용량");
     await new Promise((r) => setTimeout(r, 1100));
     assert.equal(calls.length, before + 1);
+  }
+  const alert = page.locator(".xcode [role=alert]");
+  for (const [mode, expected] of [["unauthorized", "HTTP 401"], ["missing", "HTTP 404"]]) {
+    caseMode = mode;
+    await input.fill("connection-error-" + mode);
+    await send.click();
+    await expect(alert).toContainText(expected);
+    await expect(alert).not.toContainText("Error invoking remote method");
+    await expect(input).toHaveValue("connection-error-" + mode);
   }
   caseMode = "normal";
   await page.getByLabel("재요청 방식").selectOption("repeat");

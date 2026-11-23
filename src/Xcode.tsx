@@ -49,6 +49,13 @@ import {
   type Turn,
 } from "./xcode-session";
 
+function chatErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message
+    .replace(/^Error invoking remote method '[^']+': (?:Error: )?/, "")
+    .replace(/^\[XCODE_RETRY\] /, "");
+}
+
 async function userMessage(prompt: string, files: InputFile[]) {
   const content: unknown[] = [{ type: "text", text: prompt }];
   for (const f of files) {
@@ -316,7 +323,7 @@ export default function Xcode({
       controller.signal.throwIfAborted();
       setReport(diagnosticResult(probe, answer));
     } catch (error) {
-      const detail = String(error).replace("[XCODE_RETRY] ", "");
+      const detail = chatErrorMessage(error);
       setReport(
         controller.signal.aborted
           ? "연결 진단을 중지했습니다."
@@ -898,7 +905,7 @@ export default function Xcode({
           run.patch({prompt,files:selectedFiles});
         setError(
           run.id === id
-            ? String(e).replace("[XCODE_RETRY] ", "")
+            ? chatErrorMessage(e)
             : "요청을 중지했습니다.",
         );
       }

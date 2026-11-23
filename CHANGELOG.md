@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.31
+
+- Show the actionable cause of xcode chat failures, including authentication, address, and connection errors.
+
 ## 0.5.30
 
 - Bundle kubewiser 0.2.0-alpha.12 for local Kubernetes manifest, Helm, and upgrade analysis.

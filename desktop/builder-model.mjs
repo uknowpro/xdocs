@@ -1,6 +1,11 @@
 // Connection details live only for the duration of the user's request.
 export function builderEndpoint(endpoint) {
-  const url = new URL(endpoint);
+  let url;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    throw Error("세션 설정에서 Chat Completions의 전체 API 주소를 확인하세요.");
+  }
   const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
   if (
     (url.protocol !== "https:" && !(loopback && url.protocol === "http:")) ||

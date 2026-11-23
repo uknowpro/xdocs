@@ -67,7 +67,18 @@ export async function streamChat(
     signal,
   }).catch((e) => {
     if (signal.aborted && signal.reason?.name !== "TimeoutError") throw e;
-    throw Error("[XCODE_RETRY] 모델 연결이 중단되었습니다.");
+    const code = e.cause?.code ?? e.cause?.errors?.[0]?.code;
+    const detail =
+      code === "ECONNREFUSED"
+        ? "모델 서버에 연결할 수 없습니다. 서버가 실행 중인지와 API 주소의 포트를 확인하세요."
+        : code === "ENOTFOUND" || code === "EAI_AGAIN"
+          ? "모델 서버 주소를 찾을 수 없습니다. API 주소와 네트워크 연결을 확인하세요."
+          : /CERT|SSL|TLS/.test(code || "")
+            ? "모델 서버의 HTTPS 인증서를 확인할 수 없습니다. 서버 인증서와 이 기기의 신뢰 설정을 확인하세요."
+            : signal.reason?.name === "TimeoutError" || /TIMEOUT|ETIMEDOUT/.test(code || "")
+              ? "모델 서버 응답 시간이 초과되었습니다. 서버 상태와 네트워크 연결을 확인하세요."
+              : "모델 연결이 중단되었습니다. API 주소와 서버 상태를 확인하세요.";
+    throw Error("[XCODE_RETRY] " + detail);
   });
   if (!response.ok) {
     const reader = response.body?.getReader();
