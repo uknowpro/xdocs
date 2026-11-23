@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.32
+
+- Use the operating system’s proxy settings for xcode requests and clarify proxy, certificate, and redirect errors.
+
 ## 0.5.31
 
 - Show the actionable cause of xcode chat failures, including authentication, address, and connection errors.

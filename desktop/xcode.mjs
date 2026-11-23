@@ -37,10 +37,30 @@ export async function readSkills(roots) {
   return result;
 }
 
+function connectionMessage(error, signal) {
+  const chromium = /\bnet::(ERR_[A-Z0-9_]+)\b/.exec(error?.message || "")?.[1];
+  const code = chromium ?? error?.cause?.code ?? error?.cause?.errors?.[0]?.code ?? "";
+  if (/PROXY|TUNNEL/.test(code))
+    return "모델 서버에 프록시로 연결할 수 없습니다. 이 기기의 사내 프록시 설정과 접근 권한을 확인하세요.";
+  if (/CERT|SSL|TLS|UNABLE_TO_VERIFY_LEAF_SIGNATURE/.test(code))
+    return "모델 서버의 HTTPS 인증서를 확인할 수 없습니다. 서버 인증서와 이 기기의 신뢰 설정을 확인하세요.";
+  if (/TIMEOUT|TIMED_OUT|ETIMEDOUT/.test(code) || signal.reason?.name === "TimeoutError")
+    return "모델 서버 응답 시간이 초과되었습니다. 서버 상태와 네트워크 연결을 확인하세요.";
+  if (/ENOTFOUND|EAI_AGAIN|ERR_NAME_NOT_RESOLVED|ERR_DNS_/.test(code))
+    return "모델 서버 주소를 찾을 수 없습니다. API 주소와 사내 DNS 또는 VPN 연결을 확인하세요.";
+  if (code === "ECONNREFUSED" || code === "ERR_CONNECTION_REFUSED")
+    return "모델 서버에 연결할 수 없습니다. 서버가 실행 중인지와 API 주소의 포트를 확인하세요.";
+  if (/ADDRESS_UNREACHABLE|EHOSTUNREACH|ENETUNREACH|ERR_NETWORK_CHANGED/.test(code))
+    return "모델 서버에 도달할 수 없습니다. 이 기기의 사내망 또는 VPN 연결을 확인하세요.";
+  const detail = /^[A-Z0-9_]{1,64}$/.test(code) ? " (" + code + ")" : "";
+  return "모델 연결이 중단되었습니다" + detail + ". API 주소와 서버 상태를 확인하세요.";
+}
+
 export async function streamChat(
   { endpoint, model, key, messages, effort },
   signal,
   onText,
+  fetchResponse = fetch,
 ) {
   const url = builderEndpoint(endpoint);
   if (!model?.trim() || !Array.isArray(messages) || !messages.length)
@@ -55,9 +75,11 @@ export async function streamChat(
   });
   if (Buffer.byteLength(body) > 32 * 1024 * 1024)
     throw Error("대화와 첨부 합계가 32MB를 넘습니다. 새 세션을 사용하세요.");
-  const response = await fetch(url, {
+  const response = await fetchResponse(url.href, {
     method: "POST",
     redirect: "error",
+    credentials: "omit",
+    bypassCustomProtocolHandlers: true,
     headers: {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
@@ -67,18 +89,12 @@ export async function streamChat(
     signal,
   }).catch((e) => {
     if (signal.aborted && signal.reason?.name !== "TimeoutError") throw e;
-    const code = e.cause?.code ?? e.cause?.errors?.[0]?.code;
-    const detail =
-      code === "ECONNREFUSED"
-        ? "모델 서버에 연결할 수 없습니다. 서버가 실행 중인지와 API 주소의 포트를 확인하세요."
-        : code === "ENOTFOUND" || code === "EAI_AGAIN"
-          ? "모델 서버 주소를 찾을 수 없습니다. API 주소와 네트워크 연결을 확인하세요."
-          : /CERT|SSL|TLS/.test(code || "")
-            ? "모델 서버의 HTTPS 인증서를 확인할 수 없습니다. 서버 인증서와 이 기기의 신뢰 설정을 확인하세요."
-            : signal.reason?.name === "TimeoutError" || /TIMEOUT|ETIMEDOUT/.test(code || "")
-              ? "모델 서버 응답 시간이 초과되었습니다. 서버 상태와 네트워크 연결을 확인하세요."
-              : "모델 연결이 중단되었습니다. API 주소와 서버 상태를 확인하세요.";
-    throw Error("[XCODE_RETRY] " + detail);
+    if (
+      e?.message === "Attempted to redirect, but redirect policy was 'error'" ||
+      e?.cause?.message === "unexpected redirect"
+    )
+      throw Error("API 주소가 다른 경로로 이동합니다. 세션 설정에 최종 Chat Completions 주소를 입력하세요.");
+    throw Error("[XCODE_RETRY] " + connectionMessage(e, signal));
   });
   if (!response.ok) {
     const reader = response.body?.getReader();
@@ -185,6 +201,7 @@ export function modelFailure(status, detail) {
     return Error("[XCODE_RETRY] 모델 서버 일시 오류 (HTTP " + status + ")");
   if (status === 413 || ([400,422].includes(status) && /context.length|maximum context|too many tokens|prompt is too long|input.{0,12}too long/i.test(detail)))
     return Error("모델 입력 한도를 초과했습니다. 이전 대화나 첨부를 제외하고 다시 보내세요.");
+  if (status === 407) return Error("HTTP 407 · 사내 프록시 인증과 접근 권한을 확인하세요.");
   if (status === 401 || status === 403) return Error("HTTP " + status + " · 세션 설정에서 API 토큰과 모델 접근 권한을 확인하세요.");
   if (status === 404) return Error("HTTP 404 · API 전체 주소와 서버가 제공하는 모델명을 확인하세요.");
   if (status === 400 || status === 422) return Error("HTTP " + status + " · 고급 설정에서 텍스트 연결 진단을 실행하고 첨부 형식과 단계별 추론 옵션을 확인하세요.");

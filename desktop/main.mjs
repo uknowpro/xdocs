@@ -35,6 +35,7 @@ import {
   dialog,
   ipcMain,
   Menu,
+  net,
   safeStorage,
   shell,
 } from "electron";
@@ -540,7 +541,8 @@ app.whenReady().then(async () => {
     try {
       const key=request.key || await profiles.keyFor(profile,request.endpoint,request.model);
       return await streamChat({...request,key},AbortSignal.any([controller.signal,AbortSignal.timeout(600000)]),
-        token=>{if(window && !window.isDestroyed()) window.webContents.send("xcode:delta",{id,token});});
+        token=>{if(window && !window.isDestroyed()) window.webContents.send("xcode:delta",{id,token});},
+        net.fetch);
     } finally {chats.delete(id);}
   });
   register("builder:profiles",()=>profiles.list());

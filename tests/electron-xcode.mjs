@@ -20,7 +20,7 @@ await writeFile(
   JSON.stringify({ root: vault }),
 );
 const calls = [];
-let lastAuthorization;
+let lastAuthorization, lastRequestUrl, lastCookie;
 let slowResponse,
   caseMode = "normal",
   retryCalls = 0;
@@ -30,6 +30,13 @@ const server = createServer(async (req, res) => {
   const packet = JSON.parse(Buffer.concat(chunks));
   calls.push(packet);
   lastAuthorization = req.headers.authorization;
+  lastRequestUrl = req.url;
+  lastCookie = req.headers.cookie;
+  if (caseMode === "redirect") {
+    res.writeHead(307, { Location: "/redirect-target" });
+    res.end();
+    return;
+  }
   if (caseMode === "unauthorized" || caseMode === "missing") {
     res.writeHead(caseMode === "unauthorized" ? 401 : 404);
     res.end();
@@ -106,6 +113,43 @@ try {
     /주소를 먼저 확인/,
   );
   assert.equal(calls.length, 0);
+  const unavailable = createServer();
+  await new Promise((resolve) => unavailable.listen(0, "127.0.0.1", resolve));
+  const proxyTarget = "http://127.0.0.1:" + unavailable.address().port + "/v1/chat/completions";
+  await new Promise((resolve) => unavailable.close(resolve));
+  await app.evaluate(async ({ session }, { proxyPort, proxyTarget }) => {
+    const browser = session.defaultSession;
+    await browser.cookies.set({ url: proxyTarget, name: "ambient", value: "test" });
+    await browser.setProxy({
+      mode: "fixed_servers",
+      proxyRules: "http=127.0.0.1:" + proxyPort,
+      proxyBypassRules: "<-loopback>",
+    });
+  }, { proxyPort: server.address().port, proxyTarget });
+  try {
+    assert.equal(await page.evaluate((address) => window.xdocs.xcodeAuthorize(address), proxyTarget), true);
+    const answer = await page.evaluate(
+      (address) => window.xdocs.xcodeChat({
+        id: "proxy-check",
+        endpoint: address,
+        model: "test",
+        key: "proxy-test-token",
+        messages: [{ role: "user", content: "proxy check" }],
+      }),
+      proxyTarget,
+    );
+    assert.equal(answer, "검토 결과 complete");
+    assert.equal(lastRequestUrl, proxyTarget);
+    assert.equal(lastAuthorization, "Bearer proxy-test-token");
+    assert.equal(lastCookie, undefined);
+  } finally {
+    await app.evaluate(async ({ session }, address) => {
+      await session.defaultSession.cookies.remove(address, "ambient");
+      await session.defaultSession.setProxy({ mode: "direct" });
+      await session.defaultSession.closeAllConnections();
+    }, proxyTarget);
+    calls.length = 0;
+  }
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
@@ -441,6 +485,13 @@ try {
     await expect(alert).not.toContainText("Error invoking remote method");
     await expect(input).toHaveValue("connection-error-" + mode);
   }
+  caseMode = "redirect";
+  const beforeRedirect = calls.length;
+  await input.fill("redirected-endpoint");
+  await send.click();
+  await expect(alert).toContainText("최종 Chat Completions 주소");
+  await expect(input).toHaveValue("redirected-endpoint");
+  assert.equal(calls.length, beforeRedirect + 1);
   caseMode = "normal";
   await page.getByLabel("재요청 방식").selectOption("repeat");
   await input.fill("repeat-case");
