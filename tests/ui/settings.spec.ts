@@ -66,7 +66,10 @@ test("Analyzer reports the source and versions from the analysis result", async 
   await page.getByRole("button", { name: "Analyzer 만들기" }).click();
   await page.getByLabel("분석 대상").selectOption("helm-network");
   await expect(page.getByLabel("목표 Kubernetes 버전")).toBeHidden();
-  await expect(page.getByText(/Helm 렌더링 옵션/)).toBeVisible();
+  const helmOptions = page.getByText(/Helm 렌더링 옵션/);
+  await expect(helmOptions).toBeVisible();
+  await helmOptions.click();
+  await expect(page.getByLabel("Helm 렌더링 Kubernetes 버전")).toHaveValue("1.25");
   await page.getByLabel("기존 분석 JSON 열기").setInputFiles({
     name: "fixture-upgrade.json", mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify({ kind: "upgrade", from: "1.29", to: "1.31", report: { target_version: "1.31", findings: [] } })),

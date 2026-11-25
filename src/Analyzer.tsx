@@ -75,7 +75,7 @@ export default function Analyzer({
   const [previous,setPrevious]=useState<Report|null>(null);
   const readingPath = useRef("");
   const [optionsOpen, setOptionsOpen] = useState(true);
-  const [resultInput, setResultInput] = useState<{ target: string; helm?: string }>();
+  const [resultInput, setResultInput] = useState<{ target: string; helm?: string; renderVersion?: string }>();
   const reportHeading = useRef<HTMLHeadingElement>(null);
   function visit(index:number) {
     setPathLimit(limit=>Math.max(limit,index+1));
@@ -122,6 +122,7 @@ export default function Analyzer({
         setResultInput({
           target: local ? analysisTarget : filename || "분석 JSON",
           ...(local && helm ? { helm: [release, namespace].filter(Boolean).join(" / ") } : {}),
+          ...(local && mode === "helm-network" ? { renderVersion: to } : {}),
         });
         setLocalScan(local);
         const index=next.paths.findIndex(p=>JSON.stringify(p.nodes)===readingPath.current);
@@ -191,6 +192,12 @@ export default function Analyzer({
           <details className="analyzer-helm-settings">
             <summary>Helm 렌더링 옵션 · {release} / {namespace}</summary>
             <div className="analyzer-analysis-fields">
+            {mode === "helm-network" && (
+              <label>
+                Helm 렌더링 Kubernetes 버전
+                <input value={to} onChange={(event) => edit("to", event.target.value)} />
+              </label>
+            )}
             <label>
               릴리스
               <input
@@ -266,7 +273,9 @@ export default function Analyzer({
           </h3>
           {resultInput && <dl className="analysis-input" aria-label="실행 당시 분석 설정">
             <div><dt>분석 대상</dt><dd>{resultInput.target}</dd></div>
-            {result.version && <div><dt>Kubernetes 버전</dt><dd>{result.version}</dd></div>}
+            {(result.version || resultInput.renderVersion) && <div>
+              <dt>Kubernetes 버전</dt><dd>{result.version || resultInput.renderVersion}</dd>
+            </div>}
             {resultInput.helm && <div><dt>Helm 릴리스 / 네임스페이스</dt><dd>{resultInput.helm}</dd></div>}
           </dl>}
           {previous && <details><summary>직전 분석과 변경 비교</summary>

@@ -71,11 +71,20 @@ try {
     await page.getByLabel("분석 종류").selectOption(category);
     if (category === "network" || category === "upgrade")
       await page.getByLabel("분석 대상").selectOption(mode);
+    if (mode === "helm-network") {
+      await page.getByText(/Helm 렌더링 옵션/).click();
+      await page.getByLabel("Helm 렌더링 Kubernetes 버전").fill("1.26");
+    }
+    if (mode === "helm") {
+      await page.getByLabel("목표 Kubernetes 버전").fill("1.25");
+    }
     await page.getByRole("button", { name: "폴더 선택 및 분석" }).click();
     await expect(
       page.getByRole("heading", { name: heading, exact: true }),
     ).toBeVisible({ timeout: 60000 });
     await expect(page.getByRole("button", { name: "분석 옵션 열기", exact: true })).toBeVisible();
+    if (mode === "helm-network")
+      await expect(page.locator('[aria-label="실행 당시 분석 설정"]')).toContainText("1.26");
     if (mode === "network")
       await expect(page.locator(".analyzer")).toContainText("/orders");
     if (mode === "manifest" || mode === "upgrade")
