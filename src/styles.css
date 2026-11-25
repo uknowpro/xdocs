@@ -1075,6 +1075,39 @@ textarea {
   border-top: 1px solid var(--line);
   margin: 28px 0;
 }
+.xcode-defaults > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 550;
+}
+.xcode-defaults > p {
+  margin: 6px 0 10px;
+}
+.xcode-defaults fieldset {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.xcode-defaults label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.xcode-defaults :is(input:not([type="checkbox"]), select) {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--ink);
+  background: var(--bg);
+}
+.xcode-defaults-http small {
+  color: var(--muted);
+}
 .row {
   display: flex;
   align-items: center;
@@ -3042,7 +3075,8 @@ textarea {
 
 .xcode .chat-advanced > fieldset {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));align-items:end;gap:12px 16px;}
 .xcode .chat-advanced > fieldset > label {margin:0;}
-.xcode .chat-advanced > fieldset > .retry-toggle {display:flex;align-items:center;gap:8px;grid-column:1/-1;}
+.xcode fieldset > .retry-toggle {display:flex;flex:1 0 100%;align-items:center;gap:8px;}
+.xcode fieldset > .retry-toggle input {flex:none;margin:0;}
 .xcode .chat-advanced > fieldset > :is(button,p) {justify-self:start;margin:0;}
 .xcode .chat-advanced > fieldset > p {grid-column:1/-1;}
 .xcode .chat-advanced > details {margin:8px 0;}
@@ -3293,3 +3327,162 @@ textarea {
 .review-filters label,.review-backup label,.review-output label {display:grid;gap:4px;}
 .application-history-group > .application-row,.application-history-group > details {margin-inline-start:10px;}
 .review-output {padding:7px;border:1px solid var(--line);border-radius:6px;}
+
+  .chat-layout { display: grid; min-width: 0; gap: 8px 16px; align-items: start; }
+  .xcode .chat-settings-panel {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    max-height: min(24dvh, 14rem);
+  }
+  .chat-settings-fields {
+    flex: auto;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 2px 10px 6px;
+  }
+  .xcode .chat-settings-panel .session-settings-save {
+    flex: none;
+    gap: 2px 8px;
+    margin: 0;
+    padding: 5px 10px;
+    border-top: 1px solid var(--line);
+  }
+  .xcode .session-settings-save button { margin: 0; }
+  .xcode .session-settings-save small:empty { display: none; }
+  .chat-layout[data-settings=true] .chat-workbench { min-height: min(176px, 42dvh); }
+  .xcode .chat-header { min-height: 34px; margin-bottom: 6px; }
+  .xcode .chat-header h2 { margin: 0; }
+  .xcode .chat-header > span {
+    flex: 1 1 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .xcode .chat-header .chat-settings-toggle { flex: none; }
+  .settings-dialog > header { margin-bottom: 14px; }
+  .settings-sections {
+    position: sticky;
+    top: -1px;
+    z-index: 2;
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding-block: 4px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .settings-sections button { padding: 6px 9px; border-radius: 5px; }
+  .settings-sections button[aria-pressed=true] { background: var(--active); font-weight: 650; }
+  .xcode-defaults-current { overflow-wrap: anywhere; }
+  .xcode-defaults-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    margin-top: 12px;
+    padding-block: 8px 4px;
+  }
+  .xcode-defaults-actions p { margin-block: 4px 0; }
+
+  .create-trigger, .sidebar-bottom .nav-item { white-space: nowrap; }
+  .create-shortcuts svg, .sidebar-bottom svg { flex: none; }
+  .analyzer-header, .builder-step-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .builder-panel > .analyzer-header > h2, .builder-step-heading h3 { margin: 0; }
+  .builder-step-heading { flex-wrap: wrap; }
+  .builder-step-heading h3 { font-size: 13px; margin-inline-end: auto; }
+  .builder-step-heading > select { max-width: min(12rem, 100%); }
+  .builder-panel .builder-stage { padding-block: .55rem; }
+  .builder-panel .builder-stage label { margin-block: 0; }
+  .builder-step-heading small { color: var(--muted); font-weight: 400; }
+
+  .xcode .chat-settings-panel:not([open]) { display: none; }
+  .xcode .chat-settings-panel[open]:not(:modal) {
+    position: static;
+    width: 100%;
+    max-width: none;
+    color: var(--ink);
+    padding: 0;
+    margin: 0;
+  }
+  .xcode .chat-settings-panel:modal { width: min(760px, calc(100vw - 32px)); padding: 0; }
+  .xcode .chat-settings-panel:modal .chat-settings-fields { padding: 12px 18px; }
+  .xcode .session-settings-save .settings-expand { margin-inline-end: auto; display: inline-flex; align-items: center; }
+  .connection-source { white-space: nowrap; font-size: 11px; color: var(--muted); }
+
+@media screen and (min-width: 1160px) {
+  .chat-layout[data-settings=true] {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 28%);
+  }
+  .chat-settings-panel { grid-area: 1 / 2; }
+  .xcode .chat-settings-panel { max-height: min(65dvh, 36rem); }
+  .chat-layout > .chat-workbench { grid-area: 1 / 1; }
+}
+
+
+.settings-dialog > header { margin-bottom: 12px; }
+.settings-dialog > header h2 { margin: 0; }
+.settings-sections { flex-wrap: wrap; gap: 4px; }
+.settings-content { min-width: 0; }
+.settings-content .settings-subheading { margin-top: 20px; }
+.settings-content .license-setting { margin-bottom: 16px; }
+.session-settings-nav {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.xcode .session-settings-nav button { margin: 0; padding: 3px 6px; white-space: nowrap; }
+.session-settings-nav button[aria-pressed=true] { background: var(--active); font-weight: 650; }
+.xcode .session-settings-save .settings-draft-state { color: var(--muted); margin: 0; min-width: 0; }
+.xcode .session-settings-save [role=alert] { flex-basis: 100%; }
+.xcode .session-settings-save button { padding-inline: 6px; }
+.xcode .chat-connection-options { margin-top: 9px; }
+.token-status { color: var(--muted); overflow-wrap: anywhere; }
+.stop-automatic { align-self: flex-end; }
+.json-changes { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; }
+.json-changes h3 { margin-block: 0 6px; }
+.json-changes dl, .analysis-input { display: grid; gap: 6px 12px; margin-block: 6px; }
+.json-changes dl > div, .analysis-input > div { display: flex; flex-wrap: wrap; gap: 3px 10px; }
+.json-changes dt, .analysis-input dt { font-weight: 650; }
+.json-changes dd, .analysis-input dd { margin: 0; overflow-wrap: anywhere; }
+.organization-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 0;
+  margin-block: 10px;
+  list-style: none;
+  color: var(--muted);
+}
+.organization-steps li { padding: 4px 7px; border-radius: 4px; }
+.organization-steps li[aria-current=step] { color: var(--ink); background: var(--active); font-weight: 650; }
+.organization-choices h3 { margin-bottom: 4px; }
+.organization-actions { margin-top: 8px; }
+.analyzer-analysis-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  align-items: end;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.analyzer-helm-settings { margin-block: 8px; }
+
+.xcode .chat-settings-panel:modal {
+  display: flex;
+  flex-direction: column;
+  max-height: min(84dvh, 780px);
+  color: var(--ink);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  margin: auto;
+}
+.xcode .chat-settings-panel::backdrop { background: #0006; }
+.analyzer fieldset[hidden] { display: none; }

@@ -71,10 +71,10 @@ try {
   await page
     .getByLabel("API 주소")
     .fill("http://127.0.0.1:" + server.address().port + "/v1/chat/completions");
-  await page.getByText("고급 설정", {exact:true}).click();
-  await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
+  await page.getByRole("button", { name: "하네스·스킬", exact: true }).click();
   await page.getByLabel("템플릿 적용").selectOption("코드 검토");
   await page.getByRole("button",{name:"전체 단계 적용"}).click();
+  await page.getByRole("button",{name:"설정 저장",exact:true}).click();
   await page.getByLabel("xcode 메시지").fill("recover this run");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(2);

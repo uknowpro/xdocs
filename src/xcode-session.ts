@@ -191,6 +191,7 @@ export type Turn = {
 export type Session = {
   endpoint: string;
   intranetHttpEndpoint?: string;
+  connectionSource?: "default" | "custom";
   model: string;
   profile: string;
   harness: Harness;
@@ -201,6 +202,16 @@ export type Session = {
   autoMinutes?: number;
   maxAutoRequests?: number;
 };
+export type SessionConnection = Pick<Session, "endpoint" | "model" | "profile" | "intranetHttpEndpoint">;
+export type SessionSettingsPatch = Partial<Omit<Session, "turns">>;
+export type SessionToken = { value: string; origin: string };
+export type SessionSettingsDraft = {
+  patch: SessionSettingsPatch;
+  token?: SessionToken;
+  capacity?: { origin: string; value: number };
+};
+
+
 export function preset(name: string): Harness {
   const policies: Record<string, string[]> = {
     "DeepSeek · 변경안 작성": ["low", "high", "high"],
@@ -214,11 +225,13 @@ export function preset(name: string): Harness {
     ...(policies[name] ? { stageEfforts: policies[name] } : {}),
   };
 }
-export function fresh(): Session {
+export function fresh(connection?: SessionConnection): Session {
   return {
     endpoint: "http://127.0.0.1:8000/v1/chat/completions",
     model: "deepseek-ai/DeepSeek-V4.1-Flash",
     profile: "",
+    ...connection,
+    ...(connection ? { connectionSource: "default" as const } : {}),
     harness: preset("DeepSeek · 근거 기반 답변"),
     turns: [],
   };

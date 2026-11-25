@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.34
+
+- Organize Preferences into General, Workspace, xcode Defaults, Organization, and About.
+- Save a default model connection for new xcode sessions. Review connection changes before saving individual sessions.
+- Preview JSON changes with masked tokens, group session settings by task, and stop automatic requests from the conversation.
+- Show the active step in organization sign-in. Display Analyzer input sources and Kubernetes versions alongside results.
+
 ## 0.5.33
 
 - Allow explicitly approved intranet HTTP endpoints per xcode session and complete OpenAI-compatible `/v1` base URLs automatically.

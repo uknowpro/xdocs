@@ -1,3 +1,4 @@
+import { readXcodeDefaults } from "./XcodeDefaults";
 import { chatCompletionsEndpoint, isRemoteHttpEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
 import WorkspaceMaterial,{type MaterialAction} from "./WorkspaceMaterial";
 import type {WorkspaceAccess} from "./workspace-input";
@@ -6,7 +7,7 @@ import {formInstruction, inspectForm, templateFiles} from "./office-form";
 import OfficeForm from "./OfficeForm";
 import SessionSettingsJson from "./SessionSettingsJson";
 import ChatTimeline from "./ChatTimeline";
-import { ArrowUp, Paperclip, SlidersHorizontal, Square } from "lucide-react";
+import { ArrowUp, Maximize2, Minimize2, Paperclip, SlidersHorizontal, Square } from "lucide-react";
 import WordSelection from "./WordSelection";
 import ProjectInputs from "./ProjectInputs";
 import {
@@ -17,8 +18,8 @@ import {
   type Checkpoint, type QueuedPrompt,
 } from "./xcode-checkpoint";
 import {
-  diagnosticInput,
-  diagnosticResult,
+  diagnosticFailure,
+  testXcodeConnection,
   type Probe,
 } from "./xcode-diagnostic";
 import {
@@ -31,6 +32,7 @@ import { sessionRun, waitForRetry } from "./xcode-run";
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useMemo,
   useSyncExternalStore,
@@ -42,11 +44,14 @@ import {
   documentInput,
   jobRoles,
   roleInstruction,
+  fresh,
   preset,
   templateGroups,
   validHarness,
   type Harness,
   type Session,
+  type SessionSettingsDraft,
+  type SessionSettingsPatch,
   type InputFile,
   type Turn,
 } from "./xcode-session";
@@ -87,16 +92,16 @@ function RetryLimit({ label, value, max, disabled, commit }: {
   const [draft, setDraft] = useState<string | null>(null);
   return <label>{label}<input type="number" min={1} max={max} step={1}
     disabled={disabled} value={draft ?? value}
-    onChange={event=>setDraft(event.target.value)}
-    onBlur={()=>{
-      if (draft === null) return;
-      const number = Number(draft);
-      if (draft.trim() && Number.isFinite(number)) {
+    onChange={event => {
+      const input = event.target.value;
+      setDraft(input);
+      const number = Number(input);
+      if (input.trim() && Number.isFinite(number)) {
         const next = Math.max(1, Math.min(max, Math.round(number)));
         if (next !== value) commit(next);
       }
-      setDraft(null);
     }}
+    onBlur={() => setDraft(null)}
   /></label>;
 }
 
@@ -107,7 +112,7 @@ export default function Xcode({
   page,
   prepare,
   finish, folders, defaultFolder, savePage, access, focusTurn,appliedRecord,
-  change,
+  commitSettings,
   readonly,
 }: {
   session: Session;
@@ -122,31 +127,37 @@ export default function Xcode({
   folders:{id:string;title:string}[];
   defaultFolder:string;
   savePage:(index:number,kind:"note"|"branch",title:string,parent:string)=>Promise<void>;
-  change: (s: Session) => void;
+  commitSettings: (patch: SessionSettingsPatch) => Promise<boolean>;
   readonly: boolean;
 }) {
   const [material,setMaterial]=useState<MaterialAction>();
   const mention=useRef<{start:number;end:number}|undefined>(undefined);
   const run = sessionRun(scope, page);
+  const [settingsDraft, setSettingsDraft] = useState<SessionSettingsDraft>(() => run.settingsDraft ?? { patch: {} });
+  const edited = { ...s, ...settingsDraft.patch };
+  const updateDraft = (next: SessionSettingsDraft) => {
+    run.settingsDraft = next;
+    setSettingsDraft(next);
+  };
+  const dirty = !!Object.keys(settingsDraft.patch).length || !!settingsDraft.token || !!settingsDraft.capacity;
+  const [jsonRevision, setJsonRevision] = useState(0);
+  const [settingsTab, setSettingsTab] = useState<"connection" | "harness" | "retry" | "json">("connection");
   const { pending, busy, preview, phase, error, prompt, files, omitted, draftError, waiting, queuePaused, queueReady } =
     useSyncExternalStore(run.subscribe, run.snapshot);
   useEffect(()=>{if(run.snapshot().outcome)run.patch({outcome:""});},[run]);
   useEffect(()=>{void run.loadWaiting().catch(e=>run.patch({error:String(e)}));},[run]);
   const [editingItem,setEditingItem] = useState("");
   const [editedPrompt,setEditedPrompt] = useState("");
-  const origin = serverOrigin(s.endpoint);
-  const requestEndpoint = useMemo(() => {
-    try {
-      return chatCompletionsEndpoint(s.endpoint);
-    } catch {
-      return undefined;
-    }
-  }, [s.endpoint]);
-  const requestAddress = requestEndpoint?.href || "";
-  const remoteHttp = Boolean(requestEndpoint && isRemoteHttpEndpoint(requestEndpoint));
-  const httpNeedsApproval = remoteHttp && s.intranetHttpEndpoint !== requestAddress;
+  const editedOrigin = serverOrigin(edited.endpoint);
+  const endpoint = useMemo(() => {
+    try { return chatCompletionsEndpoint(edited.endpoint); }
+    catch { return undefined; }
+  }, [edited.endpoint]);
+  const editedAddress = endpoint?.href ?? "";
+  const remoteHttp = Boolean(endpoint && isRemoteHttpEndpoint(endpoint));
+  const editedHttpNeedsApproval = remoteHttp && edited.intranetHttpEndpoint !== editedAddress;
   const httpNotice = useId();
-  const capacity = useCapacity(origin);
+  const capacity = useCapacity(editedOrigin);
   const start = Math.max(
     0,
     s.turns.length - (s.harness.historyTurns ?? s.turns.length),
@@ -191,20 +202,54 @@ export default function Xcode({
   const formHarness = ["Word 양식 작성안", "Excel 양식 입력안"].includes(s.harness.name);
   const [documentPanel, setDocumentPanel] = useState<"form" | "word" | null>(formHarness ? "form" : null);
   useEffect(() => setDocumentPanel(formHarness || run.snapshot().formReview ? "form" : null), [formHarness, s.harness.name]);
+  const sessionSettingsId = useId();
   const attachmentMenu = useRef<HTMLDivElement>(null);
   const attachmentPicker = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(
     () => localStorage.getItem("xdocs.xcode.settings") === "shown",
   );
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const settingsDialog = useRef<HTMLDialogElement>(null);
+  const settingsExpandButton = useRef<HTMLButtonElement>(null);
+  const previousTranscriptTop = useRef<number | undefined>(undefined);
+  const globalConnection = readXcodeDefaults();
+  const baseline = globalConnection ?? fresh();
+  const usesDefaults = (session: Session) => sameChatEndpoint(session.endpoint, baseline.endpoint) &&
+    session.model === baseline.model && session.profile === baseline.profile &&
+    session.intranetHttpEndpoint === baseline.intranetHttpEndpoint;
+  const matchesDefaults = usesDefaults(s);
+  const connectionLabel = matchesDefaults && s.connectionSource !== "custom"
+    ? globalConnection ? "기본 연결 사용" : "앱 기본 연결"
+    : s.connectionSource === "default" ? "이전 기본 연결" : "세션에서 재정의";
+  useLayoutEffect(() => {
+    const panel = settingsDialog.current;
+    if (!panel) return;
+    if (!showSettings) {
+      if (panel.open) panel.close();
+      return;
+    }
+    if (panel.open && panel.matches(":modal") !== settingsExpanded) panel.close();
+    if (!panel.open) {
+      if (settingsExpanded) panel.showModal();
+      else panel.show();
+    }
+    if (!settingsExpanded && previousTranscriptTop.current !== undefined) {
+      const top = previousTranscriptTop.current;
+      previousTranscriptTop.current = undefined;
+      requestAnimationFrame(() => {
+        const transcript = workbench.current?.querySelector(".chat-scroll");
+        if (transcript) transcript.scrollTop = top;
+        settingsExpandButton.current?.focus({ preventScroll: true });
+      });
+    }
+  }, [showSettings, settingsExpanded]);
   const [skillQuery, setSkillQuery] = useState("");
-  const [draftToken, setDraftToken] = useState({value:"", origin:""});
+  const draftToken = settingsDraft.token ?? run.sessionToken;
   const key = draftToken.value;
-  const tokenNeedsApproval = Boolean(key && draftToken.origin !== origin);
-  const setKey = (value:string, endpoint = s.endpoint) =>
-    setDraftToken({value, origin:serverOrigin(endpoint)});
+  const tokenNeedsApproval = Boolean(key && editedOrigin && draftToken.origin !== editedOrigin);
   const [savingKey, setSavingKey] = useState(false);
-  const currentConnection = useRef({session:s,change,key});
-  currentConnection.current = {session:s,change,key};
+  const currentConnection = useRef({ session: s });
+  currentConnection.current = { session: s };
   const mounted = useRef(false);
   useEffect(() => { mounted.current = true; return () => {mounted.current = false;}; }, []);
 
@@ -219,13 +264,28 @@ export default function Xcode({
       .catch((e) => run.patch({ error: String(e) }));
   }, [run]);
   const [settingsSave, setSettingsSave] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const config = (patch: Partial<Session>) => {
+  const [settingsError, setSettingsError] = useState("");
+  function config(patch: SessionSettingsPatch, token?: { value: string; origin: string }) {
+    const current = run.settingsDraft ?? settingsDraft;
+    const next = { ...current.patch, ...patch };
+    if (["endpoint", "model", "profile", "intranetHttpEndpoint"].some(field => Object.hasOwn(patch, field)) &&
+        !patch.connectionSource) next.connectionSource = "custom";
+    if ("endpoint" in patch && !("intranetHttpEndpoint" in patch) && !sameChatEndpoint(edited.endpoint, patch.endpoint))
+      next.intranetHttpEndpoint = undefined;
+    updateDraft({ ...current, patch: next, ...(token ? { token } : {}) });
     setSettingsSave("idle");
-    const next = { ...s, ...patch };
-    if ("endpoint" in patch && !("intranetHttpEndpoint" in patch) && !sameChatEndpoint(s.endpoint, next.endpoint))
-      delete next.intranetHttpEndpoint;
-    change(next);
-  };
+    setSettingsError("");
+  }
+  function setKey(value: string, endpoint = edited.endpoint) {
+    config({}, { value, origin: serverOrigin(endpoint) });
+  }
+  function closeSettings() {
+    previousTranscriptTop.current = undefined;
+    setSettingsExpanded(false);
+    setShowSettings(false);
+    localStorage.setItem("xdocs.xcode.settings", "hidden");
+    requestAnimationFrame(() => composerRef.current?.focus({ preventScroll: true }));
+  }
   const workbench = useRef<HTMLDivElement>(null);
   usePaneHeight(workbench);
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -235,54 +295,76 @@ export default function Xcode({
     return () => window.clearTimeout(timer);
   }, [settingsSave]);
   async function saveSettings() {
+    if (readonly || busy || savingKey || settingsSave === "saving") return;
+    if (tokenNeedsApproval) {
+      setSettingsTab("connection");
+      setSettingsError("새 주소에서 사용할 토큰을 확인하세요.");
+      return;
+    }
     setSettingsSave("saving");
+    setSettingsError("");
+    const snapshot = run.settingsDraft ?? settingsDraft;
     try {
-      const ok = await prepare();
+      const ok = !Object.keys(snapshot.patch).length || await commitSettings(snapshot.patch);
       if (!mounted.current) return;
       setSettingsSave(ok ? "saved" : "failed");
-      if (ok) {
-        setShowSettings(false);
-        localStorage.setItem("xdocs.xcode.settings", "hidden");
-        requestAnimationFrame(() => composerRef.current?.focus());
-      }
+      if (!ok) return;
+      if (snapshot.token) run.sessionToken = snapshot.token;
+      if (snapshot.capacity) setCapacity(snapshot.capacity.origin, snapshot.capacity.value);
+      updateDraft({ patch: {} });
+      setJsonRevision(value => value + 1);
+      closeSettings();
     } catch {
       if (mounted.current) setSettingsSave("failed");
     }
   }
-  const linkedProfile = profiles.find(p => p.name === s.profile);
-  const savedProfile = linkedProfile && linkedProfile.model === s.model && sameChatEndpoint(linkedProfile.endpoint, s.endpoint) ? linkedProfile : undefined;
+  function cancelSettings() {
+    updateDraft({ patch: {} });
+    setSettingsSave("idle");
+    setSettingsError("");
+    setSettingsTab("connection");
+    setJsonRevision(value => value + 1);
+    setReport(undefined);
+    closeSettings();
+  }
+  const linkedProfile = profiles.find(p => p.name === edited.profile);
+  const savedProfile = linkedProfile && linkedProfile.model === edited.model && sameChatEndpoint(linkedProfile.endpoint, edited.endpoint) ? linkedProfile : undefined;
   async function rememberToken() {
-    if (!api.saveXcodeProfile || !key || !origin || tokenNeedsApproval || httpNeedsApproval || savingKey) return;
+    if (!api.saveXcodeProfile || !key || !editedOrigin || tokenNeedsApproval || editedHttpNeedsApproval || savingKey) return;
     setSavingKey(true);
     try {
-      const name = (s.model.trim().slice(0,50) || "xcode") + " · " + crypto.randomUUID();
-      const next = await api.saveXcodeProfile({name,endpoint:s.endpoint,model:s.model,key,remember:true,intranetHttpEndpoint:s.intranetHttpEndpoint});
+      const name = (edited.model.trim().slice(0,50) || "xcode") + " · " + crypto.randomUUID();
+      const next = await api.saveXcodeProfile({
+        name, endpoint: edited.endpoint, model: edited.model, key, remember: true,
+        intranetHttpEndpoint: edited.intranetHttpEndpoint,
+      });
       if (!mounted.current) return;
       setProfiles(next);
-      const latest = currentConnection.current;
-      if (sameChatEndpoint(latest.session.endpoint, s.endpoint) && latest.session.model === s.model && latest.key === key) {
-        latest.change({...latest.session,profile:name});
-        setKey("");
-      }
-    } catch (error) {
-      if (mounted.current) setError(String(error));
+      config({ profile: name }, { value: "", origin: editedOrigin });
+    } catch (cause) {
+      if (mounted.current) setSettingsError(chatErrorMessage(cause));
     } finally {
       if (mounted.current) setSavingKey(false);
     }
   }
-  function tokenReady() {
-    if (httpNeedsApproval) {
+  function tokenReady(session: Session = currentConnection.current.session) {
+    const savedToken = run.sessionToken;
+    let url: URL | undefined;
+    try { url = chatCompletionsEndpoint(session.endpoint); } catch {}
+    if (url && isRemoteHttpEndpoint(url) && session.intranetHttpEndpoint !== url.href) {
       setShowSettings(true);
-      setError("세션 설정에서 이 주소의 사내 HTTP 연결을 허용하세요.");
+      setSettingsTab("connection");
+      setError("세션 설정에서 사내 HTTP 연결을 허용한 뒤 저장하세요.");
       return false;
     }
-    if (!tokenNeedsApproval && !savingKey) return true;
+    if (!savedToken.value || savedToken.origin === serverOrigin(session.endpoint)) return true;
     setShowSettings(true);
-    setError(savingKey ? "토큰을 저장하고 있습니다." : "변경한 서버에서 입력한 토큰을 사용할지 선택하세요.");
+    setSettingsTab("connection");
+    setError("새 서버에서 사용할 토큰을 확인하고 세션 설정을 저장하세요.");
     return false;
   }
   const harness = (patch: Partial<Harness>) =>
-    config({ harness: { ...s.harness, ...patch } });
+    config({ harness: { ...edited.harness, ...patch } });
   const [search,setSearch]=useState(""), [candidate,setCandidate]=useState("");
   const matches=(value:string)=>value.toLowerCase().includes(search.trim().toLowerCase());
   const cancel = () => run.cancel();
@@ -317,46 +399,32 @@ export default function Xcode({
     }
   }
   const [probe, setProbe] = useState<Probe>("text");
-  const [report, setReport] = useState("");
-  useEffect(() => setReport(""), [s.endpoint, s.model, key, probe]);
-  async function diagnose() {
-    if (run.snapshot().busy || !api.xcodeChat || readonly || !tokenReady()) return;
+  const [report, setReport] = useState<{ target: "basic" | "advanced"; text: string }>();
+  useEffect(() => setReport(undefined), [edited.endpoint, edited.model, edited.profile, edited.intranetHttpEndpoint, key]);
+  async function diagnose(kind: Probe, target: "basic" | "advanced") {
+    if (run.snapshot().busy || !api.xcodeChat || readonly) return;
+    if (tokenNeedsApproval || savingKey) {
+      setReport({ target, text: savingKey ? "토큰을 저장하고 있습니다." : "인증 · 변경한 서버에서 입력한 토큰을 사용할지 선택하세요." });
+      return;
+    }
     const id = crypto.randomUUID();
     const controller = new AbortController();
-    let release: (() => void) | undefined;
     run.id = id;
     run.request = controller;
     run.patch({ busy: true, phase: "연결 진단", error: "" });
-    setReport("");
+    setReport(undefined);
     try {
-      if (!(await api.xcodeAuthorize?.(s.endpoint, s.intranetHttpEndpoint)))
-        throw Error("서버 전송을 취소했습니다.");
-      release = await acquireServer(origin, controller.signal);
-      controller.signal.throwIfAborted();
-      const answer = await api.xcodeChat({
-        id,
-        profile: s.profile,
-        endpoint: s.endpoint,
-        intranetHttpEndpoint: s.intranetHttpEndpoint,
-        model: s.model,
+      const text = await testXcodeConnection({
+        profile: edited.profile,
+        endpoint: edited.endpoint,
+        intranetHttpEndpoint: edited.intranetHttpEndpoint,
+        model: edited.model,
         key,
-        messages: [{ role: "user", content: diagnosticInput(probe) }],
-      });
-      controller.signal.throwIfAborted();
-      setReport(diagnosticResult(probe, answer));
+      }, kind, id, controller.signal);
+      setReport({ target, text });
     } catch (error) {
-      const detail = chatErrorMessage(error);
-      setReport(
-        controller.signal.aborted
-          ? "연결 진단을 중지했습니다."
-          : /HTTP (401|403)/.test(detail)
-            ? "인증이 거부되었습니다. API 키와 권한을 확인하세요."
-            : /HTTP 404/.test(detail)
-              ? "주소 또는 모델을 찾을 수 없습니다. 모델 ID와 경로를 확인하세요."
-              : detail,
-      );
+      setReport({ target, text: controller.signal.aborted ? "연결 테스트를 중지했습니다." : diagnosticFailure(error) });
     } finally {
-      release?.();
       run.request = null;
       run.id = "";
       run.patch({ busy: false, phase: "" });
@@ -479,7 +547,7 @@ export default function Xcode({
       files:draft.files.filter(file=>!attached.includes(file))});
   }
   async function submit(immediate=false) {
-    if (!api.xcodeChat || readonly || importing || run.submitting || !queueReady) return;
+    if (!api.xcodeChat || readonly || importing || run.submitting || settingsSave === "saving" || !queueReady) return;
     if (!run.snapshot().busy && !run.snapshot().waiting.length) { void send(); return; }
     if (!run.activeItem) run.patch({queuePaused:true});
     if (!prompt.trim() && !selectedFiles.length) return;
@@ -514,7 +582,8 @@ export default function Xcode({
     await send(undefined,item,session);
   }
   async function send(saved?: Checkpoint,item?:QueuedPrompt,context?:Session) {
-    if (!tokenReady()) {run.patch({queuePaused:true});return;}
+    if (!tokenReady(context || currentConnection.current.session)) {run.patch({queuePaused:true});return;}
+    const requestKey = run.sessionToken.value;
     const {
       s: session,
       prompt: initialPrompt,
@@ -775,12 +844,12 @@ export default function Xcode({
           let release: (() => void) | undefined;
           try {
             run.patch({ phase: "서버 대기열 · " + stage });
-            release = await acquireServer(origin, request.signal);
+            release = await acquireServer(serverOrigin(s.endpoint), request.signal);
             request.signal.throwIfAborted();
             run.patch({ phase: "실행 중 · " + stage });
             const answer = await api.xcodeChat!({
               id,
-              key,
+              key: requestKey,
               profile: s.profile,
               endpoint: s.endpoint,
               intranetHttpEndpoint: s.intranetHttpEndpoint,
@@ -966,11 +1035,13 @@ export default function Xcode({
     >
       <header className="chat-header">
         <h2>xcode</h2>
-        <span title={s.model}>{s.model}</span>
+        <span title={[s.model, s.endpoint].filter(Boolean).join(" · ")}>{s.model}</span>
+        <small className="connection-source" title={s.endpoint}>{connectionLabel}</small>
         {settingsSave === "saved" && <small aria-live="polite">세션 설정을 저장했습니다.</small>}
         <button
           className="chat-settings-toggle"
           aria-expanded={showSettings}
+          aria-controls={sessionSettingsId}
           onClick={() => {
             setShowSettings(!showSettings);
             localStorage.setItem(
@@ -1012,26 +1083,54 @@ export default function Xcode({
           </button>
         </fieldset>
       )}
-      <div hidden={!showSettings}>
+      {run.snapshot().form && documentPanel!=="form" && !readonly && <button className="application-resume" onClick={()=>setDocumentPanel("form")}>Office 검토 초안 열기</button>}
+      <div hidden={documentPanel !== "form"}><OfficeForm sessionKey={checkpointKey} form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""}
+        answerFiles={[...(s.turns.at(-1)?.sourceHistory || []).flatMap(([ti,fi])=>s.turns[ti]?.files[fi] || []),...(s.turns.at(-1)?.files || [])]} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
+      {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
+        <WordSelection close={()=>setDocumentPanel(null)} disabled={busy || readonly}
+          answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
+          attach={(name,text)=>setFiles(previous=>[...previous,{name,text}])}/>
+      </div>}
+      <div className="chat-layout" data-settings={showSettings && !settingsExpanded}>
+        <dialog id={sessionSettingsId} className="chat-settings-panel" ref={settingsDialog} aria-label="세션 설정"
+          onKeyDown={event => { if (settingsExpanded && event.key === "Escape") event.stopPropagation(); }}
+          onCancel={event => { event.preventDefault(); setSettingsExpanded(false); }}>
+          <nav className="session-settings-nav" aria-label="세션 설정 항목">
+            {([
+              ["connection", "연결"], ["harness", "하네스·스킬"], ["retry", "자동 요청"], ["json", "JSON"],
+            ] as const).map(([id, label]) => (
+              <button type="button" key={id} aria-pressed={settingsTab === id} onClick={() => {
+                setSettingsTab(id);
+                settingsDialog.current?.querySelector(".chat-settings-fields")?.scrollTo(0, 0);
+              }}>{label}</button>
+            ))}
+          </nav>
+          <div className="chat-settings-fields" inert={settingsSave === "saving"}>
+            <div hidden={settingsTab !== "connection"}>
         <fieldset className="chat-basic-settings" disabled={busy || readonly || savingKey}>
           <legend>모델 연결</legend>
+          {globalConnection && !usesDefaults(edited) && <button type="button" className="button small" onClick={() => {
+            setKey("");
+            setError("");
+            config({ ...globalConnection, intranetHttpEndpoint: globalConnection.intranetHttpEndpoint, connectionSource: "default" });
+          }}>기본 연결로 되돌리기</button>}
           <label>
             API 주소
             <input
               placeholder="https://server.example/v1/chat/completions"
-              value={s.endpoint}
+              value={edited.endpoint}
               onChange={e => config({endpoint:e.target.value})}
             />
-            {requestAddress && requestAddress !== s.endpoint.trim() && (
-              <small>실제 요청 주소 · {requestAddress}</small>
+            {editedAddress && editedAddress !== edited.endpoint.trim() && (
+              <small>실제 요청 주소 · {editedAddress}</small>
             )}
           </label>
           {remoteHttp && (
             <label>
               <span>
-                <input type="checkbox" aria-label="사내 HTTP 연결 허용" aria-describedby={httpNotice} checked={!httpNeedsApproval}
+                <input type="checkbox" aria-label="사내 HTTP 연결 허용" aria-describedby={httpNotice} checked={!editedHttpNeedsApproval}
                   onChange={(event) => {
-                    config({ intranetHttpEndpoint: event.target.checked ? requestAddress : undefined });
+                    config({ intranetHttpEndpoint: event.target.checked ? editedAddress : undefined });
                     setError("");
                   }} />{" "}
                 사내 HTTP 연결 허용
@@ -1048,36 +1147,92 @@ export default function Xcode({
               placeholder={savedProfile?.hasKey ? "이 기기에 저장된 토큰 사용" : undefined}
               onChange={(e) => setKey(e.target.value)}
             />
+            <small className="token-status" aria-live="polite">{tokenNeedsApproval ? "새 주소에서 사용 승인 필요" : key ? "이번 세션에서만 사용" : savedProfile?.hasKey ? "이 기기에 저장됨" : linkedProfile?.hasKey ? "저장된 토큰은 기존 주소와 모델에 연결되어 있습니다." : "저장된 토큰 없음"}</small>
           </label>
           <label>
             모델명
             <input
-              value={s.model}
+              value={edited.model}
               onChange={e => config({model:e.target.value})}
             />
           </label>
           <div className="token-storage">
-            {tokenNeedsApproval && origin && <button type="button" onClick={() => {setKey(key);setError("");}}>
-              {origin}에서 이 토큰 사용
+            {tokenNeedsApproval && editedOrigin && <button type="button" onClick={() => {setKey(key);setError("");}}>
+              {editedOrigin}에서 이 토큰 사용
             </button>}
-            {key && api.saveXcodeProfile && <button type="button" disabled={tokenNeedsApproval || httpNeedsApproval || !origin || !s.model.trim()} onClick={() => void rememberToken()}>
+            {key && api.saveXcodeProfile && <button type="button" disabled={tokenNeedsApproval || editedHttpNeedsApproval || !editedOrigin || !edited.model.trim()} onClick={() => void rememberToken()}>
               이 기기에 토큰 저장
             </button>}
-            <small>{key ? "입력한 토큰은 현재 화면에서만 유지됩니다." : savedProfile?.hasKey ? "이 기기에 저장된 토큰을 사용합니다." : linkedProfile?.hasKey ? "저장된 토큰은 원래 API 주소와 모델명으로 돌아가면 다시 사용됩니다." : "서버 인증이 필요하면 토큰을 입력하세요."}</small>
           </div>
+          {api.xcodeChat && <div className="basic-connection-test">
+            <button type="button" onClick={() => void diagnose("text", "basic")}>연결 테스트</button>
+            {report?.target === "basic" && <small role="status">{report.text}</small>}
+          </div>}
         </fieldset>
-        <SessionSettingsJson
-          session={s}
-          disabled={busy || readonly}
-          apply={(settings, token) => {
-            if (token !== undefined) setKey(token,settings.endpoint);
-            config({...settings, profile:token === undefined ? s.profile : ""});
-          }}
-        />
-        <details className="chat-advanced">
-          <summary>고급 설정</summary>
-          <details>
-            <summary>하네스 구성 · {s.harness.name}{s.harness.jobRole && ` · ${s.harness.jobRole}`}</summary>
+              <details className="chat-connection-options">
+                <summary>연결 옵션</summary>
+          <fieldset disabled={busy || readonly}>
+            <legend>연결 옵션</legend>
+            {profiles.length > 0 && (
+              <label>
+                저장된 모델
+                <select
+                  value={savedProfile?.name || ""}
+                  onChange={(e) => {
+                    const p = profiles.find((x) => x.name === e.target.value);
+                    setKey("");
+                    config(
+                      p
+                        ? {
+                            profile: p.name,
+                            model: p.model,
+                            endpoint: p.endpoint,
+                          }
+                        : { profile: "" },
+                    );
+                  }}
+                >
+                  <option value="">직접 입력</option>
+                  {profiles.map((p) => (
+                    <option key={p.name}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label>
+              서버 동시 요청 수
+              <select
+                disabled={!editedOrigin}
+                value={settingsDraft.capacity?.origin === editedOrigin ? settingsDraft.capacity.value : capacity}
+                onChange={(e) => updateDraft({ ...settingsDraft, capacity: { origin: editedOrigin, value: Number(e.target.value) } })}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <option key={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              연결 진단 입력
+              <select
+                value={probe}
+                onChange={(e) => { setProbe(e.target.value as Probe); setReport(undefined); }}
+              >
+                <option value="text">짧은 텍스트</option>
+                <option value="image">샘플 이미지</option>
+                <option value="pdf">샘플 PDF</option>
+              </select>
+            </label>
+            <button
+              disabled={!api.xcodeChat || !edited.model.trim() || !editedOrigin}
+              onClick={() => void diagnose(probe, "advanced")}
+            >
+              연결 진단 실행
+            </button>
+            {report?.target === "advanced" && <p role="status">{report.text}</p>}
+          </fieldset>
+              </details>
+            </div>
+            <div hidden={settingsTab !== "harness"}>
             <fieldset disabled={busy || readonly}>
               <legend>직무 역할 · 단계 및 스킬</legend>
               <label>역할 또는 템플릿 찾기<input type="search" placeholder="백엔드, 장애 회고 등" value={search} onChange={e=>{setSearch(e.target.value);setCandidate("");}}/></label>
@@ -1086,20 +1241,20 @@ export default function Xcode({
                 직무 역할
                 <select
                   aria-label="직무 역할"
-                  value={s.harness.jobRole ?? ""}
+                  value={edited.harness.jobRole ?? ""}
                   onChange={(e) => harness({ jobRole: jobRoles.find((role) => role.name === e.target.value)?.name })}
                 >
                   <option value="">역할 없음</option>
                   {[...new Set(jobRoles.map((role) => role.group))].map((group) => (
                     <optgroup key={group} label={group}>
-                      {jobRoles.filter((role) => role.group === group && (role.name===s.harness.jobRole || matches(group+" "+role.name))).map((role) => (
+                      {jobRoles.filter((role) => role.group === group && (role.name===edited.harness.jobRole || matches(group+" "+role.name))).map((role) => (
                         <option key={role.name}>{role.name}</option>
                       ))}
                     </optgroup>
                   ))}
                 </select>
               </label>
-              {s.harness.jobRole && <p>{jobRoles.find((role) => role.name === s.harness.jobRole)?.instruction}</p>}
+              {edited.harness.jobRole && <p>{jobRoles.find((role) => role.name === edited.harness.jobRole)?.instruction}</p>}
               <label>
                 템플릿 적용
                 <select
@@ -1118,18 +1273,18 @@ export default function Xcode({
                   ))}
                 </select>
               </label>
-              {candidate&&<div className="harness-preview"><strong>{candidate}</strong><ol>{preset(candidate).stages.map(step=><li key={step}>{step}</li>)}</ol><button onClick={()=>{config({harness:{...preset(candidate),jobRole:s.harness.jobRole}});setCandidate("");}}>전체 단계 적용</button></div>}
+              {candidate&&<div className="harness-preview"><strong>{candidate}</strong><ol>{preset(candidate).stages.map(step=><li key={step}>{step}</li>)}</ol><button onClick={()=>{config({harness:{...preset(candidate),jobRole:edited.harness.jobRole}});setCandidate("");}}>전체 단계 적용</button></div>}
               <label>
                 하네스 이름
                 <input
-                  value={s.harness.name}
+                  value={edited.harness.name}
                   onChange={(e) => harness({ name: e.target.value })}
                 />
               </label>
               <label>
                 추론 강도
                 <select
-                  value={s.harness.effort || ""}
+                  value={edited.harness.effort || ""}
                   onChange={(e) => harness({ effort: e.target.value })}
                 >
                   <option value="">서버 기본값</option>
@@ -1141,7 +1296,7 @@ export default function Xcode({
               <label>
                 포함할 이전 대화 수
                 <select
-                  value={s.harness.historyTurns ?? "all"}
+                  value={edited.harness.historyTurns ?? "all"}
                   onChange={(e) =>
                     harness({
                       historyTurns:
@@ -1159,7 +1314,7 @@ export default function Xcode({
                   ))}
                 </select>
               </label>
-              {s.harness.stages.map((stage, i) => (
+              {edited.harness.stages.map((stage, i) => (
                 <div key={i}>
                   <label>
                     단계 {i + 1}
@@ -1167,7 +1322,7 @@ export default function Xcode({
                       value={stage}
                       onChange={(e) =>
                         harness({
-                          stages: s.harness.stages.map((v, j) =>
+                          stages: edited.harness.stages.map((v, j) =>
                             j === i ? e.target.value : v,
                           ),
                         })
@@ -1177,13 +1332,13 @@ export default function Xcode({
                   <label>
                     단계 {i + 1} 추론 설정
                     <select
-                      value={s.harness.stageEfforts?.[i] || ""}
+                      value={edited.harness.stageEfforts?.[i] || ""}
                       onChange={(e) =>
                         harness({
-                          stageEfforts: s.harness.stages.map((_, j) =>
+                          stageEfforts: edited.harness.stages.map((_, j) =>
                             i === j
                               ? e.target.value
-                              : s.harness.stageEfforts?.[j] || "",
+                              : edited.harness.stageEfforts?.[j] || "",
                           ),
                         })
                       }
@@ -1198,10 +1353,10 @@ export default function Xcode({
                   <button
                     disabled={!i}
                     onClick={() => {
-                      const stages = [...s.harness.stages];
+                      const stages = [...edited.harness.stages];
                       [stages[i - 1], stages[i]] = [stages[i], stages[i - 1]];
                       const efforts = [
-                        ...(s.harness.stageEfforts || stages.map(() => "")),
+                        ...(edited.harness.stageEfforts || stages.map(() => "")),
                       ];
                       [efforts[i - 1], efforts[i]] = [
                         efforts[i],
@@ -1213,11 +1368,11 @@ export default function Xcode({
                     위로
                   </button>
                   <button
-                    disabled={s.harness.stages.length === 1}
+                    disabled={edited.harness.stages.length === 1}
                     onClick={() =>
                       harness({
-                        stages: s.harness.stages.filter((_, j) => j !== i),
-                        stageEfforts: s.harness.stageEfforts?.filter(
+                        stages: edited.harness.stages.filter((_, j) => j !== i),
+                        stageEfforts: edited.harness.stageEfforts?.filter(
                           (_, j) => j !== i,
                         ),
                       })
@@ -1228,12 +1383,12 @@ export default function Xcode({
                 </div>
               ))}
               <button
-                disabled={s.harness.stages.length >= 12}
+                disabled={edited.harness.stages.length >= 12}
                 onClick={() =>
                   harness({
-                    stages: [...s.harness.stages, ""],
-                    stageEfforts: s.harness.stageEfforts && [
-                      ...s.harness.stageEfforts,
+                    stages: [...edited.harness.stages, ""],
+                    stageEfforts: edited.harness.stageEfforts && [
+                      ...edited.harness.stageEfforts,
                       "",
                     ],
                   })
@@ -1276,14 +1431,14 @@ export default function Xcode({
                 .map((k) => (
                   <button
                     key={k.scope + k.name}
-                    disabled={s.harness.skills.some(
+                    disabled={edited.harness.skills.some(
                       (x) =>
                         x.name === k.name && x.instruction === k.instruction,
                     )}
                     onClick={() =>
                       harness({
                         skills: [
-                          ...s.harness.skills,
+                          ...edited.harness.skills,
                           { name: k.name, instruction: k.instruction },
                         ],
                       })
@@ -1292,12 +1447,12 @@ export default function Xcode({
                     {k.scope} · {k.name} 추가
                   </button>
                 ))}
-              {s.harness.skills.map((k, i) => (
+              {edited.harness.skills.map((k, i) => (
                 <button
                   key={i}
                   onClick={() =>
                     harness({
-                      skills: s.harness.skills.filter((_, j) => i !== j),
+                      skills: edited.harness.skills.filter((_, j) => i !== j),
                     })
                   }
                 >
@@ -1307,7 +1462,7 @@ export default function Xcode({
               <button
                 onClick={() => {
                   const url = URL.createObjectURL(
-                    new Blob([JSON.stringify(s.harness, null, 2)], {
+                    new Blob([JSON.stringify(edited.harness, null, 2)], {
                       type: "application/json",
                     }),
                   );
@@ -1343,32 +1498,24 @@ export default function Xcode({
                 />
               </label>
             </fieldset>
-          </details>
-          <fieldset disabled={readonly}>
+            </div>
+            <div hidden={settingsTab !== "retry"}>
+          <fieldset disabled={readonly || busy}>
             <legend>자동 재요청</legend>
             <label className="retry-toggle">
               <input
                 type="checkbox"
-                checked={s.autoRetry === true}
-                onChange={(e) => {
-                  run.enabled = e.target.checked;
-                  if (!run.enabled) {
-                    run.wait?.abort();
-                    if (run.automatic) {
-                      run.request?.abort(Error("자동 요청을 중지했습니다."));
-                      void api.xcodeCancel?.(run.id);
-                    }
-                  }
-                  config({ autoRetry: e.target.checked });
-                }}
+                checked={edited.autoRetry === true}
+                onChange={(e) => config({ autoRetry: e.target.checked })}
               />
-              이어지는 응답 자동 요청
+              자동 재요청 켜기
             </label>
+            {edited.autoRetry && <>
             <label>
               재요청 방식
               <select
                 disabled={busy}
-                value={s.repeatCompleted ? "repeat" : "failure"}
+                value={edited.repeatCompleted ? "repeat" : "failure"}
                 onChange={(e) =>
                   config({ repeatCompleted: e.target.value === "repeat" })
                 }
@@ -1377,86 +1524,56 @@ export default function Xcode({
                 <option value="repeat">정상 완료 후에도 계속 요청</option>
               </select>
             </label>
-            <RetryLimit label="자동 실행 한도(분)" value={s.autoMinutes ?? 15} max={240} disabled={busy} commit={autoMinutes=>config({autoMinutes})}/>
-            <RetryLimit label="자동 요청 한도(회)" value={s.maxAutoRequests ?? 5} max={100} disabled={busy} commit={maxAutoRequests=>config({maxAutoRequests})}/>
-            <RetryLimit label="재요청 간격(초)" value={s.retrySeconds ?? 60} max={3600} disabled={busy} commit={retrySeconds=>config({retrySeconds})}/>
+            <RetryLimit label="자동 실행 한도(분)" value={edited.autoMinutes ?? 15} max={240} disabled={busy} commit={autoMinutes=>config({autoMinutes})}/>
+            <RetryLimit label="자동 요청 한도(회)" value={edited.maxAutoRequests ?? 5} max={100} disabled={busy} commit={maxAutoRequests=>config({maxAutoRequests})}/>
+            <RetryLimit label="재요청 간격(초)" value={edited.retrySeconds ?? 60} max={3600} disabled={busy} commit={retrySeconds=>config({retrySeconds})}/>
+            </>}
           </fieldset>
-          <fieldset disabled={busy || readonly}>
-            <legend>연결 옵션</legend>
-            {profiles.length > 0 && (
-              <label>
-                저장된 모델
-                <select
-                  value={savedProfile?.name || ""}
-                  onChange={(e) => {
-                    const p = profiles.find((x) => x.name === e.target.value);
-                    setKey("");
-                    config(
-                      p
-                        ? {
-                            profile: p.name,
-                            model: p.model,
-                            endpoint: p.endpoint,
-                          }
-                        : { profile: "" },
-                    );
-                  }}
-                >
-                  <option value="">직접 입력</option>
-                  {profiles.map((p) => (
-                    <option key={p.name}>{p.name}</option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <label>
-              서버 동시 요청 수
-              <select
-                disabled={!origin}
-                value={capacity}
-                onChange={(e) => setCapacity(origin, Number(e.target.value))}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <option key={n}>{n}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              연결 진단 입력
-              <select
-                value={probe}
-                onChange={(e) => setProbe(e.target.value as Probe)}
-              >
-                <option value="text">짧은 텍스트</option>
-                <option value="image">샘플 이미지</option>
-                <option value="pdf">샘플 PDF</option>
-              </select>
-            </label>
-            <button
-              disabled={!api.xcodeChat || !s.model.trim() || !origin}
-              onClick={() => void diagnose()}
-            >
-              연결 진단 실행
-            </button>
-            {report && <p role="status">{report}</p>}
-          </fieldset>
-        </details>
+            </div>
+            <div hidden={settingsTab !== "json"}>
+        <SessionSettingsJson
+          key={jsonRevision}
+          session={edited}
+          disabled={busy || readonly}
+          apply={(settings, token) => config(
+            { ...settings, ...(token === undefined ? {} : { profile: "" }) },
+            token === undefined ? undefined : { value: token, origin: serverOrigin(settings.endpoint) },
+          )}
+        />
+            </div>
+          </div>
         <div className="session-settings-save">
-          <button type="button" disabled={busy || readonly || savingKey || settingsSave === "saving"} onClick={() => void saveSettings()}>
+          <button type="button" className="settings-expand" ref={settingsExpandButton}
+            aria-label={settingsExpanded ? "확대 설정 닫기" : "세션 설정 크게 보기"}
+            title={settingsExpanded ? "확대 설정 닫기" : "세션 설정 크게 보기"}
+            onClick={() => {
+              if (!settingsExpanded)
+                previousTranscriptTop.current = workbench.current?.querySelector(".chat-scroll")?.scrollTop;
+              setSettingsExpanded(!settingsExpanded);
+            }}>
+            {settingsExpanded ? <Minimize2 size={14}/> : <Maximize2 size={14}/>}
+          </button>
+          <small className="settings-draft-state" aria-live="polite">{dirty ? "저장하지 않은 변경" : ""}</small>
+          <button type="button" disabled={savingKey || settingsSave === "saving"} onClick={cancelSettings}>설정 취소</button>
+          <button type="button" disabled={busy || readonly || savingKey || settingsSave === "saving" || !dirty} onClick={() => void saveSettings()}>
             {settingsSave === "saving" ? "저장 중…" : "설정 저장"}
           </button>
-          <small aria-live="polite">{settingsSave === "failed" ? "세션 설정을 저장하지 못했습니다. 다시 시도하세요." : ""}</small>
+          {(settingsError || settingsSave === "failed") && <small role="alert">
+            {settingsError || "세션 설정을 저장하지 못했습니다. 다시 시도하세요."}
+          </small>}
         </div>
-      </div>
-      {run.snapshot().form && documentPanel!=="form" && !readonly && <button className="application-resume" onClick={()=>setDocumentPanel("form")}>Office 검토 초안 열기</button>}
-      <div hidden={documentPanel !== "form"}><OfficeForm sessionKey={checkpointKey} form={run.snapshot().form} review={run.snapshot().formReview} setForm={form=>run.patch({form,formReview:undefined})} close={()=>setDocumentPanel(null)} disabled={busy||readonly} answer={s.turns.at(-1)?.answers.at(-1)?.text||""}
-        answerFiles={[...(s.turns.at(-1)?.sourceHistory || []).flatMap(([ti,fi])=>s.turns[ti]?.files[fi] || []),...(s.turns.at(-1)?.files || [])]} prepare={text=>setPrompt([prompt,text].filter(Boolean).join("\n\n"))}/></div>
-      {local && api.wordCapture && <div hidden={documentPanel !== "word"}>
-        <WordSelection close={()=>setDocumentPanel(null)} disabled={busy || readonly}
-          answer={s.turns.at(-1)?.answers.at(-1)?.text || ""}
-          attach={(name,text)=>setFiles(previous=>[...previous,{name,text}])}/>
-      </div>}
+        </dialog>
       <div className="chat-workbench" ref={workbench}>
+        {busy && s.autoRetry && run.enabled && phase !== "연결 진단" && <button className="button small stop-automatic"
+          type="button" onClick={() => {
+            run.enabled = false;
+            run.wait?.abort();
+            if (run.automatic) {
+              run.request?.abort(Error("자동 요청을 중지했습니다."));
+              void api.xcodeCancel?.(run.id);
+            }
+            run.patch({ phase: "자동 요청 중지 중" });
+          }}>자동 요청 중지</button>}
         <ChatTimeline
           focusTurn={focusTurn} appliedRecord={appliedRecord} workspacePages={access.notes}
           applyAnswer={applyToNotes}
@@ -1473,7 +1590,11 @@ export default function Xcode({
           error={error}
           busy={busy}
           readonly={readonly}
-          applyHarness={(h) => config({ harness: h })}
+          applyHarness={h => {
+            config({ harness: h });
+            setSettingsTab("harness");
+            setShowSettings(true);
+          }}
         />
         {interrupted && (waiting.length > 0 || run.snapshot().failedInput) && <div className="queue-recovery">
           <strong>중단된 메시지</strong><span>{interrupted.prompt}</span>
@@ -1718,6 +1839,7 @@ export default function Xcode({
           </div>
           <small className="chat-keys">Enter {busy || waiting.length ? "대기열에 추가" : "전송"} · Shift+Enter 줄바꿈</small>
         </div>
+      </div>
       </div>
       {!api.xcodeChat && <p>모델 연결은 데스크톱 앱에서 사용할 수 있습니다.</p>}
     </section>

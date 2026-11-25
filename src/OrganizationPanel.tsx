@@ -10,7 +10,9 @@ import type {
 export default function OrganizationPanel({
   onClose,
   onOpen,
+  connectedWorkspace,
 }: {
+  connectedWorkspace?: string;
   onClose: () => void;
   onOpen: (w: Workspace | null) => void;
 }) {
@@ -19,6 +21,7 @@ export default function OrganizationPanel({
     [conflicts, setConflicts] = useState<OrganizationConflict[]>([]),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [step, setStep] = useState<"server" | "login" | "workspace">("server");
   useEffect(() => {
     api
       .organizationConflicts?.()
@@ -58,52 +61,49 @@ export default function OrganizationPanel({
             <X size={18} />
           </button>
         </header>
-        <p className="small-text muted">
-          조직 서버에 로그인하면 접근 권한이 있는 보관함만 표시됩니다. 개인
-          노트는 자동으로 공유하지 않습니다.
-        </p>
-        <label className="server-field">
-          서버 주소
-          <input
-            value={server}
-            onChange={(e) => setServer(e.target.value)}
-            placeholder="https://notes.example.com"
-          />
-        </label>
-        <div className="row">
-          <button
-            className="button primary"
-            disabled={busy || !isDesktop}
-            onClick={() =>
-              void run(async () =>
-                setList(await api.organizationLogin!(server)),
-              )
+        {connectedWorkspace && <p className="small-text">사용 중 · {connectedWorkspace}</p>}
+        <ol className="organization-steps" aria-label="조직 연결 단계">
+          {([["server", "서버"], ["login", "SSO 로그인"], ["workspace", "워크스페이스"]] as const).map(([id, title]) => (
+            <li key={id} aria-current={step === id ? "step" : undefined}>{title}</li>
+          ))}
+        </ol>
+        {step !== "workspace" && <form onSubmit={event => {
+          event.preventDefault();
+          if (!api.organizationLogin || !server.trim() || busy) return;
+          setStep("login");
+          void run(async () => {
+            try {
+              setList(await api.organizationLogin!(server.trim()));
+              setStep("workspace");
+            } catch (cause) {
+              setStep("server");
+              throw cause;
             }
-          >
-            <LogIn size={15} />
-            {busy ? "연결 중…" : "브라우저에서 SSO 로그인"}
-          </button>
-          <button
-            className="button"
-            disabled={busy || !isDesktop}
-            onClick={() =>
-              void run(async () => onOpen(await api.organizationLogout!()))
-            }
-          >
-            로그아웃
-          </button>
-        </div>
-        {!isDesktop && (
-          <p className="small-text muted">
-            조직 연결은 데스크톱 앱에서 사용할 수 있습니다.
-          </p>
-        )}
+          });
+        }}>
+          <label className="server-field">
+            서버 주소
+            <input required value={server} disabled={busy} onChange={event => setServer(event.target.value)}
+              placeholder="https://notes.example.com" />
+          </label>
+          <div className="row">
+            <button type="submit" className="button primary" disabled={busy || !isDesktop || !server.trim()}>
+              <LogIn size={15} />{step === "login" ? "브라우저 로그인 대기 중…" : "브라우저에서 SSO 로그인"}
+            </button>
+          </div>
+        </form>}
+        {step === "workspace" && <section className="organization-choices" aria-label="조직 워크스페이스 선택">
+          <h3>워크스페이스 선택</h3>
+          <p className="small-text">{server}</p>
+          {!list.length && <p>접근할 수 있는 워크스페이스가 없습니다.</p>}
+        </section>}
+        {!isDesktop && <p className="small-text muted">조직 연결은 데스크톱 앱에서 사용할 수 있습니다.</p>}
         {error && (
           <p className="error-banner" role="alert">
             {error}
           </p>
         )}
-        {list.map((w) => (
+        {step === "workspace" && list.map((w) => (
           <div className="recovery-row" key={w.id}>
             <span>
               <strong>{w.name}</strong>
@@ -126,6 +126,15 @@ export default function OrganizationPanel({
             </button>
           </div>
         ))}
+        {(step === "workspace" || connectedWorkspace) && <div className="row organization-actions">
+          {step === "workspace" && <button className="button" disabled={busy} onClick={() => {
+            setList([]);
+            setError("");
+            setStep("server");
+          }}>다른 서버 연결</button>}
+          <button className="button" disabled={busy || !api.organizationLogout}
+            onClick={() => void run(async () => onOpen(await api.organizationLogout!()))}>로그아웃</button>
+        </div>}
         {conflicts.length > 0 && (
           <>
             <h3>동기화 충돌</h3>

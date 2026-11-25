@@ -37,6 +37,11 @@ const server = createServer(async (req, res) => {
     res.end();
     return;
   }
+  if (caseMode === "missing-model") {
+    res.writeHead(404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: { code: "model_not_found", message: "Invalid model ID" } }));
+    return;
+  }
   if (caseMode === "unauthorized" || caseMode === "missing") {
     res.writeHead(caseMode === "unauthorized" ? 401 : 404);
     res.end();
@@ -179,10 +184,9 @@ try {
   const permitHttp = page.getByRole("checkbox", { name: "사내 HTTP 연결 허용", exact: true });
   await apiAddress.fill(proxyBase);
   await expect(permitHttp).not.toBeChecked();
-  await page.getByLabel("xcode 메시지").fill("draft before HTTP permission");
-  await page.getByRole("button", { name: "전송", exact: true }).click();
-  await expect(page.locator(".xcode [role=alert]")).toContainText("사내 HTTP 연결을 허용");
-  await expect(page.getByLabel("xcode 메시지")).toHaveValue("draft before HTTP permission");
+  await page.getByRole("button", { name: "연결 테스트", exact: true }).click();
+  await expect(page.locator(".basic-connection-test [role=status]")).toContainText("사내 HTTP 허용");
+  assert.equal(calls.length, 0);
   await permitHttp.check();
   await apiAddress.fill(proxyTarget);
   await expect(permitHttp).toBeChecked();
@@ -204,25 +208,38 @@ try {
   await expect(page.getByLabel("API 토큰 (선택)")).toBeVisible();
   await expect(page.getByLabel("모델명", { exact: true })).toBeVisible();
   await expect(page.getByLabel("재요청 간격(초)")).toBeHidden();
-  const openAdvanced = async () => {
-    const panel = page.locator(".chat-advanced");
-    if (!(await panel.evaluate((el) => el.open)))
-      await panel.locator(":scope > summary").click();
+  const settingButton = name => page.getByRole("button", { name, exact: true });
+  const openSettings = async (tab = "연결") => {
+    if (await settingButton("세션 설정 펼치기").isVisible()) await settingButton("세션 설정 펼치기").click();
+    await page.getByRole("navigation", { name: "세션 설정 항목" }).getByRole("button", { name: tab, exact: true }).click();
   };
-  await page.getByText("JSON 설정", { exact: true }).click();
+  const openConnectionOptions = async () => {
+    await openSettings();
+    const panel = page.locator(".chat-connection-options");
+    if (!(await panel.evaluate(el => el.open))) await panel.locator(":scope > summary").click();
+  };
+  const saveSettings = async () => {
+    await settingButton("설정 저장").click();
+    await expect(page.locator(".chat-settings-panel")).toBeHidden();
+  };
+  await openSettings("JSON");
   const editor = page.getByLabel("설정 JSON", { exact: true });
-  const applyJson = page.getByRole("button", { name: "JSON 적용" });
+  const previewJson = settingButton("변경 사항 보기");
+  const applyJson = settingButton("JSON 적용");
   const intranetJson = { endpoint: proxyBase, model: "test-model" };
   await editor.fill(JSON.stringify(intranetJson));
-  await applyJson.click();
+  await previewJson.click();
   await expect(page.locator(".chat-json [role=alert]")).toContainText("allowIntranetHttp");
   await editor.fill(JSON.stringify({ ...intranetJson, allowIntranetHttp: true }));
+  await previewJson.click();
   await applyJson.click();
+  await openSettings();
   await expect(permitHttp).toBeChecked();
+  await openSettings("JSON");
   await editor.fill(
     JSON.stringify({ endpoint, model: "invalid-change", retrySeconds: 0 }),
   );
-  await applyJson.click();
+  await previewJson.click();
   await expect(editor).toBeFocused();
   assert.equal(await editor.evaluate(el=>el.value.slice(el.selectionStart,el.selectionEnd)),'"retrySeconds"');
   await expect(page.locator(".chat-json [role=alert]")).toContainText(
@@ -240,10 +257,15 @@ try {
         model: "test-chat",
         token: "fixture-local-key",
         retrySeconds: 45,
+        autoRetry: true,
       }),
     ),
   });
   await expect(editor).toHaveValue(/test-chat/);
+  await previewJson.click();
+  const jsonPreview = page.getByRole("region", { name: "JSON 변경 미리보기" });
+  await expect(jsonPreview).toContainText("••••••••");
+  await expect(jsonPreview).not.toContainText("fixture-local-key");
   await applyJson.click();
   await expect(page.getByLabel("모델명", { exact: true })).toHaveValue(
     "test-chat",
@@ -252,9 +274,9 @@ try {
     "fixture-local-key",
   );
   await expect(editor).not.toHaveValue(/fixture-local-key/);
-  await page.getByText("JSON 설정", { exact: true }).click();
-  await openAdvanced();
+  await openSettings("자동 요청");
   await expect(page.getByLabel("재요청 간격(초)")).toHaveValue("45");
+  await openConnectionOptions();
   const addressField = page.getByLabel("API 주소");
   const tokenField = page.getByLabel("API 토큰 (선택)");
   await addressField.fill("");
@@ -264,7 +286,7 @@ try {
   await addressField.fill("https://example.invalid/v1/chat/completions");
   await expect(tokenField).toHaveValue("fixture-local-key");
   await page.getByRole("button",{name:"연결 진단 실행"}).click();
-  await expect(page.getByText("변경한 서버에서 입력한 토큰을 사용할지 선택하세요.",{exact:true})).toBeVisible();
+  await expect(page.getByText("인증 · 변경한 서버에서 입력한 토큰을 사용할지 선택하세요.",{exact:true})).toBeVisible();
   assert.equal(calls.length,0);
   await page.getByRole("button",{name:"https://example.invalid에서 이 토큰 사용"}).click();
   await addressField.fill(endpoint);
@@ -301,7 +323,7 @@ try {
         ),
       );
   }
-  await page.getByText("하네스 구성 · DeepSeek · 근거 기반 답변").click();
+  await openSettings("하네스·스킬");
   const finder = page.getByRole("searchbox",{name:"역할 또는 템플릿 찾기"});
   await finder.fill("no-matching-template");
   await expect(page.getByText("검색 결과 · 역할 0개 · 템플릿 0개")).toBeVisible();
@@ -317,6 +339,7 @@ try {
   await page
     .getByRole("button", { name: "워크스페이스 · evidence 추가" })
     .click();
+  await saveSettings();
   await page
     .locator(".xcode input[type=file][multiple]:not([webkitdirectory])")
     .setInputFiles([
@@ -463,15 +486,19 @@ try {
   assert.match(JSON.stringify(calls[2].messages), /Review this/);
   // A pending first session completes while a second page is open.
   caseMode = "hold";
+  await openSettings("하네스·스킬");
   await page.getByLabel("템플릿 적용").selectOption("직접 대화");
   await page.getByRole("button",{name:"전체 단계 적용"}).click();
+  await saveSettings();
   await page.getByLabel("xcode 메시지").fill("parallel-first");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
   await expect(page.locator('.page-tree .session-state-dot[data-state="running"]')).toHaveCount(1);
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await openSettings();
   await page.getByLabel("API 주소").fill(endpoint);
+  await saveSettings();
   await page.getByLabel("xcode 메시지").fill("parallel-second");
   await page.getByRole("button",{name:"왼쪽 메뉴 접기",exact:true}).click();
   await expect(page.locator('.session-tabs [data-state="running"]')).toHaveCount(1);
@@ -497,13 +524,14 @@ try {
   await page.getByRole("button",{name:"왼쪽 메뉴 펼치기",exact:true}).click();
   const send = page.getByRole("button", { name: "전송", exact: true }),
     input = page.getByLabel("xcode 메시지");
-  await openAdvanced();
-  await page.getByLabel("이어지는 응답 자동 요청").check();
+  await openSettings("자동 요청");
+  await page.getByLabel("자동 재요청 켜기").check();
   const interval = page.getByLabel("재요청 간격(초)");
   await interval.fill("");
   await expect(interval).toHaveValue("");
   await interval.fill("1");
   await interval.press("Tab");
+  await saveSettings();
   caseMode = "temporary";
   await input.fill("retry-case");
   await send.click();
@@ -538,26 +566,31 @@ try {
   await expect(input).toHaveValue("redirected-endpoint");
   assert.equal(calls.length, beforeRedirect + 1);
   caseMode = "normal";
+  await openSettings("자동 요청");
   await page.getByLabel("재요청 방식").selectOption("repeat");
+  await saveSettings();
   await input.fill("repeat-case");
   await send.click();
   await expect(page.locator(".xcode article").last()).toContainText(
     "계속해주세요",
   );
-  await page.getByLabel("이어지는 응답 자동 요청").uncheck();
+  await settingButton("자동 요청 중지").click();
   await expect(send).toBeDisabled(); // The completed prompt has been cleared.
   const stopped = calls.length;
   await new Promise((r) => setTimeout(r, 1200));
   assert.equal(calls.length, stopped);
+  await openSettings("자동 요청");
   await page.getByLabel("자동 요청 한도(회)").fill("1");
-  await openAdvanced();
-  await page.getByLabel("이어지는 응답 자동 요청").check();
+  await saveSettings();
   await input.fill("budget-case");
   await send.click();
   await expect(page.locator(".xcode [role=alert]")).toContainText("1회에 도달");
   assert.equal(calls.length, stopped + 2);
-  await page.getByLabel("이어지는 응답 자동 요청").uncheck();
+  await openSettings("자동 요청");
+  await page.getByLabel("자동 재요청 켜기").uncheck();
+  await openConnectionOptions();
   await page.getByLabel("서버 동시 요청 수").selectOption("1");
+  await saveSettings();
   slowResponse = null;
   caseMode = "hold";
   await input.fill("held-session");
@@ -566,8 +599,10 @@ try {
   const firstCount = calls.length;
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await openConnectionOptions();
   await page.getByLabel("API 주소").fill(endpoint);
   await expect(page.getByLabel("서버 동시 요청 수")).toHaveValue("1");
+  await saveSettings();
   await input.fill("queued-session");
   await send.click();
   await expect(page.locator(".xcode [role=status]")).toContainText(
@@ -598,7 +633,9 @@ try {
   await expect.poll(() => Boolean(slowResponse)).toBe(true);
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
+  await openSettings();
   await page.getByLabel("API 주소").fill(endpoint);
+  await saveSettings();
   await input.fill("queue-successor");
   await send.click();
   await expect(page.locator(".xcode [role=status]")).toContainText(
@@ -614,11 +651,12 @@ try {
   );
 
   await page.clock.install();
-  await openAdvanced();
-  await page.getByLabel("이어지는 응답 자동 요청").check();
+  await openSettings("자동 요청");
+  await page.getByLabel("자동 재요청 켜기").check();
   await page.getByLabel("재요청 방식").selectOption("repeat");
   await page.getByLabel("재요청 간격(초)").fill("3600");
   await page.getByLabel("자동 실행 한도(분)").fill("1");
+  await saveSettings();
   await input.fill("deadline");
   const beforeDeadline = calls.length;
   await send.click();
@@ -630,8 +668,104 @@ try {
     "자동 실행 시간 한도",
   );
   assert.equal(calls.length, beforeDeadline + 1);
+  const openDefaults = async (currentPage) => {
+    await currentPage.getByRole("button", { name: "환경 설정", exact: true }).first().click();
+    const dialog = currentPage.getByRole("dialog", {name:"환경 설정"});
+    await dialog.getByText("xcode 기본 연결", {exact:true}).click();
+    return dialog.locator(".xcode-defaults");
+  };
+  const readConnections = (currentPage) => currentPage.evaluate(async () => {
+    const notes = (await window.xdocs.refresh()).notes;
+    const results = await Promise.all(notes.map(async (note) => {
+      const full = await window.xdocs.readNote(note.id);
+      const config = full.body.split("\n").find(line => line.startsWith("{") && line.includes('"harness"'));
+      if (!config) return undefined;
+      const parsed = JSON.parse(config);
+      return [note.id, parsed.endpoint, parsed.model, parsed.profile, parsed.intranetHttpEndpoint ?? null, full.body.includes("global-test-token")];
+    }));
+    return results.filter(Boolean);
+  });
+  const createSession = async (currentPage) => {
+    const existing = await readConnections(currentPage);
+    await currentPage.getByRole("button", { name: "새로 만들기", exact: true }).click();
+    await currentPage.getByRole("button", { name: "xcode 세션 만들기" }).click();
+    await expect.poll(async () => (await readConnections(currentPage)).length).toBe(existing.length + 1);
+    return (await readConnections(currentPage)).find(row => !existing.some(old => old[0] === row[0]));
+  };
+  const oldConnections = await readConnections(page);
+  const defaults = await openDefaults(page);
+  const defaultEndpoint = "http://defaults.intranet.invalid/team/v1";
+  const defaultModel = "company-test-model";
+  const connect = defaults.getByRole("button", { name: "연결 테스트", exact: true });
+  await defaults.getByLabel("API 주소").fill("wrong-address");
+  await connect.click();
+  await expect(defaults.getByRole("alert")).toContainText("주소 ·");
+  await defaults.getByLabel("API 주소").fill(endpoint);
+  await defaults.getByLabel("모델명", {exact:true}).fill(defaultModel);
+  caseMode = "unauthorized";
+  await connect.click();
+  await expect(defaults.getByRole("alert")).toContainText("인증 ·");
+  caseMode = "missing-model";
+  await connect.click();
+  await expect(defaults.getByRole("alert")).toContainText("모델 ·");
+  caseMode = "normal";
+  await connect.click();
+  await expect(defaults.getByRole("status")).toContainText("SSE 텍스트 응답");
+  await defaults.getByLabel("API 주소").fill(defaultEndpoint);
+  await defaults.getByLabel("모델명", {exact:true}).fill(defaultModel);
+  await defaults.getByRole("checkbox", {name:"사내 HTTP 연결 허용", exact:true}).check();
+  if (canStore) await defaults.getByLabel("API 토큰 (선택)").fill("global-test-token");
+  await defaults.getByRole("button",{name:"기본 연결 저장",exact:true}).click();
+  await expect(defaults.getByRole("status")).toHaveText("기본 연결을 저장했습니다.");
+  assert.deepEqual(await readConnections(page), oldConnections);
+  const persisted = await page.evaluate(() => localStorage.getItem("xdocs.xcode.defaultConnection"));
+  assert.doesNotMatch(persisted, /global-test-token/);
+  await page.getByRole("button", {name:"설정 닫기"}).click();
+  const current = await createSession(page);
+  const connectionState = page.locator(".xcode .connection-source");
+  await expect(connectionState).toHaveText("기본 연결 사용");
+  if (!(await page.getByLabel("API 주소").isVisible()))
+    await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
+  await page.getByLabel("모델명", { exact: true }).fill("session-only-model");
+  await expect(connectionState).toHaveText("기본 연결 사용");
+  await expect(page.getByText("저장하지 않은 변경", { exact: true })).toBeVisible();
+  assert.deepEqual((await readConnections(page)).find(row => row[0] === current[0]), current);
+  await page.getByRole("button", { name: "설정 취소", exact: true }).click();
+  await openSettings();
+  await expect(page.getByLabel("모델명", { exact: true })).toHaveValue(defaultModel);
+  await page.getByLabel("모델명", { exact: true }).fill("session-only-model");
+  await page.getByRole("button", { name: "기본 연결로 되돌리기", exact: true }).click();
+  await expect(page.getByLabel("모델명", { exact: true })).toHaveValue(defaultModel);
+  await expect(connectionState).toHaveText("기본 연결 사용");
+  await page.getByRole("button", { name: "설정 저장", exact: true }).click();
+  assert.deepEqual(current.slice(1,3), [defaultEndpoint, defaultModel]);
+  assert.equal(current[4], defaultEndpoint + "/chat/completions");
+  assert.equal(current[5], false);
+  if (canStore) {
+    assert.match(current[3], /^xcode 기본 · company-test-model/);
+    const profiles = await page.evaluate(() => window.xdocs.builderProfiles());
+    assert.ok(profiles.find(profile => profile.name === current[3])?.hasKey);
+  }
+
+  await app.close();
+  app = await _electron.launch({
+    args: process.env.XDOCS_EXECUTABLE ? [] : ["."],
+    ...(process.env.XDOCS_EXECUTABLE ? { executablePath: path.resolve(process.env.XDOCS_EXECUTABLE) } : {}),
+    env: { ...process.env, XDOCS_TEST_DATA: data },
+  });
+  const restarted = await app.firstWindow();
+  await expect(restarted.getByRole("button", { name: "새로 만들기", exact: true })).toBeEnabled();
+  assert.deepEqual((await createSession(restarted)).slice(1), current.slice(1));
+  const restartedDefaults = await openDefaults(restarted);
+  await expect(restartedDefaults.getByLabel("API 주소")).toHaveValue(defaultEndpoint);
+  await restartedDefaults.getByRole("button", { name: "기본 연결 해제", exact: true }).click();
+  await expect(restartedDefaults.getByRole("status")).toHaveText("기본 연결을 해제했습니다.");
+  await restarted.getByRole("button", {name:"설정 닫기"}).click();
+  const reset = await createSession(restarted);
+  assert.equal(reset[1], "http://127.0.0.1:8000/v1/chat/completions");
+  assert.ok((await readConnections(restarted)).some(row => JSON.stringify(row) === JSON.stringify(current)));
   console.log(
-    "PASS xcode: streaming, harnesses, concurrent page isolation, retries, quota stops and repeat cancellation",
+    "PASS xcode: streaming, retries, queue isolation and persistent defaults for new sessions",
   );
 } finally {
   if (app) await app.close();

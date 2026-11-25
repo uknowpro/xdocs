@@ -1,3 +1,4 @@
+import XcodeDefaults, { readXcodeDefaults } from "./XcodeDefaults";
 import WorkspaceReviewSearch from "./WorkspaceReviewSearch";
 import { pageKind } from "../shared/page-kind.mjs";
 import {sessionStatus,sessionRun,leaveWorkspace,stopWorkspaceRuns,useSessionActivity} from "./xcode-run";
@@ -124,6 +125,8 @@ const CollaborationEditor = lazy(() => import("./CollaborationEditor"));
 type Theme = "light" | "gray" | "dark" | "system";
 export default function App() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const workspaceRoot = useRef(workspace?.root);
+  workspaceRoot.current = workspace?.root;
   const [active, setActive] = useState("");
   const mainPane = useRef<HTMLElement>(null);
   useLayoutEffect(() => { mainPane.current?.scrollTo(0, 0); }, [active]);
@@ -142,6 +145,10 @@ export default function App() {
   );
   const [updateState, setUpdateState] = useState<UpdateState | null>(null);
   const [settings, setSettings] = useState<boolean | "license">(false);
+  const [settingsSection, setSettingsSection] = useState<"general" | "workspace" | "xcode" | "organization" | "about">("general");
+  useEffect(() => {
+    if (settings === false) setSettingsSection("general");
+  }, [settings]);
   const returningFromLicense = useRef(false);
   const [organizationPanel, setOrganizationPanel] = useState(false);
   const [collaborating, setCollaborating] = useState(false);
@@ -544,11 +551,10 @@ export default function App() {
     }, 0);
     const trap = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
-      const elements = [
-        ...document.querySelectorAll<HTMLElement>(
-          ".dialog button:not(:disabled), .dialog input, .dialog summary",
-        ),
-      ];
+      const dialog = document.activeElement?.closest(".dialog") ?? document.querySelector(".dialog");
+      const elements = Array.from(dialog?.querySelectorAll<HTMLElement>(
+        "button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, a[href], [tabindex='0']",
+      ) ?? []).filter(element => element.tabIndex >= 0 && element.getClientRects().length > 0);
       const first = elements[0],
         last = elements.at(-1);
       if (e.shiftKey && document.activeElement === first) {
@@ -721,7 +727,7 @@ export default function App() {
           "# " +
             title +
             "\n\n" +
-            (kind === "xcode" ? packXcode(freshXcode()) : kind === "analyzer" ? analyzerMarker : kind === "builder"
+            (kind === "xcode" ? packXcode(freshXcode(readXcodeDefaults())) : kind === "analyzer" ? analyzerMarker : kind === "builder"
               ? encodeBuilder(newBuilder())
               : encodeWorkflow(blankFlow(kind))) +
             "\n",
@@ -1692,9 +1698,40 @@ export default function App() {
                   }}
                   session={xcode}
                   readonly={readonly}
-                  change={(next) =>
-                    changeBody(replaceSession(draft.current, next))
-                  }
+                  commitSettings={async (patch) => {
+                    if (readonly || !(await flush())) return false;
+                    const note = current.current;
+                    const session = note && decodeXcode(note.body);
+                    if (!session || !note || note.id !== active || workspaceRoot.current !== workspace?.root) return false;
+                    setStatus("saving");
+                    const task = api.save({
+                      id: note.id,
+                      revision: note.revision,
+                      body: replaceSession(note.body, { ...session, ...patch }),
+                    }).then(saved => {
+                      update(saved);
+                      if (current.current?.id === saved.id && workspaceRoot.current === workspace?.root) {
+                        if (draft.current === note.body) select(saved);
+                        else {
+                          current.current = saved;
+                          const pendingSession = decodeXcode(draft.current);
+                          if (pendingSession) {
+                            draft.current = replaceSession(draft.current, { ...pendingSession, ...patch });
+                            setBody(draft.current);
+                          }
+                          setStatus("pending");
+                        }
+                      }
+                      return true;
+                    }, cause => {
+                      setError(cause instanceof Error ? cause.message : String(cause));
+                      setStatus("error");
+                      return false;
+                    });
+                    saving.current = task;
+                    try { return await task; }
+                    finally { if (saving.current === task) saving.current = null; }
+                  }}
                 />
               ) : analyzer ? (
                 <Analyzer
@@ -2050,6 +2087,7 @@ export default function App() {
       )}
       {organizationPanel && (
         <OrganizationPanel
+          connectedWorkspace={shared ? workspace?.name : undefined}
           onClose={() => setOrganizationPanel(false)}
           onOpen={(w) => {
             setWorkspace(w);
@@ -2207,10 +2245,7 @@ export default function App() {
             onClick={(e) => e.stopPropagation()}
           >
             <header>
-              <div>
-                <span className="eyebrow">MAKE IT YOURS</span>
-                <h2 id="settings-title">환경 설정</h2>
-              </div>
+              <h2 id="settings-title">환경 설정</h2>
               <button
                 className="icon-button"
                 aria-label="설정 닫기"
@@ -2219,8 +2254,19 @@ export default function App() {
                 <X size={20} />
               </button>
             </header>
+            <nav className="settings-sections" aria-label="환경 설정 항목">
+              {([
+                ["general", "일반"], ["workspace", "워크스페이스"], ["xcode", "xcode 기본 연결"],
+                ["organization", "조직 연결"], ["about", "앱 정보"],
+              ] as const).filter(([id]) => id !== "xcode" || api.saveXcodeProfile).map(([id, label]) => (
+                <button type="button" key={id} aria-pressed={settingsSection === id}
+                  onClick={() => setSettingsSection(id)}>{label}</button>
+              ))}
+            </nav>
+            <div className="settings-content" key={settingsSection}>
+            {settingsSection === "xcode" && <XcodeDefaults />}
+            {settingsSection === "general" && <>
             <h3>화면 테마</h3>
-            <p>글에 집중할 수 있는 나만의 밝기를 선택하세요.</p>
             <div className="theme-options">
               {(["light", "gray", "dark", "system"] as const).map((t) => (
                 <button
@@ -2250,8 +2296,9 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <hr />
-            <h3>내 보관함</h3>
+            </>}
+            {settingsSection === "workspace" && <>
+            <h3>워크스페이스</h3>
             <p className="settings-path">
               {workspace?.root || "아직 연결된 폴더가 없습니다."}
             </p>
@@ -2266,6 +2313,10 @@ export default function App() {
                 <FolderOpen size={15} />
                 폴더 변경
               </button>
+            </div>
+            {!shared && (api.backupWorkspace || api.restoreBackupCopy) && <>
+            <h3 className="settings-subheading">백업 및 복원</h3>
+            <div className="row">
               {workspace && !shared && api.backupWorkspace && (
                 <button
                   className="button"
@@ -2305,6 +2356,9 @@ export default function App() {
                   새 폴더에 시험 복원
                 </button>
               )}
+            </div>
+            </>}
+            <h3 className="settings-subheading">가져오기</h3>
               <button
                 className="button"
                 disabled={!workspace || !isDesktop || shared}
@@ -2316,10 +2370,10 @@ export default function App() {
                 <Upload size={15} />
                 Markdown / HTML 가져오기
               </button>
-            </div>
-            <hr />
+            </>}
+            {settingsSection === "about" && <>
             <div className="license-setting">
-              <h3>앱 정보</h3>
+              <h3>xdocs · {appVersion}</h3>
               <button
                 id="license-button"
                 className="button"
@@ -2374,14 +2428,15 @@ export default function App() {
                     </button>
                   )}
                 </div>
-                <hr />
               </>
             )}
+            </>}
+            {settingsSection === "organization" && <>
             <div className="planned">
               <Building2 size={19} />
               <div>
                 <h3>조직 연결</h3>
-                <p>PostgreSQL · Redis · OIDC SSO</p>
+                <p>{shared ? workspace?.name + " · 사용 중" : "SSO로 조직 워크스페이스에 연결"}</p>
               </div>
               <button
                 className="button"
@@ -2396,9 +2451,10 @@ export default function App() {
               </button>
             </div>
             <p className="small-text">
-              개인 보관함은 업로드되지 않습니다. 조직 문서는 별도 캐시와 변경
-              대기열에 저장됩니다.
+              조직 문서는 기기의 별도 캐시와 변경 대기열에 저장됩니다.
             </p>
+            </>}
+            </div>
           </section>
         </div>
       )}

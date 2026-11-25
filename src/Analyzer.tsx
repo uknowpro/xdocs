@@ -63,6 +63,8 @@ export default function Analyzer({
 }) {
   const { mode, from, to, release, namespace, customValues } = settings;
   const category = mode === "helm-network" ? "network" : mode === "helm-upgrade" ? "upgrade" : mode;
+  const helm = mode.startsWith("helm");
+  const analysisTarget = helm ? "Helm 차트" : mode === "network" ? "프로젝트 폴더" : "Manifest";
   const edit = (key: string, value: string | boolean) =>
     onSettings({ ...settings, [key]: value });
   const [result, setResult] = useState<Report | null>(null),
@@ -72,6 +74,9 @@ export default function Analyzer({
     [findingLimit, setFindingLimit] = useState(100);
   const [previous,setPrevious]=useState<Report|null>(null);
   const readingPath = useRef("");
+  const [optionsOpen, setOptionsOpen] = useState(true);
+  const [resultInput, setResultInput] = useState<{ target: string; helm?: string }>();
+  const reportHeading = useRef<HTMLHeadingElement>(null);
   function visit(index:number) {
     setPathLimit(limit=>Math.max(limit,index+1));
     requestAnimationFrame(()=>{
@@ -105,7 +110,7 @@ export default function Analyzer({
       return JSON.stringify([identity,index]);
     }) || [];
   },[result]);
-  async function load(fn: () => Promise<unknown>, local = false) {
+  async function load(fn: () => Promise<unknown>, local = false, filename?: string) {
     setBusy(true);
     setError("");
     try {
@@ -114,10 +119,22 @@ export default function Analyzer({
         const next=analyzerReport(raw);
         setPrevious(result?.title===next.title ? result : null);
         setResult(next);
+        setResultInput({
+          target: local ? analysisTarget : filename || "분석 JSON",
+          ...(local && helm ? { helm: [release, namespace].filter(Boolean).join(" / ") } : {}),
+        });
         setLocalScan(local);
         const index=next.paths.findIndex(p=>JSON.stringify(p.nodes)===readingPath.current);
         setPathLimit(25);
-        if (index>=0) visit(index); else readingPath.current="";
+        setOptionsOpen(false);
+        if (index >= 0) visit(index);
+        else {
+          readingPath.current = "";
+          requestAnimationFrame(() => {
+            reportHeading.current?.scrollIntoView({ block: "nearest" });
+            reportHeading.current?.focus({ preventScroll: true });
+          });
+        }
         setFindingLimit(100);
       }
     } catch (e) {
@@ -128,9 +145,14 @@ export default function Analyzer({
   }
   return (
     <section className="builder-panel analyzer">
-      <h2>Analyzer</h2>
-      <fieldset disabled={busy || readonly}>
+      <header className="analyzer-header">
+        <h2>Analyzer</h2>
+        {result && <button type="button" className="button small" aria-expanded={optionsOpen}
+          onClick={() => setOptionsOpen(!optionsOpen)}>분석 옵션 {optionsOpen ? "접기" : "열기"}</button>}
+      </header>
+      <fieldset hidden={!optionsOpen} disabled={busy || readonly}>
         <legend>프로젝트 분석</legend>
+        <div className="analyzer-analysis-fields">
         <label>
           분석 종류
           <select value={category} onChange={(e) => edit("mode", e.target.value)}>
@@ -158,14 +180,17 @@ export default function Analyzer({
             />
           </label>
         )}
-        {mode !== "network" && (
+        {category !== "network" && (
           <label>
             목표 Kubernetes 버전
             <input value={to} onChange={(e) => edit("to", e.target.value)} />
           </label>
         )}
-        {mode.startsWith("helm") && (
-          <>
+        </div>
+        {helm && (
+          <details className="analyzer-helm-settings">
+            <summary>Helm 렌더링 옵션 · {release} / {namespace}</summary>
+            <div className="analyzer-analysis-fields">
             <label>
               릴리스
               <input
@@ -190,7 +215,8 @@ export default function Analyzer({
                 별도 values 파일 선택
               </span>
             </label>
-          </>
+            </div>
+          </details>
         )}
         {api.analyzeDirectory ? (
           <button
@@ -227,7 +253,7 @@ export default function Analyzer({
                   if (f.size > 8 * 1024 * 1024)
                     throw Error("8MB 이하의 보고서를 선택하세요.");
                   return JSON.parse(await f.text());
-                });
+                }, false, f.name);
             }}
           />
         </label>
@@ -235,9 +261,14 @@ export default function Analyzer({
       {error && <p role="alert">{error}</p>}
       {result && (
         <>
-          <h3>
+          <h3 ref={reportHeading} tabIndex={-1}>
             {result.title} {result.version}
           </h3>
+          {resultInput && <dl className="analysis-input" aria-label="실행 당시 분석 설정">
+            <div><dt>분석 대상</dt><dd>{resultInput.target}</dd></div>
+            {result.version && <div><dt>Kubernetes 버전</dt><dd>{result.version}</dd></div>}
+            {resultInput.helm && <div><dt>Helm 릴리스 / 네임스페이스</dt><dd>{resultInput.helm}</dd></div>}
+          </dl>}
           {previous && <details><summary>직전 분석과 변경 비교</summary>
             {(["추가","해소"] as const).map(label=>{
               const [left,right]=label==="추가"?[result,previous]:[previous,result];

@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import type { InputFile } from "./xcode-session";
+import type { InputFile, SessionSettingsDraft, SessionToken } from "./xcode-session";
 import {readQueueCounts,readComposerDraft,writeComposerDraft,readWaiting, writeWaiting, type QueuedPrompt} from "./xcode-checkpoint";
 import {fileKey,restoreFileKey,readDraftInputs,writeDraftInputs} from "./xcode-checkpoint";
 import {inspectForm,templateFiles} from "./office-form";
@@ -40,6 +40,8 @@ function createRun(scope: string, page: string) {
     submitting:false,
     steering:"",
     activeItem:"",
+    settingsDraft: undefined as SessionSettingsDraft | undefined,
+    sessionToken: { value: "", origin: "" } as SessionToken,
     loadWaiting() {
       return loading ??= Promise.all([readWaiting(queueKey),readComposerDraft(queueKey),readDraftInputs(queueKey)]).then(async([items,draft,inputs])=>{
         if (inputs && !inputsRevision) {

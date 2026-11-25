@@ -126,10 +126,14 @@ export default function SessionSettingsJson({
   );
   const input = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ReturnType<typeof parseSettings>>();
+  const changes = preview && (Object.entries(preview.settings) as [keyof Settings, Settings[keyof Settings]][])
+    .filter(([field, value]) => value !== ({ ...session, autoRetry, repeatCompleted, retrySeconds, maxAutoRequests, autoMinutes })[field]);
   const [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   function edit(text: string) {
     setDraft(text);
+    setPreview(undefined);
     setError("");
     setNotice("");
   }
@@ -144,8 +148,7 @@ export default function SessionSettingsJson({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
-    <details className="chat-json">
-      <summary>JSON 설정</summary>
+    <section className="chat-json" aria-label="JSON 설정">
       <fieldset disabled={disabled}>
         <legend>settings.json</legend>
         <label>
@@ -167,6 +170,8 @@ export default function SessionSettingsJson({
               const file = e.target.files?.[0];
               e.target.value = "";
               if (!file) return;
+              setPreview(undefined);
+              setNotice("");
               try {
                 if (file.size > maxLength)
                   throw Error("32KB 이하의 설정 파일을 사용하세요.");
@@ -186,11 +191,9 @@ export default function SessionSettingsJson({
           <button
             onClick={() => {
               try {
-                const { settings, token } = parseSettings(draft ?? current);
-                apply(settings, token);
-                setDraft(null);
+                setPreview(parseSettings(draft ?? current));
                 setError("");
-                setNotice("설정을 적용했습니다.");
+                setNotice("");
               } catch (err) {
                 const field=err instanceof Error && [...allowed].find(k=>err.message.startsWith(k+"에") || err.message.startsWith(k+"은") || err.message.startsWith(k+"는"));
                 const unknown = err instanceof Error && /^지원하지 않는 항목: (.+)$/.exec(err.message)?.[1];
@@ -200,6 +203,7 @@ export default function SessionSettingsJson({
                   const index=err && typeof err==="object" && "offset" in err && typeof err.offset==="number" ? err.offset : key ? Math.max(0,el.value.indexOf(JSON.stringify(key))) : 0;
                   el.focus();el.setSelectionRange(index,index+(key ? JSON.stringify(key).length : 1));
                 }
+                setPreview(undefined);
                 setNotice("");
                 setError(
                   err instanceof Error ? err.message : "입력을 확인하세요.",
@@ -207,18 +211,33 @@ export default function SessionSettingsJson({
               }
             }}
           >
-            JSON 적용
+            변경 사항 보기
           </button>
           <button onClick={() => edit(current)}>현재 설정 불러오기</button>
           <button onClick={saveFile}>현재 설정 내보내기</button>
         </div>
-        <small>
-          토큰은 token 항목으로 입력할 수 있습니다. 내보낸 파일에는 포함되지
-          않습니다.
-        </small>
+        {preview && <section className="json-changes" aria-label="JSON 변경 미리보기">
+          <h3>변경 사항</h3>
+          {(!changes?.length && preview.token === undefined) ? <p>변경되는 값이 없습니다.</p> : <>
+            <dl>
+              {changes?.map(([field, value]) => <div key={field}>
+                <dt>{field === "intranetHttpEndpoint" ? "allowIntranetHttp" : field}</dt>
+                <dd>{field === "intranetHttpEndpoint" ? value ? "허용" : "해제" : String(value)}</dd>
+              </div>)}
+              {preview.token !== undefined && <div><dt>token</dt><dd>{preview.token ? "••••••••" : "비우기"}</dd></div>}
+            </dl>
+            <button type="button" onClick={() => {
+              apply(preview.settings, preview.token);
+              setPreview(undefined);
+              setDraft(null);
+              setNotice("편집 중인 설정에 반영했습니다. 설정 저장을 눌러 완료하세요.");
+            }}>JSON 적용</button>
+          </>}
+        </section>}
+        <small>내보낸 설정 파일에서 토큰은 제외됩니다.</small>
         {error && <p role="alert">{error}</p>}
         {notice && <p aria-live="polite">{notice}</p>}
       </fieldset>
-    </details>
+    </section>
   );
 }
