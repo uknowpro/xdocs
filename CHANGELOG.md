@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.33
+
+- Allow explicitly approved intranet HTTP endpoints per xcode session and complete OpenAI-compatible `/v1` base URLs automatically.
+
 ## 0.5.32
 
 - Use the operating system’s proxy settings for xcode requests and clarify proxy, certificate, and redirect errors.

@@ -16,7 +16,7 @@ import {
 } from "../shared/architecture-catalog.mjs";
 import { parseTerraformFiles } from "../desktop/architecture-reader.mjs";
 import { generateArchitecture } from "../shared/architecture.mjs";
-import { runBuilderModel } from "../desktop/builder-model.mjs";
+import { allowedChatEndpoint, chatCompletionsEndpoint, runBuilderModel, sameChatEndpoint } from "../desktop/builder-model.mjs";
 import { builderResources } from "../desktop/builder-mcp.mjs";
 test("custom harness and cell evidence survive file round trip", () => {
   const config = newBuilder();
@@ -307,6 +307,19 @@ test("dependent steps preserve row numbers and stop when empty", () => {
   );
 });
 
+test("xcode completes a v1 base path while preserving security checks and full API paths", () => {
+  assert.equal(chatCompletionsEndpoint("https://example.invalid/team/v1/").href, "https://example.invalid/team/v1/chat/completions");
+  assert.equal(chatCompletionsEndpoint("https://example.invalid/team/v1/chat/completions").href, "https://example.invalid/team/v1/chat/completions");
+  assert.equal(chatCompletionsEndpoint("https://example.invalid/team/custom/chat").href, "https://example.invalid/team/custom/chat");
+  const intranet = "http://models.intranet.invalid/team/v1";
+  const allowed = intranet + "/chat/completions";
+  assert.throws(() => allowedChatEndpoint(intranet), /사내 HTTP 연결을 허용/);
+  assert.equal(allowedChatEndpoint(intranet + "/", allowed).href, allowed);
+  assert.throws(() => allowedChatEndpoint(intranet, "http://models.intranet.invalid/other/v1/chat/completions"), /사내 HTTP 연결을 허용/);
+  assert.throws(() => allowedChatEndpoint(intranet.replace("models.", "other."), allowed), /사내 HTTP 연결을 허용/);
+  assert.throws(() => chatCompletionsEndpoint("https://example.invalid/v1?keep=false"));
+});
+
 test("model profiles scope stored secrets to the endpoint and model and return metadata only", async () => {
   const { modelProfiles } = await import("../desktop/builder-profiles.mjs");
   const { mkdtemp, rm } = await import("node:fs/promises");
@@ -337,6 +350,16 @@ test("model profiles scope stored secrets to the endpoint and model and return m
       await profiles.keyFor("local", "https://other.invalid/api", "sample"),
       "",
     );
+    const alias = "http://localhost:8000/v1/";
+    assert.equal(await profiles.keyFor("local", alias, "sample"), "");
+    assert.equal(await profiles.keyFor("local", alias, "sample", sameChatEndpoint), "test-only");
+    assert.equal(await profiles.keyFor("local", alias, "other", sameChatEndpoint), "");
+    assert.equal(await profiles.keyFor("local", "http://localhost:8001/v1", "sample", sameChatEndpoint), "");
+    const intranet = { ...profile, name: "intranet", endpoint: "http://models.intranet.invalid/v1" };
+    await assert.rejects(profiles.save(intranet), /HTTPS 또는 로컬 HTTP/);
+    await profiles.save(intranet, endpoint =>
+      allowedChatEndpoint(endpoint, intranet.endpoint + "/chat/completions"));
+    assert.equal(await profiles.keyFor("intranet", intranet.endpoint, "sample", sameChatEndpoint), "test-only");
     await profiles.save({ ...profile, key: "", remember: false });
     assert.equal(
       await profiles.keyFor("local", profile.endpoint, "sample"),

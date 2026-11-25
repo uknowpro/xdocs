@@ -1,4 +1,4 @@
-import { builderEndpoint } from "./builder-model.mjs";
+import { allowedChatEndpoint } from "./builder-model.mjs";
 import { readFile, readdir, lstat } from "node:fs/promises";
 import path from "node:path";
 import { parse } from "yaml";
@@ -57,12 +57,12 @@ function connectionMessage(error, signal) {
 }
 
 export async function streamChat(
-  { endpoint, model, key, messages, effort },
+  { endpoint, intranetHttpEndpoint, model, key, messages, effort },
   signal,
   onText,
   fetchResponse = fetch,
 ) {
-  const url = builderEndpoint(endpoint);
+  const url = allowedChatEndpoint(endpoint, intranetHttpEndpoint);
   if (!model?.trim() || !Array.isArray(messages) || !messages.length)
     throw Error("모델 ID와 메시지를 확인하세요.");
   if (effort && !["low", "medium", "high", "xhigh", "max"].includes(effort))

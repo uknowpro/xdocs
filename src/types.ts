@@ -72,6 +72,14 @@ export type ModelProfile = {
   model: string;
   hasKey: boolean;
 };
+type ModelProfileInput = {
+  name: string;
+  endpoint: string;
+  model: string;
+  key: string;
+  remember: boolean;
+};
+
 export interface NoteAPI {
   analyzerSource?(source: {session:string; file:string}): Promise<string>;
   analyzerNotices?(): Promise<{ name: string; text: string }[]>;
@@ -81,8 +89,9 @@ export interface NoteAPI {
   backupWorkspace?():Promise<{folder:string;count:number}|null>;
   xcodeAppend?(data:{scope:string;page:string;turn:unknown}):Promise<Note>;
   xcodeSkills?():Promise<{scope:string;name:string;instruction:string}[]>;
-  xcodeAuthorize?(endpoint:string):Promise<boolean>;
-  xcodeChat?(request:{id:string;profile:string;endpoint:string;model:string;key:string;effort?:string;messages:unknown[]}):Promise<string>;
+  xcodeAuthorize?(endpoint:string,intranetHttpEndpoint?:string):Promise<boolean>;
+  saveXcodeProfile?(data: ModelProfileInput & { intranetHttpEndpoint?: string }): Promise<ModelProfile[]>;
+  xcodeChat?(request:{id:string;profile:string;endpoint:string;intranetHttpEndpoint?:string;model:string;key:string;effort?:string;messages:unknown[]}):Promise<string>;
   xcodeCancel?(id:string):Promise<void>;
   onXcodeDelta?(callback:(chunk:{id:string;token:string})=>void):()=>void;
   saveOfficeCopy?(data:{filename:string;bytes:Uint8Array}):Promise<{filename:string;savedAt:string}|null>;
@@ -92,13 +101,7 @@ export interface NoteAPI {
   wordCapture?():Promise<{handle:string;name:string;text:string}|null>;
   wordPropose?(handle:string,text:string):Promise<void>;
   builderProfiles?(): Promise<ModelProfile[]>;
-  saveBuilderProfile?(data: {
-    name: string;
-    endpoint: string;
-    model: string;
-    key: string;
-    remember: boolean;
-  }): Promise<ModelProfile[]>;
+  saveBuilderProfile?(data: ModelProfileInput): Promise<ModelProfile[]>;
   builderResources?(request: {
     endpoint: string;
     uri?: string;

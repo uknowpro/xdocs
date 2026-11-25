@@ -113,10 +113,22 @@ try {
     /주소를 먼저 확인/,
   );
   assert.equal(calls.length, 0);
-  const unavailable = createServer();
-  await new Promise((resolve) => unavailable.listen(0, "127.0.0.1", resolve));
-  const proxyTarget = "http://127.0.0.1:" + unavailable.address().port + "/v1/chat/completions";
-  await new Promise((resolve) => unavailable.close(resolve));
+  const proxyBase = "http://models.intranet.invalid/gateway/v1/";
+  const proxyTarget = proxyBase + "chat/completions";
+  await assert.rejects(page.evaluate(address => window.xdocs.xcodeAuthorize(address), proxyBase), /사내 HTTP 연결을 허용/);
+  await assert.rejects(
+    page.evaluate(({ base, approved }) => window.xdocs.xcodeAuthorize(base.replace("/gateway/", "/other/"), approved),
+      { base: proxyBase, approved: proxyTarget }),
+    /사내 HTTP 연결을 허용/,
+  );
+  await app.evaluate(({ dialog }, expected) => {
+    const show = dialog.showMessageBox;
+    dialog.showMessageBox = async (window, options) => {
+      if (options.detail.startsWith(expected) && !options.detail.includes("HTTP 평문"))
+        throw Error("Missing plaintext notice for the HTTP address");
+      return show(window, options);
+    };
+  }, proxyTarget);
   await app.evaluate(async ({ session }, { proxyPort, proxyTarget }) => {
     const browser = session.defaultSession;
     await browser.cookies.set({ url: proxyTarget, name: "ambient", value: "test" });
@@ -127,16 +139,26 @@ try {
     });
   }, { proxyPort: server.address().port, proxyTarget });
   try {
-    assert.equal(await page.evaluate((address) => window.xdocs.xcodeAuthorize(address), proxyTarget), true);
+    const proxySettings = { endpoint: proxyBase, intranetHttpEndpoint: proxyTarget };
+    assert.equal(await page.evaluate(({ endpoint, intranetHttpEndpoint }) =>
+      window.xdocs.xcodeAuthorize(endpoint, intranetHttpEndpoint), proxySettings), true);
+    await assert.rejects(
+      page.evaluate(endpoint => window.xdocs.xcodeChat({
+        id: "proxy-unapproved", endpoint, model: "test",
+        messages: [{ role: "user", content: "should stay local" }],
+      }), proxyBase),
+      /사내 HTTP 연결을 허용/,
+    );
+    assert.equal(calls.length, 0);
     const answer = await page.evaluate(
-      (address) => window.xdocs.xcodeChat({
+      (settings) => window.xdocs.xcodeChat({
         id: "proxy-check",
-        endpoint: address,
+        ...settings,
         model: "test",
         key: "proxy-test-token",
         messages: [{ role: "user", content: "proxy check" }],
       }),
-      proxyTarget,
+      proxySettings,
     );
     assert.equal(answer, "검토 결과 complete");
     assert.equal(lastRequestUrl, proxyTarget);
@@ -153,7 +175,23 @@ try {
   await page.getByRole("button", { name: "새로 만들기", exact: true }).click();
   await page.getByRole("button", { name: "xcode 세션 만들기" }).click();
   await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
-  await page.getByLabel("API 주소").fill(endpoint);
+  const apiAddress = page.getByLabel("API 주소");
+  const permitHttp = page.getByRole("checkbox", { name: "사내 HTTP 연결 허용", exact: true });
+  await apiAddress.fill(proxyBase);
+  await expect(permitHttp).not.toBeChecked();
+  await page.getByLabel("xcode 메시지").fill("draft before HTTP permission");
+  await page.getByRole("button", { name: "전송", exact: true }).click();
+  await expect(page.locator(".xcode [role=alert]")).toContainText("사내 HTTP 연결을 허용");
+  await expect(page.getByLabel("xcode 메시지")).toHaveValue("draft before HTTP permission");
+  await permitHttp.check();
+  await apiAddress.fill(proxyTarget);
+  await expect(permitHttp).toBeChecked();
+  await apiAddress.fill(proxyBase.replace("/gateway/", "/another/"));
+  await expect(permitHttp).not.toBeChecked();
+  assert.equal(calls.length, 0);
+  const baseAddress = endpoint.replace(/\/chat\/completions$/, "");
+  await page.getByLabel("API 주소").fill(baseAddress);
+  await expect(page.getByText("실제 요청 주소 · " + endpoint, { exact: true })).toBeVisible();
   const draft = page.getByLabel("xcode 메시지");
   await draft.fill("작성 중인 메시지");
   await page.getByRole("button",{name:"설정 저장",exact:true}).click();
@@ -162,7 +200,7 @@ try {
   await expect(draft).toHaveValue("작성 중인 메시지");
   assert.equal(calls.length, 0);
   await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
-  await expect(page.getByLabel("API 주소")).toHaveValue(endpoint);
+  await expect(page.getByLabel("API 주소")).toHaveValue(baseAddress);
   await expect(page.getByLabel("API 토큰 (선택)")).toBeVisible();
   await expect(page.getByLabel("모델명", { exact: true })).toBeVisible();
   await expect(page.getByLabel("재요청 간격(초)")).toBeHidden();
@@ -174,6 +212,13 @@ try {
   await page.getByText("JSON 설정", { exact: true }).click();
   const editor = page.getByLabel("설정 JSON", { exact: true });
   const applyJson = page.getByRole("button", { name: "JSON 적용" });
+  const intranetJson = { endpoint: proxyBase, model: "test-model" };
+  await editor.fill(JSON.stringify(intranetJson));
+  await applyJson.click();
+  await expect(page.locator(".chat-json [role=alert]")).toContainText("allowIntranetHttp");
+  await editor.fill(JSON.stringify({ ...intranetJson, allowIntranetHttp: true }));
+  await applyJson.click();
+  await expect(permitHttp).toBeChecked();
   await editor.fill(
     JSON.stringify({ endpoint, model: "invalid-change", retrySeconds: 0 }),
   );

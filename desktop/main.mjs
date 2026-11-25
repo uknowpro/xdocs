@@ -7,7 +7,7 @@ import { readAnalyzerSource } from "./analyzer-source.mjs";
 import { analyzeDirectory } from "./analyzer.mjs";
 import {modelProfiles} from "./builder-profiles.mjs";
 import {builderResources} from "./builder-mcp.mjs";
-import {builderEndpoint,runBuilderModel} from "./builder-model.mjs";
+import { allowedChatEndpoint, isRemoteHttpEndpoint, sameChatEndpoint, runBuilderModel } from "./builder-model.mjs";
 import { templates, workflowNodes } from "../shared/workflows.mjs";
 import { importArchitecture } from "./architecture-import.mjs";
 import {
@@ -494,13 +494,18 @@ app.whenReady().then(async () => {
     return choice.canceled ? null : word.capture(choice.filePaths[0]);
   });
   register("word:propose",(handle,text) => word.propose(handle,text));
-  register("xcode:authorize", async endpoint => {
-    const address = builderEndpoint(endpoint).href;
+  register("xcode:authorize", async (endpoint, intranetHttpEndpoint) => {
+    const url = allowedChatEndpoint(endpoint, intranetHttpEndpoint);
+    const address = url.href;
+    const plainHttp = isRemoteHttpEndpoint(url);
     if (trustedEndpoints.has(address)) return true;
     const {response} = await dialog.showMessageBox(window, {
-      type: "question", buttons: ["취소", "이 주소 허용"], defaultId: 0, cancelId: 0,
+      type: "question", buttons: ["취소", plainHttp ? "HTTP로 전송 허용" : "이 주소 허용"], defaultId: 0, cancelId: 0,
       message: "이 서버로 세션 내용을 전송할까요?",
-      detail: address + "\n\n대화 기록, 선택한 첨부와 스킬, 설정한 API 키를 전송합니다. 이 허용은 앱을 종료할 때까지 유지됩니다."
+      detail: address + (plainHttp
+        ? "\n\nAPI 토큰, 대화 기록, 선택한 첨부와 스킬이 HTTP 평문으로 전송됩니다. 신뢰하는 사내망에서만 허용하세요."
+        : "\n\n대화 기록, 선택한 첨부와 스킬, 설정한 API 키를 전송합니다.") +
+        "\n이 허용은 앱을 종료할 때까지 유지됩니다."
     });
     if (response === 1) trustedEndpoints.add(address);
     return response === 1;
@@ -535,16 +540,18 @@ app.whenReady().then(async () => {
   register("xcode:cancel",id=>chats.get(id)?.abort());
   register("xcode:chat",async ({id,profile,...request})=>{
     if(typeof id !== "string" || chats.has(id)) throw Error("중복된 세션 요청입니다.");
-    if (!trustedEndpoints.has(builderEndpoint(request.endpoint).href))
+    if (!trustedEndpoints.has(allowedChatEndpoint(request.endpoint, request.intranetHttpEndpoint).href))
       throw Error("모델 서버 주소를 먼저 확인하세요.");
     const controller=new AbortController(); chats.set(id,controller);
     try {
-      const key=request.key || await profiles.keyFor(profile,request.endpoint,request.model);
+      const key=request.key || await profiles.keyFor(profile, request.endpoint, request.model, sameChatEndpoint);
       return await streamChat({...request,key},AbortSignal.any([controller.signal,AbortSignal.timeout(600000)]),
         token=>{if(window && !window.isDestroyed()) window.webContents.send("xcode:delta",{id,token});},
         net.fetch);
     } finally {chats.delete(id);}
   });
+  register("xcode:profile-save", data =>
+    profiles.save(data, endpoint => allowedChatEndpoint(endpoint, data.intranetHttpEndpoint)));
   register("builder:profiles",()=>profiles.list());
   register("builder:profile-save",data=>profiles.save(data));
   register("builder:model",async request=>{

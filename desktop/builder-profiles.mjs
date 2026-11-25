@@ -33,9 +33,12 @@ export function modelProfiles(directory, storage) {
       await queue;
       return summary(await read());
     },
-    save({ name, endpoint, model, key, remember }) {
+    save(
+      { name, endpoint, model, key, remember },
+      validateEndpoint = builderEndpoint,
+    ) {
       const action = queue.then(async () => {
-        builderEndpoint(endpoint);
+        validateEndpoint(endpoint);
         if (
           typeof name !== "string" ||
           !name.trim() ||
@@ -61,11 +64,19 @@ export function modelProfiles(directory, storage) {
       queue = action.catch(() => {});
       return action;
     },
-    async keyFor(name, endpoint, model) {
+    async keyFor(
+      name,
+      endpoint,
+      model,
+      matchesEndpoint = (first, second) => first === second,
+    ) {
       if (!name) return "";
       await queue;
       const item = (await read()).find(
-        (p) => p.name === name && p.endpoint === endpoint && p.model === model,
+        (p) =>
+          p.name === name &&
+          p.model === model &&
+          matchesEndpoint(p.endpoint, endpoint),
       );
       if (!item?.secret) return "";
       if (!canStore()) throw Error("운영체제 키 저장소를 열 수 없습니다.");

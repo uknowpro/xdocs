@@ -1,3 +1,4 @@
+import { chatCompletionsEndpoint, isRemoteHttpEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
 import WorkspaceMaterial,{type MaterialAction} from "./WorkspaceMaterial";
 import type {WorkspaceAccess} from "./workspace-input";
 import { usePaneHeight } from "./usePaneHeight";
@@ -29,6 +30,7 @@ import {
 import { sessionRun, waitForRetry } from "./xcode-run";
 import {
   useEffect,
+  useId,
   useRef,
   useMemo,
   useSyncExternalStore,
@@ -133,6 +135,17 @@ export default function Xcode({
   const [editingItem,setEditingItem] = useState("");
   const [editedPrompt,setEditedPrompt] = useState("");
   const origin = serverOrigin(s.endpoint);
+  const requestEndpoint = useMemo(() => {
+    try {
+      return chatCompletionsEndpoint(s.endpoint);
+    } catch {
+      return undefined;
+    }
+  }, [s.endpoint]);
+  const requestAddress = requestEndpoint?.href || "";
+  const remoteHttp = Boolean(requestEndpoint && isRemoteHttpEndpoint(requestEndpoint));
+  const httpNeedsApproval = remoteHttp && s.intranetHttpEndpoint !== requestAddress;
+  const httpNotice = useId();
   const capacity = useCapacity(origin);
   const start = Math.max(
     0,
@@ -208,7 +221,10 @@ export default function Xcode({
   const [settingsSave, setSettingsSave] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const config = (patch: Partial<Session>) => {
     setSettingsSave("idle");
-    change({ ...s, ...patch });
+    const next = { ...s, ...patch };
+    if ("endpoint" in patch && !("intranetHttpEndpoint" in patch) && !sameChatEndpoint(s.endpoint, next.endpoint))
+      delete next.intranetHttpEndpoint;
+    change(next);
   };
   const workbench = useRef<HTMLDivElement>(null);
   usePaneHeight(workbench);
@@ -234,17 +250,17 @@ export default function Xcode({
     }
   }
   const linkedProfile = profiles.find(p => p.name === s.profile);
-  const savedProfile = linkedProfile?.endpoint === s.endpoint && linkedProfile.model === s.model ? linkedProfile : undefined;
+  const savedProfile = linkedProfile && linkedProfile.model === s.model && sameChatEndpoint(linkedProfile.endpoint, s.endpoint) ? linkedProfile : undefined;
   async function rememberToken() {
-    if (!api.saveBuilderProfile || !key || !origin || tokenNeedsApproval || savingKey) return;
+    if (!api.saveXcodeProfile || !key || !origin || tokenNeedsApproval || httpNeedsApproval || savingKey) return;
     setSavingKey(true);
     try {
       const name = (s.model.trim().slice(0,50) || "xcode") + " · " + crypto.randomUUID();
-      const next = await api.saveBuilderProfile({name,endpoint:s.endpoint,model:s.model,key,remember:true});
+      const next = await api.saveXcodeProfile({name,endpoint:s.endpoint,model:s.model,key,remember:true,intranetHttpEndpoint:s.intranetHttpEndpoint});
       if (!mounted.current) return;
       setProfiles(next);
       const latest = currentConnection.current;
-      if (latest.session.endpoint === s.endpoint && latest.session.model === s.model && latest.key === key) {
+      if (sameChatEndpoint(latest.session.endpoint, s.endpoint) && latest.session.model === s.model && latest.key === key) {
         latest.change({...latest.session,profile:name});
         setKey("");
       }
@@ -255,6 +271,11 @@ export default function Xcode({
     }
   }
   function tokenReady() {
+    if (httpNeedsApproval) {
+      setShowSettings(true);
+      setError("세션 설정에서 이 주소의 사내 HTTP 연결을 허용하세요.");
+      return false;
+    }
     if (!tokenNeedsApproval && !savingKey) return true;
     setShowSettings(true);
     setError(savingKey ? "토큰을 저장하고 있습니다." : "변경한 서버에서 입력한 토큰을 사용할지 선택하세요.");
@@ -308,7 +329,7 @@ export default function Xcode({
     run.patch({ busy: true, phase: "연결 진단", error: "" });
     setReport("");
     try {
-      if (!(await api.xcodeAuthorize?.(s.endpoint)))
+      if (!(await api.xcodeAuthorize?.(s.endpoint, s.intranetHttpEndpoint)))
         throw Error("서버 전송을 취소했습니다.");
       release = await acquireServer(origin, controller.signal);
       controller.signal.throwIfAborted();
@@ -316,6 +337,7 @@ export default function Xcode({
         id,
         profile: s.profile,
         endpoint: s.endpoint,
+        intranetHttpEndpoint: s.intranetHttpEndpoint,
         model: s.model,
         key,
         messages: [{ role: "user", content: diagnosticInput(probe) }],
@@ -397,7 +419,7 @@ export default function Xcode({
   const visibleQueue = waiting.filter(item => item.id !== run.activeItem);
   const interrupted = !busy && (run.snapshot().failedInput || recovery);
   const interruptedId = interrupted ? interrupted.id : undefined;
-  const targetChanged = (item:QueuedPrompt) => item.model !== s.model || item.endpoint !== s.endpoint;
+  const targetChanged = (item:QueuedPrompt) => item.model !== s.model || !sameChatEndpoint(item.endpoint, s.endpoint);
   async function moveWaiting(id:string, direction:number) {
     await run.updateWaiting(items => {
       const index = items.findIndex(item => item.id === id);
@@ -417,7 +439,7 @@ export default function Xcode({
     if (!interrupted || readonly || run.snapshot().busy) return;
     const item = waiting.find(entry => entry.id === interrupted.id) || run.snapshot().failedInput;
     if (item && targetChanged(item)) {setError("먼저 이 메시지의 모델과 서버 주소를 확인하세요.");return;}
-    const saved = recovery?.id === interrupted.id && recovery.model === s.model && recovery.endpoint === s.endpoint && (!item || (item.prompt === recovery.prompt && checkpointMatches(item,recovery))) ? recovery : undefined;
+    const saved = recovery?.id === interrupted.id && recovery.model === s.model && sameChatEndpoint(recovery.endpoint, s.endpoint) && (!item || (item.prompt === recovery.prompt && checkpointMatches(item,recovery))) ? recovery : undefined;
     if (saved || item) await send(saved,item);
     else if (recovery) await send(recovery);
   }
@@ -447,7 +469,7 @@ export default function Xcode({
     const saved=local ? await loadCheckpoint(checkpointKey) : undefined;
     if (run.snapshot().busy || run.snapshot().waiting[0]?.id!==queued.id) return;
     run.patch({queuePaused:false});
-    if (saved?.id===queued.id && saved.prompt===queued.prompt && saved.model===queued.model && saved.endpoint===queued.endpoint && checkpointMatches(queued,saved) && !s.turns.some(t=>t.runId===queued.id))
+    if (saved?.id===queued.id && saved.prompt===queued.prompt && saved.model===queued.model && sameChatEndpoint(saved.endpoint, queued.endpoint) && checkpointMatches(queued,saved) && !s.turns.some(t=>t.runId===queued.id))
       await send(saved,queued);
     else await drain(s);
   }
@@ -484,7 +506,7 @@ export default function Xcode({
       await run.updateWaiting(items=>items.filter(i=>i.id!==item.id));
       return drain(session);
     }
-    if (item.endpoint!==session.endpoint || item.model!==session.model) {
+    if (!sameChatEndpoint(item.endpoint, session.endpoint) || item.model!==session.model) {
       run.patch({queuePaused:true,error:"대기 메시지를 추가할 때의 API 주소와 모델을 확인하세요."});
       return;
     }
@@ -522,7 +544,7 @@ export default function Xcode({
         }
       : item ? {...initialExecution,model:s.model,harness:s.harness.name,skills:selectedSkills.map(k=>k.name),
         configuration:{...s.harness,skills:selectedSkills}} : initialExecution;
-    if (saved && (s.model !== saved.model || s.endpoint !== saved.endpoint)) {
+    if (saved && (s.model !== saved.model || !sameChatEndpoint(s.endpoint, saved.endpoint))) {
       setError("복구하려면 저장 당시 모델과 서버 주소를 선택하세요.");
       return;
     }
@@ -571,7 +593,7 @@ export default function Xcode({
       if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
       if (!s.harness.stages.every((i) => i.trim()))
         throw Error("빈 단계에 지침을 입력하세요.");
-      if (!(await api.xcodeAuthorize?.(s.endpoint)))
+      if (!(await api.xcodeAuthorize?.(s.endpoint, s.intranetHttpEndpoint)))
         throw Error("모델 서버 전송을 취소했습니다.");
       if (run.id !== id) throw Error("요청을 중지했습니다.");
       const history: unknown[] = [];
@@ -761,6 +783,7 @@ export default function Xcode({
               key,
               profile: s.profile,
               endpoint: s.endpoint,
+              intranetHttpEndpoint: s.intranetHttpEndpoint,
               model: s.model,
               effort: effort === "server" ? undefined : effort,
               messages: requestMessages,
@@ -999,7 +1022,23 @@ export default function Xcode({
               value={s.endpoint}
               onChange={e => config({endpoint:e.target.value})}
             />
+            {requestAddress && requestAddress !== s.endpoint.trim() && (
+              <small>실제 요청 주소 · {requestAddress}</small>
+            )}
           </label>
+          {remoteHttp && (
+            <label>
+              <span>
+                <input type="checkbox" aria-label="사내 HTTP 연결 허용" aria-describedby={httpNotice} checked={!httpNeedsApproval}
+                  onChange={(event) => {
+                    config({ intranetHttpEndpoint: event.target.checked ? requestAddress : undefined });
+                    setError("");
+                  }} />{" "}
+                사내 HTTP 연결 허용
+              </span>
+              <small id={httpNotice}>이 주소로 보내는 토큰과 대화 내용은 평문으로 전송됩니다.</small>
+            </label>
+          )}
           <label>
             API 토큰 (선택)
             <input
@@ -1021,7 +1060,7 @@ export default function Xcode({
             {tokenNeedsApproval && origin && <button type="button" onClick={() => {setKey(key);setError("");}}>
               {origin}에서 이 토큰 사용
             </button>}
-            {key && api.saveBuilderProfile && <button type="button" disabled={tokenNeedsApproval || !origin || !s.model.trim()} onClick={() => void rememberToken()}>
+            {key && api.saveXcodeProfile && <button type="button" disabled={tokenNeedsApproval || httpNeedsApproval || !origin || !s.model.trim()} onClick={() => void rememberToken()}>
               이 기기에 토큰 저장
             </button>}
             <small>{key ? "입력한 토큰은 현재 화면에서만 유지됩니다." : savedProfile?.hasKey ? "이 기기에 저장된 토큰을 사용합니다." : linkedProfile?.hasKey ? "저장된 토큰은 원래 API 주소와 모델명으로 돌아가면 다시 사용됩니다." : "서버 인증이 필요하면 토큰을 입력하세요."}</small>

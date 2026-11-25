@@ -190,6 +190,7 @@ export type Turn = {
 };
 export type Session = {
   endpoint: string;
+  intranetHttpEndpoint?: string;
   model: string;
   profile: string;
   harness: Harness;

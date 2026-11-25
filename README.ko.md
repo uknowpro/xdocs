@@ -4,9 +4,9 @@
 
 **생각을 쓰고, 지식을 연결하는 로컬 노트 앱.**
 
-Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.32 개발용 프리릴리스**입니다.
+Markdown 파일은 내 폴더에, 검색·연결 정보는 SQLite에 저장합니다. 로그인 없이 오프라인에서 사용할 수 있습니다. 현재는 **v0.5.33 개발용 프리릴리스**입니다.
 
-[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.32) · Ubuntu, macOS, Windows용입니다. Windows 설치 파일은 서명되지 않았으며 macOS 빌드는 공증되지 않았습니다.
+[설치 파일 다운로드](https://github.com/uknowpro/xdocs/releases/tag/v0.5.33) · Ubuntu, macOS, Windows용입니다. Windows 설치 파일은 서명되지 않았으며 macOS 빌드는 공증되지 않았습니다.
 
 ![xcode 세션에서 이중 AZ 네트워크를 검토하는 예시](docs/images/xcode-chat.png)
 

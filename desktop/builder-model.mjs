@@ -1,22 +1,61 @@
 // Connection details live only for the duration of the user's request.
-export function builderEndpoint(endpoint) {
+function parseModelEndpoint(endpoint) {
   let url;
   try {
     url = new URL(endpoint);
   } catch {
     throw Error("세션 설정에서 Chat Completions의 전체 API 주소를 확인하세요.");
   }
-  const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
   if (
-    (url.protocol !== "https:" && !(loopback && url.protocol === "http:")) ||
+    !["https:", "http:"].includes(url.protocol) ||
     url.username ||
     url.password ||
     url.search ||
     url.hash
   )
+    throw Error("올바른 HTTP 또는 HTTPS API 주소를 입력하세요.");
+  return url;
+}
+
+export function isRemoteHttpEndpoint(url) {
+  return (
+    url.protocol === "http:" &&
+    !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+  );
+}
+
+export function builderEndpoint(endpoint) {
+  const url = parseModelEndpoint(endpoint);
+  if (isRemoteHttpEndpoint(url))
     throw Error("HTTPS 또는 로컬 HTTP 모델 주소를 입력하세요.");
   return url;
 }
+export function chatCompletionsEndpoint(endpoint) {
+  const url = parseModelEndpoint(endpoint);
+  if (/\/v1\/?$/.test(url.pathname))
+    url.pathname = url.pathname.replace(/\/$/, "") + "/chat/completions";
+  return url;
+}
+
+export function allowedChatEndpoint(endpoint, intranetHttpEndpoint) {
+  const url = chatCompletionsEndpoint(endpoint);
+  if (isRemoteHttpEndpoint(url) && url.href !== intranetHttpEndpoint)
+    throw Error("세션 설정에서 이 주소의 사내 HTTP 연결을 허용하세요.");
+  return url;
+}
+
+export function sameChatEndpoint(first, second) {
+  if (first === second) return true;
+  try {
+    return (
+      chatCompletionsEndpoint(first).href ===
+      chatCompletionsEndpoint(second).href
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function runBuilderModel({ endpoint, model, key, prompt }) {
   const url = builderEndpoint(endpoint);
   if (

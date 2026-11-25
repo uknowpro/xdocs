@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import type { Session } from "./xcode-session";
-import { builderEndpoint } from "../desktop/builder-model.mjs";
+import { chatCompletionsEndpoint, isRemoteHttpEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
 
 type Settings = Pick<
   Session,
   | "endpoint"
   | "model"
+  | "intranetHttpEndpoint"
   | "autoRetry"
   | "repeatCompleted"
   | "retrySeconds"
@@ -22,6 +23,7 @@ const allowed = new Set([
   "endpoint",
   "model",
   "token",
+  "allowIntranetHttp",
   ...flags,
   ...Object.keys(ranges),
 ]);
@@ -43,22 +45,28 @@ function parseSettings(text: string) {
     throw Error("설정을 JSON 객체로 입력하세요.");
   for (const field of Object.keys(value))
     if (!allowed.has(field)) throw Error("지원하지 않는 항목: " + field);
+  let endpoint;
   try {
     if (typeof value.endpoint !== "string" || !value.endpoint.trim())
       throw Error();
-    builderEndpoint(value.endpoint.trim());
+    endpoint = chatCompletionsEndpoint(value.endpoint.trim());
   } catch {
     throw Error(
-      "endpoint에 HTTPS 또는 로컬 HTTP Chat Completions 전체 주소를 입력하세요.",
+      "endpoint에 HTTP 또는 HTTPS API 주소(/v1 기본 주소 또는 Chat Completions 전체 주소)를 입력하세요.",
     );
   }
   if (typeof value.model !== "string" || !value.model.trim())
     throw Error("model에 서버가 제공하는 모델명을 입력하세요.");
   if (value.token !== undefined && typeof value.token !== "string")
     throw Error("token은 문자열이어야 합니다.");
+  if (value.allowIntranetHttp !== undefined && typeof value.allowIntranetHttp !== "boolean")
+    throw Error("allowIntranetHttp에는 true 또는 false를 입력하세요.");
+  if (isRemoteHttpEndpoint(endpoint) && value.allowIntranetHttp !== true)
+    throw Error("allowIntranetHttp에 true를 입력해 이 사내 HTTP 주소를 허용하세요.");
   const settings: Settings = {
     endpoint: value.endpoint.trim(),
     model: value.model.trim(),
+    intranetHttpEndpoint: isRemoteHttpEndpoint(endpoint) ? endpoint.href : undefined,
   };
   for (const field of flags) {
     if (!(field in value)) continue;
@@ -104,6 +112,9 @@ export default function SessionSettingsJson({
     {
       endpoint,
       model,
+      ...(session.intranetHttpEndpoint && sameChatEndpoint(endpoint, session.intranetHttpEndpoint)
+        ? { allowIntranetHttp: true }
+        : {}),
       autoRetry,
       repeatCompleted,
       retrySeconds,
