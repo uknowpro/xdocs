@@ -51,6 +51,7 @@ try {
   const index = await readFile(path.join(vault, ".xdocs", "index.sqlite"));
   assert.equal(index.subarray(0, 15).toString(), "SQLite format 3");
   await page.getByRole("button", { name: "새 노트", exact: true }).click();
+  await page.locator(".page-row.current").getByRole("button", { name: "새 노트", exact: true }).waitFor();
   await page.getByRole("button",{name:"Markdown 원문",exact:true}).click();
   await page
     .getByRole("textbox", { name: "노트 본문" })
@@ -100,6 +101,7 @@ try {
     .getByRole("button", { name: "환경 설정", exact: true })
     .first()
     .click();
+  await page.getByRole("button", { name: "앱 정보", exact: true }).click();
   await page
     .getByRole("button", { name: "라이선스 정보", exact: true })
     .click();

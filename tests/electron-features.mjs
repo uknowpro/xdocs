@@ -55,6 +55,7 @@ try {
     });
   }, imported);
   await page.getByRole("button", { name: "환경 설정", exact: true }).click();
+  await page.getByRole("navigation", { name: "환경 설정 항목" }).getByRole("button", { name: "워크스페이스", exact: true }).click();
   await page
     .getByRole("button", { name: "Markdown / HTML 가져오기", exact: true })
     .click();
