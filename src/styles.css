@@ -2821,7 +2821,7 @@ textarea {
 .analyzer-evidence button { overflow-wrap: anywhere; text-align: start; }
 .analyzer-evidence pre { position: relative; max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
 
-.xcode { display: grid; gap: 16px; min-width: 0; }
+.xcode { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
 .xcode fieldset { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; min-width: 0; }
 .xcode fieldset label { display: grid; gap: 6px; flex: 1 1 200px; min-width: 0; }
 .xcode input, .xcode select, .xcode textarea { max-width: 100%; color: var(--ink); background: var(--bg); }
@@ -3328,7 +3328,7 @@ textarea {
 .application-history-group > .application-row,.application-history-group > details {margin-inline-start:10px;}
 .review-output {padding:7px;border:1px solid var(--line);border-radius:6px;}
 
-  .chat-layout { display: grid; min-width: 0; gap: 8px 16px; align-items: start; }
+  .chat-layout { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 8px 16px; align-items: start; }
   .xcode .chat-settings-panel {
     min-width: 0;
     border: 1px solid var(--line);
