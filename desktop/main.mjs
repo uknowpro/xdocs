@@ -168,6 +168,7 @@ function exportHtml(note) {
 app.whenReady().then(async () => {
   if (process.env.XDOCS_TEST_DATA)
     app.setPath("userData", process.env.XDOCS_TEST_DATA);
+  const useTitleBarOverlay = process.platform === "win32";
   window = new BrowserWindow({
     width: 1400,
     height: 920,
@@ -175,6 +176,10 @@ app.whenReady().then(async () => {
     minHeight: 600,
     backgroundColor: "#fafafa",
     title: "xdocs",
+    ...(useTitleBarOverlay ? {
+      titleBarStyle: "hidden",
+      titleBarOverlay: { color: "#f6f6f6", symbolColor: "#292929", height: 42 },
+    } : {}),
     webPreferences: {
       preload: path.join(directory, "preload.cjs"),
       contextIsolation: true,
@@ -183,6 +188,14 @@ app.whenReady().then(async () => {
     },
   });
   Menu.setApplicationMenu(null);
+  if (useTitleBarOverlay) {
+    register("appearance:title-bar", (color, symbolColor) => {
+      const isRgb = (value) =>
+        typeof value === "string" && /^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/.test(value);
+      if (isRgb(color) && isRgb(symbolColor))
+        window.setTitleBarOverlay({ color, symbolColor });
+    });
+  }
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event) => event.preventDefault());
   window.webContents.session.setPermissionRequestHandler(

@@ -1,4 +1,4 @@
-import { _electron as electron } from "@playwright/test";
+import { _electron as electron, expect } from "@playwright/test";
 import {
   mkdtemp,
   mkdir,
@@ -101,6 +101,36 @@ try {
     .getByRole("button", { name: "환경 설정", exact: true })
     .first()
     .click();
+  if (process.platform === "win32") {
+    await expect.poll(() => page.evaluate(() => navigator.windowControlsOverlay?.visible)).toBe(true);
+    await app.evaluate(({ BrowserWindow }) => {
+      const window = BrowserWindow.getAllWindows()[0];
+      const apply = window.setTitleBarOverlay.bind(window);
+      window.setTitleBarOverlay = (colors) => {
+        apply(colors);
+        globalThis.testTitleBarColors = colors;
+      };
+    });
+    const dialog = page.getByRole("dialog", { name: "환경 설정" });
+    const selectTheme = name => dialog.getByRole("button", { name, exact: true }).click();
+    const colors = () => app.evaluate(() => globalThis.testTitleBarColors);
+    for (const [name, color, symbolColor] of [
+      ["다크", "rgb(22, 22, 22)", "rgb(229, 229, 229)"],
+      ["그레이", "rgb(232, 232, 232)", "rgb(41, 41, 41)"],
+      ["화이트", "rgb(246, 246, 246)", "rgb(41, 41, 41)"],
+    ]) {
+      await selectTheme(name);
+      await expect.poll(colors).toEqual({ color, symbolColor });
+    }
+    await selectTheme("시스템");
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect.poll(colors).toEqual({ color: "rgb(22, 22, 22)", symbolColor: "rgb(229, 229, 229)" });
+    await page.emulateMedia({ colorScheme: "light" });
+    await expect.poll(colors).toEqual({ color: "rgb(246, 246, 246)", symbolColor: "rgb(41, 41, 41)" });
+    await selectTheme("화이트");
+    await page.emulateMedia({ colorScheme: null });
+    console.log("PASS Windows title bar follows the xdocs and system themes");
+  }
   await page.getByRole("button", { name: "앱 정보", exact: true }).click();
   await page
     .getByRole("button", { name: "라이선스 정보", exact: true })

@@ -107,14 +107,26 @@ textarea {
   overflow: hidden;
 }
 .titlebar {
+  --titlebar-padding: 23px;
   grid-column: 1/-1;
   border-bottom: 1px solid var(--line);
   background: var(--sidebar);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 23px;
+  padding: 0 var(--titlebar-padding);
   user-select: none;
+}
+.titlebar-overlay {
+  padding-left: calc(var(--titlebar-padding) + env(titlebar-area-x, 0px));
+  padding-right: calc(var(--titlebar-padding) + 100% - env(titlebar-area-width, 100%) - env(titlebar-area-x, 0px));
+  app-region: drag;
+}
+@media (forced-colors: active) {
+  .titlebar-overlay {
+    background: Canvas;
+    color: CanvasText;
+  }
 }
 .wordmark {
   font-size: 21px;
@@ -1415,7 +1427,7 @@ textarea {
     grid-column: 1;
   }
   .titlebar {
-    padding: 0 16px;
+    --titlebar-padding: 16px;
   }
   .theme-options {
     gap: 9px;

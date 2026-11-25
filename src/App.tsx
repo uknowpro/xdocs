@@ -140,6 +140,7 @@ export default function App() {
   const [infrastructureStart, setInfrastructureStart] = useState(false);
   const [permissions, setPermissions] = useState(false);
   const [recovery, setRecovery] = useState<"history" | "trash" | null>(null);
+  const titleBar = useRef<HTMLElement>(null);
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem("xdocs.theme") as Theme) || "light",
   );
@@ -472,14 +473,25 @@ export default function App() {
   useEffect(() => api.onWatchError?.((message) => setError(message)), []);
   useEffect(() => {
     const media = matchMedia("(prefers-color-scheme: dark)");
+    const forcedColors = matchMedia("(forced-colors: active)");
     const apply = () => {
       document.documentElement.dataset.theme =
         theme === "system" ? (media.matches ? "dark" : "light") : theme;
+      if (api.setWindowTitleBar && titleBar.current) {
+        const { backgroundColor, color } = getComputedStyle(titleBar.current);
+        void api.setWindowTitleBar(backgroundColor, color).catch((error) =>
+          console.warn("Could not update the window title bar", error),
+        );
+      }
     };
     apply();
     localStorage.setItem("xdocs.theme", theme);
     media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
+    forcedColors.addEventListener("change", apply);
+    return () => {
+      media.removeEventListener("change", apply);
+      forcedColors.removeEventListener("change", apply);
+    };
   }, [theme]);
   useEffect(() => {
     if (status !== "pending") return;
@@ -912,7 +924,7 @@ export default function App() {
   const isToolPage = Boolean(sheetData || infraData || architectureData || xcode || analyzer || builder || flow);
   return (
     <div className={`app ${sidebar ? "" : "sidebar-hidden"}`}>
-      <header className="titlebar">
+      <header ref={titleBar} className={api.setWindowTitleBar ? "titlebar titlebar-overlay" : "titlebar"}>
         <div className="wordmark">
           xdocs<span>.</span>
         </div>

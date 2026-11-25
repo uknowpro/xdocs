@@ -1,5 +1,9 @@
 const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("xdocs", {
+  ...(process.platform === "win32" ? {
+    setWindowTitleBar: (color, symbolColor) =>
+      ipcRenderer.invoke("appearance:title-bar", color, symbolColor),
+  } : {}),
   updateStatus: () => ipcRenderer.invoke("update:status"),
   checkUpdate: () => ipcRenderer.invoke("update:check"),
   downloadUpdate: () => ipcRenderer.invoke("update:download"),

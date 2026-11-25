@@ -81,6 +81,7 @@ type ModelProfileInput = {
 };
 
 export interface NoteAPI {
+  setWindowTitleBar?(color: string, symbolColor: string): Promise<void>;
   analyzerSource?(source: {session:string; file:string}): Promise<string>;
   analyzerNotices?(): Promise<{ name: string; text: string }[]>;
   analyzeDirectory?(request: { mode:string;from:string;to:string;namespace:string;release:string;customValues:boolean }):Promise<unknown>;

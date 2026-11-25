@@ -4,7 +4,7 @@
 
 A local-first desktop workspace for linked notes, spreadsheets and infrastructure diagrams. Keep Markdown files in your own folder and search them through a SQLite index. You can work offline without an account.
 
-[Download xdocs v0.5.34](https://github.com/uknowpro/xdocs/releases/tag/v0.5.34) for Ubuntu, macOS or Windows. Installers are unsigned and the macOS build is unnotarized.
+[Download xdocs v0.5.35](https://github.com/uknowpro/xdocs/releases/tag/v0.5.35) for Ubuntu, macOS or Windows. Installers are unsigned and the macOS build is unnotarized.
 
 ![A local xcode session reviewing a two-zone network](docs/images/xcode-chat.png)
 

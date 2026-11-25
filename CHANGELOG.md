@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.35
+
+- Match the Windows title bar and window-control colors to the xdocs theme. System mode follows Windows appearance changes.
+
 ## 0.5.34
 
 - Organize Preferences into General, Workspace, xcode Defaults, Organization, and About.
