@@ -65,6 +65,8 @@ try {
         filePaths: [folder],
       });
     }, folder);
+    if (mode !== "network")
+      await page.getByRole("button", { name: "분석 옵션 열기", exact: true }).click();
     const category = mode === "helm-network" ? "network" : mode === "helm-upgrade" ? "upgrade" : mode;
     await page.getByLabel("분석 종류").selectOption(category);
     if (category === "network" || category === "upgrade")
@@ -73,6 +75,7 @@ try {
     await expect(
       page.getByRole("heading", { name: heading, exact: true }),
     ).toBeVisible({ timeout: 60000 });
+    await expect(page.getByRole("button", { name: "분석 옵션 열기", exact: true })).toBeVisible();
     if (mode === "network")
       await expect(page.locator(".analyzer")).toContainText("/orders");
     if (mode === "manifest" || mode === "upgrade")
