@@ -51,6 +51,7 @@ try {
   await button("세션 설정 펼치기").click();
   await page.getByLabel("API 주소").fill("http://127.0.0.1:"+server.address().port+"/v1/chat/completions");
   await button("설정 저장").click();
+  await expect(page.getByRole("dialog", { name: "세션 설정" })).toBeHidden();
   await page.getByLabel("파일 첨부 선택").setInputFiles([formPath,budget]);
   const prompt=page.getByLabel("xcode 메시지");
   await prompt.fill("예산으로 첨부 양식을 채워줘"); await button("전송").click();

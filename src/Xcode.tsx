@@ -1722,6 +1722,8 @@ export default function Xcode({
                 disabled={
                   readonly ||
                   importing ||
+                  settingsSave === "saving" ||
+                  !queueReady ||
                   !api.xcodeChat ||
                   (!prompt.trim() && !selectedFiles.length)
                 }

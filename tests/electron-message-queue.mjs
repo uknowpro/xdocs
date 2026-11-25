@@ -33,9 +33,13 @@ async function create(){
   await btn("새로 만들기").click();await btn("xcode 세션 만들기").click();
   await btn("세션 설정 펼치기").click();
   await page.getByLabel("API 주소").fill(endpoint);await btn("설정 저장").click();
+  if (mode !== "seed")
+    await expect(page.getByRole("dialog", { name: "세션 설정" })).toBeHidden();
 }
 async function submit(text){
-  await input().fill(text);await input().press("Enter");
+  await input().fill(text);
+  await expect(page.getByRole("button", { name: /^(전송|대기열에 추가)$/ })).toBeEnabled();
+  await input().press("Enter");
 }
 function finish(i,text){
   requests[i].res.writeHead(200,{"Content-Type":"text/event-stream"});

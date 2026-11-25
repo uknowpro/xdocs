@@ -44,6 +44,7 @@ for(const scale of process.platform==="win32"?[1.25,1.5]:[1.25]){
     await page.getByLabel("API 주소").fill("http://127.0.0.1:"+server.address().port+"/v1/chat/completions");
     await page.getByLabel("모델명",{exact:true}).fill("model-"+"long-".repeat(24));
     await button("설정 저장").click();
+    await expect(page.getByRole("dialog", { name: "세션 설정" })).toBeHidden();
     const book=new ExcelJS.Workbook();book.addWorksheet("예산").getCell("B2").value=730;
     const doc=zipSync({"word/document.xml":strToU8('<w:document xmlns:w="urn:w"><w:p><w:t>회의 결정</w:t></w:p></w:document>')});
     await page.getByLabel("파일 첨부 선택").setInputFiles([

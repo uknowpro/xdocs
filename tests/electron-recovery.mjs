@@ -75,6 +75,7 @@ try {
   await page.getByLabel("템플릿 적용").selectOption("코드 검토");
   await page.getByRole("button",{name:"전체 단계 적용"}).click();
   await page.getByRole("button",{name:"설정 저장",exact:true}).click();
+  await expect(page.getByRole("dialog", { name: "세션 설정" })).toBeHidden();
   await page.getByLabel("xcode 메시지").fill("recover this run");
   await page.getByRole("button", { name: "전송", exact: true }).click();
   await expect.poll(() => calls.length).toBe(2);
