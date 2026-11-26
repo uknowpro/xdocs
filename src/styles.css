@@ -3269,8 +3269,35 @@ textarea {
 .chat-waiting > div {display:flex;align-items:center;gap:6px;padding-block:3px;}
 .chat-waiting > div > :is(span,textarea) {flex:1;min-width:0;overflow-wrap:anywhere;}
 .chat-waiting small {overflow-wrap:anywhere;}
-.xcode .chat-composer:has(.chat-stop) {grid-template-columns:minmax(0,1fr) auto auto;}
-.xcode .chat-composer > .chat-stop {grid-row:1;grid-column:3;align-self:end;margin:0;min-height:34px;}
+.xcode .chat-composer:has(.chat-run-controls) { grid-template-columns: minmax(0,1fr) auto auto; }
+.chat-run-controls { grid-row: 1; grid-column: 3; align-self: end; display: flex; align-items: center; gap: 3px; }
+.xcode .chat-run-controls button { margin: 0; min-height: 34px; }
+.xcode .chat-stop { display: flex; align-items: center; gap: 4px; padding-inline: 7px; }
+.chat-queue-menu-toggle { anchor-name: --queue-menu; }
+.chat-queue-menu {
+  position: fixed; position-anchor: --queue-menu; inset: auto;
+  right: anchor(right); bottom: anchor(top); margin: 0 0 4px; padding: 4px;
+  position-try-fallbacks: flip-block, flip-inline;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px;
+}
+.chat-waiting > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.chat-waiting > summary > :not(.queue-preview) { flex: none; }
+.chat-waiting[open] > summary .queue-chevron { transform: rotate(90deg); }
+.queue-preview { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.queue-select { border-radius: 3px; }
+.queue-select:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+.queue-keys { color: var(--muted); line-height: 1.4; }
+.queue-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: .85rem; }
+.queue-batch { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-block: 4px; }
+.queue-review-note { flex-basis: 100%; color: var(--muted); }
+.xcode .recovery-review { align-items: start; }
+.xcode .recovery-review p { flex-basis: 100%; }
+.xcode-queue-summary { display: grid; gap: 2px; min-width: 0; text-align: start; }
+.xcode-queue-summary > :is(span, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xcode-queue-summary small { margin: 0; color: var(--muted); }
+@media (max-width: 640px) {
+  .xcode .chat-stop span { display: none; }
+}
 .session-queue-count {flex:none;font-size:10px;color:var(--muted);white-space:nowrap;}
 .queue-recovery,.chat-waiting > div {display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
 .queue-recovery {padding:6px 0;font-size:.85rem;}

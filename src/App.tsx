@@ -309,6 +309,15 @@ export default function App() {
   const activity=useSessionActivity(workspace?.root);
   const runningPages=activity.filter(item=>item.busy);
   const notes = useMemo(() => workspace?.notes || [], [workspace]);
+  const listedSessions = activity.flatMap(item => {
+    const note = notes.find(note => note.id === item.page);
+    return note ? [{ ...item, title: note.title, status: sessionStatus(item) }] : [];
+  });
+  const sessionGroups = [
+    { label: "실패", entries: listedSessions.filter(item => item.status.state === "failed") },
+    { label: "실행 중", entries: listedSessions.filter(item => item.busy && item.status.state === "running") },
+    { label: "대기", entries: listedSessions.filter(item => item.status.state === "waiting") },
+  ];
   const canvases = useMemo(() => notes.filter(isCanvas), [notes]);
   const outgoing = useMemo(
     () =>
@@ -1251,36 +1260,35 @@ export default function App() {
             </button>
           </form>
         )}
-        {runningPages.length > 0 && (
+        {sessionGroups.some(group => group.entries.length) && (
           <details className="xcode-running">
-            <summary
-              aria-label={`실행 중인 xcode 세션 · ${runningPages.length}`}
-            >
-              <span className="status-dot" /> xcode 실행 중 ·{" "}
-              {runningPages.length}
+            <summary aria-label="xcode 세션 작업 상태">
+              <span className="status-dot" /> xcode 작업 · {sessionGroups.reduce((total, group) => total + group.entries.length, 0)}
             </summary>
-            <button
-              className="nav-item"
-              onClick={() => stopWorkspaceRuns(workspace?.root)}
-            >
+            {runningPages.length > 1 && <button className="nav-item" onClick={() => stopWorkspaceRuns(workspace?.root)}>
               실행 중인 세션 모두 중지
-            </button>
-            {runningPages.map(({ page: id, phase }) => (
-              <div key={id} className="xcode-running-row">
-                <button className="nav-item" onClick={() => void navigate(id)}>
-                  {notes.find((n) => n.id === id)?.title || "xcode 세션"} ·{" "}
-                  {phase || "준비 중"}
-                </button>
-                <button
-                  aria-label={
-                    (notes.find((n) => n.id === id)?.title || "xcode 세션") +
-                    " 실행 중지"
-                  }
-                  onClick={() => sessionRun(workspace!.root, id).cancel()}
-                >
-                  중지
-                </button>
-              </div>
+            </button>}
+            {sessionGroups.map(group => group.entries.length > 0 && (
+              <section key={group.label} aria-label={group.label}>
+                <strong>{group.label} · {group.entries.length}</strong>
+                {group.entries.map(({ page: id, busy, status, title, next, held }) => (
+                  <div key={id} className="xcode-running-row">
+                    <button className="nav-item" aria-label={title} title={title + " · " + status.label}
+                      onClick={() => void navigate(id)}>
+                      <span className="xcode-queue-summary">
+                        <span>{title}</span>
+                        <small>{status.label}</small>
+                        {next && <small title={next.text}>다음 · {next.text}{next.attachments ? " · 첨부 " + next.attachments + "개" : ""}</small>}
+                      </span>
+                    </button>
+                    {next && !held && workspace?.role !== "reader" &&
+                      <button type="button" aria-label={title + " 대기열 일시정지"}
+                        onClick={() => void sessionRun(workspace!.root, id).holdQueue().catch(e => setError(String(e)))}>일시정지</button>}
+                    {busy && <button aria-label={title + " 실행 중지"}
+                      onClick={() => sessionRun(workspace!.root, id).cancel()}>중지</button>}
+                  </div>
+                ))}
+              </section>
             ))}
           </details>
         )}

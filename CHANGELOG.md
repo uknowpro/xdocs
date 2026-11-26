@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.36
+
+- Open new xcode sessions directly in chat when a default connection is saved, and indicate when the saved token is in use.
+- Preview the next queued message and its attachments. Send a selected message immediately, or pause follow-ups while the current response continues.
+- Restore queue pause and rate-limit states after restart. Flag interrupted requests whose outcome needs review, and preserve completed harness stages.
+- Inspect and pause queues from the session list. Reorder and cancel selected messages in batches, and navigate the queue with keyboard shortcuts.
+
 ## 0.5.35
 
 - Match the Windows title bar and window-control colors to the xdocs theme. System mode follows Windows appearance changes.

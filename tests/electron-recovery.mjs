@@ -95,7 +95,14 @@ try {
       .getByRole("button", { name: "새 xcode 세션", exact: true })
       .first()
       .click();
-  await page.getByRole("button", { name: "미완료 단계부터 재실행" }).click();
+  await expect(page.getByRole("group", { name: "전송 결과 확인 필요" })).toBeVisible();
+  const draft = page.getByLabel("xcode 메시지");
+  await draft.fill("새 요청을 먼저 보내지 않음");
+  await expect(page.getByRole("button", { name: "전송", exact: true })).toBeDisabled();
+  await draft.press("Enter");
+  assert.equal(calls.length, 2);
+  await draft.fill("");
+  await page.getByRole("button", { name: "확인 후 미완료 단계 재실행" }).click();
   await expect(page.locator(".xcode article")).toContainText("answer-3");
   await expect(page.getByLabel("xcode 메시지")).toHaveValue("");
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith("xdocs.xcode.draft.")).length),0);
@@ -106,7 +113,7 @@ try {
     ),
   );
   await expect(
-    page.getByRole("button", { name: "미완료 단계부터 재실행" }),
+    page.getByRole("button", { name: "확인 후 미완료 단계 재실행" }),
   ).toHaveCount(0);
   console.log(
     "PASS recovery after process kill: completed stage preserved, one missing stage rerun",

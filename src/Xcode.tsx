@@ -7,14 +7,14 @@ import {formInstruction, inspectForm, templateFiles} from "./office-form";
 import OfficeForm from "./OfficeForm";
 import SessionSettingsJson from "./SessionSettingsJson";
 import ChatTimeline from "./ChatTimeline";
-import { ArrowUp, Maximize2, Minimize2, Paperclip, SlidersHorizontal, Square } from "lucide-react";
+import { ArrowUp, ChevronRight, Ellipsis, Maximize2, Minimize2, Paperclip, SkipForward, SlidersHorizontal, Square } from "lucide-react";
 import WordSelection from "./WordSelection";
 import ProjectInputs from "./ProjectInputs";
 import {
   fileKey, restoreFileKey, loadCheckpoint, readApplicationDraft, type ApplicationDraft,
   saveCheckpoint,
   saveProgress,
-  clearCheckpoint,
+  clearCheckpoint, clearDispatch, recordDispatch,
   type Checkpoint, type QueuedPrompt,
 } from "./xcode-checkpoint";
 import {
@@ -28,7 +28,7 @@ import {
   setCapacity,
   useCapacity,
 } from "./xcode-queue";
-import { sessionRun, waitForRetry } from "./xcode-run";
+import { queuePauseLabel, sessionRun, waitForRetry } from "./xcode-run";
 import {
   useEffect,
   useId,
@@ -37,6 +37,7 @@ import {
   useMemo,
   useSyncExternalStore,
   useState,
+  type KeyboardEvent,
 } from "react";
 import { api } from "./api";
 import type { ModelProfile } from "./types";
@@ -142,7 +143,7 @@ export default function Xcode({
   const dirty = !!Object.keys(settingsDraft.patch).length || !!settingsDraft.token || !!settingsDraft.capacity;
   const [jsonRevision, setJsonRevision] = useState(0);
   const [settingsTab, setSettingsTab] = useState<"connection" | "harness" | "retry" | "json">("connection");
-  const { pending, busy, preview, phase, error, prompt, files, omitted, draftError, waiting, queuePaused, queueReady } =
+  const { pending, busy, preview, phase, error, prompt, files, omitted, draftError, waiting, queuePaused, queueHeld, pauseReason, priorityItem, queueReady, submitting } =
     useSyncExternalStore(run.subscribe, run.snapshot);
   useEffect(()=>{if(run.snapshot().outcome)run.patch({outcome:""});},[run]);
   useEffect(()=>{void run.loadWaiting().catch(e=>run.patch({error:String(e)}));},[run]);
@@ -203,10 +204,14 @@ export default function Xcode({
   const [documentPanel, setDocumentPanel] = useState<"form" | "word" | null>(formHarness ? "form" : null);
   useEffect(() => setDocumentPanel(formHarness || run.snapshot().formReview ? "form" : null), [formHarness, s.harness.name]);
   const sessionSettingsId = useId();
+  const queueMenuId = useId();
+  const queueKeysId = useId();
+  const queueDetails = useRef<HTMLDetailsElement>(null);
   const attachmentMenu = useRef<HTMLDivElement>(null);
   const attachmentPicker = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(
-    () => localStorage.getItem("xdocs.xcode.settings") === "shown",
+    () => !(s.connectionSource === "default" && s.turns.length === 0) &&
+      localStorage.getItem("xdocs.xcode.settings") === "shown",
   );
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const settingsDialog = useRef<HTMLDialogElement>(null);
@@ -327,6 +332,11 @@ export default function Xcode({
     setReport(undefined);
     closeSettings();
   }
+  const savedDefaultToken = Boolean(
+    globalConnection && matchesDefaults && s.connectionSource !== "custom" &&
+    profiles.some(profile => profile.name === s.profile && profile.hasKey &&
+      profile.model === s.model && sameChatEndpoint(profile.endpoint, s.endpoint)),
+  );
   const linkedProfile = profiles.find(p => p.name === edited.profile);
   const savedProfile = linkedProfile && linkedProfile.model === edited.model && sameChatEndpoint(linkedProfile.endpoint, edited.endpoint) ? linkedProfile : undefined;
   async function rememberToken() {
@@ -367,7 +377,6 @@ export default function Xcode({
     config({ harness: { ...edited.harness, ...patch } });
   const [search,setSearch]=useState(""), [candidate,setCandidate]=useState("");
   const matches=(value:string)=>value.toLowerCase().includes(search.trim().toLowerCase());
-  const cancel = () => run.cancel();
   const [importing, setImporting] = useState(false);
   async function attach(selected: File[]) {
     if (readonly || importing) return;
@@ -444,21 +453,28 @@ export default function Xcode({
     setMaterial({kind:"apply",answer,turn,runId,citations});
   }
   const [recovery, setRecovery] = useState<Checkpoint>();
+  const [recoveryReady, setRecoveryReady] = useState(!local);
   useEffect(() => {
     let active = true;
     if (local && !busy)
       loadCheckpoint(checkpointKey)
-        .then((c) => {
-          if (active)
-            setRecovery(
-              c && !s.turns.some((t) => t.runId === c.id) ? c : undefined,
-            );
+        .then(async checkpoint => {
+          if (!active) return;
+          const completed = checkpoint && s.turns.some(turn => turn.runId === checkpoint.id);
+          if (completed) {
+            await clearCheckpoint(checkpointKey);
+            if (active && run.snapshot().pauseReason === "unconfirmed") run.patch({ pauseReason: undefined });
+          }
+          if (active) {
+            const recoveryItem = completed ? "" : checkpoint?.id || "";
+            if (run.snapshot().recoveryItem !== recoveryItem) run.patch({ recoveryItem });
+            setRecovery(completed ? undefined : checkpoint);
+            setRecoveryReady(true);
+          }
         })
-        .catch((e) => active && setError(String(e)));
-    return () => {
-      active = false;
-    };
-  }, [local, checkpointKey, busy, s.turns.length]);
+        .catch(e => { if (active) setError(String(e)); });
+    return () => { active = false; };
+  }, [local, checkpointKey, busy, s.turns.length, run]);
   const textBytes = useMemo(
     () =>
       new Blob([
@@ -487,7 +503,115 @@ export default function Xcode({
   const visibleQueue = waiting.filter(item => item.id !== run.activeItem);
   const interrupted = !busy && (run.snapshot().failedInput || recovery);
   const interruptedId = interrupted ? interrupted.id : undefined;
+  const needsDeliveryReview = !busy && Boolean(recovery?.unconfirmed && !run.snapshot().failedInput);
+  const reviewText = "서버가 이 요청을 처리했을 수 있습니다. 서버에서 결과를 확인한 뒤 다시 보내세요.";
+  const retryLabel = needsDeliveryReview ? "확인 후 재시도" : "이 메시지 재시도";
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchIds, setBatchIds] = useState<Set<string>>(() => new Set());
+  const selectedQueueIds = new Set(visibleQueue.filter(item => item.id !== interruptedId && batchIds.has(item.id)).map(item => item.id));
   const targetChanged = (item:QueuedPrompt) => item.model !== s.model || !sameChatEndpoint(item.endpoint, s.endpoint);
+  const nextWaiting = visibleQueue.find(item => item.id !== interruptedId);
+  const nextPreview = nextWaiting?.prompt.trim().split(/\r?\n/, 1)[0] || "첨부 메시지";
+  const queuedFailure = Boolean(interrupted && waiting.some(item => item.id === interrupted.id));
+  const queueRows = waiting.filter(item => item.id !== run.activeItem || item.id === priorityItem);
+  const nextOnStop = !readonly && phase !== "연결 진단" && nextWaiting && !targetChanged(nextWaiting);
+  const needsConnection = /HTTP (401|403|404|407)|인증서|프록시|API 주소|모델명|토큰을 확인/.test(error);
+  const errorIssue = /사용량 또는 요청 한도|HTTP 429/.test(error) ? "사용량 또는 요청 한도에 도달함" :
+    /연결이 (중단|끊겼)|연결할 수 없|도달할 수 없|응답 시간이 초과|서버 일시 오류/.test(error) ? "모델 연결이 끊김" :
+    needsConnection ? "모델 연결 설정 확인 필요" : "";
+  const queueIssue = nextWaiting && targetChanged(nextWaiting) ? "모델 또는 API 주소가 변경됨" :
+    needsDeliveryReview ? queuePauseLabel("unconfirmed") : queuePauseLabel(pauseReason) || errorIssue;
+  const canSendWaiting = (item: QueuedPrompt) =>
+    recoveryReady && !readonly && !interrupted && !targetChanged(item) && editingItem !== item.id && item.id !== run.activeItem &&
+    phase !== "연결 진단" && settingsSave !== "saving" && queueReady && !submitting;
+  useEffect(() => {
+    if (queuedFailure && queueDetails.current) queueDetails.current.open = true;
+  }, [queuedFailure, interruptedId]);
+
+  function openQueueConnection() {
+    setSettingsTab("connection");
+    setShowSettings(true);
+  }
+  function toggleQueuePause() {
+    const { busy, queueHeld } = run.snapshot();
+    if (!queueHeld) {
+      void run.holdQueue().catch(e => setError(String(e)));
+      return;
+    }
+    run.patch({ queueHeld: false });
+    if (!busy && !interrupted) void resumeQueue().catch(e => setError(String(e)));
+  }
+  async function editSelectedQueue(action: "remove" | "up" | "down") {
+    if (readonly || run.snapshot().submitting || !selectedQueueIds.size) return;
+    await run.updateWaiting(items => {
+      const locked = (item: QueuedPrompt) => item.id === run.activeItem || item.id === interruptedId;
+      const selected = (item: QueuedPrompt) => !locked(item) && selectedQueueIds.has(item.id);
+      if (action === "remove") return items.filter(item => !selected(item));
+      const queue = [...items];
+      const direction = action === "up" ? -1 : 1;
+      for (let index = direction < 0 ? 1 : queue.length - 2;
+          index >= 0 && index < queue.length; index -= direction) {
+        const other = index + direction;
+        if (!queue[other] || !selected(queue[index]) || locked(queue[other]) || selected(queue[other])) continue;
+        [queue[index], queue[other]] = [queue[other], queue[index]];
+      }
+      return queue;
+    });
+    if (action === "remove") setBatchIds(new Set());
+  }
+  function handleQueueKeys(event: KeyboardEvent<HTMLElement>, item: QueuedPrompt) {
+    const modifier = event.ctrlKey || event.metaKey;
+    if (event.key === "Enter" && modifier && canSendWaiting(item)) {
+      event.preventDefault();
+      void sendWaitingNow(item.id).catch(e => setError(String(e)));
+      return;
+    }
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    const direction = event.key === "ArrowUp" ? -1 : 1;
+    event.preventDefault();
+    const current = event.currentTarget;
+    if (modifier) {
+      if (readonly) return;
+      void moveWaiting(item.id, direction).then(() => {
+        if (document.activeElement === document.body && current.isConnected) current.focus();
+      }).catch(e => setError(String(e)));
+      return;
+    }
+    const items = Array.from(queueDetails.current?.querySelectorAll<HTMLElement>(".queue-select") ?? []);
+    items[items.indexOf(current) + direction]?.focus();
+  }
+  async function stopCurrent() {
+    const activeId = run.id;
+    if (!activeId) return;
+    await run.settled();
+    if (run.id !== activeId) return;
+    const next = run.snapshot().waiting.find(item => item.id !== run.activeItem);
+    const sendNext = !readonly && run.activeItem && next && !targetChanged(next);
+    if (sendNext) run.patch({ queueHeld: false });
+    run.cancel(sendNext ? "continue" : "pause");
+  }
+  async function sendWaitingNow(id: string) {
+    if (readonly || interrupted || !recoveryReady || phase === "연결 진단" || run.snapshot().submitting ||
+        settingsSave === "saving" || !queueReady) return;
+    const activeId = run.id;
+    let prioritized = false;
+    run.patch({ submitting: true });
+    try {
+      await run.updateWaiting(items => {
+        const next = items.find(item => item.id === id);
+        if (!next || next.id === run.activeItem || targetChanged(next)) return items;
+        prioritized = true;
+        return [next, ...items.filter(item => item.id !== id)];
+      });
+    } finally {
+      run.patch({ submitting: false });
+    }
+    if (!prioritized) return;
+    run.patch({ priorityItem: run.snapshot().waiting.some(item => item.id === id) ? id : "", queueHeld: false });
+    if (queueDetails.current) queueDetails.current.open = true;
+    if (activeId && run.id === activeId && run.activeItem) run.cancel("continue");
+    else if (!run.snapshot().busy && !run.snapshot().failedInput) await resumeQueue();
+  }
   async function moveWaiting(id:string, direction:number) {
     await run.updateWaiting(items => {
       const index = items.findIndex(item => item.id === id);
@@ -512,12 +636,12 @@ export default function Xcode({
     else if (recovery) await send(recovery);
   }
   async function skipInterrupted() {
-    if (!interrupted || readonly || run.snapshot().busy || run.submitting) return;
-    run.submitting=true;
+    if (!interrupted || readonly || run.snapshot().busy || run.snapshot().submitting) return;
+    run.patch({ submitting: true });
     try {
       await removeWaiting(interrupted.id);
       run.patch({failedInput:undefined,error:"",pending:null,preview:""});
-    } finally {run.submitting=false;}
+    } finally {run.patch({ submitting: false });}
     await resumeQueue();
   }
   const currentInput = { s, prompt, selectedFiles, execution };
@@ -536,7 +660,12 @@ export default function Xcode({
     if (!queued || !tokenReady()) return;
     const saved=local ? await loadCheckpoint(checkpointKey) : undefined;
     if (run.snapshot().busy || run.snapshot().waiting[0]?.id!==queued.id) return;
-    run.patch({queuePaused:false});
+    if (saved?.unconfirmed && !s.turns.some(turn => turn.runId === saved.id)) {
+      setRecovery(saved);
+      run.patch({ queuePaused: true, pauseReason: "unconfirmed" });
+      return;
+    }
+    run.patch({queuePaused:false,queueHeld:false,pauseReason:undefined});
     if (saved?.id===queued.id && saved.prompt===queued.prompt && saved.model===queued.model && sameChatEndpoint(saved.endpoint, queued.endpoint) && checkpointMatches(queued,saved) && !s.turns.some(t=>t.runId===queued.id))
       await send(saved,queued);
     else await drain(s);
@@ -547,28 +676,30 @@ export default function Xcode({
       files:draft.files.filter(file=>!attached.includes(file))});
   }
   async function submit(immediate=false) {
-    if (!api.xcodeChat || readonly || importing || run.submitting || settingsSave === "saving" || !queueReady) return;
+    if (!api.xcodeChat || readonly || importing || run.snapshot().submitting || settingsSave === "saving" ||
+        !queueReady || !recoveryReady || needsDeliveryReview) return;
     if (!run.snapshot().busy && !run.snapshot().waiting.length) { void send(); return; }
     if (!run.activeItem) run.patch({queuePaused:true});
     if (!prompt.trim() && !selectedFiles.length) return;
     const item:QueuedPrompt={id:crypto.randomUUID(),prompt,files:selectedFiles,
       templates:selectedFiles.map(f=>templateFiles.get(f)),omitted:[...omitted],endpoint:s.endpoint,model:s.model,harness:structuredClone(s.harness)};
-    run.submitting=true;
+    run.patch({ submitting: true });
     try {
       const activeId=run.id;
       await run.updateWaiting(items=>immediate ? [item,...items] : [...items,item]);
-      if (immediate && activeId && run.id===activeId) {
-        run.steering=activeId;
-        run.cancel();
+      if (immediate && activeId && run.id === activeId) {
+        run.patch({ queueHeld: false });
+        run.cancel("continue");
       }
       consumeInput(prompt,selectedFiles);
     } catch(e) {setError("대기 메시지를 저장하지 못했습니다. "+String(e));}
-    finally {run.submitting=false;}
+    finally {run.patch({ submitting: false });}
   }
   async function drain(session:Session) {
     await run.settled();
-    if (run.snapshot().busy || run.snapshot().queuePaused || readonly) return;
-    const item=run.snapshot().waiting[0];
+    const state = run.snapshot();
+    if (state.busy || state.queuePaused || state.queueHeld || readonly) return;
+    const item=state.waiting[0];
     if (!item) return;
     if (session.turns.some(turn=>turn.runId===item.id)) {
       await run.updateWaiting(items=>items.filter(i=>i.id!==item.id));
@@ -629,7 +760,7 @@ export default function Xcode({
     if (!item && !saved) consumeInput(prompt,selectedFiles);
     let continuation:Session|undefined;
     run.id = id;
-    run.patch({outcome:"",queuePaused:false,failedInput:undefined});
+    run.patch({outcome:"",queuePaused:false,pauseReason:undefined,recoveryItem:"",failedInput:undefined});
     run.enabled = s.autoRetry === true;
     run.patch({
       pending: {
@@ -643,6 +774,7 @@ export default function Xcode({
       error: "",
     });
     let checkpoint: Checkpoint | undefined,
+      uncertainAttempt = false,
       lastWrite = 0;
     const off = api.onXcodeDelta?.((c) => {
       if (run.id === c.id) {
@@ -750,6 +882,7 @@ export default function Xcode({
           files: selectedFiles,
           answers,
           partial: "",
+          dispatchTracked: true,
         };
         await saveCheckpoint(checkpointKey, checkpoint);
         await saveProgress(checkpointKey, {
@@ -846,6 +979,8 @@ export default function Xcode({
             run.patch({ phase: "서버 대기열 · " + stage });
             release = await acquireServer(serverOrigin(s.endpoint), request.signal);
             request.signal.throwIfAborted();
+            if (checkpoint) await recordDispatch(checkpointKey, id, i);
+            request.signal.throwIfAborted();
             run.patch({ phase: "실행 중 · " + stage });
             const answer = await api.xcodeChat!({
               id,
@@ -872,6 +1007,7 @@ export default function Xcode({
               !String(e).includes("[XCODE_RETRY]")
             )
               throw e;
+            uncertainAttempt = true;
             resume = run.snapshot().preview;
             release?.();
             release = undefined;
@@ -909,6 +1045,7 @@ export default function Xcode({
             answers,
             partial: "",
           });
+        uncertainAttempt = false;
       }
       const next = {
         ...s,
@@ -976,7 +1113,6 @@ export default function Xcode({
       }
     } catch (e) {
       if (run.steering===id) {
-        run.steering="";
         const snap=run.snapshot();
         const partial=snap.preview;
         const partialTurn:Turn={runId:id,sourceHistory,prompt,files:selectedFiles,execution,
@@ -986,7 +1122,8 @@ export default function Xcode({
           if(local) await clearCheckpoint(checkpointKey);
           await run.updateWaiting(items=>items.filter(entry=>entry.id!==id));
           continuation=continuation || {...s,turns:[...s.turns,partialTurn]};
-          run.patch({queuePaused:false,failedInput:undefined,pending:null,preview:"",error:""});
+          setRecovery(undefined);
+          run.patch({queuePaused:run.steering !== id,pauseReason:undefined,failedInput:undefined,pending:null,preview:"",error:""});
         } catch(saveError) {run.patch({queuePaused:true,error:String(saveError)});}
       } else {
         run.patch({queuePaused:true,failedInput:continuation ? undefined : item || {
@@ -995,11 +1132,15 @@ export default function Xcode({
         }});
         if (!continuation && !item && !saved && !run.snapshot().prompt && !run.snapshot().files.length)
           run.patch({prompt,files:selectedFiles});
-        setError(
-          run.id === id
-            ? chatErrorMessage(e)
-            : "요청을 중지했습니다.",
-        );
+        const message = chatErrorMessage(e);
+        const quota = /사용량 또는 요청 한도|HTTP 429/.test(message);
+        const disconnected = /연결이 (중단|끊겼)|연결할 수 없|도달할 수 없|응답 시간이 초과|서버 일시 오류/.test(message);
+        if (quota && checkpoint && !uncertainAttempt) await clearDispatch(checkpointKey).catch(() => {});
+        run.patch({
+          pauseReason: quota ? "quota" : run.id !== id ? "stopped" : disconnected ? "connection" : undefined,
+        });
+        await run.controlSaved().catch(() => {});
+        setError(run.id === id ? message : "요청을 중지했습니다.");
       }
     } finally {
       if(run.steering===id) run.steering="";
@@ -1036,7 +1177,9 @@ export default function Xcode({
       <header className="chat-header">
         <h2>xcode</h2>
         <span title={[s.model, s.endpoint].filter(Boolean).join(" · ")}>{s.model}</span>
-        <small className="connection-source" title={s.endpoint}>{connectionLabel}</small>
+        <small className="connection-source" title={s.endpoint}>
+          {connectionLabel}{savedDefaultToken && " · 저장된 토큰 사용"}
+        </small>
         {settingsSave === "saved" && <small aria-live="polite">세션 설정을 저장했습니다.</small>}
         <button
           className="chat-settings-toggle"
@@ -1055,8 +1198,9 @@ export default function Xcode({
         </button>
       </header>
       {local && recovery && !busy && !run.snapshot().failedInput && !waiting.length && (
-        <fieldset disabled={readonly}>
-          <legend>중단된 실행 복구</legend>
+        <fieldset disabled={readonly} className="recovery-review">
+          <legend>{needsDeliveryReview ? "전송 결과 확인 필요" : "중단된 실행 복구"}</legend>
+          {needsDeliveryReview && <p>{reviewText}</p>}
           <p>
             {recovery.prompt} · 완료 {recovery.answers.length}/
             {recovery.harness.stages.length}단계 · {recovery.model}
@@ -1070,12 +1214,15 @@ export default function Xcode({
           <button onClick={() => void send(recovery)}>
             {recovery.answers.length === recovery.harness.stages.length
               ? "완료 결과 저장"
-              : "미완료 단계부터 재실행"}
+              : needsDeliveryReview ? "확인 후 미완료 단계 재실행" : "미완료 단계부터 재실행"}
           </button>
           <button
             onClick={() =>
               void clearCheckpoint(checkpointKey)
-                .then(() => setRecovery(undefined))
+                .then(() => {
+                  setRecovery(undefined);
+                  run.patch({ pauseReason: undefined, recoveryItem: "" });
+                })
                 .catch((e) => setError(String(e)))
             }
           >
@@ -1596,9 +1743,11 @@ export default function Xcode({
             setShowSettings(true);
           }}
         />
-        {interrupted && (waiting.length > 0 || run.snapshot().failedInput) && <div className="queue-recovery">
-          <strong>중단된 메시지</strong><span>{interrupted.prompt}</span>
-          <button disabled={readonly} onClick={()=>void retryInterrupted().catch(e=>setError(String(e)))}>이 메시지 재시도</button>
+        {interrupted && !queuedFailure && (waiting.length > 0 || run.snapshot().failedInput) && <div className="queue-recovery" tabIndex={-1}>
+          <strong>{needsDeliveryReview ? "전송 결과 확인 필요" : "중단된 메시지"}</strong><span>{interrupted.prompt}</span>
+          {needsDeliveryReview && <small className="queue-review-note">{reviewText}</small>}
+          {needsConnection && !nextWaiting && <button type="button" onClick={openQueueConnection}>설정 확인</button>}
+          <button disabled={readonly} onClick={()=>void retryInterrupted().catch(e=>setError(String(e)))}>{retryLabel}</button>
           <button disabled={readonly} onClick={()=>void skipInterrupted().catch(e=>setError(String(e)))}>{visibleQueue.some(q=>q.id!==interrupted.id) ? "건너뛰고 다음 전송" : "건너뛰기"}</button>
         </div>}
         {applicationDraft && !readonly && <button className="application-resume" onClick={()=>setMaterial({kind:"apply",...applicationDraft.origin})}>노트 반영 초안 이어서 검토</button>}
@@ -1618,12 +1767,50 @@ export default function Xcode({
             ...(token && draft.prompt.slice(token.start,token.end)==="@"?{prompt:draft.prompt.slice(0,token.start)+draft.prompt.slice(token.end)}:{})});
           requestAnimationFrame(()=>composerRef.current?.focus());
         }}/>}
-        {visibleQueue.length > 0 && <details className="chat-waiting">
-          <summary>대기 메시지 {visibleQueue.length}개</summary>
-          {visibleQueue.map((q,index)=><div key={q.id}>
+        {queueRows.length > 0 && <details className="chat-waiting" ref={queueDetails}>
+          <summary>
+            <ChevronRight className="queue-chevron" size={13} aria-hidden="true" />
+            <span>대기 메시지 {visibleQueue.length}개</span>
+            {nextWaiting && <span className="queue-preview" title={nextPreview}>
+              다음 · {nextPreview}
+            </span>}
+            {nextWaiting && nextWaiting.files.length > 0 && <small>첨부 {nextWaiting.files.length}개</small>}
+            {queueHeld && <small>일시정지</small>}
+          </summary>
+          <small className="queue-keys" id={queueKeysId}>↑↓ 선택 · Ctrl/⌘+↑↓ 순서 변경 · Ctrl/⌘+Enter 전송</small>
+          {!readonly && (visibleQueue.some(item => item.id !== interruptedId) || batchOpen) &&
+            <section className="queue-batch" aria-label="대기 메시지 일괄 조작">
+              <button type="button" aria-pressed={batchOpen} onClick={() => {
+                setBatchOpen(!batchOpen);
+                setBatchIds(new Set());
+              }}>{batchOpen ? "선택 끝내기" : "여러 항목 선택"}</button>
+              {batchOpen && <>
+                <small>{selectedQueueIds.size}개 선택</small>
+                {([["up", "선택 항목 위로"], ["down", "선택 항목 아래로"], ["remove", "선택 항목 취소"]] as const).map(([action, label]) =>
+                  <button type="button" key={action} disabled={submitting || !selectedQueueIds.size}
+                    onClick={() => void editSelectedQueue(action).catch(e => setError(String(e)))}>{label}</button>)}
+              </>}
+            </section>}
+          {queueRows.map(q => {
+            const index = visibleQueue.findIndex(item => item.id === q.id);
+            const sending = busy && q.id === run.activeItem;
+            const failed = q.id === interruptedId;
+            return <div key={q.id} className={failed ? "queue-recovery" : undefined} tabIndex={failed ? -1 : undefined}>
+            {batchOpen && !sending && !failed && <input type="checkbox" aria-label={(q.prompt.trim().slice(0, 60) || "첨부 메시지") + " 선택"}
+              checked={selectedQueueIds.has(q.id)} onChange={event => {
+                const selected = new Set(batchIds);
+                if (event.target.checked) selected.add(q.id);
+                else selected.delete(q.id);
+                setBatchIds(selected);
+              }} />}
             {editingItem===q.id ? <textarea aria-label="대기 메시지 수정" value={editedPrompt} onChange={e=>setEditedPrompt(e.target.value)}/>
-              : <span>{q.prompt}</span>}
+              : <span className="queue-select" tabIndex={0} aria-describedby={queueKeysId}
+                  onKeyDown={event => handleQueueKeys(event, q)}>{q.prompt || "첨부 메시지"}</span>}
             {q.files.length>0 && <small>{q.files.map(f=>f.name).join(" · ")}</small>}
+            {sending ? <small aria-live="polite">전송 중</small> : <>
+            {failed ? <small aria-live="polite">{needsDeliveryReview ? "전송 결과 확인 필요" : targetChanged(q)
+              ? "모델 또는 API 주소가 변경됨" : queuePauseLabel(pauseReason) || errorIssue || "중단된 메시지"}</small> :
+              priorityItem === q.id && busy && <small aria-live="polite">전송 준비 중</small>}
             <details className="queue-harness"><summary>실행 설정</summary>
               <small>{q.model}</small><label>하네스 <select disabled={readonly} aria-label="대기 메시지 하네스" value={q.harness && !q.useCurrentHarness?"saved":"current"} onChange={e=>{
                 const current=e.target.value==="current";
@@ -1648,12 +1835,31 @@ export default function Xcode({
               void run.updateWaiting(items=>items.map(i=>i.id===q.id && run.activeItem!==q.id ? {...i,prompt:editedPrompt}:i))
                 .then(()=>setEditingItem("")).catch(e=>setError(String(e)));
             }}>{editingItem===q.id ? "수정 저장" : "수정"}</button>
-            <button disabled={readonly || q.id===interruptedId} onClick={()=>void removeWaiting(q.id).catch(e=>setError(String(e)))}>취소</button>
-          </div>)}
-          {!busy && !interrupted && queuePaused && <button disabled={readonly} onClick={()=>{
-            void resumeQueue().catch(e=>run.patch({queuePaused:true,error:String(e)}));
-          }}>대기열 재개</button>}
+            {failed ? <>
+              {needsDeliveryReview && <small className="queue-review-note">{reviewText}</small>}
+              {(needsConnection || targetChanged(q)) && !nextWaiting &&
+                <button type="button" onClick={openQueueConnection}>설정 확인</button>}
+              <button disabled={readonly || targetChanged(q)} onClick={() => void retryInterrupted().catch(e => setError(String(e)))}>{retryLabel}</button>
+              <button disabled={readonly} onClick={() => void skipInterrupted().catch(e => setError(String(e)))}>{nextWaiting ? "건너뛰고 다음 전송" : "건너뛰기"}</button>
+            </> : <>
+              <button type="button" disabled={!canSendWaiting(q)}
+                title={busy ? "현재 응답을 중지하고 이 메시지 전송" : "이 대기 메시지 전송"}
+                onClick={() => void sendWaitingNow(q.id).catch(e => setError(String(e)))}>지금 보내기</button>
+              <button disabled={readonly} onClick={() => void removeWaiting(q.id).catch(e => setError(String(e)))}>취소</button>
+            </>}
+            </>}
+          </div>;
+          })}
         </details>}
+        {nextWaiting && (queueHeld || !busy && queuePaused) && <div className="queue-actions">
+          {!busy && queueIssue && <small aria-live="polite">{queueIssue}</small>}
+          {!busy && (needsConnection || targetChanged(nextWaiting)) &&
+            <button type="button" onClick={openQueueConnection}>설정 확인</button>}
+          {!interrupted && <button type="button" disabled={readonly} onClick={() => {
+            if (busy) run.patch({ queueHeld: false });
+            else void resumeQueue().catch(e => setError(String(e)));
+          }}>대기열 재개</button>}
+        </div>}
         {interrupted && /context|입력.{0,8}한도|토큰.{0,8}(한도|초과)|413|32MB|too (large|long)|maximum.{0,12}length|이전 대화 수/i.test(error) &&
           <details className="input-repair" onToggle={e=>{if(e.currentTarget.open && repair?.id!==interrupted.id)
             setRepair({id:interrupted.id,skip:[...(run.snapshot().failedInput?.omitted || [])],files:[]});}}>
@@ -1705,14 +1911,24 @@ export default function Xcode({
             }}
           />
             {busy && (
-              <button
-                className="chat-stop"
-                aria-label="중지"
-                title="중지"
-                onClick={cancel}
-              >
-                <Square size={14} />
-              </button>
+              <div className="chat-run-controls">
+                <button type="button" className="chat-stop"
+                  aria-label={nextOnStop ? "중지하고 다음 보내기" : "중지"}
+                  title={nextOnStop ? "중지하고 다음 대기 메시지 전송" : "중지"}
+                  onClick={() => void stopCurrent()}>
+                  {nextOnStop ? <><SkipForward size={14} /> <span>다음 보내기</span></> : <Square size={14} />}
+                </button>
+                {!readonly && nextWaiting && phase !== "연결 진단" && <>
+                  <button type="button" className="chat-queue-menu-toggle"
+                    aria-label="응답 제어 메뉴" title="응답 제어 메뉴" popoverTarget={queueMenuId}><Ellipsis size={15} /></button>
+                  <div id={queueMenuId} className="chat-queue-menu" popover="auto">
+                    <button type="button" onClick={event => {
+                      event.currentTarget.closest<HTMLElement>("[popover]")?.hidePopover();
+                      toggleQueuePause();
+                    }}>{queueHeld ? "이 세션 대기열 재개" : "이 세션 대기열 일시정지"}</button>
+                  </div>
+                </>}
+              </div>
             )}
             {(!busy || prompt.trim() || selectedFiles.length>0) && (
               <button
@@ -1724,6 +1940,9 @@ export default function Xcode({
                   importing ||
                   settingsSave === "saving" ||
                   !queueReady ||
+                  submitting ||
+                  !recoveryReady ||
+                  needsDeliveryReview ||
                   !api.xcodeChat ||
                   (!prompt.trim() && !selectedFiles.length)
                 }

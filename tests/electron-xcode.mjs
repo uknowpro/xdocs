@@ -20,6 +20,7 @@ await writeFile(
   JSON.stringify({ root: vault }),
 );
 const calls = [];
+const connectionDetails = new WeakMap();
 let lastAuthorization, lastRequestUrl, lastCookie;
 let slowResponse,
   caseMode = "normal",
@@ -29,6 +30,7 @@ const server = createServer(async (req, res) => {
   for await (const chunk of req) chunks.push(chunk);
   const packet = JSON.parse(Buffer.concat(chunks));
   calls.push(packet);
+  connectionDetails.set(packet, { url: req.url, authorization: req.headers.authorization });
   lastAuthorization = req.headers.authorization;
   lastRequestUrl = req.url;
   lastCookie = req.headers.cookie;
@@ -696,6 +698,42 @@ try {
   const defaults = await openDefaults(page);
   const defaultEndpoint = "http://defaults.intranet.invalid/team/v1";
   const defaultModel = "company-test-model";
+  const defaultTarget = defaultEndpoint + "/chat/completions";
+  async function sendUsingDefault(instance, currentPage, message) {
+    await instance.evaluate(async ({ dialog, session }, { port, target }) => {
+      const show = dialog.showMessageBox;
+      dialog.showMessageBox = (window, options) =>
+        options.message === "이 서버로 세션 내용을 전송할까요?" &&
+        options.detail.startsWith(target + "\n") && options.detail.includes("HTTP 평문")
+          ? Promise.resolve({ response: 1 })
+          : show(window, options);
+      await session.defaultSession.setProxy({
+        mode: "fixed_servers",
+        proxyRules: "http=127.0.0.1:" + port,
+        proxyBypassRules: "<-loopback>",
+      });
+    }, { port: server.address().port, target: defaultTarget });
+    try {
+      const before = calls.length;
+      await expect(currentPage.getByRole("dialog", { name: "세션 설정" })).toBeHidden();
+      await currentPage.getByLabel("xcode 메시지").fill(message);
+      await currentPage.getByRole("button", { name: "전송", exact: true }).click();
+      await expect(currentPage.locator(".chat-answer").last()).toContainText("검토 결과 complete");
+      await expect(currentPage.getByRole("button", { name: "중지", exact: true })).toBeHidden();
+      assert.ok(calls.length > before);
+      assert.equal(calls[before].model, defaultModel);
+      assert.ok(JSON.stringify(calls[before].messages).includes(message));
+      assert.deepEqual(connectionDetails.get(calls[before]), {
+        url: defaultTarget,
+        authorization: canStore ? "Bearer global-test-token" : undefined,
+      });
+    } finally {
+      await instance.evaluate(async ({ session }) => {
+        await session.defaultSession.setProxy({ mode: "direct" });
+        await session.defaultSession.closeAllConnections();
+      });
+    }
+  }
   const connect = defaults.getByRole("button", { name: "연결 테스트", exact: true });
   await defaults.getByLabel("API 주소").fill("wrong-address");
   await connect.click();
@@ -721,13 +759,16 @@ try {
   const persisted = await page.evaluate(() => localStorage.getItem("xdocs.xcode.defaultConnection"));
   assert.doesNotMatch(persisted, /global-test-token/);
   await page.getByRole("button", {name:"설정 닫기"}).click();
+  await page.evaluate(() => localStorage.setItem("xdocs.xcode.settings", "shown"));
   const current = await createSession(page);
   const connectionState = page.locator(".xcode .connection-source");
-  await expect(connectionState).toHaveText("기본 연결 사용");
+  const defaultStatus = canStore ? "기본 연결 사용 · 저장된 토큰 사용" : "기본 연결 사용";
+  await expect(connectionState).toHaveText(defaultStatus);
+  await sendUsingDefault(app, page, "first request with the saved default");
   if (!(await page.getByLabel("API 주소").isVisible()))
     await page.getByRole("button", { name: "세션 설정 펼치기" }).click();
   await page.getByLabel("모델명", { exact: true }).fill("session-only-model");
-  await expect(connectionState).toHaveText("기본 연결 사용");
+  await expect(connectionState).toHaveText(defaultStatus);
   await expect(page.getByText("저장하지 않은 변경", { exact: true })).toBeVisible();
   assert.deepEqual((await readConnections(page)).find(row => row[0] === current[0]), current);
   await page.getByRole("button", { name: "설정 취소", exact: true }).click();
@@ -736,7 +777,7 @@ try {
   await page.getByLabel("모델명", { exact: true }).fill("session-only-model");
   await page.getByRole("button", { name: "기본 연결로 되돌리기", exact: true }).click();
   await expect(page.getByLabel("모델명", { exact: true })).toHaveValue(defaultModel);
-  await expect(connectionState).toHaveText("기본 연결 사용");
+  await expect(connectionState).toHaveText(defaultStatus);
   await page.getByRole("button", { name: "설정 저장", exact: true }).click();
   assert.deepEqual(current.slice(1,3), [defaultEndpoint, defaultModel]);
   assert.equal(current[4], defaultEndpoint + "/chat/completions");
@@ -756,6 +797,9 @@ try {
   const restarted = await app.firstWindow();
   await expect(restarted.getByRole("button", { name: "새로 만들기", exact: true })).toBeEnabled();
   assert.deepEqual((await createSession(restarted)).slice(1), current.slice(1));
+  await sendUsingDefault(app, restarted, "first request after restarting");
+  console.log("PASS new sessions send with the saved default endpoint, model and " +
+    (canStore ? "encrypted token" : "no token when the OS key store is unavailable"));
   const restartedDefaults = await openDefaults(restarted);
   await expect(restartedDefaults.getByLabel("API 주소")).toHaveValue(defaultEndpoint);
   await restartedDefaults.getByRole("button", { name: "기본 연결 해제", exact: true }).click();

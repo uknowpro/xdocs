@@ -11,6 +11,8 @@ export type Checkpoint = {
   files: InputFile[];
   answers: Turn["answers"];
   partial: string;
+  dispatchTracked?: true;
+  unconfirmed?: boolean;
 };
 let database: Promise<IDBDatabase> | undefined;
 function open() {
@@ -42,11 +44,23 @@ async function transact<T>(
 export async function loadCheckpoint(
   key: string,
 ): Promise<Checkpoint | undefined> {
-  const [base, progress] = await Promise.all(
-    [key, key + "/progress"].map((k) => transact("readonly", (s) => s.get(k))),
+  const [base, progress, dispatch] = await Promise.all(
+    [key, key + "/progress", key + "/dispatch"].map((k) => transact("readonly", (s) => s.get(k))),
   );
-  return base && progress?.id === base.id ? { ...base, ...progress } : base;
+  if (!base) return;
+  const saved: Checkpoint = progress?.id === base.id ? { ...base, ...progress } : base;
+  const unfinished = saved.answers.length < saved.harness.stages.length;
+  return {
+    ...saved,
+    unconfirmed: unfinished && (saved.dispatchTracked
+      ? dispatch?.id === saved.id && dispatch.stage >= saved.answers.length
+      : true),
+  };
 }
+export const recordDispatch = (key: string, id: string, stage: number) =>
+  transact("readwrite", s => s.put({ id, stage }, key + "/dispatch"));
+export const clearDispatch = (key: string) =>
+  transact("readwrite", s => s.delete(key + "/dispatch"));
 export const saveCheckpoint = (key: string, data: Checkpoint) =>
   transact("readwrite", (s) => s.put(data, key));
 export const saveProgress = (
@@ -56,6 +70,7 @@ export const saveProgress = (
 export const clearCheckpoint = (key: string) =>
   transact("readwrite", (s) => {
     s.delete(key + "/progress");
+    s.delete(key + "/dispatch");
     return s.delete(key);
   });
 
@@ -71,31 +86,71 @@ export type QueuedPrompt = {
   model: string;
 };
 
-// Separate keys keep waiting prompts independent of an interrupted stage.
-export const readWaiting = (key:string) =>
-  transact<QueuedPrompt[] | undefined>("readonly",store=>store.get(key+"/waiting"));
-export const writeWaiting = (key:string, items:QueuedPrompt[]) =>
-  items.length ? transact("readwrite",store=>{
-    store.put(items.length,key+"/count");
-    return store.put(items,key+"/waiting");
-  }) : transact("readwrite",store=>{
-    store.delete(key+"/count");
-    return store.delete(key+"/waiting");
+export type QueuePauseReason = "quota" | "connection" | "stopped" | "unconfirmed";
+
+export type QueuePreview = { text: string; attachments: number };
+export function queuePreview(item: QueuedPrompt | undefined): QueuePreview | undefined {
+  if (!item) return;
+  return {
+    text: item.prompt.trim().split(/\r?\n/, 1)[0]?.slice(0, 150) || "첨부 메시지",
+    attachments: item.files.length,
+  };
+}
+export type QueueControl = { held?: boolean; reason?: QueuePauseReason };
+export const readQueueControl = (key: string) =>
+  transact<QueueControl | undefined>("readonly", s => s.get(key + "/queue-control"));
+export const writeQueueControl = (key: string, control: QueueControl) =>
+  control.held || control.reason
+    ? transact("readwrite", s => s.put(control, key + "/queue-control"))
+    : transact("readwrite", s => s.delete(key + "/queue-control"));
+
+type WaitingSummary = { queued: number; next?: QueuePreview };
+export type QueueSummary = WaitingSummary & QueueControl;
+
+export const readWaiting = (key: string) =>
+  transact<QueuedPrompt[] | undefined>("readonly", store => store.get(key + "/waiting"));
+export const writeWaiting = (key: string, items: QueuedPrompt[]) =>
+  items.length ? transact("readwrite", store => {
+    const summary: WaitingSummary = { queued: items.length, next: queuePreview(items[0]) };
+    store.delete(key + "/count");
+    store.put(summary, key + "/queue-summary");
+    return store.put(items, key + "/waiting");
+  }) : transact("readwrite", store => {
+    store.delete(key + "/count");
+    store.delete(key + "/queue-summary");
+    return store.delete(key + "/waiting");
   });
 
-export async function readQueueCounts(scope:string) {
-  const prefix=JSON.stringify([scope]).slice(0,-1)+",";
-  const keys=await transact("readonly",store=>store.getAllKeys(IDBKeyRange.bound(prefix,prefix+"\uffff")));
-  const counts=new Map<string,number>();
+export async function readQueueSummaries(scope: string) {
+  const prefix = JSON.stringify([scope]).slice(0, -1) + ",";
+  const keys = await transact("readonly", store =>
+    store.getAllKeys(IDBKeyRange.bound(prefix, prefix + "\uffff")));
+  const queueKeys = new Set<string>();
+  const checkpoints = new Set<string>();
   for (const entry of keys) {
-    if (typeof entry!=="string" || !entry.endsWith("/waiting")) continue;
-    const key=entry.slice(0,-"/waiting".length);
-    const [,page]=JSON.parse(key);
-    // Existing queues from before count metadata was introduced are read once.
-    const count=await transact<number | undefined>("readonly",store=>store.get(key+"/count"));
-    counts.set(page,count ?? (await readWaiting(key))?.length ?? 0);
+    if (typeof entry !== "string") continue;
+    if (entry.endsWith("\"]")) {
+      checkpoints.add(entry);
+      queueKeys.add(entry);
+    } else if (/\/(waiting|queue-control)$/.test(entry)) queueKeys.add(entry.slice(0, entry.lastIndexOf("/")));
   }
-  return counts;
+  const summaries = new Map<string, QueueSummary>();
+  await Promise.all([...queueKeys].map(async key => {
+    const [, page] = JSON.parse(key);
+    const [summary, control, checkpoint] = await Promise.all([
+      transact<WaitingSummary | undefined>("readonly", s => s.get(key + "/queue-summary")),
+      readQueueControl(key),
+      checkpoints.has(key) ? loadCheckpoint(key) : undefined,
+    ]);
+    let waiting = summary;
+    if (!waiting || checkpoint) {
+      const items = await readWaiting(key);
+      waiting = { queued: items?.length ?? 0, next: queuePreview(items?.find(item => item.id !== checkpoint?.id)) };
+    }
+    const reason = checkpoint?.unconfirmed ? "unconfirmed" : control?.reason;
+    if (waiting.queued || reason) summaries.set(page, { ...waiting, ...control, reason });
+  }));
+  return summaries;
 }
 
 export const readComposerDraft = (key:string) =>

@@ -168,7 +168,7 @@ export default function XcodeDefaults() {
     <section className="xcode-defaults" aria-labelledby={plaintext + "-heading"}>
       <h3 id={plaintext + "-heading"}>새 세션의 기본 모델</h3>
       <p className="xcode-defaults-current">{saved ? <>저장된 모델 <strong>{saved.model}</strong></> : "저장된 기본 모델 없음"}</p>
-      <p>이 기기에서 새로 만드는 xcode 세션에 적용됩니다.</p>
+      <p>이 기기에서 만드는 새 세션은 저장한 API 주소, 모델명, 토큰을 바로 사용합니다.</p>
       <form
         onSubmit={(event) => {
           event.preventDefault();

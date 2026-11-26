@@ -61,7 +61,7 @@ for(const scale of process.platform==="win32"?[1.25,1.5]:[1.25]){
     await send("나중에");
     await page.getByLabel("파일 첨부 선택").setInputFiles(["배포 계획","검토 기준"].map(name=>({name:name+".txt",mimeType:"text/plain",buffer:Buffer.from(name)})));
     await expect(button("검토 기준.txt 제거")).toBeVisible();
-    await input().fill("지금 처리");await visibleControls(["입력","대기열에 추가","중지"]);
+    await input().fill("지금 처리");await visibleControls(["입력","대기열에 추가","중지하고 다음 보내기"]);
     await page.getByText("전송 옵션",{exact:true}).click();await button("지금 이어서 요청").click();
     await count(2);assert.match(requests[1].data,/지금 처리/);assert.match(requests[1].data,/수신한 부분 응답/);
     answer(1,"근거 [예산.xlsx#예산!B2] [회의.docx#문단 1] [회의.docx#문단 9]");
