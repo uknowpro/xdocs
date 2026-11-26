@@ -58,7 +58,7 @@ contextBridge.exposeInMainWorld("xdocs", {
   wordPropose:(handle,text)=>ipcRenderer.invoke("word:propose",handle,text),
   xcodeAppend:data=>ipcRenderer.invoke("xcode:append",data),
   xcodeSkills:()=>ipcRenderer.invoke("xcode:skills"),
-  xcodeAuthorize:(endpoint,intranetHttpEndpoint)=>ipcRenderer.invoke("xcode:authorize",endpoint,intranetHttpEndpoint),
+  xcodeAuthorize:endpoint=>ipcRenderer.invoke("xcode:authorize",endpoint),
   saveXcodeProfile:data=>ipcRenderer.invoke("xcode:profile-save",data),
   xcodeChat:request=>ipcRenderer.invoke("xcode:chat",request),
   xcodeCancel:id=>ipcRenderer.invoke("xcode:cancel",id),

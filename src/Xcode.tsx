@@ -1,5 +1,5 @@
 import { readXcodeDefaults } from "./XcodeDefaults";
-import { chatCompletionsEndpoint, isRemoteHttpEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
+import { chatCompletionsEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
 import WorkspaceMaterial,{type MaterialAction} from "./WorkspaceMaterial";
 import type {WorkspaceAccess} from "./workspace-input";
 import { usePaneHeight } from "./usePaneHeight";
@@ -155,9 +155,6 @@ export default function Xcode({
     catch { return undefined; }
   }, [edited.endpoint]);
   const editedAddress = endpoint?.href ?? "";
-  const remoteHttp = Boolean(endpoint && isRemoteHttpEndpoint(endpoint));
-  const editedHttpNeedsApproval = remoteHttp && edited.intranetHttpEndpoint !== editedAddress;
-  const httpNotice = useId();
   const capacity = useCapacity(editedOrigin);
   const start = Math.max(
     0,
@@ -220,8 +217,7 @@ export default function Xcode({
   const globalConnection = readXcodeDefaults();
   const baseline = globalConnection ?? fresh();
   const usesDefaults = (session: Session) => sameChatEndpoint(session.endpoint, baseline.endpoint) &&
-    session.model === baseline.model && session.profile === baseline.profile &&
-    session.intranetHttpEndpoint === baseline.intranetHttpEndpoint;
+    session.model === baseline.model && session.profile === baseline.profile;
   const matchesDefaults = usesDefaults(s);
   const connectionLabel = matchesDefaults && s.connectionSource !== "custom"
     ? globalConnection ? "기본 연결 사용" : "앱 기본 연결"
@@ -273,10 +269,8 @@ export default function Xcode({
   function config(patch: SessionSettingsPatch, token?: { value: string; origin: string }) {
     const current = run.settingsDraft ?? settingsDraft;
     const next = { ...current.patch, ...patch };
-    if (["endpoint", "model", "profile", "intranetHttpEndpoint"].some(field => Object.hasOwn(patch, field)) &&
+    if (["endpoint", "model", "profile"].some(field => Object.hasOwn(patch, field)) &&
         !patch.connectionSource) next.connectionSource = "custom";
-    if ("endpoint" in patch && !("intranetHttpEndpoint" in patch) && !sameChatEndpoint(edited.endpoint, patch.endpoint))
-      next.intranetHttpEndpoint = undefined;
     updateDraft({ ...current, patch: next, ...(token ? { token } : {}) });
     setSettingsSave("idle");
     setSettingsError("");
@@ -340,13 +334,12 @@ export default function Xcode({
   const linkedProfile = profiles.find(p => p.name === edited.profile);
   const savedProfile = linkedProfile && linkedProfile.model === edited.model && sameChatEndpoint(linkedProfile.endpoint, edited.endpoint) ? linkedProfile : undefined;
   async function rememberToken() {
-    if (!api.saveXcodeProfile || !key || !editedOrigin || tokenNeedsApproval || editedHttpNeedsApproval || savingKey) return;
+    if (!api.saveXcodeProfile || !key || !editedOrigin || tokenNeedsApproval || savingKey) return;
     setSavingKey(true);
     try {
       const name = (edited.model.trim().slice(0,50) || "xcode") + " · " + crypto.randomUUID();
       const next = await api.saveXcodeProfile({
         name, endpoint: edited.endpoint, model: edited.model, key, remember: true,
-        intranetHttpEndpoint: edited.intranetHttpEndpoint,
       });
       if (!mounted.current) return;
       setProfiles(next);
@@ -359,14 +352,6 @@ export default function Xcode({
   }
   function tokenReady(session: Session = currentConnection.current.session) {
     const savedToken = run.sessionToken;
-    let url: URL | undefined;
-    try { url = chatCompletionsEndpoint(session.endpoint); } catch {}
-    if (url && isRemoteHttpEndpoint(url) && session.intranetHttpEndpoint !== url.href) {
-      setShowSettings(true);
-      setSettingsTab("connection");
-      setError("세션 설정에서 사내 HTTP 연결을 허용한 뒤 저장하세요.");
-      return false;
-    }
     if (!savedToken.value || savedToken.origin === serverOrigin(session.endpoint)) return true;
     setShowSettings(true);
     setSettingsTab("connection");
@@ -409,7 +394,7 @@ export default function Xcode({
   }
   const [probe, setProbe] = useState<Probe>("text");
   const [report, setReport] = useState<{ target: "basic" | "advanced"; text: string }>();
-  useEffect(() => setReport(undefined), [edited.endpoint, edited.model, edited.profile, edited.intranetHttpEndpoint, key]);
+  useEffect(() => setReport(undefined), [edited.endpoint, edited.model, edited.profile, key]);
   async function diagnose(kind: Probe, target: "basic" | "advanced") {
     if (run.snapshot().busy || !api.xcodeChat || readonly) return;
     if (tokenNeedsApproval || savingKey) {
@@ -426,7 +411,6 @@ export default function Xcode({
       const text = await testXcodeConnection({
         profile: edited.profile,
         endpoint: edited.endpoint,
-        intranetHttpEndpoint: edited.intranetHttpEndpoint,
         model: edited.model,
         key,
       }, kind, id, controller.signal);
@@ -794,7 +778,7 @@ export default function Xcode({
       if (!(await prepare())) throw Error("세션을 먼저 저장해 주세요.");
       if (!s.harness.stages.every((i) => i.trim()))
         throw Error("빈 단계에 지침을 입력하세요.");
-      if (!(await api.xcodeAuthorize?.(s.endpoint, s.intranetHttpEndpoint)))
+      if (!(await api.xcodeAuthorize?.(s.endpoint)))
         throw Error("모델 서버 전송을 취소했습니다.");
       if (run.id !== id) throw Error("요청을 중지했습니다.");
       const history: unknown[] = [];
@@ -987,7 +971,6 @@ export default function Xcode({
               key: requestKey,
               profile: s.profile,
               endpoint: s.endpoint,
-              intranetHttpEndpoint: s.intranetHttpEndpoint,
               model: s.model,
               effort: effort === "server" ? undefined : effort,
               messages: requestMessages,
@@ -1259,7 +1242,7 @@ export default function Xcode({
           {globalConnection && !usesDefaults(edited) && <button type="button" className="button small" onClick={() => {
             setKey("");
             setError("");
-            config({ ...globalConnection, intranetHttpEndpoint: globalConnection.intranetHttpEndpoint, connectionSource: "default" });
+            config({ ...globalConnection, connectionSource: "default" });
           }}>기본 연결로 되돌리기</button>}
           <label>
             API 주소
@@ -1272,19 +1255,6 @@ export default function Xcode({
               <small>실제 요청 주소 · {editedAddress}</small>
             )}
           </label>
-          {remoteHttp && (
-            <label>
-              <span>
-                <input type="checkbox" aria-label="사내 HTTP 연결 허용" aria-describedby={httpNotice} checked={!editedHttpNeedsApproval}
-                  onChange={(event) => {
-                    config({ intranetHttpEndpoint: event.target.checked ? editedAddress : undefined });
-                    setError("");
-                  }} />{" "}
-                사내 HTTP 연결 허용
-              </span>
-              <small id={httpNotice}>이 주소로 보내는 토큰과 대화 내용은 평문으로 전송됩니다.</small>
-            </label>
-          )}
           <label>
             API 토큰 (선택)
             <input
@@ -1307,7 +1277,7 @@ export default function Xcode({
             {tokenNeedsApproval && editedOrigin && <button type="button" onClick={() => {setKey(key);setError("");}}>
               {editedOrigin}에서 이 토큰 사용
             </button>}
-            {key && api.saveXcodeProfile && <button type="button" disabled={tokenNeedsApproval || editedHttpNeedsApproval || !editedOrigin || !edited.model.trim()} onClick={() => void rememberToken()}>
+            {key && api.saveXcodeProfile && <button type="button" disabled={tokenNeedsApproval || !editedOrigin || !edited.model.trim()} onClick={() => void rememberToken()}>
               이 기기에 토큰 저장
             </button>}
           </div>

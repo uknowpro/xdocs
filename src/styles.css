@@ -1117,9 +1117,6 @@ textarea {
   color: var(--ink);
   background: var(--bg);
 }
-.xcode-defaults-http small {
-  color: var(--muted);
-}
 .row {
   display: flex;
   align-items: center;

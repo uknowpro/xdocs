@@ -37,13 +37,6 @@ export function chatCompletionsEndpoint(endpoint) {
   return url;
 }
 
-export function allowedChatEndpoint(endpoint, intranetHttpEndpoint) {
-  const url = chatCompletionsEndpoint(endpoint);
-  if (isRemoteHttpEndpoint(url) && url.href !== intranetHttpEndpoint)
-    throw Error("세션 설정에서 이 주소의 사내 HTTP 연결을 허용하세요.");
-  return url;
-}
-
 export function sameChatEndpoint(first, second) {
   if (first === second) return true;
   try {

@@ -1,10 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import {
-  allowedChatEndpoint,
-  chatCompletionsEndpoint,
-  isRemoteHttpEndpoint,
-  sameChatEndpoint,
-} from "../desktop/builder-model.mjs";
+import { chatCompletionsEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
 import { api } from "./api";
 import { diagnosticFailure, testXcodeConnection } from "./xcode-diagnostic";
 import { serverOrigin } from "./xcode-queue";
@@ -24,12 +19,11 @@ export function readXcodeDefaults(): SessionConnection | undefined {
       typeof value.profile !== "string"
     )
       return;
-    const url = allowedChatEndpoint(value.endpoint, value.intranetHttpEndpoint);
+    chatCompletionsEndpoint(value.endpoint);
     return {
       endpoint: value.endpoint,
       model: value.model,
       profile: value.profile,
-      ...(isRemoteHttpEndpoint(url) ? { intranetHttpEndpoint: url.href } : {}),
     };
   } catch {
     return;
@@ -47,7 +41,7 @@ export default function XcodeDefaults() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const plaintext = useId();
+  const heading = useId();
   useEffect(() => {
     let active = true;
     void api.builderProfiles?.().then(
@@ -70,13 +64,6 @@ export default function XcodeDefaults() {
     };
   }, []);
 
-  let remoteAddress = "";
-  try {
-    const url = chatCompletionsEndpoint(draft.endpoint);
-    if (isRemoteHttpEndpoint(url)) remoteAddress = url.href;
-  } catch {
-    // A complete address is required before saving the form.
-  }
   const matches = (connection: Pick<SessionConnection, "endpoint" | "model">) =>
     connection.model === draft.model.trim() &&
     sameChatEndpoint(connection.endpoint, draft.endpoint);
@@ -121,15 +108,12 @@ export default function XcodeDefaults() {
     try {
       const endpoint = draft.endpoint.trim();
       const model = draft.model.trim();
-      const target = allowedChatEndpoint(endpoint, draft.intranetHttpEndpoint);
+      chatCompletionsEndpoint(endpoint);
       if (!model) throw Error("서버에서 사용하는 모델명을 입력하세요.");
       const next: SessionConnection = {
         endpoint,
         model,
         profile,
-        ...(isRemoteHttpEndpoint(target)
-          ? { intranetHttpEndpoint: target.href }
-          : {}),
       };
       if (key.trim()) {
         const name =
@@ -165,8 +149,8 @@ export default function XcodeDefaults() {
   }
 
   return (
-    <section className="xcode-defaults" aria-labelledby={plaintext + "-heading"}>
-      <h3 id={plaintext + "-heading"}>새 세션의 기본 모델</h3>
+    <section className="xcode-defaults" aria-labelledby={heading}>
+      <h3 id={heading}>새 세션의 기본 모델</h3>
       <p className="xcode-defaults-current">{saved ? <>저장된 모델 <strong>{saved.model}</strong></> : "저장된 기본 모델 없음"}</p>
       <p>이 기기에서 만드는 새 세션은 저장한 API 주소, 모델명, 토큰을 바로 사용합니다.</p>
       <form
@@ -192,12 +176,6 @@ export default function XcodeDefaults() {
                           endpoint: item.endpoint,
                           model: item.model,
                           profile: item.name,
-                          intranetHttpEndpoint: sameChatEndpoint(
-                            item.endpoint,
-                            draft.endpoint,
-                          )
-                            ? draft.intranetHttpEndpoint
-                            : undefined,
                         }
                       : { ...draft, profile: "" },
                   );
@@ -218,45 +196,9 @@ export default function XcodeDefaults() {
               required
               value={draft.endpoint}
               placeholder="https://server.example/v1"
-              onChange={(event) => {
-                const endpoint = event.target.value;
-                update({
-                  ...draft,
-                  endpoint,
-                  intranetHttpEndpoint: sameChatEndpoint(
-                    endpoint,
-                    draft.endpoint,
-                  )
-                    ? draft.intranetHttpEndpoint
-                    : undefined,
-                });
-              }}
+              onChange={event => update({ ...draft, endpoint: event.target.value })}
             />
           </label>
-          {remoteAddress && (
-            <label className="xcode-defaults-http">
-              <span>
-                <input
-                  type="checkbox"
-                  aria-label="사내 HTTP 연결 허용"
-                  aria-describedby={plaintext}
-                  checked={draft.intranetHttpEndpoint === remoteAddress}
-                  onChange={(event) =>
-                    update({
-                      ...draft,
-                      intranetHttpEndpoint: event.target.checked
-                        ? remoteAddress
-                        : undefined,
-                    })
-                  }
-                />{" "}
-                사내 HTTP 연결 허용
-              </span>
-              <small id={plaintext}>
-                HTTP로 보내는 토큰과 대화 내용은 평문으로 전송됩니다.
-              </small>
-            </label>
-          )}
           <label>
             모델명
             <input

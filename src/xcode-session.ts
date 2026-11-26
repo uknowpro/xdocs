@@ -190,7 +190,6 @@ export type Turn = {
 };
 export type Session = {
   endpoint: string;
-  intranetHttpEndpoint?: string;
   connectionSource?: "default" | "custom";
   model: string;
   profile: string;
@@ -202,7 +201,7 @@ export type Session = {
   autoMinutes?: number;
   maxAutoRequests?: number;
 };
-export type SessionConnection = Pick<Session, "endpoint" | "model" | "profile" | "intranetHttpEndpoint">;
+export type SessionConnection = Pick<Session, "endpoint" | "model" | "profile">;
 export type SessionSettingsPatch = Partial<Omit<Session, "turns">>;
 export type SessionToken = { value: string; origin: string };
 export type SessionSettingsDraft = {

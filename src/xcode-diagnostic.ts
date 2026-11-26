@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { allowedChatEndpoint } from "../desktop/builder-model.mjs";
+import { chatCompletionsEndpoint } from "../desktop/builder-model.mjs";
 import { api } from "./api";
 import { acquireServer } from "./xcode-queue";
 import type { SessionConnection } from "./xcode-session";
@@ -40,17 +40,17 @@ export async function testXcodeConnection(
   id: string,
   signal: AbortSignal,
 ) {
-  const { endpoint, intranetHttpEndpoint, model } = connection;
+  const { endpoint, model } = connection;
   let address: URL;
   try {
-    address = allowedChatEndpoint(endpoint, intranetHttpEndpoint);
+    address = chatCompletionsEndpoint(endpoint);
   } catch {
-    throw Error("주소 · API 주소 형식과 사내 HTTP 허용 여부를 확인하세요.");
+    throw Error("주소 · HTTP 또는 HTTPS API 주소를 확인하세요.");
   }
   if (!model.trim()) throw Error("모델 · 서버에서 사용하는 모델명을 입력하세요.");
   if (!api.xcodeChat || !api.xcodeAuthorize) throw Error("연결 테스트는 데스크톱 앱에서 실행합니다.");
   signal.throwIfAborted();
-  if (!await api.xcodeAuthorize(endpoint, intranetHttpEndpoint))
+  if (!await api.xcodeAuthorize(endpoint))
     throw Error("서버 전송을 취소했습니다.");
   const release = await acquireServer(address.origin, signal);
   try {

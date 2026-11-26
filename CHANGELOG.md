@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.37
+
+- Enter HTTP model URLs directly in xcode defaults, session settings, and JSON imports. xcode confirms the exact destination on its first request after launch.
+
 ## 0.5.36
 
 - Open new xcode sessions directly in chat when a default connection is saved, and indicate when the saved token is in use.

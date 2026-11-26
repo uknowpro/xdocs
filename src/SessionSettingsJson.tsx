@@ -1,12 +1,11 @@
 import { useRef, useState } from "react";
 import type { Session } from "./xcode-session";
-import { chatCompletionsEndpoint, isRemoteHttpEndpoint, sameChatEndpoint } from "../desktop/builder-model.mjs";
+import { chatCompletionsEndpoint } from "../desktop/builder-model.mjs";
 
 type Settings = Pick<
   Session,
   | "endpoint"
   | "model"
-  | "intranetHttpEndpoint"
   | "autoRetry"
   | "repeatCompleted"
   | "retrySeconds"
@@ -45,11 +44,10 @@ function parseSettings(text: string) {
     throw Error("설정을 JSON 객체로 입력하세요.");
   for (const field of Object.keys(value))
     if (!allowed.has(field)) throw Error("지원하지 않는 항목: " + field);
-  let endpoint;
   try {
     if (typeof value.endpoint !== "string" || !value.endpoint.trim())
       throw Error();
-    endpoint = chatCompletionsEndpoint(value.endpoint.trim());
+    chatCompletionsEndpoint(value.endpoint.trim());
   } catch {
     throw Error(
       "endpoint에 HTTP 또는 HTTPS API 주소(/v1 기본 주소 또는 Chat Completions 전체 주소)를 입력하세요.",
@@ -61,12 +59,9 @@ function parseSettings(text: string) {
     throw Error("token은 문자열이어야 합니다.");
   if (value.allowIntranetHttp !== undefined && typeof value.allowIntranetHttp !== "boolean")
     throw Error("allowIntranetHttp에는 true 또는 false를 입력하세요.");
-  if (isRemoteHttpEndpoint(endpoint) && value.allowIntranetHttp !== true)
-    throw Error("allowIntranetHttp에 true를 입력해 이 사내 HTTP 주소를 허용하세요.");
   const settings: Settings = {
     endpoint: value.endpoint.trim(),
     model: value.model.trim(),
-    intranetHttpEndpoint: isRemoteHttpEndpoint(endpoint) ? endpoint.href : undefined,
   };
   for (const field of flags) {
     if (!(field in value)) continue;
@@ -112,9 +107,6 @@ export default function SessionSettingsJson({
     {
       endpoint,
       model,
-      ...(session.intranetHttpEndpoint && sameChatEndpoint(endpoint, session.intranetHttpEndpoint)
-        ? { allowIntranetHttp: true }
-        : {}),
       autoRetry,
       repeatCompleted,
       retrySeconds,
@@ -221,8 +213,8 @@ export default function SessionSettingsJson({
           {(!changes?.length && preview.token === undefined) ? <p>변경되는 값이 없습니다.</p> : <>
             <dl>
               {changes?.map(([field, value]) => <div key={field}>
-                <dt>{field === "intranetHttpEndpoint" ? "allowIntranetHttp" : field}</dt>
-                <dd>{field === "intranetHttpEndpoint" ? value ? "허용" : "해제" : String(value)}</dd>
+                <dt>{field}</dt>
+                <dd>{String(value)}</dd>
               </div>)}
               {preview.token !== undefined && <div><dt>token</dt><dd>{preview.token ? "••••••••" : "비우기"}</dd></div>}
             </dl>

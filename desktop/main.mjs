@@ -7,7 +7,7 @@ import { readAnalyzerSource } from "./analyzer-source.mjs";
 import { analyzeDirectory } from "./analyzer.mjs";
 import {modelProfiles} from "./builder-profiles.mjs";
 import {builderResources} from "./builder-mcp.mjs";
-import { allowedChatEndpoint, isRemoteHttpEndpoint, sameChatEndpoint, runBuilderModel } from "./builder-model.mjs";
+import { chatCompletionsEndpoint, isRemoteHttpEndpoint, sameChatEndpoint, runBuilderModel } from "./builder-model.mjs";
 import { templates, workflowNodes } from "../shared/workflows.mjs";
 import { importArchitecture } from "./architecture-import.mjs";
 import {
@@ -507,8 +507,8 @@ app.whenReady().then(async () => {
     return choice.canceled ? null : word.capture(choice.filePaths[0]);
   });
   register("word:propose",(handle,text) => word.propose(handle,text));
-  register("xcode:authorize", async (endpoint, intranetHttpEndpoint) => {
-    const url = allowedChatEndpoint(endpoint, intranetHttpEndpoint);
+  register("xcode:authorize", async endpoint => {
+    const url = chatCompletionsEndpoint(endpoint);
     const address = url.href;
     const plainHttp = isRemoteHttpEndpoint(url);
     if (trustedEndpoints.has(address)) return true;
@@ -553,7 +553,7 @@ app.whenReady().then(async () => {
   register("xcode:cancel",id=>chats.get(id)?.abort());
   register("xcode:chat",async ({id,profile,...request})=>{
     if(typeof id !== "string" || chats.has(id)) throw Error("중복된 세션 요청입니다.");
-    if (!trustedEndpoints.has(allowedChatEndpoint(request.endpoint, request.intranetHttpEndpoint).href))
+    if (!trustedEndpoints.has(chatCompletionsEndpoint(request.endpoint).href))
       throw Error("모델 서버 주소를 먼저 확인하세요.");
     const controller=new AbortController(); chats.set(id,controller);
     try {
@@ -564,7 +564,7 @@ app.whenReady().then(async () => {
     } finally {chats.delete(id);}
   });
   register("xcode:profile-save", data =>
-    profiles.save(data, endpoint => allowedChatEndpoint(endpoint, data.intranetHttpEndpoint)));
+    profiles.save(data, chatCompletionsEndpoint));
   register("builder:profiles",()=>profiles.list());
   register("builder:profile-save",data=>profiles.save(data));
   register("builder:model",async request=>{
