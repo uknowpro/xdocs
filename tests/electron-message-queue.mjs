@@ -165,10 +165,13 @@ try{
   assert.match(JSON.stringify(requests[7].messages.at(-1)), /queued-first/);
   await expect(queued("queued-last")).toBeVisible();
 
+  const activeTitle = mode === "verify" ? "새 xcode 세션 3" : "새 xcode 세션 2";
   await page.getByLabel("xcode 세션 작업 상태").click();
-  const sidebar = page.locator(".xcode-running");
-  await expect(sidebar).toContainText("다음 · queued-last");
-  await sidebar.getByRole("button", { name: /대기열 일시정지$/ }).click();
+  const activeRow = page.locator(".xcode-running-row").filter({
+    has: page.getByRole("button", { name: activeTitle, exact: true }),
+  });
+  await expect(activeRow).toContainText("다음 · queued-last");
+  await activeRow.getByRole("button", { name: activeTitle + " 대기열 일시정지", exact: true }).click();
   await expect(queueLabel).toContainText("일시정지");
   finish(7, "first queued answer");
   await expect(page.locator(".chat-answer").last()).toContainText("first queued answer");
@@ -176,7 +179,6 @@ try{
   await count(8);
   await app.close();
   await launch();
-  const activeTitle = mode === "verify" ? "새 xcode 세션 3" : "새 xcode 세션 2";
   await page.locator(".page-tree").getByRole("button", { name: activeTitle, exact: true }).click();
   await expect(page.locator(".chat-waiting > summary")).toContainText("일시정지");
   await count(8);

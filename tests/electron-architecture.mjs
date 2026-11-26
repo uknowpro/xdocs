@@ -134,10 +134,14 @@ try {
     .locator(".arch-properties")
     .getByRole("button", { name: "aws_vpc.main", exact: true })
     .click();
-  const cidr = page.getByRole("textbox", {name:"CIDR", exact:true});
-  await expect(page.getByLabel("컴포넌트 표시 이름")).toHaveValue("aws_vpc.main");
+  const cidr = page.getByRole("textbox", { name: "CIDR", exact: true });
+  const componentName = page.getByLabel("컴포넌트 표시 이름");
+  await expect(componentName).toHaveValue("aws_vpc.main");
+  await expect(componentName).toBeFocused();
   await expect(cidr).toHaveValue("10.0.0.0/16");
+  await cidr.click();
   await cidr.fill("10.8.0.0/16");
+  await expect(cidr).toHaveValue("10.8.0.0/16");
   await expect(page.getByLabel("Terraform 파일").locator("option", {hasText:"zz_xdocs_override.tf.json"})).toHaveCount(1);
   await expect(page.locator(".save-state")).toContainText("로컬에 저장됨");
   await page.getByRole("button", { name: "코드 추출", exact: true }).click();

@@ -700,6 +700,7 @@ try {
   const defaultEndpoint = "http://defaults.intranet.invalid/team/v1";
   const defaultModel = "company-test-model";
   const defaultTarget = defaultEndpoint + "/chat/completions";
+  const defaultStatus = canStore ? "기본 연결 사용 · 저장된 토큰 사용" : "기본 연결 사용";
   async function sendUsingDefault(instance, currentPage, message) {
     await instance.evaluate(async ({ dialog, session }, { port, target }) => {
       const show = dialog.showMessageBox;
@@ -717,8 +718,14 @@ try {
     try {
       const before = calls.length;
       await expect(currentPage.getByRole("dialog", { name: "세션 설정" })).toBeHidden();
-      await currentPage.getByLabel("xcode 메시지").fill(message);
-      await currentPage.getByRole("button", { name: "전송", exact: true }).click();
+      await expect(currentPage.locator(".xcode .connection-source")).toHaveText(defaultStatus);
+      const composer = currentPage.getByLabel("xcode 메시지");
+      await composer.click();
+      await composer.fill(message);
+      await expect(composer).toHaveValue(message);
+      const sendMessage = currentPage.getByRole("button", { name: "전송", exact: true });
+      await expect(sendMessage).toBeEnabled();
+      await sendMessage.click();
       await expect(currentPage.locator(".chat-answer").last()).toContainText("검토 결과 complete");
       await expect(currentPage.getByRole("button", { name: "중지", exact: true })).toBeHidden();
       assert.ok(calls.length > before);
@@ -763,7 +770,6 @@ try {
   await page.evaluate(() => localStorage.setItem("xdocs.xcode.settings", "shown"));
   const current = await createSession(page);
   const connectionState = page.locator(".xcode .connection-source");
-  const defaultStatus = canStore ? "기본 연결 사용 · 저장된 토큰 사용" : "기본 연결 사용";
   await expect(connectionState).toHaveText(defaultStatus);
   await sendUsingDefault(app, page, "first request with the saved default");
   if (!(await page.getByLabel("API 주소").isVisible()))
